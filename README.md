@@ -148,15 +148,17 @@ vocavision/
 ├── web/                    # Next.js 웹 애플리케이션
 │   ├── src/
 │   │   ├── app/           # Next.js 14 App Router 페이지
-│   │   │   ├── dashboard/ # 대시보드
-│   │   │   ├── learn/     # 플래시카드 학습
-│   │   │   ├── quiz/      # 퀴즈 모드
-│   │   │   ├── words/     # 단어 탐색 및 상세
-│   │   │   ├── bookmarks/ # 북마크
-│   │   │   ├── history/   # 학습 기록
-│   │   │   ├── statistics/# 상세 통계
-│   │   │   ├── settings/  # 설정
-│   │   │   └── pricing/   # 가격 페이지
+│   │   │   ├── dashboard/     # 대시보드
+│   │   │   ├── learn/         # 플래시카드 학습
+│   │   │   ├── quiz/          # 퀴즈 모드
+│   │   │   ├── words/         # 단어 탐색 및 상세
+│   │   │   ├── collections/   # 컬렉션 목록 및 상세
+│   │   │   ├── achievements/  # 업적 시스템
+│   │   │   ├── bookmarks/     # 북마크
+│   │   │   ├── history/       # 학습 기록
+│   │   │   ├── statistics/    # 상세 통계
+│   │   │   ├── settings/      # 설정
+│   │   │   └── pricing/       # 가격 페이지
 │   │   ├── components/    # 재사용 가능한 컴포넌트
 │   │   └── lib/           # 유틸리티, API 클라이언트
 │   └── Dockerfile         # 프론트엔드 컨테이너
@@ -170,6 +172,7 @@ vocavision/
 │   └── app.json           # Expo 설정
 │
 ├── docker-compose.yml     # 전체 스택 오케스트레이션
+├── nginx.conf             # Nginx 역방향 프록시 설정
 ├── deploy.sh              # 배포 자동화 스크립트
 ├── .env.example           # 환경 변수 템플릿
 ├── QUICKSTART.md          # 빠른 시작 가이드
@@ -394,18 +397,20 @@ npm run web
 ### ✅ 완료된 기능
 
 - [x] 사용자 인증 (회원가입, 로그인)
-- [x] 101개 단어 데이터베이스
+- [x] 101개 단어 데이터베이스 (4개 컬렉션)
 - [x] 플래시카드 학습 시스템
 - [x] SM-2 간격 반복 알고리즘
 - [x] 퀴즈 모드
+- [x] 컬렉션 시스템 (목록 및 상세 페이지)
+- [x] 업적 시스템 (9개 마일스톤)
 - [x] 북마크 시스템
 - [x] 일일 목표
 - [x] 학습 기록
-- [x] 상세 통계
-- [x] 업적 시스템
+- [x] 상세 통계 (차트 및 분석)
 - [x] 설정 페이지
+- [x] 랜딩 페이지 (마케팅 콘텐츠 포함)
 - [x] 가격 페이지
-- [x] Docker 배포
+- [x] Docker 배포 (Nginx 포함)
 - [x] 포괄적인 문서
 
 ### 🔄 진행 중
