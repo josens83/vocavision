@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
-import { progressAPI, authAPI } from '@/lib/api';
+import axios from 'axios';
 
-interface Stats {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+interface UserStats {
   totalWordsLearned: number;
   currentStreak: number;
   longestStreak: number;
@@ -15,13 +17,14 @@ interface Stats {
 
 interface Progress {
   id: string;
+  wordId: string;
   masteryLevel: string;
   correctCount: number;
   incorrectCount: number;
   totalReviews: number;
+  lastReviewDate: string | null;
   word: {
     word: string;
-    definition: string;
     difficulty: string;
   };
 }
@@ -30,7 +33,7 @@ export default function StatisticsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
 
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
   const [progress, setProgress] = useState<Progress[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,13 +48,16 @@ export default function StatisticsPage() {
 
   const loadStatistics = async () => {
     try {
-      const [profileData, progressData] = await Promise.all([
-        authAPI.getProfile(),
-        progressAPI.getUserProgress(),
+      const token = localStorage.getItem('authToken');
+
+      const [progressResponse] = await Promise.all([
+        axios.get(`${API_URL}/progress`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
-      setStats(progressData.stats);
-      setProgress(progressData.progress || []);
+      setStats(progressResponse.data.stats);
+      setProgress(progressResponse.data.progress || []);
     } catch (error) {
       console.error('Failed to load statistics:', error);
     } finally {
@@ -59,23 +65,73 @@ export default function StatisticsPage() {
     }
   };
 
-  const masteryLevels = {
-    NEW: { label: '새로운', color: 'bg-gray-100 text-gray-700', count: 0 },
-    LEARNING: { label: '학습 중', color: 'bg-blue-100 text-blue-700', count: 0 },
-    FAMILIAR: { label: '익숙함', color: 'bg-green-100 text-green-700', count: 0 },
-    MASTERED: { label: '마스터', color: 'bg-purple-100 text-purple-700', count: 0 },
+  const getMasteryDistribution = () => {
+    const distribution = {
+      NEW: 0,
+      LEARNING: 0,
+      FAMILIAR: 0,
+      MASTERED: 0,
+    };
+
+    progress.forEach((p) => {
+      distribution[p.masteryLevel as keyof typeof distribution]++;
+    });
+
+    return distribution;
   };
 
-  // Count by mastery level
-  progress.forEach((p) => {
-    if (masteryLevels[p.masteryLevel as keyof typeof masteryLevels]) {
-      masteryLevels[p.masteryLevel as keyof typeof masteryLevels].count++;
-    }
-  });
+  const getDifficultyDistribution = () => {
+    const distribution = {
+      BEGINNER: 0,
+      INTERMEDIATE: 0,
+      ADVANCED: 0,
+      EXPERT: 0,
+    };
 
-  const totalReviews = progress.reduce((sum, p) => sum + p.totalReviews, 0);
-  const totalCorrect = progress.reduce((sum, p) => sum + p.correctCount, 0);
-  const accuracy = totalReviews > 0 ? Math.round((totalCorrect / totalReviews) * 100) : 0;
+    progress.forEach((p) => {
+      distribution[p.word.difficulty as keyof typeof distribution]++;
+    });
+
+    return distribution;
+  };
+
+  const getAccuracyRate = () => {
+    const total = progress.reduce((sum, p) => sum + p.totalReviews, 0);
+    const correct = progress.reduce((sum, p) => sum + p.correctCount, 0);
+    return total > 0 ? Math.round((correct / total) * 100) : 0;
+  };
+
+  const masteryDist = getMasteryDistribution();
+  const difficultyDist = getDifficultyDistribution();
+  const accuracyRate = getAccuracyRate();
+
+  const masteryColors = {
+    NEW: 'bg-gray-500',
+    LEARNING: 'bg-yellow-500',
+    FAMILIAR: 'bg-blue-500',
+    MASTERED: 'bg-green-500',
+  };
+
+  const masteryLabels = {
+    NEW: '새로운',
+    LEARNING: '학습 중',
+    FAMILIAR: '익숙함',
+    MASTERED: '마스터',
+  };
+
+  const difficultyColors = {
+    BEGINNER: 'bg-green-500',
+    INTERMEDIATE: 'bg-blue-500',
+    ADVANCED: 'bg-orange-500',
+    EXPERT: 'bg-red-500',
+  };
+
+  const difficultyLabels = {
+    BEGINNER: '초급',
+    INTERMEDIATE: '중급',
+    ADVANCED: '고급',
+    EXPERT: '전문가',
+  };
 
   if (loading) {
     return (
@@ -90,121 +146,241 @@ export default function StatisticsPage() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-600">VocaVision</h1>
-            <nav className="flex gap-4">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                대시보드
-              </Link>
-              <Link href="/learn" className="text-gray-600 hover:text-gray-900">
-                학습
-              </Link>
-              <Link href="/words" className="text-gray-600 hover:text-gray-900">
-                단어 탐색
-              </Link>
-              <Link href="/statistics" className="text-blue-600 font-semibold">
-                통계
-              </Link>
-            </nav>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+              ← 대시보드
+            </Link>
+            <h1 className="text-2xl font-bold text-blue-600">상세 통계</h1>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">학습 통계</h2>
-          <p className="text-gray-600">나의 학습 진행 상황을 확인하세요</p>
-        </div>
-
-        {/* Main Stats */}
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Overview Cards */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <StatCard
             icon="📚"
-            title="마스터한 단어"
+            title="학습한 단어"
             value={stats?.totalWordsLearned || 0}
-            color="bg-blue-500"
+            color="blue"
           />
           <StatCard
             icon="🔥"
             title="현재 연속"
             value={stats?.currentStreak || 0}
             suffix="일"
-            color="bg-orange-500"
+            color="orange"
           />
           <StatCard
             icon="🏆"
             title="최장 연속"
             value={stats?.longestStreak || 0}
             suffix="일"
-            color="bg-purple-500"
+            color="purple"
           />
           <StatCard
-            icon="📊"
+            icon="✅"
             title="정확도"
-            value={accuracy}
+            value={accuracyRate}
             suffix="%"
-            color="bg-green-500"
+            color="green"
           />
         </div>
 
-        {/* Mastery Breakdown */}
-        <div className="bg-white rounded-xl p-6 mb-8 shadow-sm">
-          <h3 className="text-xl font-bold mb-6">숙련도별 단어 수</h3>
-          <div className="grid md:grid-cols-4 gap-4">
-            {Object.entries(masteryLevels).map(([key, value]) => (
-              <div key={key} className={`${value.color} rounded-lg p-4`}>
-                <div className="text-2xl font-bold mb-1">{value.count}</div>
-                <div className="text-sm font-medium">{value.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Progress Chart (Placeholder) */}
-        <div className="bg-white rounded-xl p-6 mb-8 shadow-sm">
-          <h3 className="text-xl font-bold mb-6">학습 진행 그래프</h3>
-          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-            <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">📈</div>
-              <p>그래프 기능은 곧 추가됩니다</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Progress */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <h3 className="text-xl font-bold mb-6">최근 학습 단어</h3>
-          {progress.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              아직 학습한 단어가 없습니다
-            </div>
-          ) : (
+        <div className="grid md:grid-cols-2 gap-8 mb-8">
+          {/* Mastery Level Distribution */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-6">숙련도 분포</h2>
             <div className="space-y-4">
-              {progress.slice(0, 10).map((p) => (
-                <div
-                  key={p.id}
-                  className="flex justify-between items-center p-4 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <h4 className="font-semibold text-lg">{p.word.word}</h4>
-                    <p className="text-sm text-gray-600">{p.word.definition}</p>
-                  </div>
-                  <div className="text-right">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                        masteryLevels[p.masteryLevel as keyof typeof masteryLevels]?.color
-                      }`}
-                    >
-                      {masteryLevels[p.masteryLevel as keyof typeof masteryLevels]?.label}
-                    </span>
-                    <div className="text-sm text-gray-500 mt-1">
-                      {p.correctCount}/{p.totalReviews} 정답
+              {Object.entries(masteryDist).map(([level, count]) => {
+                const total = Object.values(masteryDist).reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? (count / total) * 100 : 0;
+
+                return (
+                  <div key={level}>
+                    <div className="flex justify-between mb-2">
+                      <span className="font-medium">
+                        {masteryLabels[level as keyof typeof masteryLabels]}
+                      </span>
+                      <span className="text-gray-600">
+                        {count}개 ({Math.round(percentage)}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div
+                        className={`${
+                          masteryColors[level as keyof typeof masteryColors]
+                        } h-3 rounded-full transition-all duration-500`}
+                        style={{ width: `${percentage}%` }}
+                      />
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Difficulty Distribution */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-6">난이도 분포</h2>
+            <div className="space-y-4">
+              {Object.entries(difficultyDist).map(([level, count]) => {
+                const total = Object.values(difficultyDist).reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? (count / total) * 100 : 0;
+
+                return (
+                  <div key={level}>
+                    <div className="flex justify-between mb-2">
+                      <span className="font-medium">
+                        {difficultyLabels[level as keyof typeof difficultyLabels]}
+                      </span>
+                      <span className="text-gray-600">
+                        {count}개 ({Math.round(percentage)}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div
+                        className={`${
+                          difficultyColors[level as keyof typeof difficultyColors]
+                        } h-3 rounded-full transition-all duration-500`}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Table */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm">
+          <h2 className="text-xl font-bold mb-6">단어별 진행 상황</h2>
+
+          {progress.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📖</div>
+              <h3 className="text-2xl font-bold mb-2">아직 학습한 단어가 없습니다</h3>
+              <p className="text-gray-600 mb-6">단어 학습을 시작하세요!</p>
+              <Link
+                href="/learn"
+                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+              >
+                학습 시작하기
+              </Link>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold">단어</th>
+                    <th className="px-4 py-3 text-left font-semibold">난이도</th>
+                    <th className="px-4 py-3 text-left font-semibold">숙련도</th>
+                    <th className="px-4 py-3 text-center font-semibold">정답</th>
+                    <th className="px-4 py-3 text-center font-semibold">오답</th>
+                    <th className="px-4 py-3 text-center font-semibold">총 복습</th>
+                    <th className="px-4 py-3 text-center font-semibold">정확도</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {progress.slice(0, 20).map((p) => {
+                    const accuracy = p.totalReviews > 0
+                      ? Math.round((p.correctCount / p.totalReviews) * 100)
+                      : 0;
+
+                    return (
+                      <tr key={p.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/words/${p.wordId}`}
+                            className="font-medium text-blue-600 hover:text-blue-800"
+                          >
+                            {p.word.word}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm text-gray-600">
+                            {difficultyLabels[p.word.difficulty as keyof typeof difficultyLabels]}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${
+                              masteryColors[p.masteryLevel as keyof typeof masteryColors]
+                            }`}
+                          >
+                            {masteryLabels[p.masteryLevel as keyof typeof masteryLabels]}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center text-green-600 font-medium">
+                          {p.correctCount}
+                        </td>
+                        <td className="px-4 py-3 text-center text-red-600 font-medium">
+                          {p.incorrectCount}
+                        </td>
+                        <td className="px-4 py-3 text-center font-medium">
+                          {p.totalReviews}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span
+                            className={`font-bold ${
+                              accuracy >= 80
+                                ? 'text-green-600'
+                                : accuracy >= 60
+                                ? 'text-yellow-600'
+                                : 'text-red-600'
+                            }`}
+                          >
+                            {accuracy}%
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {progress.length > 20 && (
+                <div className="text-center mt-6 text-gray-600">
+                  상위 20개 단어만 표시됩니다. 전체 {progress.length}개 중
                 </div>
-              ))}
+              )}
             </div>
           )}
+        </div>
+
+        {/* Learning Insights */}
+        <div className="grid md:grid-cols-3 gap-6 mt-8">
+          <div className="bg-blue-50 rounded-2xl p-6 border-2 border-blue-200">
+            <div className="text-4xl mb-3">💡</div>
+            <h3 className="text-lg font-bold mb-2">학습 팁</h3>
+            <p className="text-sm text-gray-700">
+              매일 꾸준히 학습하면 장기 기억으로 전환됩니다.
+              복습 알림을 놓치지 마세요!
+            </p>
+          </div>
+
+          <div className="bg-green-50 rounded-2xl p-6 border-2 border-green-200">
+            <div className="text-4xl mb-3">🎯</div>
+            <h3 className="text-lg font-bold mb-2">목표 달성</h3>
+            <p className="text-sm text-gray-700">
+              현재 연속 {stats?.currentStreak || 0}일!
+              {stats?.currentStreak && stats.currentStreak >= 7
+                ? ' 환상적인 성과입니다!'
+                : ' 7일 연속을 목표로 해보세요!'}
+            </p>
+          </div>
+
+          <div className="bg-purple-50 rounded-2xl p-6 border-2 border-purple-200">
+            <div className="text-4xl mb-3">📈</div>
+            <h3 className="text-lg font-bold mb-2">다음 단계</h3>
+            <p className="text-sm text-gray-700">
+              {masteryDist.MASTERED > 10
+                ? '더 어려운 단어에 도전해보세요!'
+                : '기본 단어를 먼저 마스터하세요!'}
+            </p>
+          </div>
         </div>
       </main>
     </div>
@@ -224,10 +400,17 @@ function StatCard({
   suffix?: string;
   color: string;
 }) {
+  const colorClasses = {
+    blue: 'bg-blue-50 text-blue-600',
+    orange: 'bg-orange-50 text-orange-600',
+    purple: 'bg-purple-50 text-purple-600',
+    green: 'bg-green-50 text-green-600',
+  }[color];
+
   return (
-    <div className={`${color} text-white rounded-xl p-6`}>
+    <div className={`${colorClasses} rounded-2xl p-6`}>
       <div className="text-3xl mb-2">{icon}</div>
-      <div className="text-sm opacity-90 mb-2">{title}</div>
+      <div className="text-sm opacity-80 mb-1">{title}</div>
       <div className="text-3xl font-bold">
         {value}
         {suffix && <span className="text-lg ml-1">{suffix}</span>}
