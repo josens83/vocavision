@@ -13,6 +13,8 @@ import progressRoutes from './routes/progress.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import bookmarkRoutes from './routes/bookmark.routes';
 import goalsRoutes from './routes/goals.routes';
+import achievementRoutes from './routes/achievement.routes';
+import collectionRoutes from './routes/collection.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error.middleware';
@@ -54,6 +56,8 @@ app.use('/api/progress', progressRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/goals', goalsRoutes);
+app.use('/api/achievements', achievementRoutes);
+app.use('/api/collections', collectionRoutes);
 
 // Error handling
 app.use(errorHandler);

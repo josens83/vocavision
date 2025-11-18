@@ -86,3 +86,39 @@ export const requireSubscription = async (
     next(error);
   }
 };
+
+export const optionalAuth = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+          userId: string;
+          role: string;
+        };
+
+        const user = await prisma.user.findUnique({
+          where: { id: decoded.userId },
+          select: { id: true, role: true }
+        });
+
+        if (user) {
+          req.userId = decoded.userId;
+          req.userRole = decoded.role;
+        }
+      } catch (error) {
+        // Token invalid, but continue without auth
+      }
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};

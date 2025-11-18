@@ -185,16 +185,26 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Links */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Link href="/words" className="bg-white rounded-2xl p-6 hover:shadow-lg transition">
             <div className="text-4xl mb-3">📖</div>
             <h3 className="text-lg font-bold mb-1">단어 탐색</h3>
             <p className="text-sm text-gray-600">모든 단어 검색 및 학습</p>
           </Link>
+          <Link href="/collections" className="bg-white rounded-2xl p-6 hover:shadow-lg transition">
+            <div className="text-4xl mb-3">📚</div>
+            <h3 className="text-lg font-bold mb-1">컬렉션</h3>
+            <p className="text-sm text-gray-600">주제별 단어 모음</p>
+          </Link>
           <Link href="/quiz" className="bg-white rounded-2xl p-6 hover:shadow-lg transition">
             <div className="text-4xl mb-3">🎯</div>
             <h3 className="text-lg font-bold mb-1">퀴즈 모드</h3>
             <p className="text-sm text-gray-600">실력을 테스트하세요</p>
+          </Link>
+          <Link href="/achievements" className="bg-white rounded-2xl p-6 hover:shadow-lg transition">
+            <div className="text-4xl mb-3">🏆</div>
+            <h3 className="text-lg font-bold mb-1">업적</h3>
+            <p className="text-sm text-gray-600">목표 달성하기</p>
           </Link>
           <Link href="/bookmarks" className="bg-white rounded-2xl p-6 hover:shadow-lg transition">
             <div className="text-4xl mb-3">⭐</div>
@@ -202,7 +212,7 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-600">저장한 단어 모음</p>
           </Link>
           <Link href="/history" className="bg-white rounded-2xl p-6 hover:shadow-lg transition">
-            <div className="text-4xl mb-3">📚</div>
+            <div className="text-4xl mb-3">📝</div>
             <h3 className="text-lg font-bold mb-1">학습 기록</h3>
             <p className="text-sm text-gray-600">복습 내역 확인</p>
           </Link>
