@@ -72,7 +72,8 @@ nano .env
 
 - **웹 애플리케이션**: http://localhost:3000
 - **백엔드 API**: http://localhost:3001
-- **API 문서**: http://localhost:3001/api-docs
+- **API 문서 (Swagger)**: http://localhost:3001/api-docs
+- **API JSON**: http://localhost:3001/api-docs.json
 
 ### 로컬 개발 모드
 
@@ -99,7 +100,8 @@ npm start
 
 - [**빠른 시작 가이드**](QUICKSTART.md) - 설치 및 설정 상세 가이드
 - [**배포 가이드**](DEPLOYMENT.md) - 프로덕션 배포 전체 가이드
-- [**API 문서**](backend/README.md) - REST API 엔드포인트 문서
+- [**API 문서 (Swagger)**](http://localhost:3001/api-docs) - 인터랙티브 API 문서
+- [**API 레퍼런스**](backend/README.md) - REST API 엔드포인트 문서
 
 ## 🏗️ 아키텍처
 
@@ -411,6 +413,8 @@ npm run web
 - [x] 랜딩 페이지 (마케팅 콘텐츠 포함)
 - [x] 가격 페이지
 - [x] Docker 배포 (Nginx 포함)
+- [x] 알림/리마인더 시스템
+- [x] Swagger API 문서화
 - [x] 포괄적인 문서
 
 ### 🔄 진행 중
@@ -418,7 +422,6 @@ npm run web
 - [ ] 이미지/비디오 컨텐츠 확장
 - [ ] AI 생성 연상법 고도화
 - [ ] 모바일 앱 완성
-- [ ] 알림/리마인더 시스템
 
 ### 📅 향후 계획
 
