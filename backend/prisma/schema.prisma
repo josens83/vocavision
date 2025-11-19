@@ -50,6 +50,13 @@ model User {
   studySessions StudySession[]
   achievements  UserAchievement[]
   bookmarks     Bookmark[]
+  notifications Notification[]
+
+  // Notification Preferences
+  emailNotifications    Boolean @default(true)
+  pushNotifications     Boolean @default(true)
+  reminderTime          String  @default("09:00") // HH:mm format
+  reminderDays          String  @default("1,2,3,4,5,6,7") // Days of week (1=Mon, 7=Sun)
 
   @@index([email])
 }
@@ -450,4 +457,36 @@ model Bookmark {
   @@unique([userId, wordId])
   @@index([userId])
   @@index([wordId])
+}
+
+// ============================================
+// Notifications
+// ============================================
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  type        NotificationType
+  title       String
+  message     String
+  data        String?  // JSON data for additional context
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([isRead])
+}
+
+enum NotificationType {
+  REVIEW_REMINDER    // Time to review words
+  STREAK_WARNING     // About to lose streak
+  STREAK_ACHIEVED    // Reached a streak milestone
+  ACHIEVEMENT_UNLOCK // New achievement unlocked
+  GOAL_COMPLETED     // Daily goal completed
+  GOAL_REMINDER      // Reminder to complete daily goal
+  WEEKLY_SUMMARY     // Weekly progress summary
+  NEW_WORDS          // New words available
 }

@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { progressAPI, authAPI } from '@/lib/api';
 import DailyGoalWidget from '@/components/dashboard/DailyGoalWidget';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 interface UserStats {
   totalWordsLearned: number;
@@ -24,6 +27,7 @@ export default function DashboardPage() {
 
   const [stats, setStats] = useState<UserStats | null>(null);
   const [dueReviews, setDueReviews] = useState<DueReview>({ count: 0 });
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,6 +37,7 @@ export default function DashboardPage() {
     }
 
     loadDashboardData();
+    loadNotificationCount();
   }, [user, router]);
 
   const loadDashboardData = async () => {
@@ -49,6 +54,18 @@ export default function DashboardPage() {
       console.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadNotificationCount = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await axios.get(`${API_URL}/notifications?limit=1`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUnreadNotifications(response.data.unreadCount);
+    } catch (error) {
+      console.error('Failed to load notification count:', error);
     }
   };
 
@@ -77,6 +94,14 @@ export default function DashboardPage() {
             </Link>
             <Link href="/statistics" className="text-gray-600 hover:text-blue-600 transition">
               통계
+            </Link>
+            <Link href="/notifications" className="relative text-gray-600 hover:text-blue-600 transition">
+              <span className="text-xl">🔔</span>
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                </span>
+              )}
             </Link>
             <Link href="/settings" className="text-gray-600 hover:text-blue-600 transition">
               설정
@@ -185,7 +210,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Links */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Link href="/words" className="bg-white rounded-2xl p-6 hover:shadow-lg transition">
             <div className="text-4xl mb-3">📖</div>
             <h3 className="text-lg font-bold mb-1">단어 탐색</h3>
@@ -220,6 +245,16 @@ export default function DashboardPage() {
             <div className="text-4xl mb-3">📊</div>
             <h3 className="text-lg font-bold mb-1">상세 통계</h3>
             <p className="text-sm text-gray-600">학습 진행 상황 확인</p>
+          </Link>
+          <Link href="/notifications" className="bg-white rounded-2xl p-6 hover:shadow-lg transition relative">
+            <div className="text-4xl mb-3">🔔</div>
+            <h3 className="text-lg font-bold mb-1">알림</h3>
+            <p className="text-sm text-gray-600">알림 및 리마인더</p>
+            {unreadNotifications > 0 && (
+              <span className="absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                {unreadNotifications}
+              </span>
+            )}
           </Link>
           <Link href="/settings" className="bg-white rounded-2xl p-6 hover:shadow-lg transition">
             <div className="text-4xl mb-3">⚙️</div>

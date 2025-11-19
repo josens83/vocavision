@@ -15,6 +15,7 @@ import bookmarkRoutes from './routes/bookmark.routes';
 import goalsRoutes from './routes/goals.routes';
 import achievementRoutes from './routes/achievement.routes';
 import collectionRoutes from './routes/collection.routes';
+import notificationRoutes from './routes/notification.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error.middleware';
@@ -58,6 +59,7 @@ app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/goals', goalsRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/collections', collectionRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Error handling
 app.use(errorHandler);
