@@ -11,11 +11,241 @@ import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = Router();
 
+/**
+ * @swagger
+ * /progress:
+ *   get:
+ *     summary: 사용자 학습 진행도 조회
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 학습 진행도 및 통계
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 stats:
+ *                   type: object
+ *                   properties:
+ *                     totalWordsLearned:
+ *                       type: integer
+ *                     currentStreak:
+ *                       type: integer
+ *                     longestStreak:
+ *                       type: integer
+ *                     lastActiveDate:
+ *                       type: string
+ *                       format: date-time
+ *                 progress:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/UserProgress'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.get('/', authenticateToken, getUserProgress);
+
+/**
+ * @swagger
+ * /progress/due:
+ *   get:
+ *     summary: 복습 예정 단어 조회
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 복습 예정 단어 목록
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 count:
+ *                   type: integer
+ *                   description: 복습 예정 단어 수
+ *                 words:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Word'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.get('/due', authenticateToken, getDueReviews);
+
+/**
+ * @swagger
+ * /progress/history:
+ *   get:
+ *     summary: 학습 기록 조회
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: 조회할 기록 수
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: 시작 위치
+ *     responses:
+ *       200:
+ *         description: 학습 기록 목록
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 reviews:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       wordId:
+ *                         type: string
+ *                       rating:
+ *                         type: integer
+ *                       learningMethod:
+ *                         type: string
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                 total:
+ *                   type: integer
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.get('/history', authenticateToken, getReviewHistory);
+
+/**
+ * @swagger
+ * /progress/review:
+ *   post:
+ *     summary: 복습 결과 제출
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - wordId
+ *               - rating
+ *             properties:
+ *               wordId:
+ *                 type: string
+ *                 description: 단어 ID
+ *               rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *                 description: "평가 (1: Again, 2: Hard, 3: Good, 4: Easy, 5: Perfect)"
+ *               learningMethod:
+ *                 type: string
+ *                 enum: [FLASHCARD, IMAGE, VIDEO, RHYME, MNEMONIC, ETYMOLOGY, QUIZ, WRITING]
+ *                 description: 학습 방법
+ *               responseTime:
+ *                 type: integer
+ *                 description: 응답 시간 (밀리초)
+ *               sessionId:
+ *                 type: string
+ *                 description: 학습 세션 ID
+ *     responses:
+ *       200:
+ *         description: 업데이트된 진행도
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserProgress'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.post('/review', authenticateToken, submitReview);
+
+/**
+ * @swagger
+ * /progress/session/start:
+ *   post:
+ *     summary: 학습 세션 시작
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: 생성된 세션
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 userId:
+ *                   type: string
+ *                 startTime:
+ *                   type: string
+ *                   format: date-time
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.post('/session/start', authenticateToken, startStudySession);
+
+/**
+ * @swagger
+ * /progress/session/end:
+ *   post:
+ *     summary: 학습 세션 종료
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - sessionId
+ *             properties:
+ *               sessionId:
+ *                 type: string
+ *                 description: 세션 ID
+ *     responses:
+ *       200:
+ *         description: 종료된 세션 정보
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 duration:
+ *                   type: integer
+ *                   description: 학습 시간 (초)
+ *                 wordsStudied:
+ *                   type: integer
+ *                 wordsCorrect:
+ *                   type: integer
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.post('/session/end', authenticateToken, endStudySession);
 
 export default router;
