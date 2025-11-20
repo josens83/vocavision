@@ -6,6 +6,10 @@ import { PrismaClient } from '@prisma/client';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 
+// Utilities
+import logger from './utils/logger';
+import { validateEnv } from './utils/validateEnv';
+
 // Routes
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
@@ -23,13 +27,19 @@ import notificationRoutes from './routes/notification.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { rateLimiter } from './middleware/rateLimiter.middleware';
 
+// Load environment variables
 dotenv.config();
+
+// Validate environment variables
+validateEnv();
 
 const app: Application = express();
 const PORT = process.env.PORT || 3001;
 
 // Prisma Client
-export const prisma = new PrismaClient();
+export const prisma = new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+});
 
 // Middleware
 app.use(helmet());
@@ -42,12 +52,47 @@ app.use(express.urlencoded({ extended: true }));
 app.use(rateLimiter);
 
 // Health check endpoints
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+  try {
+    // Check database connection
+    await prisma.$queryRaw`SELECT 1`;
+
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      database: 'connected'
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      database: 'connected'
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 });
 
 // Swagger API Documentation
@@ -80,18 +125,43 @@ app.use(errorHandler);
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`🚀 Server running on port ${PORT}`);
+  logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
+  logger.info(`💚 Health Check: http://localhost:${PORT}/health`);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully...');
+  logger.info('SIGTERM received, shutting down gracefully...');
   server.close(() => {
-    console.log('Server closed');
+    logger.info('Server closed');
   });
   await prisma.$disconnect();
+  logger.info('Database connection closed');
   process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received, shutting down gracefully...');
+  server.close(() => {
+    logger.info('Server closed');
+  });
+  await prisma.$disconnect();
+  logger.info('Database connection closed');
+  process.exit(0);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error: Error) => {
+  logger.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason: unknown) => {
+  logger.error('Unhandled Rejection:', reason);
+  process.exit(1);
 });
 
 export default app;

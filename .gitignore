@@ -67,3 +67,27 @@ web-build/
 *.pem
 .vercel
 .turbo
+
+# Docker
+docker-compose.override.yml
+
+# Testing
+playwright-report/
+test-results/
+screenshots/
+
+# SSL Certificates
+ssl/
+*.crt
+*.csr
+
+# Backup files
+backup/
+*.backup
+*.bak
+*.sql.gz
+
+# Temporary files
+tmp/
+temp/
+*.tmp
