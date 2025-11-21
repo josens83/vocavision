@@ -260,3 +260,36 @@ export const mnemonicsAPI = {
     return response.data;
   },
 };
+
+// Leagues API - Duolingo-style league system (Phase 3-1)
+export const leaguesAPI = {
+  // Get current user's league info
+  getMyLeague: async () => {
+    const response = await api.get('/leagues/my');
+    return response.data;
+  },
+
+  // Get leaderboard for current week
+  getLeaderboard: async (params?: {
+    leagueId?: string;
+    limit?: number;
+  }) => {
+    const response = await api.get('/leagues/leaderboard', { params });
+    return response.data;
+  },
+
+  // Get league history
+  getLeagueHistory: async (params?: {
+    page?: number;
+    limit?: number;
+  }) => {
+    const response = await api.get('/leagues/history', { params });
+    return response.data;
+  },
+
+  // Get league info
+  getLeagueInfo: async (tier: string) => {
+    const response = await api.get(`/leagues/info/${tier}`);
+    return response.data;
+  },
+};
