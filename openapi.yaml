@@ -1,0 +1,813 @@
+openapi: 3.0.3
+info:
+  title: VocaVision API
+  description: |
+    The VocaVision API provides programmatic access to vocabulary learning data, user progress, and gamification features.
+
+    ## Features
+    - 🔐 JWT-based authentication
+    - 🚀 High performance (< 200ms p95)
+    - 📊 Comprehensive learning data
+    - 🎮 Gamification features
+    - 🔔 Real-time updates via WebSockets
+
+    ## Authentication
+    All endpoints require authentication via Bearer token except `/auth/*` endpoints.
+
+    ## Rate Limiting
+    - Free: 30 req/min
+    - Premium: 100 req/min
+    - Enterprise: 1000 req/min
+
+    ## Support
+    - Documentation: https://docs.vocavision.com
+    - Support: support@vocavision.com
+  version: 1.0.0
+  contact:
+    name: VocaVision API Team
+    email: api@vocavision.com
+    url: https://vocavision.com
+  license:
+    name: Proprietary
+    url: https://vocavision.com/terms
+
+servers:
+  - url: https://api.vocavision.com/v1
+    description: Production server
+  - url: https://api-staging.vocavision.com/v1
+    description: Staging server
+  - url: http://localhost:3000/api/v1
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Users
+    description: User profile and settings management
+  - name: Words
+    description: Vocabulary words and definitions
+  - name: Learning
+    description: Learning sessions and progress tracking
+  - name: Quiz
+    description: Quiz creation and management
+  - name: Statistics
+    description: User learning statistics and analytics
+  - name: Collections
+    description: Word collections and decks
+  - name: Achievements
+    description: Gamification achievements and badges
+  - name: Social
+    description: Leaderboards and social features
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from login or register endpoint
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Validation failed
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+            requestId:
+              type: string
+              format: uuid
+            timestamp:
+              type: string
+              format: date-time
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: user_123
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        username:
+          type: string
+          example: johndoe
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        avatar:
+          type: string
+          format: uri
+          example: https://cdn.vocavision.com/avatars/user_123.jpg
+        role:
+          type: string
+          enum: [free, premium, enterprise]
+          example: premium
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Tokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIs...
+        refreshToken:
+          type: string
+          example: rt_abc123xyz...
+        expiresIn:
+          type: integer
+          example: 900
+          description: Token expiry in seconds
+
+    Word:
+      type: object
+      properties:
+        id:
+          type: string
+          example: word_123
+        word:
+          type: string
+          example: serendipity
+        pronunciation:
+          type: string
+          example: /ˌserənˈdipədē/
+        phonetic:
+          type: string
+          example: se-ruhn-DIP-i-tee
+        partOfSpeech:
+          type: string
+          enum: [noun, verb, adjective, adverb, preposition, conjunction, interjection]
+          example: noun
+        difficulty:
+          type: string
+          enum: [beginner, intermediate, advanced]
+          example: advanced
+        frequency:
+          type: string
+          enum: [common, uncommon, rare]
+          example: uncommon
+        definitions:
+          type: array
+          items:
+            type: object
+            properties:
+              definition:
+                type: string
+              example:
+                type: string
+              context:
+                type: string
+        synonyms:
+          type: array
+          items:
+            type: string
+        antonyms:
+          type: array
+          items:
+            type: string
+        etymology:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+        audio:
+          type: object
+          properties:
+            us:
+              type: string
+              format: uri
+            uk:
+              type: string
+              format: uri
+        createdAt:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 1500
+        totalPages:
+          type: integer
+          example: 75
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: false
+
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: AUTHENTICATION_REQUIRED
+              message: Authentication required
+              requestId: req_abc123
+              timestamp: '2024-01-21T10:00:00Z'
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Request limit per time window
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests in current window
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Time when rate limit resets (Unix timestamp)
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds to wait before retrying
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: Create a new user account with email and password
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - username
+                - acceptTerms
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SecurePass123!
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 20
+                  pattern: '^[a-zA-Z0-9_]+$'
+                  example: johndoe
+                firstName:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: John
+                lastName:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                  example: Doe
+                acceptTerms:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  tokens:
+                    $ref: '#/components/schemas/Tokens'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Email or username already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate user and receive access tokens
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: SecurePass123!
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  tokens:
+                    $ref: '#/components/schemas/Tokens'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '423':
+          description: Account locked due to too many failed attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Get new access token using refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: rt_abc123xyz...
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tokens'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: Invalidate current session and tokens
+      operationId: logoutUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: rt_abc123xyz...
+      responses:
+        '204':
+          description: Logout successful
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current user
+      description: Get authenticated user's profile information
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/User'
+                  - type: object
+                    properties:
+                      settings:
+                        type: object
+                        properties:
+                          language:
+                            type: string
+                            example: en
+                          dailyGoal:
+                            type: integer
+                            example: 20
+                          theme:
+                            type: string
+                            enum: [light, dark, auto]
+                            example: dark
+                      stats:
+                        type: object
+                        properties:
+                          totalWords:
+                            type: integer
+                            example: 350
+                          wordsLearned:
+                            type: integer
+                            example: 280
+                          currentStreak:
+                            type: integer
+                            example: 15
+                          totalXP:
+                            type: integer
+                            example: 12500
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      tags:
+        - Users
+      summary: Update user profile
+      description: Update authenticated user's profile information
+      operationId: updateUserProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  example: John
+                lastName:
+                  type: string
+                  example: Smith
+                username:
+                  type: string
+                  example: johnsmith
+                avatar:
+                  type: string
+                  format: byte
+                  description: Base64 encoded image data
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /words:
+    get:
+      tags:
+        - Words
+      summary: List words
+      description: Get paginated list of vocabulary words
+      operationId: listWords
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: difficulty
+          in: query
+          description: Filter by difficulty
+          schema:
+            type: string
+            enum: [beginner, intermediate, advanced]
+        - name: status
+          in: query
+          description: Filter by learning status
+          schema:
+            type: string
+            enum: [new, learning, learned, mastered]
+        - name: search
+          in: query
+          description: Search in word or definition
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [createdAt, difficulty, frequency]
+            default: createdAt
+        - name: order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Words retrieved successfully
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Word'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /words/{id}:
+    get:
+      tags:
+        - Words
+      summary: Get word by ID
+      description: Get detailed information about a specific word
+      operationId: getWordById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Word ID
+          schema:
+            type: string
+            example: word_123
+      responses:
+        '200':
+          description: Word retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Word'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /words/{id}/learn:
+    post:
+      tags:
+        - Words
+      summary: Add word to learning
+      description: Add a word to user's learning list
+      operationId: learnWord
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Word ID
+          schema:
+            type: string
+            example: word_123
+      responses:
+        '201':
+          description: Word added to learning list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wordId:
+                    type: string
+                    example: word_123
+                  status:
+                    type: string
+                    example: learning
+                  addedAt:
+                    type: string
+                    format: date-time
+                  nextReview:
+                    type: string
+                    format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Word already in learning list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /statistics:
+    get:
+      tags:
+        - Statistics
+      summary: Get user statistics
+      description: Get comprehensive user learning statistics
+      operationId: getUserStatistics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          description: Time period for statistics
+          schema:
+            type: string
+            enum: [7d, 30d, 90d, 1y, all]
+            default: 30d
+        - name: groupBy
+          in: query
+          description: Group results by time unit
+          schema:
+            type: string
+            enum: [day, week, month]
+            default: day
+      responses:
+        '200':
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period:
+                    type: string
+                    example: 30d
+                  summary:
+                    type: object
+                    properties:
+                      totalWords:
+                        type: integer
+                        example: 350
+                      wordsLearned:
+                        type: integer
+                        example: 280
+                      accuracy:
+                        type: number
+                        format: float
+                        example: 85.5
+                      totalTimeSpent:
+                        type: integer
+                        example: 3600
+                      totalXP:
+                        type: integer
+                        example: 12500
+                      currentStreak:
+                        type: integer
+                        example: 15
+                  timeline:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                        wordsLearned:
+                          type: integer
+                        accuracy:
+                          type: number
+                        timeSpent:
+                          type: integer
+                        xpEarned:
+                          type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+security:
+  - BearerAuth: []
