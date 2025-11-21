@@ -5,6 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import axios from 'axios';
+import LearningHeatmap from '@/components/statistics/LearningHeatmap';
+import PredictiveAnalytics from '@/components/statistics/PredictiveAnalytics';
+import WordAccuracyChart from '@/components/statistics/WordAccuracyChart';
+
+// Benchmarking: Advanced statistics dashboard
+// Phase 2-2: 고급 통계 및 예측 분석 대시보드
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -251,6 +257,21 @@ export default function StatisticsPage() {
               })}
             </div>
           </div>
+        </div>
+
+        {/* NEW: Learning Heatmap - Phase 2-2 */}
+        <div className="mb-8">
+          <LearningHeatmap />
+        </div>
+
+        {/* NEW: Predictive Analytics - Phase 2-2 */}
+        <div className="mb-8">
+          <PredictiveAnalytics />
+        </div>
+
+        {/* NEW: Word Accuracy Chart - Phase 2-2 */}
+        <div className="mb-8">
+          <WordAccuracyChart limit={15} />
         </div>
 
         {/* Progress Table */}
