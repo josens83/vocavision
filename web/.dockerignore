@@ -1,0 +1,17 @@
+# Phase 7-4: Docker Ignore File
+node_modules
+.next
+.git
+.github
+*.md
+.env*.local
+.vscode
+.idea
+coverage
+playwright-report
+test-results
+*.test.ts
+*.test.tsx
+*.spec.ts
+__tests__
+e2e
