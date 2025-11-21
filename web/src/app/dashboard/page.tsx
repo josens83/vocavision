@@ -217,6 +217,16 @@ export default function DashboardPage() {
             <h3 className="text-lg font-bold mb-1">학습 게임</h3>
             <p className="text-sm text-purple-100">Match, True/False, Write 모드</p>
           </Link>
+          <Link href="/decks" className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white rounded-2xl p-6 hover:shadow-lg transition">
+            <div className="text-4xl mb-3">🃏</div>
+            <h3 className="text-lg font-bold mb-1">커스텀 덱</h3>
+            <p className="text-sm text-indigo-100">Anki 스타일 덱 관리</p>
+          </Link>
+          <Link href="/leagues" className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white rounded-2xl p-6 hover:shadow-lg transition">
+            <div className="text-4xl mb-3">🏆</div>
+            <h3 className="text-lg font-bold mb-1">리그</h3>
+            <p className="text-sm text-yellow-100">주간 경쟁 & 리더보드</p>
+          </Link>
           <Link href="/collections" className="bg-white rounded-2xl p-6 hover:shadow-lg transition">
             <div className="text-4xl mb-3">📚</div>
             <h3 className="text-lg font-bold mb-1">컬렉션</h3>
