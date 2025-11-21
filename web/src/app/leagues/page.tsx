@@ -24,7 +24,7 @@ interface LeagueInfo {
   weekStartDate: string;
   weekEndDate: string;
   promotionZone: number; // Top N users get promoted
-  demotion Zone: number; // Bottom N users get demoted
+  demotionZone: number; // Bottom N users get demoted
   stayZone: number; // Middle users stay
 }
 
