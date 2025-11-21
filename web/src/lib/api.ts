@@ -1,32 +1,110 @@
-import axios from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import {
+  calculateBackoff,
+  isRetryableError,
+  sleep,
+  DEFAULT_RETRY_CONFIG,
+  RetryConfig,
+  retryMetrics,
+} from './utils/retry';
+
+// Phase 2-1: Enhanced API client with retry logic and error handling
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+// Extend axios config with retry settings
+interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retryCount?: number;
+  _startTime?: number;
+  retryConfig?: Partial<RetryConfig>;
+}
 
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30s default timeout
 });
 
-// Add auth token to requests
-api.interceptors.request.use((config) => {
+// Request interceptor - Add auth token and track retry count
+api.interceptors.request.use((config: ExtendedAxiosRequestConfig) => {
+  // Add auth token
   const token = localStorage.getItem('authToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Initialize retry count
+  if (config._retryCount === undefined) {
+    config._retryCount = 0;
+    config._startTime = Date.now();
+  }
+
   return config;
 });
 
-// Handle token expiration
+// Response interceptor - Handle errors with retry logic
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response) => {
+    // Track successful request
+    const config = response.config as ExtendedAxiosRequestConfig;
+    retryMetrics.recordRequest(true, config._retryCount || 0);
+    return response;
+  },
+  async (error: AxiosError) => {
+    const config = error.config as ExtendedAxiosRequestConfig;
+
+    // Handle 401 separately (no retry for auth errors)
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
       window.location.href = '/auth/login';
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    // Get retry config
+    const retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config?.retryConfig };
+
+    // Check if retry is possible
+    if (!config || config._retryCount === undefined) {
+      retryMetrics.recordRequest(false, 0);
+      return Promise.reject(error);
+    }
+
+    // Check if error is retryable
+    if (!isRetryableError(error, retryConfig)) {
+      retryMetrics.recordRequest(false, config._retryCount);
+      return Promise.reject(error);
+    }
+
+    // Check if max retries reached
+    if (config._retryCount >= retryConfig.maxRetries) {
+      console.error(`❌ Max retries (${retryConfig.maxRetries}) reached for ${config.url}`);
+      retryMetrics.recordRequest(false, config._retryCount);
+      return Promise.reject(error);
+    }
+
+    // Increment retry count
+    config._retryCount++;
+
+    // Calculate backoff delay
+    const delay = calculateBackoff(
+      config._retryCount - 1,
+      retryConfig.baseDelay,
+      retryConfig.maxDelay,
+      retryConfig.enableJitter
+    );
+
+    console.warn(
+      `⚠️ Retry ${config._retryCount}/${retryConfig.maxRetries} for ${config.url} after ${delay}ms`,
+      `Status: ${error.response?.status || 'Network Error'}`
+    );
+
+    // Wait before retry
+    await sleep(delay);
+
+    // Retry request
+    return api.request(config);
   }
 );
 
