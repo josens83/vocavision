@@ -196,3 +196,67 @@ export const decksAPI = {
     return response.data;
   },
 };
+
+// Mnemonics API - Memrise-style community mnemonics (Phase 2-3)
+export const mnemonicsAPI = {
+  // Get mnemonics for a word
+  getMnemonicsForWord: async (wordId: string, params?: {
+    limit?: number;
+    sortBy?: 'popular' | 'recent';
+  }) => {
+    const response = await api.get(`/mnemonics/word/${wordId}`, { params });
+    return response.data;
+  },
+
+  // Submit a new mnemonic
+  submitMnemonic: async (data: {
+    wordId: string;
+    content: string;
+    imageUrl?: string;
+  }) => {
+    const response = await api.post('/mnemonics', data);
+    return response.data;
+  },
+
+  // Update a mnemonic
+  updateMnemonic: async (mnemonicId: string, data: {
+    content?: string;
+    imageUrl?: string;
+  }) => {
+    const response = await api.put(`/mnemonics/${mnemonicId}`, data);
+    return response.data;
+  },
+
+  // Delete a mnemonic
+  deleteMnemonic: async (mnemonicId: string) => {
+    const response = await api.delete(`/mnemonics/${mnemonicId}`);
+    return response.data;
+  },
+
+  // Vote on a mnemonic
+  voteMnemonic: async (mnemonicId: string, vote: 'up' | 'down') => {
+    const response = await api.post(`/mnemonics/${mnemonicId}/vote`, { vote });
+    return response.data;
+  },
+
+  // Remove vote
+  removeVote: async (mnemonicId: string) => {
+    const response = await api.delete(`/mnemonics/${mnemonicId}/vote`);
+    return response.data;
+  },
+
+  // Report inappropriate mnemonic
+  reportMnemonic: async (mnemonicId: string, reason: string) => {
+    const response = await api.post(`/mnemonics/${mnemonicId}/report`, { reason });
+    return response.data;
+  },
+
+  // Get top mnemonics (community favorites)
+  getTopMnemonics: async (params?: {
+    limit?: number;
+    period?: 'week' | 'month' | 'all';
+  }) => {
+    const response = await api.get('/mnemonics/top', { params });
+    return response.data;
+  },
+};

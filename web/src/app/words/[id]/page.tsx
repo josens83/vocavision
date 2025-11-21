@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { wordsAPI, progressAPI } from '@/lib/api';
+import CommunityMnemonics from '@/components/learning/CommunityMnemonics';
+
+// Benchmarking: Enhanced word detail page with community mnemonics
+// Phase 2-3: Memrise-style community engagement
 
 interface Word {
   id: string;
@@ -276,23 +280,34 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
               </div>
             )}
 
-            {activeTab === 'mnemonics' && word.mnemonics && (
+            {activeTab === 'mnemonics' && (
               <div className="space-y-6">
-                {word.mnemonics.map((mnemonic: any, i: number) => (
-                  <div key={i} className="border-l-4 border-yellow-400 bg-yellow-50 p-6 rounded-r-xl">
-                    <h4 className="text-xl font-bold mb-3">{mnemonic.title}</h4>
-                    <p className="text-lg text-gray-800 mb-4 whitespace-pre-wrap">{mnemonic.content}</p>
-                    {mnemonic.koreanHint && (
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <p className="text-blue-900">💡 {mnemonic.koreanHint}</p>
+                {/* Official Mnemonics */}
+                {word.mnemonics && word.mnemonics.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-bold text-gray-900">📘 공식 암기법</h3>
+                    {word.mnemonics.map((mnemonic: any, i: number) => (
+                      <div key={i} className="border-l-4 border-yellow-400 bg-yellow-50 p-6 rounded-r-xl">
+                        <h4 className="text-xl font-bold mb-3">{mnemonic.title}</h4>
+                        <p className="text-lg text-gray-800 mb-4 whitespace-pre-wrap">{mnemonic.content}</p>
+                        {mnemonic.koreanHint && (
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <p className="text-blue-900">💡 {mnemonic.koreanHint}</p>
+                          </div>
+                        )}
+                        <div className="mt-4 flex items-center gap-4 text-sm text-gray-600">
+                          <span>⭐ {mnemonic.rating.toFixed(1)} ({mnemonic.ratingCount}명 평가)</span>
+                          <span className="capitalize">{mnemonic.source.replace('_', ' ').toLowerCase()}</span>
+                        </div>
                       </div>
-                    )}
-                    <div className="mt-4 flex items-center gap-4 text-sm text-gray-600">
-                      <span>⭐ {mnemonic.rating.toFixed(1)} ({mnemonic.ratingCount}명 평가)</span>
-                      <span className="capitalize">{mnemonic.source.replace('_', ' ').toLowerCase()}</span>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {/* Community Mnemonics - Phase 2-3 */}
+                <div className="mt-8">
+                  <CommunityMnemonics wordId={word.id} wordText={word.word} />
+                </div>
               </div>
             )}
 
