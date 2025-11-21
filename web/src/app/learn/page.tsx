@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, useLearningStore } from '@/lib/store';
 import { progressAPI, wordsAPI } from '@/lib/api';
-import FlashCard from '@/components/learning/FlashCard';
+import FlashCardGesture from '@/components/learning/FlashCardGesture';
 
 interface Word {
   id: string;
@@ -230,8 +230,8 @@ export default function LearnPage() {
           />
         </div>
 
-        {/* Flash Card */}
-        <FlashCard word={currentWord} onAnswer={handleAnswer} />
+        {/* Flash Card - Benchmarking: Quizlet 스타일 제스처 (스와이프, 더블탭) */}
+        <FlashCardGesture word={currentWord} onAnswer={handleAnswer} />
       </div>
     </div>
   );
