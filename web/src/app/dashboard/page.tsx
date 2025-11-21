@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { progressAPI, authAPI } from '@/lib/api';
-import DailyGoalWidget from '@/components/dashboard/DailyGoalWidget';
+import DailyGoalWidgetEnhanced from '@/components/dashboard/DailyGoalWidgetEnhanced';
+import StreakWidget from '@/components/dashboard/StreakWidget';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -119,8 +120,9 @@ export default function DashboardPage() {
           <p className="text-gray-600">오늘도 영어 실력을 키워볼까요?</p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        {/* Stats Grid - Benchmarking: Duolingo 스타일 스트릭 시스템 */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {/* 학습한 단어 통계 */}
           <StatCard
             icon="📚"
             title="학습한 단어"
@@ -128,19 +130,13 @@ export default function DashboardPage() {
             suffix="개"
             color="blue"
           />
-          <StatCard
-            icon="🔥"
-            title="현재 연속"
-            value={stats?.currentStreak || 0}
-            suffix="일"
-            color="orange"
-          />
-          <StatCard
-            icon="🏆"
-            title="최장 연속"
-            value={stats?.longestStreak || 0}
-            suffix="일"
-            color="purple"
+
+          {/* Duolingo 스타일 스트릭 위젯 - 불꽃 애니메이션, 마일스톤 배지, 스트릭 프리즈 */}
+          <StreakWidget
+            currentStreak={stats?.currentStreak || 0}
+            longestStreak={stats?.longestStreak || 0}
+            lastActiveDate={stats?.lastActiveDate || null}
+            streakFreezeCount={0}  // TODO: 백엔드에서 스트릭 프리즈 아이템 구현 후 연동
           />
         </div>
 
@@ -170,8 +166,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Daily Goal Widget */}
-          <DailyGoalWidget />
+          {/* Daily Goal Widget - Benchmarking: Duolingo 스타일 원형 게이지 + 축하 애니메이션 */}
+          <DailyGoalWidgetEnhanced />
 
           {/* Subscription Status */}
           <div className="bg-white rounded-2xl p-6 border-2 border-gray-200">
