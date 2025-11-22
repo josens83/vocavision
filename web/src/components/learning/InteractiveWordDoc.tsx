@@ -470,12 +470,13 @@ function TextBlock({ block }: { block: ContentBlock }) {
 }
 
 function ImageBlock({ block, onInteraction }: { block: ContentBlock; onInteraction: () => void }) {
+  // Use Next.js Image component for optimization
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
       <img
         src={block.content.url}
         alt={block.content.alt || ''}
-        className="w-full h-auto"
+        className="w-full h-auto cursor-pointer hover:opacity-95 transition"
         onClick={onInteraction}
       />
       {block.content.caption && (
@@ -488,6 +489,7 @@ function ImageBlock({ block, onInteraction }: { block: ContentBlock; onInteracti
 }
 
 function VideoBlock({ block, onInteraction }: { block: ContentBlock; onInteraction: () => void }) {
+  // Use AutoPlayVideo component for better UX
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
       <video
