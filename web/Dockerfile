@@ -1,47 +1,33 @@
-# Web Frontend Dockerfile
-FROM node:20-alpine AS base
+# Phase 7-4: Docker Multi-stage Build
+# Production-optimized Docker image
 
-# Install dependencies only when needed
+# Base stage
+FROM node:18-alpine AS base
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Dependencies stage
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
-WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
 
-# Install dependencies
-RUN npm ci
-
-# Rebuild the source code only when needed
+# Builder stage
 FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY package*.json ./
+RUN npm ci
 COPY . .
-
-# Set build-time environment variables
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-
-# Build Next.js application
 RUN npm run build
 
-# Production image, copy all the files and run Next.js
+# Runner stage
 FROM base AS runner
-WORKDIR /app
-
-ENV NODE_ENV production
-
-# Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy built application
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-# Change ownership
-RUN chown -R nextjs:nodejs /app
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs
 
@@ -50,5 +36,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# Start Next.js
 CMD ["node", "server.js"]
