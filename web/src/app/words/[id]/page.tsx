@@ -148,6 +148,12 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
               >
                 {bookmarked ? '⭐' : '☆'}
               </button>
+              <Link
+                href={`/words/${word.id}/learn`}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition font-semibold flex items-center gap-2"
+              >
+                🎓 Interactive Learning
+              </Link>
               <button
                 onClick={handleAddToLearning}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
