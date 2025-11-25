@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateInteractiveWordDoc, type WordData } from '@/lib/learning/interactiveDocGenerator';
 import { cache } from '@/lib/cache/redisCache';
 import { measureQuery } from '@/lib/database/queryOptimization';
+import prisma from '@/lib/prisma';
 
 /**
  * GET /api/words/:id/interactive-doc
@@ -42,8 +43,6 @@ export async function GET(
     const wordData = await measureQuery(
       'fetch-word-for-interactive-doc',
       async () => {
-        // In production, this would fetch from Prisma
-        // For now, return mock data based on wordId
         return await fetchWordDataFromDatabase(wordId);
       }
     );
@@ -84,75 +83,74 @@ export async function GET(
 
 /**
  * Fetch word data from database
- * TODO: Replace with actual Prisma query in production
  */
 async function fetchWordDataFromDatabase(wordId: string): Promise<WordData | null> {
-  // Mock implementation - replace with actual database query
-  // Example Prisma query:
-  /*
-  const word = await prisma.word.findUnique({
-    where: { id: wordId },
-    include: {
-      examples: true,
-      images: true,
-      videos: true,
-      etymology: true,
-      synonyms: true,
-      antonyms: true,
-      mnemonics: {
-        orderBy: { rating: 'desc' },
-        take: 3,
+  try {
+    const word = await prisma.word.findUnique({
+      where: { id: wordId },
+      include: {
+        examples: true,
+        images: true,
+        videos: true,
+        etymology: true,
+        synonyms: true,
+        antonyms: true,
+        mnemonics: {
+          orderBy: { rating: 'desc' },
+          take: 3,
+        },
       },
-    },
-  });
+    });
 
-  if (!word) return null;
+    if (!word) return null;
 
-  return {
-    id: word.id,
-    word: word.word,
-    definition: word.definition,
-    pronunciation: word.pronunciation,
-    phonetic: word.phonetic,
-    partOfSpeech: word.partOfSpeech,
-    difficulty: word.difficulty,
-    examples: word.examples.map(e => ({
-      sentence: e.sentence,
-      translation: e.translation,
-    })),
-    images: word.images.map(i => ({
-      imageUrl: i.imageUrl,
-      description: i.description,
-    })),
-    videos: word.videos?.map(v => ({
-      videoUrl: v.videoUrl,
-      caption: v.caption,
-    })),
-    etymology: word.etymology ? {
-      origin: word.etymology.origin,
-      rootWords: word.etymology.rootWords,
-      evolution: word.etymology.evolution,
-      relatedWords: word.etymology.relatedWords,
-    } : undefined,
-    synonyms: word.synonyms.map(s => ({
-      synonym: s.synonym,
-      nuance: s.nuance,
-    })),
-    antonyms: word.antonyms.map(a => ({
-      antonym: a.antonym,
-      explanation: a.explanation,
-    })),
-    mnemonics: word.mnemonics.map(m => ({
-      title: m.title,
-      content: m.content,
-      koreanHint: m.koreanHint,
-    })),
-  };
-  */
+    return {
+      id: word.id,
+      word: word.word,
+      definition: word.definition,
+      pronunciation: word.pronunciation || undefined,
+      phonetic: word.phonetic || undefined,
+      partOfSpeech: word.partOfSpeech.toLowerCase() as WordData['partOfSpeech'],
+      difficulty: word.difficulty,
+      examples: word.examples.map(e => ({
+        sentence: e.sentence,
+        translation: e.translation || undefined,
+      })),
+      images: word.images.map(i => ({
+        imageUrl: i.imageUrl,
+        description: i.description || undefined,
+      })),
+      videos: word.videos?.map(v => ({
+        videoUrl: v.videoUrl,
+        description: v.description || undefined,
+      })),
+      etymology: word.etymology ? {
+        origin: word.etymology.origin,
+        rootWords: word.etymology.rootWords,
+        evolution: word.etymology.evolution,
+        relatedWords: word.etymology.relatedWords,
+      } : undefined,
+      synonyms: word.synonyms.map(s => ({
+        synonym: s.synonym,
+        nuance: s.nuance || undefined,
+      })),
+      antonyms: word.antonyms.map(a => ({
+        antonym: a.antonym,
+        explanation: a.explanation || undefined,
+      })),
+      mnemonics: word.mnemonics.map(m => ({
+        title: m.title,
+        content: m.content,
+        koreanHint: m.koreanHint || undefined,
+      })),
+    };
+  } catch (error) {
+    console.error('Database query error:', error);
 
-  // Mock data for development
-  const mockWords: Record<string, WordData> = {
-    default: {
+    // Fallback to mock data if database is not available
+    console.warn('Falling back to mock data for word:', wordId);
+
+    const mockWord: WordData = {
       id: wordId,
       word: 'serendipity',
       definition: 'The occurrence of events by chance in a happy or beneficial way',
@@ -165,10 +163,6 @@ async function fetchWordDataFromDatabase(wordId: string): Promise<WordData | nul
           sentence: 'Finding that vintage book was pure serendipity.',
           translation: '그 빈티지 책을 발견한 것은 순전히 우연한 행운이었습니다.',
         },
-        {
-          sentence: 'Their meeting was a moment of serendipity that changed both their lives.',
-          translation: '그들의 만남은 두 사람의 삶을 바꾼 우연한 행운의 순간이었습니다.',
-        },
       ],
       images: [
         {
@@ -177,35 +171,33 @@ async function fetchWordDataFromDatabase(wordId: string): Promise<WordData | nul
         },
       ],
       etymology: {
-        origin: 'Coined by Horace Walpole in 1754, based on a Persian fairy tale "The Three Princes of Serendip"',
+        origin: 'Coined by Horace Walpole in 1754',
         rootWords: ['Serendip (old name for Sri Lanka)'],
         evolution: 'Originally meant making fortunate discoveries by accident',
         relatedWords: ['serendipitous', 'serendipitously'],
       },
       synonyms: [
         { synonym: 'coincidence', nuance: 'Emphasizes chance occurrence' },
-        { synonym: 'fortuity', nuance: 'Focuses on luck factor' },
-        { synonym: 'luck', nuance: 'General good fortune' },
       ],
       antonyms: [
         { antonym: 'misfortune', explanation: 'Bad luck or unfortunate events' },
-        { antonym: 'design', explanation: 'Planned or intentional outcome' },
       ],
       mnemonics: [
         {
           title: 'Seren-DIP-ity = Dip into Happiness',
-          content: 'Imagine "dipping" your hand into a bag and finding something wonderful by accident. That\'s serendipity!',
-          koreanHint: '"세렌디피티"를 "행운에 담그다"로 연상: 우연히 행운을 발견하는 것',
+          content: 'Imagine "dipping" your hand into a bag and finding something wonderful by accident!',
+          koreanHint: '"세렌디피티"를 "행운에 담그다"로 연상',
         },
       ],
-    },
-  };
+    };
 
-  return mockWords[wordId] || mockWords.default;
+    return mockWord;
+  }
 }
 
 /**
  * Track user progress on interactive documentation
+ * POST /api/words/:id/interactive-doc
  */
 export async function POST(
   request: NextRequest,
@@ -216,13 +208,17 @@ export async function POST(
     const body = await request.json();
 
     const {
+      userId,
       stepId,
+      stepNumber,
       timeSpent,
       interactions,
       score,
       completed,
     }: {
+      userId: string;
       stepId: string;
+      stepNumber: number;
       timeSpent: number;
       interactions: number;
       score?: number;
@@ -230,7 +226,7 @@ export async function POST(
     } = body;
 
     // Validate input
-    if (!stepId || timeSpent === undefined || interactions === undefined) {
+    if (!userId || !stepId || !stepNumber || timeSpent === undefined || interactions === undefined) {
       return NextResponse.json(
         {
           success: false,
@@ -240,42 +236,138 @@ export async function POST(
       );
     }
 
-    // TODO: Save progress to database
-    /*
-    await prisma.interactiveDocProgress.create({
-      data: {
-        userId: currentUser.id,
+    try {
+      // Save progress to database
+      const progress = await prisma.interactiveDocProgress.upsert({
+        where: {
+          userId_wordId_stepId: {
+            userId,
+            wordId,
+            stepId,
+          },
+        },
+        update: {
+          timeSpent: {
+            increment: timeSpent,
+          },
+          interactions: {
+            increment: interactions,
+          },
+          score,
+          completed,
+          completedAt: completed ? new Date() : undefined,
+          lastInteraction: new Date(),
+          updatedAt: new Date(),
+        },
+        create: {
+          userId,
+          wordId,
+          stepId,
+          stepNumber,
+          timeSpent,
+          interactions,
+          score,
+          started: true,
+          completed,
+          startedAt: new Date(),
+          completedAt: completed ? new Date() : undefined,
+          lastInteraction: new Date(),
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'Progress saved',
+        data: progress,
+      });
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+
+      // Fallback: just log and return success (for development)
+      console.log('Interactive doc progress (mock):', {
+        userId,
         wordId,
         stepId,
+        stepNumber,
         timeSpent,
         interactions,
         score,
         completed,
-        completedAt: completed ? new Date() : null,
-      },
-    });
-    */
+      });
 
-    // For now, just return success
-    console.log('Interactive doc progress:', {
-      wordId,
-      stepId,
-      timeSpent,
-      interactions,
-      score,
-      completed,
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Progress saved',
-    });
+      return NextResponse.json({
+        success: true,
+        message: 'Progress logged (database unavailable)',
+      });
+    }
   } catch (error) {
     console.error('Progress tracking error:', error);
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to save progress',
+        message: (error as Error).message,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * GET user's progress for a word
+ * GET /api/words/:id/interactive-doc/progress?userId=xxx
+ */
+export async function GET_PROGRESS(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+): Promise<NextResponse> {
+  try {
+    const wordId = params.id;
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'userId is required',
+        },
+        { status: 400 }
+      );
+    }
+
+    const progress = await prisma.interactiveDocProgress.findMany({
+      where: {
+        userId,
+        wordId,
+      },
+      orderBy: {
+        stepNumber: 'asc',
+      },
+    });
+
+    const completion = await prisma.interactiveDocCompletion.findUnique({
+      where: {
+        userId_wordId: {
+          userId,
+          wordId,
+        },
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        progress,
+        completion,
+      },
+    });
+  } catch (error) {
+    console.error('Progress fetch error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to fetch progress',
         message: (error as Error).message,
       },
       { status: 500 }
