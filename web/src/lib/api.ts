@@ -371,3 +371,62 @@ export const leaguesAPI = {
     return response.data;
   },
 };
+
+// Chat API - AI 학습 도우미 챗봇
+export interface ChatMessageRequest {
+  message: string;
+  conversationId?: string;
+  wordId?: string;
+  context?: 'general' | 'word_help' | 'quiz' | 'grammar' | 'pronunciation';
+}
+
+export interface ChatMessageResponse {
+  id: string;
+  content: string;
+  role: 'assistant';
+  timestamp: string;
+  suggestions?: string[];
+  relatedWords?: {
+    id: string;
+    word: string;
+    definition: string;
+  }[];
+}
+
+export const chatAPI = {
+  // Send a message to AI assistant
+  sendMessage: async (data: ChatMessageRequest): Promise<ChatMessageResponse> => {
+    const response = await api.post('/chat/message', data);
+    return response.data;
+  },
+
+  // Get conversation history (if stored on server)
+  getConversations: async (params?: { limit?: number; page?: number }) => {
+    const response = await api.get('/chat/conversations', { params });
+    return response.data;
+  },
+
+  // Get a specific conversation
+  getConversation: async (conversationId: string) => {
+    const response = await api.get(`/chat/conversations/${conversationId}`);
+    return response.data;
+  },
+
+  // Delete a conversation
+  deleteConversation: async (conversationId: string) => {
+    const response = await api.delete(`/chat/conversations/${conversationId}`);
+    return response.data;
+  },
+
+  // Get quick suggestions based on context
+  getSuggestions: async (context?: string) => {
+    const response = await api.get('/chat/suggestions', { params: { context } });
+    return response.data;
+  },
+
+  // Get word-specific help
+  getWordHelp: async (wordId: string, helpType: 'meaning' | 'example' | 'mnemonic' | 'pronunciation') => {
+    const response = await api.get(`/chat/word-help/${wordId}`, { params: { helpType } });
+    return response.data;
+  },
+};

@@ -22,6 +22,7 @@ import goalsRoutes from './routes/goals.routes';
 import achievementRoutes from './routes/achievement.routes';
 import collectionRoutes from './routes/collection.routes';
 import notificationRoutes from './routes/notification.routes';
+import chatRoutes from './routes/chat.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error.middleware';
@@ -119,6 +120,7 @@ app.use('/api/goals', goalsRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Error handling
 app.use(errorHandler);
