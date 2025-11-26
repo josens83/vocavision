@@ -382,6 +382,7 @@ enum LearningMethod {
   ETYMOLOGY
   QUIZ
   WRITING
+  INTERACTIVE_DOC  // n8n-style interactive documentation
 }
 
 // ============================================
@@ -489,4 +490,62 @@ enum NotificationType {
   GOAL_REMINDER      // Reminder to complete daily goal
   WEEKLY_SUMMARY     // Weekly progress summary
   NEW_WORDS          // New words available
+}
+
+// ============================================
+// Interactive Documentation Progress
+// ============================================
+
+model InteractiveDocProgress {
+  id              String   @id @default(uuid())
+  userId          String
+  wordId          String
+  stepId          String   // Step identifier (step-introduction, step-visualization, etc.)
+  stepNumber      Int      // 1-5
+
+  // Progress tracking
+  started         Boolean  @default(false)
+  completed       Boolean  @default(false)
+  timeSpent       Int      @default(0)  // Total time spent in seconds
+  interactions    Int      @default(0)  // Number of user interactions
+  score           Float?   // Quiz/exercise score (0-100)
+
+  // Timestamps
+  startedAt       DateTime?
+  completedAt     DateTime?
+  lastInteraction DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, wordId, stepId])
+  @@index([userId])
+  @@index([wordId])
+  @@index([userId, wordId])
+  @@index([completed])
+}
+
+// Word completion tracking for interactive docs
+model InteractiveDocCompletion {
+  id              String   @id @default(uuid())
+  userId          String
+  wordId          String
+
+  // Completion stats
+  stepsCompleted  Int      @default(0)  // Number of steps completed (0-5)
+  totalSteps      Int      @default(5)  // Total number of steps
+  totalTimeSpent  Int      @default(0)  // Total time spent in seconds
+  averageScore    Float?   // Average quiz/exercise score
+  completionRate  Float    @default(0)  // Percentage (0-100)
+
+  // Status
+  isCompleted     Boolean  @default(false)
+  completedAt     DateTime?
+  lastAccessedAt  DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, wordId])
+  @@index([userId])
+  @@index([wordId])
+  @@index([isCompleted])
 }
