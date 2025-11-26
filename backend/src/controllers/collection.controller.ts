@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { prisma } from '../index';
 import { AuthRequest } from '../middleware/auth.middleware';
 
@@ -8,65 +8,19 @@ export const getAllCollections = async (
   next: NextFunction
 ) => {
   try {
-    const userId = req.userId;
-
-    const collections = await prisma.wordCollection.findMany({
-      include: {
-        _count: {
-          select: { words: true },
-        },
-      },
+    const collections = await prisma.collection.findMany({
+      where: { isPublic: true },
       orderBy: { createdAt: 'asc' },
     });
 
-    // If user is authenticated, get their progress for each collection
-    let collectionsWithProgress = collections;
-
-    if (userId) {
-      const userProgress = await prisma.userProgress.findMany({
-        where: { userId },
-        include: {
-          word: {
-            select: {
-              collections: {
-                select: {
-                  collectionId: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      collectionsWithProgress = collections.map((collection) => {
-        const wordsInCollection = userProgress.filter((progress) =>
-          progress.word.collections.some((c) => c.collectionId === collection.id)
-        );
-
-        const masteredWords = wordsInCollection.filter(
-          (progress) => progress.masteryLevel === 'MASTERED'
-        ).length;
-
-        return {
-          ...collection,
-          wordCount: collection._count.words,
-          progressCount: wordsInCollection.length,
-          masteredCount: masteredWords,
-          progressPercentage:
-            collection._count.words > 0
-              ? Math.round((masteredWords / collection._count.words) * 100)
-              : 0,
-        };
-      });
-    } else {
-      collectionsWithProgress = collections.map((collection) => ({
-        ...collection,
-        wordCount: collection._count.words,
-        progressCount: 0,
-        masteredCount: 0,
-        progressPercentage: 0,
-      }));
-    }
+    // Add word count based on wordIds array
+    const collectionsWithProgress = collections.map((collection) => ({
+      ...collection,
+      wordCount: collection.wordIds?.length || 0,
+      progressCount: 0,
+      masteredCount: 0,
+      progressPercentage: 0,
+    }));
 
     res.json({ collections: collectionsWithProgress });
   } catch (error) {
@@ -83,37 +37,52 @@ export const getCollectionById = async (
     const { id } = req.params;
     const userId = req.userId;
 
-    const collection = await prisma.wordCollection.findUnique({
+    const collection = await prisma.collection.findUnique({
       where: { id },
-      include: {
-        words: {
-          include: {
-            word: {
-              select: {
-                id: true,
-                word: true,
-                definition: true,
-                pronunciation: true,
-                difficulty: true,
-              },
-            },
-          },
-        },
-      },
     });
 
     if (!collection) {
       return res.status(404).json({ message: 'Collection not found' });
     }
 
-    // Get user progress for words in this collection
-    let wordsWithProgress = collection.words.map((cw) => ({
-      ...cw.word,
+    // Get words by IDs from the collection
+    const words = collection.wordIds?.length
+      ? await prisma.word.findMany({
+          where: {
+            id: { in: collection.wordIds },
+          },
+          select: {
+            id: true,
+            word: true,
+            definition: true,
+            pronunciation: true,
+            difficulty: true,
+          },
+        })
+      : [];
+
+    // Get user progress if authenticated
+    interface WordProgress {
+      masteryLevel: string;
+      correctCount: number;
+      totalReviews: number;
+      lastReviewDate: Date | null;
+    }
+
+    let wordsWithProgress: Array<{
+      id: string;
+      word: string;
+      definition: string;
+      pronunciation: string | null;
+      difficulty: string;
+      progress: WordProgress | null;
+    }> = words.map((word) => ({
+      ...word,
       progress: null,
     }));
 
-    if (userId) {
-      const wordIds = collection.words.map((cw) => cw.wordId);
+    if (userId && words.length > 0) {
+      const wordIds = words.map((w) => w.id);
       const userProgress = await prisma.userProgress.findMany({
         where: {
           userId,
@@ -121,10 +90,10 @@ export const getCollectionById = async (
         },
       });
 
-      wordsWithProgress = collection.words.map((cw) => {
-        const progress = userProgress.find((p) => p.wordId === cw.wordId);
+      wordsWithProgress = words.map((word) => {
+        const progress = userProgress.find((p) => p.wordId === word.id);
         return {
-          ...cw.word,
+          ...word,
           progress: progress
             ? {
                 masteryLevel: progress.masteryLevel,
@@ -140,7 +109,7 @@ export const getCollectionById = async (
     res.json({
       ...collection,
       words: wordsWithProgress,
-      wordCount: collection.words.length,
+      wordCount: words.length,
     });
   } catch (error) {
     next(error);

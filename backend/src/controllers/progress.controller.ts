@@ -296,16 +296,7 @@ export const getReviewHistory = async (
 
     const reviews = await prisma.review.findMany({
       where: { userId },
-      include: {
-        word: {
-          select: {
-            word: true,
-            definition: true,
-            difficulty: true,
-          },
-        },
-      },
-      orderBy: { reviewedAt: 'desc' },
+      orderBy: { createdAt: 'desc' },
       take: 200, // Limit to last 200 reviews
     });
 

@@ -150,7 +150,7 @@ export const generateImage = async (
       size: '1024x1024',
     });
 
-    const imageUrl = image.data[0].url;
+    const imageUrl = image.data?.[0]?.url;
 
     if (!imageUrl) {
       throw new AppError('Failed to generate image', 500);

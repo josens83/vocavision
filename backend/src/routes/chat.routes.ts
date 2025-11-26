@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authenticateToken } from '../middleware/auth.middleware';
 import {
   sendMessage,
   getSuggestions,
@@ -80,7 +80,7 @@ const router = Router();
  *                       definition:
  *                         type: string
  */
-router.post('/message', authMiddleware, sendMessage);
+router.post('/message', authenticateToken, sendMessage);
 
 /**
  * @swagger
@@ -100,7 +100,7 @@ router.post('/message', authMiddleware, sendMessage);
  *       200:
  *         description: 제안 목록
  */
-router.get('/suggestions', authMiddleware, getSuggestions);
+router.get('/suggestions', authenticateToken, getSuggestions);
 
 /**
  * @swagger
@@ -127,7 +127,7 @@ router.get('/suggestions', authMiddleware, getSuggestions);
  *       200:
  *         description: 단어 도움말
  */
-router.get('/word-help/:wordId', authMiddleware, getWordHelp);
+router.get('/word-help/:wordId', authenticateToken, getWordHelp);
 
 /**
  * @swagger
@@ -152,7 +152,7 @@ router.get('/word-help/:wordId', authMiddleware, getWordHelp);
  *       200:
  *         description: 대화 목록
  */
-router.get('/conversations', authMiddleware, getConversations);
+router.get('/conversations', authenticateToken, getConversations);
 
 /**
  * @swagger
@@ -172,7 +172,7 @@ router.get('/conversations', authMiddleware, getConversations);
  *       200:
  *         description: 대화 내용
  */
-router.get('/conversations/:conversationId', authMiddleware, getConversation);
+router.get('/conversations/:conversationId', authenticateToken, getConversation);
 
 /**
  * @swagger
@@ -192,6 +192,6 @@ router.get('/conversations/:conversationId', authMiddleware, getConversation);
  *       200:
  *         description: 삭제 성공
  */
-router.delete('/conversations/:conversationId', authMiddleware, deleteConversation);
+router.delete('/conversations/:conversationId', authenticateToken, deleteConversation);
 
 export default router;
