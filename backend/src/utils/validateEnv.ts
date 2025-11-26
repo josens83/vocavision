@@ -47,36 +47,36 @@ export function validateEnv(): EnvConfig {
   try {
     const env = envSchema.parse(process.env);
 
-    logger.info(' Environment variables validated successfully');
+    logger.info('[OK] Environment variables validated successfully');
 
     // Log warnings for missing optional features
     if (!env.OPENAI_API_KEY) {
-      logger.warn('   OPENAI_API_KEY not set - AI features will be disabled');
+      logger.warn('[WARN] OPENAI_API_KEY not set - AI features will be disabled');
     }
 
     if (!env.STRIPE_SECRET_KEY) {
-      logger.warn('   STRIPE_SECRET_KEY not set - Payment features will be disabled');
+      logger.warn('[WARN] STRIPE_SECRET_KEY not set - Payment features will be disabled');
     }
 
     if (!env.CLOUDINARY_CLOUD_NAME) {
-      logger.warn('   Cloudinary credentials not set - Image upload will be disabled');
+      logger.warn('[WARN] Cloudinary credentials not set - Image upload will be disabled');
     }
 
     if (env.NODE_ENV === 'production') {
       // Additional production checks
       if (env.JWT_SECRET.length < 32) {
-        logger.warn('   JWT_SECRET is too short for production use');
+        logger.warn('[WARN] JWT_SECRET is too short for production use');
       }
 
       if (env.CORS_ORIGIN === 'http://localhost:3000') {
-        logger.warn('   CORS_ORIGIN is set to localhost in production');
+        logger.warn('[WARN] CORS_ORIGIN is set to localhost in production');
       }
     }
 
     return env;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      logger.error('L Environment validation failed:');
+      logger.error('[ERROR] Environment validation failed:');
       error.errors.forEach((err) => {
         logger.error(`  - ${err.path.join('.')}: ${err.message}`);
       });
