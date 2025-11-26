@@ -7,7 +7,7 @@
  * @module services/emailService
  */
 
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 
 export interface EmailOptions {
   to: string | string[];
