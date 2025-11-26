@@ -31,6 +31,15 @@ import { rateLimiter } from './middleware/rateLimiter.middleware';
 // Load environment variables
 dotenv.config();
 
+// Debug: Log available environment variables (Railway debugging)
+console.log('=== Environment Variables Debug ===');
+console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'SET (length: ' + process.env.DATABASE_URL.length + ')' : 'NOT SET');
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'SET (length: ' + process.env.JWT_SECRET.length + ')' : 'NOT SET');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('PORT:', process.env.PORT);
+console.log('All env keys:', Object.keys(process.env).filter(k => !k.startsWith('npm_')).join(', '));
+console.log('=================================');
+
 // Validate environment variables
 validateEnv();
 
