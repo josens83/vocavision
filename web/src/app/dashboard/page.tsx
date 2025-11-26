@@ -87,6 +87,9 @@ export default function DashboardPage() {
             VocaVision
           </Link>
           <div className="flex items-center gap-6">
+            <Link href="/chat" className="text-cyan-600 hover:text-cyan-700 transition font-medium">
+              AI 도우미
+            </Link>
             <Link href="/words" className="text-gray-600 hover:text-blue-600 transition">
               단어
             </Link>
@@ -207,6 +210,12 @@ export default function DashboardPage() {
 
         {/* Quick Links */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Link href="/chat" className="bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-2xl p-6 hover:shadow-lg transition relative overflow-hidden">
+            <div className="absolute top-2 right-2 bg-white/20 text-xs px-2 py-1 rounded-full">NEW</div>
+            <div className="text-4xl mb-3">🤖</div>
+            <h3 className="text-lg font-bold mb-1">AI 학습 도우미</h3>
+            <p className="text-sm text-cyan-100">단어 질문, 퀴즈, 학습 팁</p>
+          </Link>
           <Link href="/words" className="bg-white rounded-2xl p-6 hover:shadow-lg transition">
             <div className="text-4xl mb-3">📖</div>
             <h3 className="text-lg font-bold mb-1">단어 탐색</h3>
