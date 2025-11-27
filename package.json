@@ -3,16 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "종합 영어 단어 학습 플랫폼 - 이미지, 동영상, Rhyming, 연상법, 어원 학습",
-  "workspaces": [
-    "web"
-  ],
   "scripts": {
-    "dev:backend": "npm run dev --workspace=backend",
-    "dev:web": "npm run dev --workspace=web",
-    "dev:mobile": "npm run start --workspace=mobile",
-    "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces",
-    "lint": "npm run lint --workspaces",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:web": "cd web && npm run dev",
+    "dev:mobile": "cd mobile && npm run start",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "devDependencies": {
