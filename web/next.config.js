@@ -1,5 +1,4 @@
 /** @type {import('next').NextConfig} */
-const path = require('path');
 
 // Phase 3-1: Bundle Optimization - Netflix/Google level
 const nextConfig = {
@@ -32,26 +31,6 @@ const nextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
-    // Fix React instance duplication in monorepo
-    // Try local node_modules first, then root node_modules
-    const reactPath = path.resolve(__dirname, 'node_modules/react');
-    const reactDomPath = path.resolve(__dirname, 'node_modules/react-dom');
-    const rootReactPath = path.resolve(__dirname, '../node_modules/react');
-    const rootReactDomPath = path.resolve(__dirname, '../node_modules/react-dom');
-
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      react: reactPath,
-      'react-dom': reactDomPath,
-    };
-
-    // Ensure consistent React resolution across the entire bundle
-    config.resolve.modules = [
-      path.resolve(__dirname, 'node_modules'),
-      path.resolve(__dirname, '../node_modules'),
-      'node_modules',
-    ];
-
     // Production optimizations
     if (!dev && !isServer) {
       // Enable tree shaking
