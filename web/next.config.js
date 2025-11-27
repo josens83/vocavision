@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
 
 // Phase 3-1: Bundle Optimization - Netflix/Google level
 const nextConfig = {
@@ -28,6 +29,13 @@ const nextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Fix React instance duplication in monorepo
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      react: path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+    };
+
     // Production optimizations
     if (!dev && !isServer) {
       // Enable tree shaking
@@ -36,17 +44,6 @@ const nextConfig = {
         usedExports: true,
         sideEffects: false,
       };
-
-      // Analyze bundle size (uncomment when needed)
-      // if (process.env.ANALYZE === 'true') {
-      //   const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-      //   config.plugins.push(
-      //     new BundleAnalyzerPlugin({
-      //       analyzerMode: 'static',
-      //       reportFilename: './bundle-analysis.html',
-      //     })
-      //   );
-      // }
     }
 
     return config;
