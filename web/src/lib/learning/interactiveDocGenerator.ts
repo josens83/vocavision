@@ -658,7 +658,3 @@ export function getSampleInteractiveWordDoc(): InteractiveWordDocData {
   return generateInteractiveWordDoc(sampleWordData);
 }
 
-/**
- * Export type definitions
- */
-export type { WordData };
