@@ -253,8 +253,7 @@ export default function DeckStudyPage() {
             <div className="max-w-2xl mx-auto mb-8">
               <FlashCardGesture
                 word={currentWord}
-                onSwipeLeft={handleSwipeLeft}
-                onSwipeRight={handleSwipeRight}
+                onAnswer={(correct, rating) => handleReview(rating)}
               />
             </div>
 
