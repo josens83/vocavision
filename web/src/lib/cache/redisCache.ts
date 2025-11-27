@@ -492,8 +492,5 @@ export class CacheWarmer {
 /**
  * Export utilities
  */
-export {
-  RedisCacheClient,
-  redisClient,
-  CacheStats,
-};
+export { RedisCacheClient, redisClient };
+export type { CacheStats };
