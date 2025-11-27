@@ -4,9 +4,6 @@
 const nextConfig = {
   output: 'standalone',
 
-  // Monorepo: Transpile shared packages
-  transpilePackages: ['@vocavision/shared'],
-
   // Image optimization
   images: {
     domains: ['res.cloudinary.com', 'via.placeholder.com'],
