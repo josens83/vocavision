@@ -475,14 +475,3 @@ export function initializeBackgroundJobs(): void {
 
   console.log('Background jobs initialized');
 }
-
-/**
- * Export types and utilities
- */
-export type {
-  Job,
-  JobHandler,
-  QueueConfig,
-  JobStatus,
-  JobPriority,
-};
