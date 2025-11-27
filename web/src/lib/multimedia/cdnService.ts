@@ -436,14 +436,3 @@ export function createMediaAssets(
   return assets.map((asset) => createMediaAsset(asset.type, asset.publicId, asset.metadata));
 }
 
-/**
- * Export utilities
- */
-export {
-  CDNProvider,
-  MediaType,
-  ImageTransformOptions,
-  VideoTransformOptions,
-  CDNConfig,
-  CDNService,
-};

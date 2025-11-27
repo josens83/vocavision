@@ -229,7 +229,7 @@ export function addBreadcrumb(breadcrumb: {
   errorTracker.addBreadcrumb({
     message: breadcrumb.message,
     category: breadcrumb.category,
-    level: breadcrumb.level || 'info',
+    level: (breadcrumb.level === 'fatal' ? 'error' : breadcrumb.level) || 'info',
     data: breadcrumb.data,
   });
 }

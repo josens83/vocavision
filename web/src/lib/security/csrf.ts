@@ -70,10 +70,7 @@ export function validateCSRFToken(token: string): boolean {
   const valid = token === storedToken;
 
   if (!valid) {
-    logger.error('[CSRF] Token validation failed', {
-      provided: token.substring(0, 8) + '...',
-      expected: storedToken.substring(0, 8) + '...',
-    });
+    logger.error('[CSRF] Token validation failed', new Error(`provided: ${token.substring(0, 8)}..., expected: ${storedToken.substring(0, 8)}...`));
   }
 
   return valid;

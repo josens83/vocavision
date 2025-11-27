@@ -47,8 +47,8 @@ export const PAGE_ISR_CONFIG = {
   '/pricing': ISR_STRATEGIES.SEMI_STATIC,
 
   // Auth pages (CSR only)
-  '/auth/login': { revalidate: false },
-  '/auth/register': { revalidate: false },
+  '/auth/login': { revalidate: false as const, description: 'Auth pages - CSR only' },
+  '/auth/register': { revalidate: false as const, description: 'Auth pages - CSR only' },
 
   // Dashboard (dynamic)
   '/dashboard': ISR_STRATEGIES.DYNAMIC,

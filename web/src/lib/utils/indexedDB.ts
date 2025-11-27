@@ -265,7 +265,7 @@ export async function cleanExpiredCache(): Promise<void> {
   const db = await getDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORES.CACHE, 'readwrite');
-    const store = transaction.objectStore(storeName);
+    const store = transaction.objectStore(STORES.CACHE);
     const index = store.index('expiry');
     const now = Date.now();
 

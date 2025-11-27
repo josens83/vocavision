@@ -346,11 +346,7 @@ export class DDoSDetector {
     record.count++;
 
     if (record.count > this.threshold) {
-      logger.error('[DDoS] Suspicious activity detected', {
-        clientId,
-        requestCount: record.count,
-        windowMs: this.windowMs,
-      });
+      logger.error('[DDoS] Suspicious activity detected', new Error(`clientId: ${clientId}, requestCount: ${record.count}, windowMs: ${this.windowMs}`));
 
       return { suspicious: true, requestCount: record.count };
     }

@@ -147,7 +147,7 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(
         process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''
-      ),
+      ) as BufferSource,
     });
 
     console.log('✅ Push notification subscribed');

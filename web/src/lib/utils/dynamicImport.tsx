@@ -8,15 +8,15 @@ import { SkeletonLoader, ListSkeleton, CardSkeleton } from '@/components/fallbac
 /**
  * Dynamic import with loading fallback
  */
-export function dynamicImport<P = {}>(
+export function dynamicImport<P extends object = object>(
   importFunc: () => Promise<{ default: ComponentType<P> }>,
   options?: {
-    loading?: ComponentType;
+    loading?: () => JSX.Element | null;
     ssr?: boolean;
   }
 ) {
   return dynamic(importFunc, {
-    loading: options?.loading || (() => <SkeletonLoader className="h-40 w-full" />),
+    loading: options?.loading ?? (() => <SkeletonLoader className="h-40 w-full" />),
     ssr: options?.ssr !== false, // SSR enabled by default
   });
 }
@@ -24,12 +24,12 @@ export function dynamicImport<P = {}>(
 /**
  * Dynamic import for heavy components (disable SSR)
  */
-export function dynamicImportClient<P = {}>(
+export function dynamicImportClient<P extends object = object>(
   importFunc: () => Promise<{ default: ComponentType<P> }>,
-  loading?: ComponentType
+  loading?: () => JSX.Element | null
 ) {
   return dynamic(importFunc, {
-    loading: loading || (() => <SkeletonLoader className="h-40 w-full" />),
+    loading: loading ?? (() => <SkeletonLoader className="h-40 w-full" />),
     ssr: false, // Disable SSR for client-only components
   });
 }

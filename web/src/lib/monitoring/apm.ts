@@ -89,11 +89,7 @@ class APMCollector {
 
     // Log failed requests
     if (request.status >= 400) {
-      logger.error('[APM] Request failed', {
-        url: request.url,
-        status: request.status,
-        duration: `${request.duration}ms`,
-      });
+      logger.error('[APM] Request failed', new Error(`${request.url} - ${request.status} - ${request.duration}ms`));
     }
   }
 
@@ -132,10 +128,7 @@ class APMCollector {
     this.metrics.errors.push(error);
     this.trimMetrics('errors');
 
-    logger.error('[APM] Error tracked', {
-      message: error.message,
-      url: error.url,
-    });
+    logger.error('[APM] Error tracked', new Error(`${error.message} - ${error.url}`));
   }
 
   /**
@@ -324,8 +317,10 @@ class APMCollector {
    * Trim metrics to max size
    */
   private trimMetrics(type: keyof APMMetrics): void {
-    if (this.metrics[type].length > this.maxMetricsPerType) {
-      this.metrics[type] = this.metrics[type].slice(-this.maxMetricsPerType);
+    const metrics = this.metrics[type];
+    if (metrics.length > this.maxMetricsPerType) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (this.metrics as any)[type] = metrics.slice(-this.maxMetricsPerType);
     }
   }
 
