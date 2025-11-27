@@ -474,7 +474,4 @@ export class CacheMonitor {
 /**
  * Export utilities
  */
-export {
-  ApiCacheConfig,
-  DEFAULT_API_CACHE_CONFIG,
-};
+export { DEFAULT_API_CACHE_CONFIG };
