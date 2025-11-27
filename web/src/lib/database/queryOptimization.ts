@@ -523,8 +523,5 @@ export class QueryOptimizer {
 /**
  * Export utilities
  */
-export {
-  QUERY_THRESHOLDS,
-  QueryMetrics,
-  QueryPerformanceTracker,
-};
+export { QUERY_THRESHOLDS, QueryPerformanceTracker };
+export type { QueryMetrics };
