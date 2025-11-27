@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
