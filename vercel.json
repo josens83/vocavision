@@ -2,18 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "name": "vocavision",
-  "builds": [
-    {
-      "src": "web/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/web/$1"
-    }
-  ],
+  "framework": "nextjs",
+  "installCommand": "cd web && npm install",
+  "buildCommand": "cd web && npm run build",
+  "outputDirectory": "web/.next",
   "env": {
     "NEXT_PUBLIC_API_URL": "https://vocavisionbackend-production.up.railway.app/api"
   },
