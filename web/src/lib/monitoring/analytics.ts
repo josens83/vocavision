@@ -278,7 +278,8 @@ export function setAnalyticsEnabled(enabled: boolean): void {
     return;
   }
 
-  (window as Record<string, unknown>)[`ga-disable-${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`] = !enabled;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any)[`ga-disable-${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`] = !enabled;
 
   logger.info('[GA] Analytics', { enabled });
 }
