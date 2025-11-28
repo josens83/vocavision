@@ -3,11 +3,70 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
 import { progressAPI, authAPI } from '@/lib/api';
 import DailyGoalWidgetEnhanced from '@/components/dashboard/DailyGoalWidgetEnhanced';
 import StreakWidget from '@/components/dashboard/StreakWidget';
 import axios from 'axios';
+
+// 시험별 코스 데이터
+const examCourses = [
+  {
+    id: 'CSAT' as ExamType,
+    name: '수능',
+    fullName: '대학수학능력시험',
+    description: '수능 1~2등급 목표',
+    wordCount: '3,000+',
+    icon: '📝',
+    gradient: 'from-blue-500 to-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-300',
+  },
+  {
+    id: 'SAT' as ExamType,
+    name: 'SAT',
+    fullName: '미국대학입학시험',
+    description: 'SAT 1500+ 목표',
+    wordCount: '4,500+',
+    icon: '🇺🇸',
+    gradient: 'from-red-500 to-red-600',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-300',
+  },
+  {
+    id: 'TOEFL' as ExamType,
+    name: 'TOEFL',
+    fullName: '학술영어능력시험',
+    description: 'TOEFL 100+ 목표',
+    wordCount: '5,000+',
+    icon: '🌍',
+    gradient: 'from-orange-500 to-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-300',
+  },
+  {
+    id: 'TOEIC' as ExamType,
+    name: 'TOEIC',
+    fullName: '국제의사소통영어',
+    description: 'TOEIC 900+ 목표',
+    wordCount: '3,500+',
+    icon: '💼',
+    gradient: 'from-green-500 to-green-600',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-300',
+  },
+  {
+    id: 'TEPS' as ExamType,
+    name: 'TEPS',
+    fullName: '서울대영어능력시험',
+    description: 'TEPS 500+ 목표',
+    wordCount: '4,000+',
+    icon: '🎓',
+    gradient: 'from-purple-500 to-purple-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-300',
+  },
+];
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -127,6 +186,35 @@ export default function DashboardPage() {
             안녕하세요, {user?.name || '학습자'}님! 👋
           </h2>
           <p className="text-gray-600">오늘도 영어 실력을 키워볼까요?</p>
+        </div>
+
+        {/* 시험별 코스 섹션 - 핵심 진입점 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-gray-900">시험별 코스</h3>
+            <Link href="/exam" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              전체 보기 →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {examCourses.map((course) => (
+              <Link
+                key={course.id}
+                href={`/courses/${course.id?.toLowerCase()}`}
+                className={`${course.bgColor} ${course.borderColor} border-2 rounded-xl p-4 hover:shadow-lg transition-all duration-300 group`}
+              >
+                <div className="text-3xl mb-2">{course.icon}</div>
+                <h4 className="font-bold text-gray-900 group-hover:text-blue-600 transition">
+                  {course.name}
+                </h4>
+                <p className="text-xs text-gray-500 mb-1">{course.fullName}</p>
+                <p className="text-sm text-gray-600">{course.description}</p>
+                <div className="mt-2 text-xs font-medium text-gray-500">
+                  {course.wordCount} 단어
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* Stats Grid - Benchmarking: Duolingo 스타일 스트릭 시스템 */}
