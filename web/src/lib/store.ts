@@ -76,6 +76,32 @@ export const useLearningStore = create<LearningState>()((set) => ({
     }),
 }));
 
+// Exam Course State - 시험별 코스 관리
+export type ExamType = 'CSAT' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT' | null;
+
+interface ExamCourseState {
+  activeExam: ExamType;
+  goalScore: string | null;
+  setActiveExam: (exam: ExamType) => void;
+  setGoalScore: (score: string) => void;
+  clearExam: () => void;
+}
+
+export const useExamCourseStore = create<ExamCourseState>()(
+  persist(
+    (set) => ({
+      activeExam: null,
+      goalScore: null,
+      setActiveExam: (exam) => set({ activeExam: exam }),
+      setGoalScore: (score) => set({ goalScore: score }),
+      clearExam: () => set({ activeExam: null, goalScore: null }),
+    }),
+    {
+      name: 'exam-course-storage',
+    }
+  )
+);
+
 // Chat Message Types
 export interface ChatMessage {
   id: string;
