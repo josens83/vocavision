@@ -98,7 +98,9 @@ model Word {
   partOfSpeech PartOfSpeech
   difficulty  DifficultyLevel @default(INTERMEDIATE)
   examCategory ExamCategory  // 시험 카테고리 (수능, TEPS, TOEIC, TOEFL, SAT)
+  level       String?  // 시험 내 레벨 (L1, L2, L3 등)
   frequency   Int      @default(0) // Word frequency ranking
+  tags        String[] // 의미/주제 태그 (일반, 과학, 심리 등)
 
   // Additional learning content
   tips        String?  // 학습 팁
@@ -122,6 +124,7 @@ model Word {
   @@index([difficulty])
   @@index([examCategory])
   @@index([frequency])
+  @@index([level])
 }
 
 enum PartOfSpeech {

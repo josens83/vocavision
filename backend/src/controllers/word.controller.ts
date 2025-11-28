@@ -14,6 +14,7 @@ export const getWords = async (
       limit = '20',
       difficulty,
       examCategory,
+      level,
       search
     } = req.query;
 
@@ -29,6 +30,10 @@ export const getWords = async (
 
     if (examCategory) {
       where.examCategory = examCategory;
+    }
+
+    if (level) {
+      where.level = level;
     }
 
     if (search) {
