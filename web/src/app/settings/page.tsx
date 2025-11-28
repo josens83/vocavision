@@ -11,6 +11,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 export default function SettingsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const logout = useAuthStore((state) => state.logout);
 
   const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'subscription'>('profile');
@@ -29,6 +30,7 @@ export default function SettingsPage() {
   const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!user) {
       router.push('/auth/login');
       return;
@@ -37,7 +39,7 @@ export default function SettingsPage() {
     setName(user.name || '');
     setEmail(user.email);
     loadSubscription();
-  }, [user, router]);
+  }, [user, hasHydrated, router]);
 
   const loadSubscription = async () => {
     try {
@@ -122,6 +124,14 @@ export default function SettingsPage() {
       alert('구독 취소 실패');
     }
   };
+
+  if (!hasHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">로딩 중...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -10,6 +10,7 @@ function ChatContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
   // Get word context from URL params (optional)
   const wordId = searchParams.get('wordId') || undefined;
@@ -17,12 +18,13 @@ function ChatContent() {
   const initialMessage = searchParams.get('message') || undefined;
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!user) {
       router.push('/auth/login');
     }
-  }, [user, router]);
+  }, [user, hasHydrated, router]);
 
-  if (!user) {
+  if (!hasHydrated || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">로딩 중...</div>

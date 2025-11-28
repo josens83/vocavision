@@ -25,6 +25,7 @@ interface Review {
 export default function LearnPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const {
     currentWordIndex,
     sessionId,
@@ -40,6 +41,7 @@ export default function LearnPage() {
   const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!user) {
       router.push('/auth/login');
       return;
@@ -47,7 +49,7 @@ export default function LearnPage() {
 
     loadReviews();
     startSession();
-  }, [user, router]);
+  }, [user, hasHydrated, router]);
 
   const startSession = async () => {
     try {
@@ -121,7 +123,7 @@ export default function LearnPage() {
     startSession();
   };
 
-  if (loading) {
+  if (!hasHydrated || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-xl">로딩 중...</div>

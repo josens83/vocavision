@@ -25,6 +25,7 @@ interface DueReview {
 export default function DashboardPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
   const [stats, setStats] = useState<UserStats | null>(null);
   const [dueReviews, setDueReviews] = useState<DueReview>({ count: 0 });
@@ -32,6 +33,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for Zustand to hydrate from localStorage before checking auth
+    if (!hasHydrated) {
+      return;
+    }
+
     if (!user) {
       router.push('/auth/login');
       return;
@@ -39,7 +45,7 @@ export default function DashboardPage() {
 
     loadDashboardData();
     loadNotificationCount();
-  }, [user, router]);
+  }, [user, hasHydrated, router]);
 
   const loadDashboardData = async () => {
     try {
@@ -70,7 +76,7 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading) {
+  if (!hasHydrated || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">로딩 중...</div>
