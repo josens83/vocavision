@@ -122,11 +122,16 @@ export const createWord = async (
       data: {
         word: wordData.word,
         definition: wordData.definition,
+        definitionKo: wordData.definitionKo,
         pronunciation: wordData.pronunciation,
         phonetic: wordData.phonetic,
         partOfSpeech: wordData.partOfSpeech,
-        difficulty: wordData.difficulty,
-        frequency: wordData.frequency || 0
+        difficulty: wordData.difficulty || 'INTERMEDIATE',
+        examCategory: wordData.examCategory || 'CSAT',
+        level: wordData.level,
+        frequency: wordData.frequency || 0,
+        tags: wordData.tags || [],
+        tips: wordData.tips
       }
     });
 
