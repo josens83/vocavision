@@ -53,9 +53,9 @@ const generateAIResponse = async (
         include: {
           examples: true,
           mnemonics: true,
-          etymologies: true,
+          etymology: true,
         },
-      });
+      }) as any;
 
       if (word) {
         wordContext = `\n\n[현재 학습 중인 단어 정보]
@@ -66,7 +66,7 @@ const generateAIResponse = async (
 난이도: ${word.difficulty || '정보 없음'}
 ${word.examples && word.examples.length > 0 ? `예문:\n${word.examples.slice(0, 3).map((ex: any) => `- "${ex.sentence}"${ex.translation ? ` (${ex.translation})` : ''}`).join('\n')}` : ''}
 ${word.mnemonics && word.mnemonics.length > 0 ? `암기법:\n${word.mnemonics.slice(0, 2).map((m: any) => `- ${m.content}`).join('\n')}` : ''}
-${word.etymologies && word.etymologies.length > 0 ? `어원: ${word.etymologies[0].content}` : ''}`;
+${word.etymology ? `어원: ${word.etymology.origin}` : ''}`;
 
         relatedWords = [{ id: word.id, word: word.word, definition: word.definition }];
       }
@@ -89,8 +89,8 @@ ${word.etymologies && word.etymologies.length > 0 ? `어원: ${word.etymologies[
             { word: { contains: searchWord, mode: 'insensitive' } },
           ],
         },
-        include: { examples: true, mnemonics: true, etymologies: true },
-      });
+        include: { examples: true, mnemonics: true, etymology: true },
+      }) as any;
 
       if (foundWord) {
         wordContext = `\n\n[데이터베이스에서 찾은 단어 정보]

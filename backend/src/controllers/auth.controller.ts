@@ -10,6 +10,8 @@ export const register = async (
   next: NextFunction
 ) => {
   try {
+    console.log('[Register] Request received:', { email: req.body.email, name: req.body.name });
+
     const { email, password, name } = req.body;
 
     // Validation
@@ -21,7 +23,18 @@ export const register = async (
       throw new AppError('Password must be at least 8 characters', 400);
     }
 
+    // Check database connection first
+    console.log('[Register] Checking database connection...');
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('[Register] Database connection OK');
+    } catch (dbError) {
+      console.error('[Register] Database connection failed:', dbError);
+      throw new AppError('Database connection failed. Please try again later.', 503);
+    }
+
     // Check if user exists
+    console.log('[Register] Checking for existing user...');
     const existingUser = await prisma.user.findUnique({
       where: { email }
     });
@@ -31,6 +44,7 @@ export const register = async (
     }
 
     // Create user with trial subscription
+    console.log('[Register] Creating user...');
     const hashedPassword = await hashPassword(password);
     const trialEnd = new Date();
     trialEnd.setDate(trialEnd.getDate() + 7); // 7-day trial
@@ -53,7 +67,16 @@ export const register = async (
       }
     });
 
+    console.log('[Register] User created:', user.id);
+
+    // Check JWT_SECRET before generating token
+    if (!process.env.JWT_SECRET) {
+      console.error('[Register] JWT_SECRET is not set!');
+      throw new AppError('Server configuration error', 500);
+    }
+
     const token = generateToken(user.id, user.role);
+    console.log('[Register] Token generated successfully');
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -61,6 +84,7 @@ export const register = async (
       token
     });
   } catch (error) {
+    console.error('[Register] Error:', error);
     next(error);
   }
 };

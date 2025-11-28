@@ -10,35 +10,35 @@ import {
   addWordToDeck,
   removeWordFromDeck,
 } from '../controllers/deck.controller';
-import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth.middleware';
+import { authenticateToken, optionalAuth } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // Get user's decks (requires auth)
-router.get('/', authMiddleware, getDecks);
+router.get('/', authenticateToken, getDecks);
 
 // Get public/community decks (optional auth)
-router.get('/public', optionalAuthMiddleware, getPublicDecks);
+router.get('/public', optionalAuth, getPublicDecks);
 
 // Get single deck by ID (optional auth for public decks)
-router.get('/:id', optionalAuthMiddleware, getDeckById);
+router.get('/:id', optionalAuth, getDeckById);
 
 // Create a new deck (requires auth)
-router.post('/', authMiddleware, createDeck);
+router.post('/', authenticateToken, createDeck);
 
 // Update a deck (requires auth)
-router.put('/:id', authMiddleware, updateDeck);
+router.put('/:id', authenticateToken, updateDeck);
 
 // Delete a deck (requires auth)
-router.delete('/:id', authMiddleware, deleteDeck);
+router.delete('/:id', authenticateToken, deleteDeck);
 
 // Clone a public deck (requires auth)
-router.post('/:id/clone', authMiddleware, cloneDeck);
+router.post('/:id/clone', authenticateToken, cloneDeck);
 
 // Add word to deck (requires auth)
-router.post('/:id/words', authMiddleware, addWordToDeck);
+router.post('/:id/words', authenticateToken, addWordToDeck);
 
 // Remove word from deck (requires auth)
-router.delete('/:id/words/:wordId', authMiddleware, removeWordFromDeck);
+router.delete('/:id/words/:wordId', authenticateToken, removeWordFromDeck);
 
 export default router;

@@ -6,23 +6,23 @@ import {
   getLeagueInfo,
   addXP,
 } from '../controllers/league.controller';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // Get current user's league info
-router.get('/my', authMiddleware, getMyLeague);
+router.get('/my', authenticateToken, getMyLeague);
 
 // Get leaderboard for current week
-router.get('/leaderboard', authMiddleware, getLeaderboard);
+router.get('/leaderboard', authenticateToken, getLeaderboard);
 
 // Get league history
-router.get('/history', authMiddleware, getLeagueHistory);
+router.get('/history', authenticateToken, getLeagueHistory);
 
 // Get league tier info
 router.get('/info/:tier', getLeagueInfo);
 
 // Add XP (internal use - called by other controllers)
-router.post('/xp', authMiddleware, addXP);
+router.post('/xp', authenticateToken, addXP);
 
 export default router;
