@@ -8,7 +8,12 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // ============================================
+      // VocaVision 커스텀 컬러 시스템
+      // test-english.com 벤치마킹 기반
+      // ============================================
       colors: {
+        // 기존 primary 컬러 유지
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',
@@ -21,23 +26,178 @@ const config: Config = {
           800: '#075985',
           900: '#0c4a6e',
         },
+
+        // 난이도별 메인 컬러
+        level: {
+          beginner: {
+            DEFAULT: '#50af31',
+            light: '#e8f5e4',
+            dark: '#3d8a26',
+          },
+          intermediate: {
+            DEFAULT: '#1a8ec1',
+            light: '#e3f3fa',
+            dark: '#146d96',
+          },
+          advanced: {
+            DEFAULT: '#ec6825',
+            light: '#fde9e0',
+            dark: '#c4541c',
+          },
+          expert: {
+            DEFAULT: '#a84d98',
+            light: '#f5e8f3',
+            dark: '#863c79',
+          },
+        },
+
+        // 학습 유형별 컬러
+        study: {
+          flashcard: {
+            DEFAULT: '#fecc00',
+            light: '#fff9db',
+            dark: '#d4aa00',
+          },
+          quiz: {
+            DEFAULT: '#ed1c24',
+            light: '#fde8e9',
+            dark: '#c4161c',
+          },
+          review: {
+            DEFAULT: '#ff6699',
+            light: '#ffe8ef',
+            dark: '#d4527d',
+          },
+          vocabulary: {
+            DEFAULT: '#1a8ec1',
+            light: '#e3f3fa',
+            dark: '#146d96',
+          },
+        },
+
+        // 피드백 컬러
+        feedback: {
+          correct: '#22c55e',
+          incorrect: '#ef4444',
+          selected: '#3b82f6',
+          hover: '#f1f5f9',
+        },
+
+        // 브랜드 컬러
+        brand: {
+          primary: '#1a8ec1',
+          secondary: '#50af31',
+          accent: '#fecc00',
+        },
+
+        // 뉴트럴 컬러 (배경, 텍스트)
+        surface: {
+          DEFAULT: '#ffffff',
+          muted: '#f8fafc',
+          subtle: '#f1f5f9',
+          border: '#e2e8f0',
+        },
       },
+
+      // ============================================
+      // 타이포그래피
+      // ============================================
+      fontFamily: {
+        display: ['Outfit', 'system-ui', 'sans-serif'],
+        body: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+
+      fontSize: {
+        'display-xl': ['4.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
+        'display-lg': ['3.5rem', { lineHeight: '1.15', letterSpacing: '-0.02em' }],
+        'display-md': ['2.5rem', { lineHeight: '1.2', letterSpacing: '-0.01em' }],
+        'display-sm': ['1.875rem', { lineHeight: '1.3' }],
+      },
+
+      // ============================================
+      // 애니메이션
+      // ============================================
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
+        'fade-in': 'fadeIn 0.5s ease-out forwards',
+        'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
         'slide-up': 'slideUp 0.5s ease-out',
+        'slide-in-left': 'slideInLeft 0.5s ease-out forwards',
+        'slide-in-right': 'slideInRight 0.5s ease-out forwards',
+        'scale-in': 'scaleIn 0.3s ease-out forwards',
+        'bounce-soft': 'bounceSoft 0.6s ease-out',
+        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+        'float': 'float 3s ease-in-out infinite',
+        'shake': 'shake 0.5s ease-in-out',
       },
+
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
         slideUp: {
           '0%': { transform: 'translateY(20px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
+        slideInLeft: {
+          '0%': { opacity: '0', transform: 'translateX(-30px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        slideInRight: {
+          '0%': { opacity: '0', transform: 'translateX(30px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        scaleIn: {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        bounceSoft: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        pulseGlow: {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(26, 142, 193, 0.3)' },
+          '50%': { boxShadow: '0 0 40px rgba(26, 142, 193, 0.6)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(-5px)' },
+          '75%': { transform: 'translateX(5px)' },
+        },
+      },
+
+      // ============================================
+      // 그림자
+      // ============================================
+      boxShadow: {
+        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+        'glow-blue': '0 0 30px rgba(26, 142, 193, 0.3)',
+        'glow-green': '0 0 30px rgba(80, 175, 49, 0.3)',
+        'glow-orange': '0 0 30px rgba(236, 104, 37, 0.3)',
+        'glow-purple': '0 0 30px rgba(168, 77, 152, 0.3)',
+      },
+
+      // ============================================
+      // 테두리 반경
+      // ============================================
+      borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.5rem',
+        '4xl': '2rem',
       },
     },
   },
   plugins: [],
 }
+
 export default config
