@@ -36,3 +36,30 @@ export {
   type NavItem,
   type NavSubItem,
 } from "./navigation/Navigation";
+
+// Pricing Components
+export {
+  BillingToggle,
+  PricingCard,
+  PricingCards,
+  PricingSection,
+  PricingPage,
+  vocaVisionPlans,
+  TestimonialCard,
+  TestimonialsGrid,
+  TestimonialsSection,
+  vocaVisionTestimonials,
+  FAQAccordion,
+  FAQSection,
+  vocaVisionFAQ,
+  type BillingPeriod,
+  type BillingToggleProps,
+  type PricingCardProps,
+  type PricingFeature,
+  type PricingPlan,
+  type TestimonialProps,
+  type TestimonialsGridProps,
+  type FAQAccordionProps,
+  type FAQItem,
+  type FAQSectionProps,
+} from "./pricing";

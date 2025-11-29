@@ -97,6 +97,13 @@ const config: Config = {
           subtle: '#f1f5f9',
           border: '#e2e8f0',
         },
+
+        // 가격 페이지 컬러
+        pricing: {
+          cta: '#5BC25A',
+          background: '#F7FAFF',
+          badge: '#37424E',
+        },
       },
 
       // ============================================
