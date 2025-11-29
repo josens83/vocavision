@@ -6,16 +6,10 @@
 
 /* ============================================
    VocaVision Global Styles
-   test-english.com 벤치마킹 기반
    ============================================ */
 
 @layer base {
   :root {
-    /* 기존 변수 유지 */
-    --foreground-rgb: 0, 0, 0;
-    --background-rgb: 255, 255, 255;
-
-    /* VocaVision 컬러 시스템 */
     --color-beginner: #50af31;
     --color-intermediate: #1a8ec1;
     --color-advanced: #ec6825;
@@ -27,21 +21,12 @@
     --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --foreground-rgb: 255, 255, 255;
-      --background-rgb: 15, 23, 42;
-    }
-  }
-
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    color: rgb(var(--foreground-rgb));
-    background: rgb(var(--background-rgb));
-    @apply font-body antialiased;
+    @apply font-body text-slate-800 bg-white antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -54,9 +39,7 @@
 }
 
 @layer components {
-  /* ============================================
-     Card Styles
-     ============================================ */
+  /* Card Styles */
   .card {
     @apply bg-white rounded-2xl border border-surface-border shadow-card;
     @apply transition-all duration-300 ease-out;
@@ -82,9 +65,7 @@
     @apply hover:border-level-expert hover:shadow-glow-purple;
   }
 
-  /* ============================================
-     Button Styles
-     ============================================ */
+  /* Button Styles */
   .btn {
     @apply inline-flex items-center justify-center gap-2;
     @apply px-6 py-3 rounded-xl font-medium;
@@ -114,17 +95,7 @@
     @apply hover:bg-slate-100 hover:text-slate-900;
   }
 
-  .btn-sm {
-    @apply px-4 py-2 text-sm;
-  }
-
-  .btn-lg {
-    @apply px-8 py-4 text-lg;
-  }
-
-  /* ============================================
-     Badge Styles
-     ============================================ */
+  /* Badge Styles */
   .badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
   }
@@ -145,9 +116,7 @@
     @apply bg-level-expert-light text-level-expert-dark;
   }
 
-  /* ============================================
-     Quiz Choice Styles
-     ============================================ */
+  /* Quiz Choice Styles */
   .quiz-choice {
     @apply w-full flex items-stretch rounded-xl border-2 border-surface-border;
     @apply bg-white overflow-hidden cursor-pointer;
@@ -181,9 +150,7 @@
     @apply flex-1 p-4 text-left;
   }
 
-  /* ============================================
-     Navigation Styles
-     ============================================ */
+  /* Navigation Styles */
   .nav-link {
     @apply relative px-4 py-2 font-medium text-slate-600;
     @apply transition-colors duration-200;
@@ -228,9 +195,7 @@
     @apply rounded-b-xl;
   }
 
-  /* ============================================
-     Hero Section
-     ============================================ */
+  /* Hero Section */
   .hero-gradient {
     background: linear-gradient(135deg, #f8fafc 0%, #e3f3fa 50%, #e8f5e4 100%);
   }
@@ -242,9 +207,7 @@
       radial-gradient(circle at 40% 40%, rgba(168, 77, 152, 0.05) 0%, transparent 40%);
   }
 
-  /* ============================================
-     Progress Bar
-     ============================================ */
+  /* Progress Bar */
   .progress-bar {
     @apply h-2 bg-surface-subtle rounded-full overflow-hidden;
   }
@@ -254,9 +217,7 @@
     @apply transition-all duration-500 ease-out;
   }
 
-  /* ============================================
-     Scroll Progress
-     ============================================ */
+  /* Scroll Progress */
   .scroll-progress {
     @apply fixed top-0 left-0 w-full h-1 bg-transparent z-50;
   }
@@ -266,9 +227,7 @@
     @apply transition-all duration-100 ease-linear;
   }
 
-  /* ============================================
-     Staggered Animation Delays
-     ============================================ */
+  /* Staggered Animation Delays */
   .stagger-1 { animation-delay: 0.1s; }
   .stagger-2 { animation-delay: 0.2s; }
   .stagger-3 { animation-delay: 0.3s; }
@@ -276,42 +235,13 @@
   .stagger-5 { animation-delay: 0.5s; }
   .stagger-6 { animation-delay: 0.6s; }
 
-  /* ============================================
-     Glass Effect
-     ============================================ */
+  /* Glass Effect */
   .glass {
     @apply bg-white/80 backdrop-blur-md border border-white/20;
-  }
-
-  /* ============================================
-     Level Indicator
-     ============================================ */
-  .level-indicator {
-    @apply w-3 h-3 rounded-full;
-  }
-
-  .level-indicator-beginner {
-    @apply bg-level-beginner;
-  }
-
-  .level-indicator-intermediate {
-    @apply bg-level-intermediate;
-  }
-
-  .level-indicator-advanced {
-    @apply bg-level-advanced;
-  }
-
-  .level-indicator-expert {
-    @apply bg-level-expert;
   }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
   .text-gradient {
     @apply bg-clip-text text-transparent;
     @apply bg-gradient-to-r from-brand-primary to-brand-secondary;
@@ -320,7 +250,6 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;

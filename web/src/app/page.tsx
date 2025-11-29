@@ -1,13 +1,14 @@
-"use client";
-
-import Navigation from "@/components/navigation/Navigation";
+import Navigation, { ScrollProgress } from "@/components/navigation/Navigation";
 import HomePage from "@/components/home/HomePage";
 
-export default function Home() {
+export default function Page() {
   return (
     <>
+      <ScrollProgress />
       <Navigation />
-      <HomePage />
+      <main>
+        <HomePage />
+      </main>
     </>
   );
 }
