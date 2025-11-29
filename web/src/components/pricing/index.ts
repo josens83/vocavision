@@ -1,34 +1,26 @@
-// Pricing Components Export
+// Pricing Components Index
 
 export {
   BillingToggle,
   PricingCard,
   PricingCards,
-  PricingSection,
   vocaVisionPlans,
   type BillingPeriod,
-  type BillingToggleProps,
-  type PricingCardProps,
-  type PricingFeature,
-  type PricingPlan,
+  type PlanType,
 } from "./PricingCard";
 
 export {
   TestimonialCard,
   TestimonialsGrid,
-  TestimonialsSection,
+  AvatarInitials,
   vocaVisionTestimonials,
   type TestimonialProps,
-  type TestimonialsGridProps,
 } from "./Testimonial";
 
 export {
-  FAQAccordion,
   FAQSection,
   vocaVisionFAQ,
-  type FAQAccordionProps,
-  type FAQItem,
-  type FAQSectionProps,
+  type FAQItemData,
 } from "./FAQ";
 
 export { default as PricingPage } from "./PricingPage";
