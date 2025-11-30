@@ -47,22 +47,26 @@ export const generateContent = async (
       });
 
       if (!existingWord) {
-        // Create new word
+        // Create new word - cast partOfSpeech to valid enum value
+        const posString = content.definitions[0]?.partOfSpeech?.toUpperCase() || 'NOUN';
+        const validPOS = ['NOUN', 'VERB', 'ADJECTIVE', 'ADVERB', 'PRONOUN', 'PREPOSITION', 'CONJUNCTION', 'INTERJECTION'];
+        const partOfSpeech = validPOS.includes(posString) ? posString : 'NOUN';
+
         existingWord = await prisma.word.create({
           data: {
             word: options.word,
             definition: content.definitions[0]?.definitionEn || '',
             definitionKo: content.definitions[0]?.definitionKo || '',
-            partOfSpeech: content.definitions[0]?.partOfSpeech?.toUpperCase() || 'NOUN',
+            partOfSpeech: partOfSpeech as any,
             examCategory,
             cefrLevel,
-            contentStatus: 'DRAFT',
+            status: 'DRAFT',
           },
         });
       }
 
       wordId = existingWord.id;
-      await saveGeneratedContent(wordId, content);
+      await saveGeneratedContent(existingWord.id, content);
     }
 
     res.json({
@@ -105,7 +109,7 @@ export const createBatchJob = async (
         cefrLevel,
         status: 'pending',
         progress: 0,
-        createdBy: req.user?.userId,
+        requestedById: req.userId,
       },
     });
 
@@ -242,28 +246,28 @@ export const reviewContent = async (
     let newStatus: string;
     const updateData: any = {
       humanReviewed: true,
-      humanReviewedAt: new Date(),
-      reviewedBy: req.user?.userId,
+      reviewedAt: new Date(),
+      reviewedBy: req.userId,
     };
 
     switch (action) {
       case 'approve':
         newStatus = 'APPROVED';
-        updateData.contentStatus = 'APPROVED';
+        updateData.status = 'APPROVED';
         break;
       case 'reject':
         newStatus = 'DRAFT';
-        updateData.contentStatus = 'DRAFT';
+        updateData.status = 'DRAFT';
         break;
       case 'edit':
         newStatus = 'PENDING_REVIEW';
-        updateData.contentStatus = 'PENDING_REVIEW';
+        updateData.status = 'PENDING_REVIEW';
         if (fields) {
           Object.assign(updateData, fields);
         }
         break;
       default:
-        newStatus = word.contentStatus || 'DRAFT';
+        newStatus = word.status || 'DRAFT';
     }
 
     await prisma.word.update({
@@ -274,12 +278,13 @@ export const reviewContent = async (
     // Create audit log
     await prisma.contentAuditLog.create({
       data: {
-        wordId,
+        entityType: 'Word',
+        entityId: wordId,
         action: action.toUpperCase(),
-        oldValue: word.contentStatus,
-        newValue: newStatus,
-        userId: req.user?.userId,
-        reason,
+        previousData: { status: word.status },
+        newData: { status: newStatus },
+        changedFields: ['status'],
+        performedById: req.userId,
       },
     });
 
@@ -313,25 +318,28 @@ export const publishContent = async (
       throw new AppError('Word not found', 404);
     }
 
-    if (word.contentStatus !== 'APPROVED') {
+    if (word.status !== 'APPROVED') {
       throw new AppError('Only approved content can be published', 400);
     }
 
     await prisma.word.update({
       where: { id: wordId },
       data: {
-        contentStatus: 'PUBLISHED',
+        status: 'PUBLISHED',
+        publishedAt: new Date(),
       },
     });
 
     // Create audit log
     await prisma.contentAuditLog.create({
       data: {
-        wordId,
+        entityType: 'Word',
+        entityId: wordId,
         action: 'PUBLISH',
-        oldValue: 'APPROVED',
-        newValue: 'PUBLISHED',
-        userId: req.user?.userId,
+        previousData: { status: 'APPROVED' },
+        newData: { status: 'PUBLISHED' },
+        changedFields: ['status', 'publishedAt'],
+        performedById: req.userId,
       },
     });
 
@@ -359,8 +367,11 @@ export const getAuditHistory = async (
     const { limit = '50' } = req.query;
 
     const logs = await prisma.contentAuditLog.findMany({
-      where: { wordId },
-      orderBy: { createdAt: 'desc' },
+      where: {
+        entityType: 'Word',
+        entityId: wordId,
+      },
+      orderBy: { performedAt: 'desc' },
       take: parseInt(limit as string),
     });
 
@@ -389,7 +400,7 @@ export const getPendingReview = async (
     const [words, total] = await Promise.all([
       prisma.word.findMany({
         where: {
-          contentStatus: {
+          status: {
             in: ['DRAFT', 'PENDING_REVIEW'],
           },
         },
@@ -404,7 +415,7 @@ export const getPendingReview = async (
       }),
       prisma.word.count({
         where: {
-          contentStatus: {
+          status: {
             in: ['DRAFT', 'PENDING_REVIEW'],
           },
         },
