@@ -4,8 +4,9 @@
 // ============================================
 
 import { Application } from 'express';
-import { QueueManager } from './services/queue-manager.service';
-import { registerAllProcessors } from './services/job-processors.service';
+import { getQueueManager, initializeQueues, QueueManager } from './services/queue-manager.service';
+import { registerProcessors } from './services/job-processors.service';
+import { initializeSSEBroadcasting } from './routes/queue-sse.routes';
 import queueRoutes from './routes/queue.routes';
 import queueSSERoutes from './routes/queue-sse.routes';
 
@@ -19,14 +20,14 @@ export * from './types/queue.types';
 // Service Export
 // ---------------------------------------------
 
-export { QueueManager } from './services/queue-manager.service';
+export { QueueManager, getQueueManager, initializeQueues } from './services/queue-manager.service';
 export {
-  processImageGeneration,
   processContentGeneration,
-  processBatchImport,
+  processBatchContent,
+  processImageGeneration,
+  processBatchImage,
   processExport,
-  processCleanup,
-  registerAllProcessors,
+  registerProcessors,
 } from './services/job-processors.service';
 
 // ---------------------------------------------
@@ -35,6 +36,7 @@ export {
 
 export { default as queueRoutes } from './routes/queue.routes';
 export { default as queueSSERoutes } from './routes/queue-sse.routes';
+export { broadcastEvent, broadcastJobEvent, initializeSSEBroadcasting } from './routes/queue-sse.routes';
 
 // ---------------------------------------------
 // Component Export
@@ -56,11 +58,11 @@ export interface QueueSystemOptions {
 
 export async function initializeQueueSystem(
   options: QueueSystemOptions = {}
-): Promise<void> {
+): Promise<QueueManager> {
   console.log('[QueueSystem] Initializing...');
 
-  // Initialize Queue Manager
-  await QueueManager.initialize({
+  // Initialize Queue Manager with Redis config
+  const queueManager = await initializeQueues({
     redis: {
       host: options.redisHost || process.env.REDIS_HOST || 'localhost',
       port: options.redisPort || parseInt(process.env.REDIS_PORT || '6379'),
@@ -71,10 +73,14 @@ export async function initializeQueueSystem(
 
   // Register job processors
   if (options.registerProcessors !== false) {
-    registerAllProcessors(QueueManager);
+    await registerProcessors();
   }
 
+  // Initialize SSE broadcasting
+  initializeSSEBroadcasting();
+
   console.log('[QueueSystem] Initialized successfully');
+  return queueManager;
 }
 
 // ---------------------------------------------
@@ -114,7 +120,8 @@ export function setupQueueRoutes(
 
 export async function shutdownQueueSystem(): Promise<void> {
   console.log('[QueueSystem] Shutting down...');
-  await QueueManager.shutdown();
+  const queueManager = getQueueManager();
+  await queueManager.shutdown();
   console.log('[QueueSystem] Shut down complete');
 }
 

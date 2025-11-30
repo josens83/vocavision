@@ -1,6 +1,6 @@
 // ============================================
-// VocaVision Queue System - Queue Manager Service
-// Bull/Redis Queue Management
+// VocaVision Queue System - Queue Manager
+// Bull/Redis 기반 작업 큐 관리자
 // ============================================
 
 import Bull, { Queue, Job, JobOptions } from 'bull';
@@ -8,510 +8,408 @@ import { EventEmitter } from 'events';
 import {
   QueueConfig,
   DEFAULT_QUEUE_CONFIG,
-  AnyJobData,
+  QUEUE_NAMES,
   JobType,
   JobStatus,
+  JobPriority,
+  JobData,
   JobProgress,
-  JobResult,
-  JobInfo,
-  JobListQuery,
-  JobListResponse,
-  QueueStatsData,
-  PRIORITY_MAP,
-  JOB_TYPE_CONFIGS,
-  CreateJobRequest,
+  QueueStats,
+  QueueDashboardStats,
+  QueueEvent,
+  QueueEventType,
+  JOB_RATE_LIMITS,
+  RETRY_CONFIG,
 } from '../types/queue.types';
 
 // ---------------------------------------------
-// Queue Manager Singleton
+// Queue Manager Class
 // ---------------------------------------------
 
-class QueueManagerService extends EventEmitter {
-  private static instance: QueueManagerService;
-  private queue: Queue<AnyJobData> | null = null;
+export class QueueManager extends EventEmitter {
+  private queues: Map<string, Queue> = new Map();
   private config: QueueConfig;
   private isInitialized = false;
 
-  private constructor() {
+  constructor(config: Partial<QueueConfig> = {}) {
     super();
-    this.config = DEFAULT_QUEUE_CONFIG;
-  }
-
-  public static getInstance(): QueueManagerService {
-    if (!QueueManagerService.instance) {
-      QueueManagerService.instance = new QueueManagerService();
-    }
-    return QueueManagerService.instance;
+    this.config = { ...DEFAULT_QUEUE_CONFIG, ...config };
   }
 
   // ---------------------------------------------
   // Initialization
   // ---------------------------------------------
 
-  public async initialize(config?: Partial<QueueConfig>): Promise<void> {
+  async initialize(): Promise<void> {
     if (this.isInitialized) {
       console.log('[QueueManager] Already initialized');
       return;
     }
 
-    this.config = { ...DEFAULT_QUEUE_CONFIG, ...config };
+    console.log('[QueueManager] Initializing queues...');
 
-    try {
-      this.queue = new Bull<AnyJobData>(this.config.name, {
+    // Create queues
+    for (const [name, queueName] of Object.entries(QUEUE_NAMES)) {
+      const queue = new Bull(queueName, {
         redis: this.config.redis,
         defaultJobOptions: this.config.defaultJobOptions,
         limiter: this.config.limiter,
-        settings: this.config.settings,
       });
 
-      // Set up event listeners
-      this.setupEventListeners();
+      // Set up event handlers
+      this.setupQueueEvents(queue, queueName);
 
-      // Test connection
-      await this.queue.isReady();
-
-      this.isInitialized = true;
-      console.log('[QueueManager] Initialized successfully');
-      console.log(`[QueueManager] Redis: ${this.config.redis.host}:${this.config.redis.port}`);
-    } catch (error) {
-      console.error('[QueueManager] Failed to initialize:', error);
-      throw error;
+      this.queues.set(queueName, queue);
+      console.log(`[QueueManager] Created queue: ${queueName}`);
     }
+
+    this.isInitialized = true;
+    console.log('[QueueManager] All queues initialized');
   }
 
-  private setupEventListeners(): void {
-    if (!this.queue) return;
-
-    this.queue.on('error', (error) => {
-      console.error('[QueueManager] Queue error:', error);
-      this.emit('queue-error', error);
+  private setupQueueEvents(queue: Queue, queueName: string): void {
+    queue.on('error', (error) => {
+      console.error(`[Queue:${queueName}] Error:`, error);
+      this.emitEvent('queue:error', { error: error.message });
     });
 
-    this.queue.on('waiting', (jobId) => {
-      console.log(`[QueueManager] Job ${jobId} is waiting`);
+    queue.on('waiting', (jobId) => {
+      console.log(`[Queue:${queueName}] Job ${jobId} waiting`);
     });
 
-    this.queue.on('active', (job) => {
-      console.log(`[QueueManager] Job ${job.id} started processing`);
-      this.emit('job-active', this.formatJobInfo(job));
+    queue.on('active', (job) => {
+      console.log(`[Queue:${queueName}] Job ${job.id} started`);
+      this.emitEvent('job:started', { jobId: String(job.id) });
     });
 
-    this.queue.on('completed', (job, result) => {
-      console.log(`[QueueManager] Job ${job.id} completed`);
-      this.emit('job-completed', { ...this.formatJobInfo(job), result });
+    queue.on('completed', (job, result) => {
+      console.log(`[Queue:${queueName}] Job ${job.id} completed`);
+      this.emitEvent('job:completed', { jobId: String(job.id), result });
     });
 
-    this.queue.on('failed', (job, err) => {
-      console.error(`[QueueManager] Job ${job.id} failed:`, err.message);
-      this.emit('job-failed', { ...this.formatJobInfo(job), error: err.message });
+    queue.on('failed', (job, error) => {
+      console.error(`[Queue:${queueName}] Job ${job.id} failed:`, error.message);
+      this.emitEvent('job:failed', { jobId: String(job.id), error: error.message });
     });
 
-    this.queue.on('progress', (job, progress) => {
-      this.emit('job-progress', { jobId: job.id, progress });
+    queue.on('progress', (job, progress) => {
+      this.emitEvent('job:progress', { jobId: String(job.id), progress });
     });
 
-    this.queue.on('stalled', (job) => {
-      console.warn(`[QueueManager] Job ${job.id} stalled`);
-      this.emit('job-stalled', this.formatJobInfo(job));
+    queue.on('stalled', (job) => {
+      console.warn(`[Queue:${queueName}] Job ${job.id} stalled`);
     });
   }
 
+  private emitEvent(type: QueueEventType, data: QueueEvent['data']): void {
+    const event: QueueEvent = {
+      type,
+      timestamp: new Date(),
+      data,
+    };
+    this.emit(type, event);
+    this.emit('event', event);
+  }
+
   // ---------------------------------------------
-  // Job Creation
+  // Queue Access
   // ---------------------------------------------
 
-  public async addJob(request: CreateJobRequest): Promise<Job<AnyJobData>> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
+  getQueue(name: string): Queue | undefined {
+    return this.queues.get(name);
+  }
+
+  getContentQueue(): Queue {
+    const queue = this.queues.get(QUEUE_NAMES.CONTENT);
+    if (!queue) throw new Error('Content queue not initialized');
+    return queue;
+  }
+
+  getImageQueue(): Queue {
+    const queue = this.queues.get(QUEUE_NAMES.IMAGE);
+    if (!queue) throw new Error('Image queue not initialized');
+    return queue;
+  }
+
+  getExportQueue(): Queue {
+    const queue = this.queues.get(QUEUE_NAMES.EXPORT);
+    if (!queue) throw new Error('Export queue not initialized');
+    return queue;
+  }
+
+  // ---------------------------------------------
+  // Job Management
+  // ---------------------------------------------
+
+  async addJob<T extends JobData>(
+    queueName: string,
+    jobType: JobType,
+    data: T,
+    options: Partial<JobOptions> = {}
+  ): Promise<Job<T>> {
+    const queue = this.queues.get(queueName);
+    if (!queue) {
+      throw new Error(`Queue ${queueName} not found`);
     }
 
-    const jobId = this.generateJobId(request.type);
-    const typeConfig = JOB_TYPE_CONFIGS[request.type];
-
-    const jobData: AnyJobData = {
-      ...request.data,
-      jobId,
-      type: request.type,
-      priority: request.priority || 'normal',
-      createdAt: new Date().toISOString(),
-    } as AnyJobData;
+    const retryConfig = RETRY_CONFIG[jobType];
+    const rateLimit = JOB_RATE_LIMITS[jobType];
 
     const jobOptions: JobOptions = {
-      jobId,
-      priority: PRIORITY_MAP[request.priority || 'normal'],
-      attempts: typeConfig.attempts,
-      timeout: typeConfig.timeout,
-      delay: request.delay,
-      removeOnComplete: this.config.defaultJobOptions.removeOnComplete,
-      removeOnFail: this.config.defaultJobOptions.removeOnFail,
+      attempts: retryConfig.attempts,
+      backoff: {
+        type: 'exponential',
+        delay: retryConfig.backoff,
+      },
+      ...options,
     };
 
-    const job = await this.queue.add(request.type, jobData, jobOptions);
+    const job = await queue.add(jobType, data, jobOptions);
 
-    console.log(`[QueueManager] Created job ${jobId} of type ${request.type}`);
-    this.emit('job-created', this.formatJobInfo(job));
+    console.log(`[QueueManager] Added job ${job.id} to ${queueName} (type: ${jobType})`);
+    this.emitEvent('job:added', { jobId: String(job.id) });
 
     return job;
   }
 
-  public async addImageGenerationJob(
-    wordIds: string[],
-    options: {
-      style?: string;
-      size?: string;
-      regenerate?: boolean;
-      priority?: 'low' | 'normal' | 'high' | 'critical';
-      createdBy: string;
-    }
-  ): Promise<Job<AnyJobData>> {
-    return this.addJob({
-      type: 'image-generation',
-      data: {
-        wordIds,
-        style: options.style,
-        size: options.size,
-        regenerate: options.regenerate || false,
-        totalWords: wordIds.length,
-        priority: options.priority || 'normal',
-        createdBy: options.createdBy,
-      },
-      priority: options.priority,
-    });
+  async getJob(queueName: string, jobId: string): Promise<Job | null> {
+    const queue = this.queues.get(queueName);
+    if (!queue) return null;
+    return queue.getJob(jobId);
   }
 
-  public async addContentGenerationJob(
-    wordIds: string[],
-    options: {
-      generateMnemonic?: boolean;
-      generateExamples?: boolean;
-      generateEtymology?: boolean;
-      priority?: 'low' | 'normal' | 'high' | 'critical';
-      createdBy: string;
-    }
-  ): Promise<Job<AnyJobData>> {
-    return this.addJob({
-      type: 'content-generation',
-      data: {
-        wordIds,
-        options: {
-          generateMnemonic: options.generateMnemonic ?? true,
-          generateExamples: options.generateExamples ?? true,
-          generateEtymology: options.generateEtymology ?? false,
-        },
-        totalWords: wordIds.length,
-        priority: options.priority || 'normal',
-        createdBy: options.createdBy,
-      },
-      priority: options.priority,
-    });
-  }
-
-  // ---------------------------------------------
-  // Job Retrieval
-  // ---------------------------------------------
-
-  public async getJob(jobId: string): Promise<JobInfo | null> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
-    }
-
-    const job = await this.queue.getJob(jobId);
+  async getJobStatus(queueName: string, jobId: string): Promise<JobProgress | null> {
+    const job = await this.getJob(queueName, jobId);
     if (!job) return null;
 
-    return this.formatJobInfo(job);
-  }
-
-  public async getJobs(query: JobListQuery = {}): Promise<JobListResponse> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
-    }
-
-    const {
-      type,
-      status,
-      page = 1,
-      limit = 20,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-    } = query;
-
-    // Get jobs by status
-    let jobs: Job<AnyJobData>[] = [];
-    const statuses: JobStatus[] = status
-      ? [status]
-      : ['waiting', 'active', 'completed', 'failed', 'delayed'];
-
-    for (const s of statuses) {
-      const statusJobs = await this.getJobsByStatus(s);
-      jobs = jobs.concat(statusJobs);
-    }
-
-    // Filter by type
-    if (type) {
-      jobs = jobs.filter((job) => job.data.type === type);
-    }
-
-    // Sort
-    jobs.sort((a, b) => {
-      if (sortBy === 'createdAt') {
-        const aTime = new Date(a.data.createdAt).getTime();
-        const bTime = new Date(b.data.createdAt).getTime();
-        return sortOrder === 'desc' ? bTime - aTime : aTime - bTime;
-      }
-      if (sortBy === 'priority') {
-        const aPriority = PRIORITY_MAP[a.data.priority];
-        const bPriority = PRIORITY_MAP[b.data.priority];
-        return sortOrder === 'desc' ? aPriority - bPriority : bPriority - aPriority;
-      }
-      return 0;
-    });
-
-    // Paginate
-    const total = jobs.length;
-    const start = (page - 1) * limit;
-    const paginatedJobs = jobs.slice(start, start + limit);
+    const state = await job.getState();
+    const progress = job.progress();
 
     return {
-      jobs: paginatedJobs.map((job) => this.formatJobInfo(job)),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      jobId: String(job.id),
+      type: job.name as JobType,
+      status: state as JobStatus,
+      progress: typeof progress === 'number' ? progress : 0,
+      startedAt: job.processedOn ? new Date(job.processedOn) : undefined,
+      completedAt: job.finishedOn ? new Date(job.finishedOn) : undefined,
+      error: job.failedReason,
     };
   }
 
-  private async getJobsByStatus(status: JobStatus): Promise<Job<AnyJobData>[]> {
-    if (!this.queue) return [];
-
-    switch (status) {
-      case 'waiting':
-        return this.queue.getWaiting();
-      case 'active':
-        return this.queue.getActive();
-      case 'completed':
-        return this.queue.getCompleted();
-      case 'failed':
-        return this.queue.getFailed();
-      case 'delayed':
-        return this.queue.getDelayed();
-      default:
-        return [];
-    }
-  }
-
-  // ---------------------------------------------
-  // Job Control
-  // ---------------------------------------------
-
-  public async retryJob(jobId: string): Promise<Job<AnyJobData>> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
-    }
-
-    const job = await this.queue.getJob(jobId);
-    if (!job) {
-      throw new Error(`Job ${jobId} not found`);
-    }
+  async retryJob(queueName: string, jobId: string): Promise<void> {
+    const job = await this.getJob(queueName, jobId);
+    if (!job) throw new Error(`Job ${jobId} not found`);
 
     await job.retry();
     console.log(`[QueueManager] Retrying job ${jobId}`);
-
-    return job;
+    this.emitEvent('job:retrying', { jobId });
   }
 
-  public async removeJob(jobId: string): Promise<void> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
-    }
-
-    const job = await this.queue.getJob(jobId);
-    if (!job) {
-      throw new Error(`Job ${jobId} not found`);
-    }
+  async removeJob(queueName: string, jobId: string): Promise<void> {
+    const job = await this.getJob(queueName, jobId);
+    if (!job) throw new Error(`Job ${jobId} not found`);
 
     await job.remove();
     console.log(`[QueueManager] Removed job ${jobId}`);
   }
 
-  public async cancelJob(jobId: string): Promise<void> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
+  // ---------------------------------------------
+  // Batch Job Management
+  // ---------------------------------------------
+
+  async addBatchJob<T extends JobData>(
+    queueName: string,
+    jobType: JobType,
+    items: T[],
+    batchId: string,
+    options: Partial<JobOptions> = {}
+  ): Promise<Job<T>[]> {
+    const jobs: Job<T>[] = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const job = await this.addJob(queueName, jobType, items[i], {
+        ...options,
+        jobId: `${batchId}-${i}`,
+      });
+      jobs.push(job);
     }
 
-    const job = await this.queue.getJob(jobId);
-    if (!job) {
-      throw new Error(`Job ${jobId} not found`);
+    console.log(`[QueueManager] Added batch ${batchId} with ${items.length} jobs`);
+    this.emitEvent('batch:started', { batchId });
+
+    return jobs;
+  }
+
+  async getBatchProgress(queueName: string, batchId: string): Promise<{
+    total: number;
+    completed: number;
+    failed: number;
+    inProgress: number;
+    progress: number;
+  }> {
+    const queue = this.queues.get(queueName);
+    if (!queue) throw new Error(`Queue ${queueName} not found`);
+
+    // Get all jobs with batch prefix
+    const allJobs = await queue.getJobs(['waiting', 'active', 'completed', 'failed']);
+    const batchJobs = allJobs.filter(job => String(job.id).startsWith(batchId));
+
+    let completed = 0;
+    let failed = 0;
+    let inProgress = 0;
+
+    for (const job of batchJobs) {
+      const state = await job.getState();
+      if (state === 'completed') completed++;
+      else if (state === 'failed') failed++;
+      else if (state === 'active') inProgress++;
     }
 
-    // Move to failed with cancellation reason
-    await job.moveToFailed({ message: 'Job cancelled by user' }, true);
-    console.log(`[QueueManager] Cancelled job ${jobId}`);
+    const total = batchJobs.length;
+    const progress = total > 0 ? Math.round(((completed + failed) / total) * 100) : 0;
+
+    return { total, completed, failed, inProgress, progress };
+  }
+
+  // ---------------------------------------------
+  // Queue Statistics
+  // ---------------------------------------------
+
+  async getQueueStats(queueName: string): Promise<QueueStats> {
+    const queue = this.queues.get(queueName);
+    if (!queue) throw new Error(`Queue ${queueName} not found`);
+
+    const [waiting, active, completed, failed, delayed, paused] = await Promise.all([
+      queue.getWaitingCount(),
+      queue.getActiveCount(),
+      queue.getCompletedCount(),
+      queue.getFailedCount(),
+      queue.getDelayedCount(),
+      queue.isPaused(),
+    ]);
+
+    return {
+      name: queueName,
+      waiting,
+      active,
+      completed,
+      failed,
+      delayed,
+      paused,
+    };
+  }
+
+  async getDashboardStats(): Promise<QueueDashboardStats> {
+    const queueStats: QueueStats[] = [];
+    let totalJobs = 0;
+    let activeJobs = 0;
+
+    for (const [name, queue] of this.queues) {
+      const stats = await this.getQueueStats(name);
+      queueStats.push(stats);
+      totalJobs += stats.waiting + stats.active + stats.completed + stats.failed;
+      activeJobs += stats.active;
+    }
+
+    // Calculate today's stats (simplified - would need Redis sorted sets for accurate counts)
+    const completedToday = queueStats.reduce((sum, s) => sum + s.completed, 0);
+    const failedToday = queueStats.reduce((sum, s) => sum + s.failed, 0);
+
+    return {
+      queues: queueStats,
+      totalJobs,
+      activeJobs,
+      completedToday,
+      failedToday,
+      averageProcessingTime: 0, // Would need to track this separately
+      throughput: 0, // Would need to calculate from completed jobs over time
+    };
   }
 
   // ---------------------------------------------
   // Queue Control
   // ---------------------------------------------
 
-  public async pauseQueue(): Promise<void> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
-    }
+  async pauseQueue(queueName: string): Promise<void> {
+    const queue = this.queues.get(queueName);
+    if (!queue) throw new Error(`Queue ${queueName} not found`);
 
-    await this.queue.pause();
-    console.log('[QueueManager] Queue paused');
+    await queue.pause();
+    console.log(`[QueueManager] Paused queue ${queueName}`);
+    this.emitEvent('queue:paused', {});
   }
 
-  public async resumeQueue(): Promise<void> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
-    }
+  async resumeQueue(queueName: string): Promise<void> {
+    const queue = this.queues.get(queueName);
+    if (!queue) throw new Error(`Queue ${queueName} not found`);
 
-    await this.queue.resume();
-    console.log('[QueueManager] Queue resumed');
+    await queue.resume();
+    console.log(`[QueueManager] Resumed queue ${queueName}`);
+    this.emitEvent('queue:resumed', {});
   }
 
-  public async cleanQueue(
-    grace: number = 0,
-    status: 'completed' | 'failed' | 'delayed' | 'wait' | 'active' = 'completed'
-  ): Promise<number[]> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
+  async pauseAllQueues(): Promise<void> {
+    for (const [name] of this.queues) {
+      await this.pauseQueue(name);
     }
-
-    const cleaned = await this.queue.clean(grace, status);
-    console.log(`[QueueManager] Cleaned ${cleaned.length} ${status} jobs`);
-    return cleaned;
   }
 
-  public async emptyQueue(): Promise<void> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
+  async resumeAllQueues(): Promise<void> {
+    for (const [name] of this.queues) {
+      await this.resumeQueue(name);
     }
+  }
 
-    await this.queue.empty();
-    console.log('[QueueManager] Queue emptied');
+  async cleanQueue(queueName: string, gracePeriod: number = 1000): Promise<void> {
+    const queue = this.queues.get(queueName);
+    if (!queue) throw new Error(`Queue ${queueName} not found`);
+
+    await queue.clean(gracePeriod, 'completed');
+    await queue.clean(gracePeriod, 'failed');
+    console.log(`[QueueManager] Cleaned queue ${queueName}`);
+  }
+
+  async cleanAllQueues(gracePeriod: number = 1000): Promise<void> {
+    for (const [name] of this.queues) {
+      await this.cleanQueue(name, gracePeriod);
+    }
   }
 
   // ---------------------------------------------
-  // Statistics
+  // Shutdown
   // ---------------------------------------------
 
-  public async getStats(): Promise<QueueStatsData> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
+  async shutdown(): Promise<void> {
+    console.log('[QueueManager] Shutting down...');
+
+    for (const [name, queue] of this.queues) {
+      await queue.close();
+      console.log(`[QueueManager] Closed queue ${name}`);
     }
 
-    const [waiting, active, completed, failed, delayed] = await Promise.all([
-      this.queue.getWaitingCount(),
-      this.queue.getActiveCount(),
-      this.queue.getCompletedCount(),
-      this.queue.getFailedCount(),
-      this.queue.getDelayedCount(),
-    ]);
-
-    // Get job counts by type
-    const allJobs = await this.getJobs({ limit: 1000 });
-    const jobCounts: Record<JobType, number> = {
-      'image-generation': 0,
-      'content-generation': 0,
-      'batch-import': 0,
-      'export': 0,
-      'cleanup': 0,
-    };
-
-    allJobs.jobs.forEach((job) => {
-      jobCounts[job.type]++;
-    });
-
-    return {
-      waiting,
-      active,
-      completed,
-      failed,
-      delayed,
-      paused: 0, // Bull doesn't track paused count directly
-      jobCounts,
-    };
-  }
-
-  public async isQueuePaused(): Promise<boolean> {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
-    }
-
-    return this.queue.isPaused();
-  }
-
-  // ---------------------------------------------
-  // Processor Registration
-  // ---------------------------------------------
-
-  public registerProcessor(
-    type: JobType,
-    processor: (job: Job<AnyJobData>) => Promise<JobResult>,
-    concurrency?: number
-  ): void {
-    if (!this.queue) {
-      throw new Error('Queue not initialized');
-    }
-
-    const typeConfig = JOB_TYPE_CONFIGS[type];
-    const processorConcurrency = concurrency || typeConfig.concurrency;
-
-    this.queue.process(type, processorConcurrency, processor);
-    console.log(`[QueueManager] Registered processor for ${type} (concurrency: ${processorConcurrency})`);
-  }
-
-  // ---------------------------------------------
-  // Utilities
-  // ---------------------------------------------
-
-  private generateJobId(type: JobType): string {
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substring(2, 8);
-    return `${type}-${timestamp}-${random}`;
-  }
-
-  private formatJobInfo(job: Job<AnyJobData>): JobInfo {
-    const state = job.finishedOn
-      ? job.failedReason
-        ? 'failed'
-        : 'completed'
-      : job.processedOn
-      ? 'active'
-      : 'waiting';
-
-    return {
-      id: job.id as string,
-      type: job.data.type,
-      status: state as JobStatus,
-      priority: job.data.priority,
-      progress: job.progress() as JobProgress | null,
-      data: job.data,
-      result: job.returnvalue as JobResult | null,
-      failedReason: job.failedReason,
-      attemptsMade: job.attemptsMade,
-      createdAt: job.data.createdAt,
-      processedAt: job.processedOn ? new Date(job.processedOn).toISOString() : undefined,
-      finishedAt: job.finishedOn ? new Date(job.finishedOn).toISOString() : undefined,
-    };
-  }
-
-  public getQueue(): Queue<AnyJobData> | null {
-    return this.queue;
-  }
-
-  public async shutdown(): Promise<void> {
-    if (this.queue) {
-      await this.queue.close();
-      this.isInitialized = false;
-      console.log('[QueueManager] Shut down');
-    }
+    this.queues.clear();
+    this.isInitialized = false;
+    console.log('[QueueManager] Shutdown complete');
   }
 }
 
-// Export singleton instance
-export const QueueManager = QueueManagerService.getInstance();
+// ---------------------------------------------
+// Singleton Instance
+// ---------------------------------------------
+
+let queueManagerInstance: QueueManager | null = null;
+
+export function getQueueManager(config?: Partial<QueueConfig>): QueueManager {
+  if (!queueManagerInstance) {
+    queueManagerInstance = new QueueManager(config);
+  }
+  return queueManagerInstance;
+}
+
+export async function initializeQueues(config?: Partial<QueueConfig>): Promise<QueueManager> {
+  const manager = getQueueManager(config);
+  await manager.initialize();
+  return manager;
+}
+
 export default QueueManager;

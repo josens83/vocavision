@@ -1,39 +1,185 @@
 // ============================================
-// VocaVision Queue System - Server-Sent Events Routes
-// Real-time job progress streaming
+// VocaVision Queue System - Real-time Progress (SSE)
+// Server-Sent Events를 통한 실시간 진행률 모니터링
 // ============================================
 
 import { Router, Request, Response } from 'express';
-import { QueueManager } from '../services/queue-manager.service';
-import {
-  SSEEvent,
-  JobEventData,
-  QueueStatsData,
-} from '../types/queue.types';
+import { getQueueManager } from '../services/queue-manager.service';
+import { QueueEvent, QUEUE_NAMES } from '../types/queue.types';
 
 const router = Router();
 
-// Track active SSE connections
-const activeConnections = new Set<Response>();
+// Store active SSE connections
+const clients: Map<string, Response> = new Map();
 
 // ---------------------------------------------
-// SSE Helper Functions
+// SSE Connection Handler
 // ---------------------------------------------
 
-function sendSSE(res: Response, event: SSEEvent): void {
-  if (!res.writable) return;
+/**
+ * GET /api/admin/queue/events
+ * SSE 연결 - 실시간 큐 이벤트 스트림
+ */
+router.get('/events', (req: Request, res: Response) => {
+  const clientId = `client-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  res.write(`event: ${event.type}\n`);
-  res.write(`data: ${JSON.stringify(event.data)}\n\n`);
+  // Set SSE headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'X-Accel-Buffering': 'no', // Disable nginx buffering
+  });
+
+  // Send initial connection event
+  res.write(`event: connected\n`);
+  res.write(`data: ${JSON.stringify({ clientId, timestamp: new Date().toISOString() })}\n\n`);
+
+  // Store client connection
+  clients.set(clientId, res);
+  console.log(`[SSE] Client connected: ${clientId} (total: ${clients.size})`);
+
+  // Keep-alive ping every 30 seconds
+  const keepAlive = setInterval(() => {
+    res.write(`: keepalive\n\n`);
+  }, 30000);
+
+  // Handle client disconnect
+  req.on('close', () => {
+    clearInterval(keepAlive);
+    clients.delete(clientId);
+    console.log(`[SSE] Client disconnected: ${clientId} (remaining: ${clients.size})`);
+  });
+});
+
+/**
+ * GET /api/admin/queue/events/job/:jobId
+ * 특정 작업의 진행률 스트림
+ */
+router.get('/events/job/:jobId', (req: Request, res: Response) => {
+  const { jobId } = req.params;
+  const clientId = `job-${jobId}-${Date.now()}`;
+
+  // Set SSE headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'X-Accel-Buffering': 'no',
+  });
+
+  // Send initial event
+  res.write(`event: subscribed\n`);
+  res.write(`data: ${JSON.stringify({ jobId, timestamp: new Date().toISOString() })}\n\n`);
+
+  // Store with job-specific key
+  clients.set(clientId, res);
+
+  // Keep-alive
+  const keepAlive = setInterval(() => {
+    res.write(`: keepalive\n\n`);
+  }, 30000);
+
+  req.on('close', () => {
+    clearInterval(keepAlive);
+    clients.delete(clientId);
+  });
+});
+
+/**
+ * GET /api/admin/queue/events/batch/:batchId
+ * 배치 작업의 진행률 스트림
+ */
+router.get('/events/batch/:batchId', async (req: Request, res: Response) => {
+  const { batchId } = req.params;
+  const queueName = req.query.queue as string || QUEUE_NAMES.CONTENT;
+  const clientId = `batch-${batchId}-${Date.now()}`;
+
+  // Set SSE headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'X-Accel-Buffering': 'no',
+  });
+
+  // Send initial event
+  res.write(`event: subscribed\n`);
+  res.write(`data: ${JSON.stringify({ batchId, timestamp: new Date().toISOString() })}\n\n`);
+
+  clients.set(clientId, res);
+
+  // Poll batch progress
+  const queueManager = getQueueManager();
+  const pollInterval = setInterval(async () => {
+    try {
+      const progress = await queueManager.getBatchProgress(queueName, batchId);
+
+      res.write(`event: progress\n`);
+      res.write(`data: ${JSON.stringify(progress)}\n\n`);
+
+      // Stop polling when complete
+      if (progress.completed + progress.failed >= progress.total) {
+        res.write(`event: completed\n`);
+        res.write(`data: ${JSON.stringify(progress)}\n\n`);
+        clearInterval(pollInterval);
+      }
+    } catch (error) {
+      console.error(`[SSE] Batch progress error:`, error);
+    }
+  }, 2000); // Poll every 2 seconds
+
+  // Keep-alive
+  const keepAlive = setInterval(() => {
+    res.write(`: keepalive\n\n`);
+  }, 30000);
+
+  req.on('close', () => {
+    clearInterval(pollInterval);
+    clearInterval(keepAlive);
+    clients.delete(clientId);
+  });
+});
+
+// ---------------------------------------------
+// Broadcast Functions
+// ---------------------------------------------
+
+/**
+ * Broadcast event to all connected clients
+ */
+export function broadcastEvent(event: QueueEvent): void {
+  const eventData = JSON.stringify(event);
+
+  clients.forEach((client, clientId) => {
+    try {
+      client.write(`event: ${event.type}\n`);
+      client.write(`data: ${eventData}\n\n`);
+    } catch (error) {
+      console.error(`[SSE] Failed to send to ${clientId}:`, error);
+      clients.delete(clientId);
+    }
+  });
 }
 
-function broadcastEvent(event: SSEEvent): void {
-  activeConnections.forEach((res) => {
-    try {
-      sendSSE(res, event);
-    } catch (error) {
-      console.error('[SSE] Error broadcasting:', error);
-      activeConnections.delete(res);
+/**
+ * Broadcast to specific job subscribers
+ */
+export function broadcastJobEvent(jobId: string, event: QueueEvent): void {
+  const eventData = JSON.stringify(event);
+
+  clients.forEach((client, clientId) => {
+    if (clientId.includes(jobId) || !clientId.startsWith('job-')) {
+      try {
+        client.write(`event: ${event.type}\n`);
+        client.write(`data: ${eventData}\n\n`);
+      } catch (error) {
+        console.error(`[SSE] Failed to send to ${clientId}:`, error);
+        clients.delete(clientId);
+      }
     }
   });
 }
@@ -42,315 +188,29 @@ function broadcastEvent(event: SSEEvent): void {
 // Initialize Queue Event Listeners
 // ---------------------------------------------
 
-let listenersInitialized = false;
+export function initializeSSEBroadcasting(): void {
+  const queueManager = getQueueManager();
 
-function initializeEventListeners(): void {
-  if (listenersInitialized) return;
-
-  QueueManager.on('job-created', (jobInfo) => {
-    broadcastEvent({
-      type: 'job-created',
-      data: {
-        jobId: jobInfo.id,
-        type: jobInfo.type,
-        status: 'waiting',
-      } as JobEventData,
-      timestamp: new Date().toISOString(),
-    });
+  // Listen for all queue events
+  queueManager.on('event', (event: QueueEvent) => {
+    broadcastEvent(event);
   });
 
-  QueueManager.on('job-active', (jobInfo) => {
-    broadcastEvent({
-      type: 'job-progress',
-      data: {
-        jobId: jobInfo.id,
-        type: jobInfo.type,
-        status: 'active',
-        progress: jobInfo.progress,
-      } as JobEventData,
-      timestamp: new Date().toISOString(),
-    });
-  });
-
-  QueueManager.on('job-progress', ({ jobId, progress }) => {
-    broadcastEvent({
-      type: 'job-progress',
-      data: {
-        jobId,
-        type: 'image-generation', // Will be updated with actual type
-        status: 'active',
-        progress,
-      } as JobEventData,
-      timestamp: new Date().toISOString(),
-    });
-  });
-
-  QueueManager.on('job-completed', (jobInfo) => {
-    broadcastEvent({
-      type: 'job-completed',
-      data: {
-        jobId: jobInfo.id,
-        type: jobInfo.type,
-        status: 'completed',
-        result: jobInfo.result,
-      } as JobEventData,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Also send updated stats
-    sendQueueStats();
-  });
-
-  QueueManager.on('job-failed', (jobInfo) => {
-    broadcastEvent({
-      type: 'job-failed',
-      data: {
-        jobId: jobInfo.id,
-        type: jobInfo.type,
-        status: 'failed',
-        error: jobInfo.error,
-      } as JobEventData,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Also send updated stats
-    sendQueueStats();
-  });
-
-  listenersInitialized = true;
-  console.log('[SSE] Event listeners initialized');
-}
-
-async function sendQueueStats(): Promise<void> {
-  try {
-    const stats = await QueueManager.getStats();
-    broadcastEvent({
-      type: 'queue-stats',
-      data: stats,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('[SSE] Error sending queue stats:', error);
-  }
+  console.log('[SSE] Event broadcasting initialized');
 }
 
 // ---------------------------------------------
-// Routes
+// Stats Endpoint for Client
 // ---------------------------------------------
-
-/**
- * GET /api/admin/queue/events
- * Main SSE endpoint for all queue events
- */
-router.get('/events', async (req: Request, res: Response) => {
-  // Set up SSE headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
-  res.flushHeaders();
-
-  // Initialize event listeners if not already done
-  initializeEventListeners();
-
-  // Add to active connections
-  activeConnections.add(res);
-  console.log(`[SSE] Client connected. Total connections: ${activeConnections.size}`);
-
-  // Send initial stats
-  try {
-    const stats = await QueueManager.getStats();
-    sendSSE(res, {
-      type: 'queue-stats',
-      data: stats,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('[SSE] Error sending initial stats:', error);
-  }
-
-  // Send heartbeat every 30 seconds
-  const heartbeatInterval = setInterval(() => {
-    if (res.writable) {
-      res.write(`: heartbeat\n\n`);
-    }
-  }, 30000);
-
-  // Clean up on connection close
-  req.on('close', () => {
-    clearInterval(heartbeatInterval);
-    activeConnections.delete(res);
-    console.log(`[SSE] Client disconnected. Total connections: ${activeConnections.size}`);
-  });
-});
-
-/**
- * GET /api/admin/queue/events/job/:jobId
- * SSE endpoint for specific job updates
- */
-router.get('/events/job/:jobId', async (req: Request, res: Response) => {
-  const { jobId } = req.params;
-
-  // Set up SSE headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders();
-
-  // Get initial job state
-  try {
-    const job = await QueueManager.getJob(jobId);
-    if (job) {
-      sendSSE(res, {
-        type: 'job-progress',
-        data: {
-          jobId: job.id,
-          type: job.type,
-          status: job.status,
-          progress: job.progress,
-          result: job.result,
-        } as JobEventData,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  } catch (error) {
-    console.error('[SSE] Error getting job:', error);
-  }
-
-  // Create job-specific event handler
-  const onProgress = ({ jobId: eventJobId, progress }: { jobId: string; progress: any }) => {
-    if (eventJobId === jobId && res.writable) {
-      sendSSE(res, {
-        type: 'job-progress',
-        data: {
-          jobId,
-          type: 'image-generation',
-          status: 'active',
-          progress,
-        } as JobEventData,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  };
-
-  const onCompleted = (jobInfo: any) => {
-    if (jobInfo.id === jobId && res.writable) {
-      sendSSE(res, {
-        type: 'job-completed',
-        data: {
-          jobId: jobInfo.id,
-          type: jobInfo.type,
-          status: 'completed',
-          result: jobInfo.result,
-        } as JobEventData,
-        timestamp: new Date().toISOString(),
-      });
-      cleanup();
-    }
-  };
-
-  const onFailed = (jobInfo: any) => {
-    if (jobInfo.id === jobId && res.writable) {
-      sendSSE(res, {
-        type: 'job-failed',
-        data: {
-          jobId: jobInfo.id,
-          type: jobInfo.type,
-          status: 'failed',
-          error: jobInfo.error,
-        } as JobEventData,
-        timestamp: new Date().toISOString(),
-      });
-      cleanup();
-    }
-  };
-
-  // Attach listeners
-  QueueManager.on('job-progress', onProgress);
-  QueueManager.on('job-completed', onCompleted);
-  QueueManager.on('job-failed', onFailed);
-
-  // Heartbeat
-  const heartbeatInterval = setInterval(() => {
-    if (res.writable) {
-      res.write(`: heartbeat\n\n`);
-    }
-  }, 30000);
-
-  // Cleanup function
-  const cleanup = () => {
-    clearInterval(heartbeatInterval);
-    QueueManager.removeListener('job-progress', onProgress);
-    QueueManager.removeListener('job-completed', onCompleted);
-    QueueManager.removeListener('job-failed', onFailed);
-  };
-
-  // Clean up on connection close
-  req.on('close', cleanup);
-});
 
 /**
  * GET /api/admin/queue/events/stats
- * SSE endpoint for queue stats only
+ * 현재 연결된 클라이언트 수
  */
-router.get('/events/stats', async (req: Request, res: Response) => {
-  // Set up SSE headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders();
-
-  // Send initial stats
-  const sendStats = async () => {
-    try {
-      const stats = await QueueManager.getStats();
-      if (res.writable) {
-        sendSSE(res, {
-          type: 'queue-stats',
-          data: stats,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    } catch (error) {
-      console.error('[SSE] Error sending stats:', error);
-    }
-  };
-
-  await sendStats();
-
-  // Poll stats every 5 seconds
-  const statsInterval = setInterval(sendStats, 5000);
-
-  // Heartbeat every 30 seconds
-  const heartbeatInterval = setInterval(() => {
-    if (res.writable) {
-      res.write(`: heartbeat\n\n`);
-    }
-  }, 30000);
-
-  // Clean up on connection close
-  req.on('close', () => {
-    clearInterval(statsInterval);
-    clearInterval(heartbeatInterval);
-  });
-});
-
-// ---------------------------------------------
-// Utility Endpoints
-// ---------------------------------------------
-
-/**
- * GET /api/admin/queue/connections
- * Get number of active SSE connections
- */
-router.get('/connections', (_req: Request, res: Response) => {
+router.get('/events/stats', (req: Request, res: Response) => {
   res.json({
-    success: true,
-    data: {
-      activeConnections: activeConnections.size,
-    },
+    connectedClients: clients.size,
+    clientIds: Array.from(clients.keys()),
   });
 });
 

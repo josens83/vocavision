@@ -5,14 +5,16 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { QueueManager } from '../services/queue-manager.service';
+import { getQueueManager } from '../services/queue-manager.service';
 import {
   JobType,
   JobStatus,
-  JobPriority,
-  JOB_TYPE_LABELS,
-  STATUS_LABELS,
-  PRIORITY_LABELS,
+  QUEUE_NAMES,
+  ContentGenerationJobData,
+  ImageGenerationJobData,
+  BatchContentJobData,
+  BatchImageJobData,
+  ExportJobData,
 } from '../types/queue.types';
 
 const router = Router();
@@ -21,49 +23,69 @@ const router = Router();
 // Validation Schemas
 // ---------------------------------------------
 
-const CreateJobSchema = z.object({
-  type: z.enum(['image-generation', 'content-generation', 'batch-import', 'export', 'cleanup'] as const),
-  priority: z.enum(['low', 'normal', 'high', 'critical'] as const).optional().default('normal'),
-  delay: z.number().min(0).optional(),
-  data: z.record(z.unknown()),
+const ContentGenerationSchema = z.object({
+  wordId: z.string().uuid(),
+  word: z.string().min(1),
+  examCategory: z.string(),
+  level: z.string(),
+  regenerate: z.boolean().optional().default(false),
+  priority: z.number().min(1).max(5).optional().default(3),
 });
 
-const ImageGenerationJobSchema = z.object({
-  wordIds: z.array(z.string().uuid()).min(1).max(100),
+const BatchContentSchema = z.object({
+  batchId: z.string().optional(),
+  words: z.array(z.object({
+    id: z.string().uuid(),
+    word: z.string().min(1),
+  })).min(1).max(100),
+  examCategory: z.string(),
+  level: z.string(),
+  regenerate: z.boolean().optional().default(false),
+});
+
+const ImageGenerationSchema = z.object({
+  wordId: z.string().uuid(),
+  word: z.string().min(1),
+  mnemonic: z.string().min(1),
+  mnemonicKorean: z.string().optional(),
   style: z.enum([
     'cartoon', 'anime', 'watercolor', 'pixel', 'sketch',
     '3d-render', 'comic', 'minimalist', 'vintage', 'pop-art'
   ] as const).optional(),
   size: z.enum(['512x512', '768x768', '1024x1024'] as const).optional(),
   regenerate: z.boolean().optional().default(false),
-  priority: z.enum(['low', 'normal', 'high', 'critical'] as const).optional().default('normal'),
+  priority: z.number().min(1).max(5).optional().default(3),
 });
 
-const ContentGenerationJobSchema = z.object({
-  wordIds: z.array(z.string().uuid()).min(1).max(100),
-  options: z.object({
-    generateMnemonic: z.boolean().optional().default(true),
-    generateExamples: z.boolean().optional().default(true),
-    generateEtymology: z.boolean().optional().default(false),
+const BatchImageSchema = z.object({
+  batchId: z.string().optional(),
+  words: z.array(z.object({
+    id: z.string().uuid(),
+    word: z.string().min(1),
+    mnemonic: z.string().min(1),
+    mnemonicKorean: z.string().optional(),
+  })).min(1).max(50),
+  style: z.enum([
+    'cartoon', 'anime', 'watercolor', 'pixel', 'sketch',
+    '3d-render', 'comic', 'minimalist', 'vintage', 'pop-art'
+  ] as const).optional(),
+  size: z.enum(['512x512', '768x768', '1024x1024'] as const).optional(),
+  regenerate: z.boolean().optional().default(false),
+});
+
+const ExportSchema = z.object({
+  format: z.enum(['json', 'csv', 'xlsx'] as const),
+  filters: z.object({
+    examCategories: z.array(z.string()).optional(),
+    levels: z.array(z.string()).optional(),
+    status: z.array(z.string()).optional(),
   }).optional(),
-  priority: z.enum(['low', 'normal', 'high', 'critical'] as const).optional().default('normal'),
-});
-
-const JobListQuerySchema = z.object({
-  type: z.enum(['image-generation', 'content-generation', 'batch-import', 'export', 'cleanup'] as const).optional(),
-  status: z.enum(['waiting', 'active', 'completed', 'failed', 'delayed', 'paused'] as const).optional(),
-  page: z.coerce.number().min(1).optional().default(1),
-  limit: z.coerce.number().min(1).max(100).optional().default(20),
-  sortBy: z.enum(['createdAt', 'priority'] as const).optional().default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc'] as const).optional().default('desc'),
 });
 
 const QueueActionSchema = z.object({
-  action: z.enum(['pause', 'resume', 'clean', 'empty'] as const),
-  options: z.object({
-    grace: z.number().optional(),
-    status: z.enum(['completed', 'failed', 'delayed'] as const).optional(),
-  }).optional(),
+  action: z.enum(['pause', 'resume', 'clean'] as const),
+  queueName: z.string().optional(),
+  gracePeriod: z.number().optional().default(1000),
 });
 
 // ---------------------------------------------
@@ -85,28 +107,23 @@ function sendError(res: Response, statusCode: number, code: string, message: str
   });
 }
 
+function generateBatchId(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
 // ---------------------------------------------
-// Routes
+// Dashboard Stats Routes
 // ---------------------------------------------
 
 /**
  * GET /api/admin/queue/stats
- * Get queue statistics
+ * 큐 시스템 전체 통계
  */
 router.get('/stats', async (_req: Request, res: Response) => {
   try {
-    const stats = await QueueManager.getStats();
-    const isPaused = await QueueManager.isQueuePaused();
-
-    sendSuccess(res, {
-      ...stats,
-      isPaused,
-      labels: {
-        types: JOB_TYPE_LABELS,
-        statuses: STATUS_LABELS,
-        priorities: PRIORITY_LABELS,
-      },
-    });
+    const queueManager = getQueueManager();
+    const stats = await queueManager.getDashboardStats();
+    sendSuccess(res, stats);
   } catch (error) {
     console.error('[QueueRoute] Stats error:', error);
     sendError(res, 500, 'INTERNAL_ERROR', 'Failed to get queue stats');
@@ -114,135 +131,50 @@ router.get('/stats', async (_req: Request, res: Response) => {
 });
 
 /**
- * GET /api/admin/queue/jobs
- * List jobs with filtering and pagination
+ * GET /api/admin/queue/stats/:queueName
+ * 특정 큐 통계
  */
-router.get('/jobs', async (req: Request, res: Response) => {
+router.get('/stats/:queueName', async (req: Request, res: Response) => {
   try {
-    const query = JobListQuerySchema.parse(req.query);
-    const result = await QueueManager.getJobs(query);
-
-    sendSuccess(res, result);
+    const { queueName } = req.params;
+    const queueManager = getQueueManager();
+    const stats = await queueManager.getQueueStats(queueName);
+    sendSuccess(res, stats);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      sendError(res, 400, 'VALIDATION_ERROR', error.errors[0].message);
-      return;
-    }
-    console.error('[QueueRoute] List jobs error:', error);
-    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to list jobs');
+    console.error('[QueueRoute] Queue stats error:', error);
+    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to get queue stats');
   }
 });
 
-/**
- * GET /api/admin/queue/jobs/:jobId
- * Get single job details
- */
-router.get('/jobs/:jobId', async (req: Request, res: Response) => {
-  try {
-    const { jobId } = req.params;
-    const job = await QueueManager.getJob(jobId);
-
-    if (!job) {
-      sendError(res, 404, 'NOT_FOUND', 'Job not found');
-      return;
-    }
-
-    sendSuccess(res, { job });
-  } catch (error) {
-    console.error('[QueueRoute] Get job error:', error);
-    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to get job');
-  }
-});
+// ---------------------------------------------
+// Content Generation Routes
+// ---------------------------------------------
 
 /**
- * POST /api/admin/queue/jobs
- * Create a new job (generic)
+ * POST /api/admin/queue/content/generate
+ * 단일 단어 콘텐츠 생성 작업 추가
  */
-router.post('/jobs', async (req: Request, res: Response) => {
+router.post('/content/generate', async (req: Request, res: Response) => {
   try {
-    const input = CreateJobSchema.parse(req.body);
+    const input = ContentGenerationSchema.parse(req.body);
     const userId = (req as any).user?.id || 'system';
+    const queueManager = getQueueManager();
 
-    const job = await QueueManager.addJob({
-      type: input.type,
-      data: {
-        ...input.data,
-        createdBy: userId,
-        priority: input.priority,
-      },
-      priority: input.priority,
-      delay: input.delay,
-    });
+    const jobData: ContentGenerationJobData = {
+      ...input,
+      requestedBy: userId,
+    };
 
-    sendSuccess(res, {
-      jobId: job.id,
-      type: input.type,
-      status: 'waiting',
-    }, 'Job created successfully');
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      sendError(res, 400, 'VALIDATION_ERROR', error.errors[0].message);
-      return;
-    }
-    console.error('[QueueRoute] Create job error:', error);
-    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to create job');
-  }
-});
-
-/**
- * POST /api/admin/queue/jobs/image-generation
- * Create image generation job
- */
-router.post('/jobs/image-generation', async (req: Request, res: Response) => {
-  try {
-    const input = ImageGenerationJobSchema.parse(req.body);
-    const userId = (req as any).user?.id || 'system';
-
-    const job = await QueueManager.addImageGenerationJob(input.wordIds, {
-      style: input.style,
-      size: input.size,
-      regenerate: input.regenerate,
-      priority: input.priority,
-      createdBy: userId,
-    });
-
-    sendSuccess(res, {
-      jobId: job.id,
-      type: 'image-generation',
-      totalWords: input.wordIds.length,
-      status: 'waiting',
-    }, 'Image generation job created');
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      sendError(res, 400, 'VALIDATION_ERROR', error.errors[0].message);
-      return;
-    }
-    console.error('[QueueRoute] Create image job error:', error);
-    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to create image generation job');
-  }
-});
-
-/**
- * POST /api/admin/queue/jobs/content-generation
- * Create content generation job
- */
-router.post('/jobs/content-generation', async (req: Request, res: Response) => {
-  try {
-    const input = ContentGenerationJobSchema.parse(req.body);
-    const userId = (req as any).user?.id || 'system';
-
-    const job = await QueueManager.addContentGenerationJob(input.wordIds, {
-      generateMnemonic: input.options?.generateMnemonic,
-      generateExamples: input.options?.generateExamples,
-      generateEtymology: input.options?.generateEtymology,
-      priority: input.priority,
-      createdBy: userId,
-    });
+    const job = await queueManager.addJob(
+      QUEUE_NAMES.CONTENT,
+      'content-generation',
+      jobData,
+      { priority: input.priority }
+    );
 
     sendSuccess(res, {
       jobId: job.id,
       type: 'content-generation',
-      totalWords: input.wordIds.length,
       status: 'waiting',
     }, 'Content generation job created');
   } catch (error) {
@@ -250,19 +182,224 @@ router.post('/jobs/content-generation', async (req: Request, res: Response) => {
       sendError(res, 400, 'VALIDATION_ERROR', error.errors[0].message);
       return;
     }
-    console.error('[QueueRoute] Create content job error:', error);
+    console.error('[QueueRoute] Content generation error:', error);
     sendError(res, 500, 'INTERNAL_ERROR', 'Failed to create content generation job');
   }
 });
 
 /**
- * POST /api/admin/queue/jobs/:jobId/retry
- * Retry a failed job
+ * POST /api/admin/queue/content/batch
+ * 배치 콘텐츠 생성 작업 추가
  */
-router.post('/jobs/:jobId/retry', async (req: Request, res: Response) => {
+router.post('/content/batch', async (req: Request, res: Response) => {
   try {
-    const { jobId } = req.params;
-    await QueueManager.retryJob(jobId);
+    const input = BatchContentSchema.parse(req.body);
+    const userId = (req as any).user?.id || 'system';
+    const queueManager = getQueueManager();
+
+    const batchId = input.batchId || generateBatchId('content');
+
+    const jobData: BatchContentJobData = {
+      batchId,
+      words: input.words,
+      examCategory: input.examCategory,
+      level: input.level,
+      regenerate: input.regenerate,
+      requestedBy: userId,
+    };
+
+    const job = await queueManager.addJob(
+      QUEUE_NAMES.CONTENT,
+      'batch-content',
+      jobData,
+      { priority: 2 }
+    );
+
+    sendSuccess(res, {
+      jobId: job.id,
+      batchId,
+      type: 'batch-content',
+      totalWords: input.words.length,
+      status: 'waiting',
+    }, 'Batch content generation job created');
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      sendError(res, 400, 'VALIDATION_ERROR', error.errors[0].message);
+      return;
+    }
+    console.error('[QueueRoute] Batch content error:', error);
+    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to create batch content job');
+  }
+});
+
+// ---------------------------------------------
+// Image Generation Routes
+// ---------------------------------------------
+
+/**
+ * POST /api/admin/queue/image/generate
+ * 단일 단어 이미지 생성 작업 추가
+ */
+router.post('/image/generate', async (req: Request, res: Response) => {
+  try {
+    const input = ImageGenerationSchema.parse(req.body);
+    const userId = (req as any).user?.id || 'system';
+    const queueManager = getQueueManager();
+
+    const jobData: ImageGenerationJobData = {
+      ...input,
+      requestedBy: userId,
+    };
+
+    const job = await queueManager.addJob(
+      QUEUE_NAMES.IMAGE,
+      'image-generation',
+      jobData,
+      { priority: input.priority }
+    );
+
+    sendSuccess(res, {
+      jobId: job.id,
+      type: 'image-generation',
+      status: 'waiting',
+    }, 'Image generation job created');
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      sendError(res, 400, 'VALIDATION_ERROR', error.errors[0].message);
+      return;
+    }
+    console.error('[QueueRoute] Image generation error:', error);
+    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to create image generation job');
+  }
+});
+
+/**
+ * POST /api/admin/queue/image/batch
+ * 배치 이미지 생성 작업 추가
+ */
+router.post('/image/batch', async (req: Request, res: Response) => {
+  try {
+    const input = BatchImageSchema.parse(req.body);
+    const userId = (req as any).user?.id || 'system';
+    const queueManager = getQueueManager();
+
+    const batchId = input.batchId || generateBatchId('image');
+
+    const jobData: BatchImageJobData = {
+      batchId,
+      words: input.words,
+      style: input.style,
+      size: input.size,
+      regenerate: input.regenerate,
+      requestedBy: userId,
+    };
+
+    const job = await queueManager.addJob(
+      QUEUE_NAMES.IMAGE,
+      'batch-image',
+      jobData,
+      { priority: 2 }
+    );
+
+    sendSuccess(res, {
+      jobId: job.id,
+      batchId,
+      type: 'batch-image',
+      totalWords: input.words.length,
+      status: 'waiting',
+    }, 'Batch image generation job created');
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      sendError(res, 400, 'VALIDATION_ERROR', error.errors[0].message);
+      return;
+    }
+    console.error('[QueueRoute] Batch image error:', error);
+    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to create batch image job');
+  }
+});
+
+// ---------------------------------------------
+// Export Routes
+// ---------------------------------------------
+
+/**
+ * POST /api/admin/queue/export
+ * 데이터 내보내기 작업 추가
+ */
+router.post('/export', async (req: Request, res: Response) => {
+  try {
+    const input = ExportSchema.parse(req.body);
+    const userId = (req as any).user?.id || 'system';
+    const queueManager = getQueueManager();
+
+    const exportId = generateBatchId('export');
+
+    const jobData: ExportJobData = {
+      exportId,
+      format: input.format,
+      filters: input.filters,
+      requestedBy: userId,
+    };
+
+    const job = await queueManager.addJob(
+      QUEUE_NAMES.EXPORT,
+      'export',
+      jobData,
+      { priority: 3 }
+    );
+
+    sendSuccess(res, {
+      jobId: job.id,
+      exportId,
+      type: 'export',
+      format: input.format,
+      status: 'waiting',
+    }, 'Export job created');
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      sendError(res, 400, 'VALIDATION_ERROR', error.errors[0].message);
+      return;
+    }
+    console.error('[QueueRoute] Export error:', error);
+    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to create export job');
+  }
+});
+
+// ---------------------------------------------
+// Job Management Routes
+// ---------------------------------------------
+
+/**
+ * GET /api/admin/queue/jobs/:queueName/:jobId
+ * 작업 상태 조회
+ */
+router.get('/jobs/:queueName/:jobId', async (req: Request, res: Response) => {
+  try {
+    const { queueName, jobId } = req.params;
+    const queueManager = getQueueManager();
+    const status = await queueManager.getJobStatus(queueName, jobId);
+
+    if (!status) {
+      sendError(res, 404, 'NOT_FOUND', 'Job not found');
+      return;
+    }
+
+    sendSuccess(res, status);
+  } catch (error) {
+    console.error('[QueueRoute] Get job error:', error);
+    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to get job status');
+  }
+});
+
+/**
+ * POST /api/admin/queue/jobs/:queueName/:jobId/retry
+ * 실패한 작업 재시도
+ */
+router.post('/jobs/:queueName/:jobId/retry', async (req: Request, res: Response) => {
+  try {
+    const { queueName, jobId } = req.params;
+    const queueManager = getQueueManager();
+    await queueManager.retryJob(queueName, jobId);
 
     sendSuccess(res, { jobId }, 'Job retry initiated');
   } catch (error) {
@@ -277,34 +414,14 @@ router.post('/jobs/:jobId/retry', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/admin/queue/jobs/:jobId/cancel
- * Cancel a job
+ * DELETE /api/admin/queue/jobs/:queueName/:jobId
+ * 작업 삭제
  */
-router.post('/jobs/:jobId/cancel', async (req: Request, res: Response) => {
+router.delete('/jobs/:queueName/:jobId', async (req: Request, res: Response) => {
   try {
-    const { jobId } = req.params;
-    await QueueManager.cancelJob(jobId);
-
-    sendSuccess(res, { jobId }, 'Job cancelled');
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    if (message.includes('not found')) {
-      sendError(res, 404, 'NOT_FOUND', 'Job not found');
-      return;
-    }
-    console.error('[QueueRoute] Cancel job error:', error);
-    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to cancel job');
-  }
-});
-
-/**
- * DELETE /api/admin/queue/jobs/:jobId
- * Remove a job
- */
-router.delete('/jobs/:jobId', async (req: Request, res: Response) => {
-  try {
-    const { jobId } = req.params;
-    await QueueManager.removeJob(jobId);
+    const { queueName, jobId } = req.params;
+    const queueManager = getQueueManager();
+    await queueManager.removeJob(queueName, jobId);
 
     sendSuccess(res, { jobId }, 'Job removed');
   } catch (error) {
@@ -319,38 +436,65 @@ router.delete('/jobs/:jobId', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/admin/queue/batch/:batchId/progress
+ * 배치 작업 진행률 조회
+ */
+router.get('/batch/:batchId/progress', async (req: Request, res: Response) => {
+  try {
+    const { batchId } = req.params;
+    const queueName = req.query.queue as string || QUEUE_NAMES.CONTENT;
+    const queueManager = getQueueManager();
+    const progress = await queueManager.getBatchProgress(queueName, batchId);
+
+    sendSuccess(res, progress);
+  } catch (error) {
+    console.error('[QueueRoute] Batch progress error:', error);
+    sendError(res, 500, 'INTERNAL_ERROR', 'Failed to get batch progress');
+  }
+});
+
+// ---------------------------------------------
+// Queue Control Routes
+// ---------------------------------------------
+
+/**
  * POST /api/admin/queue/action
- * Perform queue-level actions (pause, resume, clean, empty)
+ * 큐 제어 (일시정지, 재개, 정리)
  */
 router.post('/action', async (req: Request, res: Response) => {
   try {
     const input = QueueActionSchema.parse(req.body);
+    const queueManager = getQueueManager();
 
     switch (input.action) {
       case 'pause':
-        await QueueManager.pauseQueue();
-        sendSuccess(res, { action: 'pause' }, 'Queue paused');
+        if (input.queueName) {
+          await queueManager.pauseQueue(input.queueName);
+          sendSuccess(res, { action: 'pause', queue: input.queueName }, 'Queue paused');
+        } else {
+          await queueManager.pauseAllQueues();
+          sendSuccess(res, { action: 'pause', queue: 'all' }, 'All queues paused');
+        }
         break;
 
       case 'resume':
-        await QueueManager.resumeQueue();
-        sendSuccess(res, { action: 'resume' }, 'Queue resumed');
+        if (input.queueName) {
+          await queueManager.resumeQueue(input.queueName);
+          sendSuccess(res, { action: 'resume', queue: input.queueName }, 'Queue resumed');
+        } else {
+          await queueManager.resumeAllQueues();
+          sendSuccess(res, { action: 'resume', queue: 'all' }, 'All queues resumed');
+        }
         break;
 
       case 'clean':
-        const grace = input.options?.grace || 0;
-        const status = input.options?.status || 'completed';
-        const cleaned = await QueueManager.cleanQueue(grace, status);
-        sendSuccess(res, {
-          action: 'clean',
-          cleanedCount: cleaned.length,
-          status,
-        }, `Cleaned ${cleaned.length} ${status} jobs`);
-        break;
-
-      case 'empty':
-        await QueueManager.emptyQueue();
-        sendSuccess(res, { action: 'empty' }, 'Queue emptied');
+        if (input.queueName) {
+          await queueManager.cleanQueue(input.queueName, input.gracePeriod);
+          sendSuccess(res, { action: 'clean', queue: input.queueName }, 'Queue cleaned');
+        } else {
+          await queueManager.cleanAllQueues(input.gracePeriod);
+          sendSuccess(res, { action: 'clean', queue: 'all' }, 'All queues cleaned');
+        }
         break;
     }
   } catch (error) {
@@ -364,46 +508,16 @@ router.post('/action', async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/admin/queue/types
- * Get available job types with labels
+ * GET /api/admin/queue/queues
+ * 사용 가능한 큐 목록
  */
-router.get('/types', (_req: Request, res: Response) => {
-  const types = Object.entries(JOB_TYPE_LABELS).map(([value, labels]) => ({
-    value,
-    label: labels.en,
-    labelKo: labels.ko,
-  }));
-
-  sendSuccess(res, { types });
-});
-
-/**
- * GET /api/admin/queue/statuses
- * Get available statuses with labels
- */
-router.get('/statuses', (_req: Request, res: Response) => {
-  const statuses = Object.entries(STATUS_LABELS).map(([value, labels]) => ({
-    value,
-    label: labels.en,
-    labelKo: labels.ko,
-    color: labels.color,
-  }));
-
-  sendSuccess(res, { statuses });
-});
-
-/**
- * GET /api/admin/queue/priorities
- * Get available priorities with labels
- */
-router.get('/priorities', (_req: Request, res: Response) => {
-  const priorities = Object.entries(PRIORITY_LABELS).map(([value, labels]) => ({
-    value,
-    label: labels.en,
-    labelKo: labels.ko,
-  }));
-
-  sendSuccess(res, { priorities });
+router.get('/queues', (_req: Request, res: Response) => {
+  sendSuccess(res, {
+    queues: Object.entries(QUEUE_NAMES).map(([key, value]) => ({
+      key,
+      name: value,
+    })),
+  });
 });
 
 export default router;

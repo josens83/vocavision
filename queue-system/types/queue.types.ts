@@ -1,20 +1,20 @@
 // ============================================
-// VocaVision Queue System - Types & Config
-// Bull/Redis Job Queue Type Definitions
+// VocaVision Queue System - Types & Configuration
+// Bull/Redis 기반 작업 큐 시스템
 // ============================================
-
-import { Job } from 'bull';
 
 // ---------------------------------------------
 // Job Types
 // ---------------------------------------------
 
 export type JobType =
-  | 'image-generation'      // AI 이미지 생성
-  | 'content-generation'    // Claude 콘텐츠 생성
-  | 'batch-import'          // CSV/Excel 대량 임포트
-  | 'export'                // 데이터 내보내기
-  | 'cleanup';              // 정리 작업
+  | 'content-generation'      // AI 콘텐츠 생성
+  | 'image-generation'        // 이미지 생성
+  | 'batch-content'           // 배치 콘텐츠 생성
+  | 'batch-image'             // 배치 이미지 생성
+  | 'content-review'          // 콘텐츠 검토 알림
+  | 'export'                  // 데이터 내보내기
+  | 'import';                 // 데이터 가져오기
 
 export type JobStatus =
   | 'waiting'
@@ -24,124 +24,19 @@ export type JobStatus =
   | 'delayed'
   | 'paused';
 
-export type JobPriority = 'low' | 'normal' | 'high' | 'critical';
-
-// ---------------------------------------------
-// Job Data Interfaces
-// ---------------------------------------------
-
-export interface BaseJobData {
-  jobId: string;
-  type: JobType;
-  priority: JobPriority;
-  createdBy: string;
-  createdAt: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface ImageGenerationJobData extends BaseJobData {
-  type: 'image-generation';
-  wordIds: string[];
-  style?: string;
-  size?: string;
-  regenerate?: boolean;
-  totalWords: number;
-}
-
-export interface ContentGenerationJobData extends BaseJobData {
-  type: 'content-generation';
-  wordIds: string[];
-  options?: {
-    generateMnemonic?: boolean;
-    generateExamples?: boolean;
-    generateEtymology?: boolean;
-  };
-  totalWords: number;
-}
-
-export interface BatchImportJobData extends BaseJobData {
-  type: 'batch-import';
-  fileUrl: string;
-  fileName: string;
-  totalRows: number;
-  category?: string;
-  level?: string;
-}
-
-export interface ExportJobData extends BaseJobData {
-  type: 'export';
-  format: 'csv' | 'json' | 'xlsx';
-  filters?: {
-    level?: string;
-    category?: string;
-    hasImage?: boolean;
-    hasContent?: boolean;
-  };
-  includeFields: string[];
-}
-
-export interface CleanupJobData extends BaseJobData {
-  type: 'cleanup';
-  target: 'orphaned-media' | 'old-logs' | 'temp-files';
-  olderThan?: string; // ISO date
-}
-
-export type AnyJobData =
-  | ImageGenerationJobData
-  | ContentGenerationJobData
-  | BatchImportJobData
-  | ExportJobData
-  | CleanupJobData;
-
-// ---------------------------------------------
-// Job Progress & Result
-// ---------------------------------------------
-
-export interface JobProgress {
-  completed: number;
-  total: number;
-  percent: number;
-  currentItem?: string;
-  stage?: string;
-  message?: string;
-  errors?: JobError[];
-}
-
-export interface JobError {
-  itemId?: string;
-  itemName?: string;
-  code: string;
-  message: string;
-  timestamp: string;
-}
-
-export interface JobResult {
-  success: boolean;
-  completed: number;
-  failed: number;
-  total: number;
-  results?: Array<{
-    id: string;
-    success: boolean;
-    data?: unknown;
-    error?: string;
-  }>;
-  outputUrl?: string; // For export jobs
-  duration: number; // milliseconds
-  completedAt: string;
-}
+export type JobPriority = 1 | 2 | 3 | 4 | 5; // 1 = highest
 
 // ---------------------------------------------
 // Queue Configuration
 // ---------------------------------------------
 
 export interface QueueConfig {
-  name: string;
   redis: {
     host: string;
     port: number;
     password?: string;
     db?: number;
+    maxRetriesPerRequest?: number;
   };
   defaultJobOptions: {
     attempts: number;
@@ -149,205 +44,265 @@ export interface QueueConfig {
       type: 'exponential' | 'fixed';
       delay: number;
     };
-    removeOnComplete: number; // Keep N completed jobs
-    removeOnFail: number;     // Keep N failed jobs
-    timeout: number;          // Job timeout in ms
+    removeOnComplete: boolean | number;
+    removeOnFail: boolean | number;
   };
   limiter?: {
-    max: number;      // Max jobs
-    duration: number; // Per duration in ms
-  };
-  settings?: {
-    stalledInterval: number;
-    maxStalledCount: number;
+    max: number;
+    duration: number;
   };
 }
 
 export const DEFAULT_QUEUE_CONFIG: QueueConfig = {
-  name: 'vocavision-jobs',
   redis: {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),
     password: process.env.REDIS_PASSWORD,
     db: parseInt(process.env.REDIS_DB || '0'),
+    maxRetriesPerRequest: 3,
   },
   defaultJobOptions: {
     attempts: 3,
     backoff: {
       type: 'exponential',
-      delay: 2000,
+      delay: 2000, // 2s -> 4s -> 8s
     },
-    removeOnComplete: 100,
-    removeOnFail: 50,
-    timeout: 300000, // 5 minutes
+    removeOnComplete: 100, // Keep last 100 completed jobs
+    removeOnFail: 50,      // Keep last 50 failed jobs
   },
   limiter: {
-    max: 10,
-    duration: 10000, // 10 jobs per 10 seconds
-  },
-  settings: {
-    stalledInterval: 30000,
-    maxStalledCount: 3,
+    max: 10,        // 10 jobs
+    duration: 1000, // per second
   },
 };
 
 // ---------------------------------------------
-// Job Type Specific Configs
+// Job Data Types
 // ---------------------------------------------
 
-export const JOB_TYPE_CONFIGS: Record<JobType, {
-  timeout: number;
-  attempts: number;
-  priority: number;
-  concurrency: number;
-}> = {
-  'image-generation': {
-    timeout: 600000,  // 10 minutes
-    attempts: 3,
-    priority: 2,
-    concurrency: 3,
-  },
-  'content-generation': {
-    timeout: 300000,  // 5 minutes
-    attempts: 3,
-    priority: 2,
-    concurrency: 5,
-  },
-  'batch-import': {
-    timeout: 1800000, // 30 minutes
-    attempts: 2,
-    priority: 1,
-    concurrency: 1,
-  },
-  'export': {
-    timeout: 600000,  // 10 minutes
-    attempts: 2,
-    priority: 1,
-    concurrency: 2,
-  },
-  'cleanup': {
-    timeout: 300000,  // 5 minutes
-    attempts: 1,
-    priority: 0,
-    concurrency: 1,
-  },
-};
-
-// ---------------------------------------------
-// SSE Event Types
-// ---------------------------------------------
-
-export interface SSEEvent {
-  type: 'job-created' | 'job-progress' | 'job-completed' | 'job-failed' | 'queue-stats';
-  data: JobEventData | QueueStatsData;
-  timestamp: string;
+// Content Generation Job
+export interface ContentGenerationJobData {
+  wordId: string;
+  word: string;
+  examCategory: string;
+  level: string;
+  regenerate?: boolean;
+  priority?: JobPriority;
+  requestedBy?: string;
 }
 
-export interface JobEventData {
+// Batch Content Generation Job
+export interface BatchContentJobData {
+  batchId: string;
+  words: Array<{
+    id: string;
+    word: string;
+  }>;
+  examCategory: string;
+  level: string;
+  regenerate?: boolean;
+  requestedBy?: string;
+}
+
+// Image Generation Job
+export interface ImageGenerationJobData {
+  wordId: string;
+  word: string;
+  mnemonic: string;
+  mnemonicKorean?: string;
+  style?: string;
+  size?: string;
+  regenerate?: boolean;
+  priority?: JobPriority;
+  requestedBy?: string;
+}
+
+// Batch Image Generation Job
+export interface BatchImageJobData {
+  batchId: string;
+  words: Array<{
+    id: string;
+    word: string;
+    mnemonic: string;
+    mnemonicKorean?: string;
+  }>;
+  style?: string;
+  size?: string;
+  regenerate?: boolean;
+  requestedBy?: string;
+}
+
+// Export Job
+export interface ExportJobData {
+  exportId: string;
+  format: 'json' | 'csv' | 'xlsx';
+  filters?: {
+    examCategories?: string[];
+    levels?: string[];
+    status?: string[];
+  };
+  requestedBy?: string;
+}
+
+// Union type for all job data
+export type JobData =
+  | ContentGenerationJobData
+  | BatchContentJobData
+  | ImageGenerationJobData
+  | BatchImageJobData
+  | ExportJobData;
+
+// ---------------------------------------------
+// Job Result Types
+// ---------------------------------------------
+
+export interface ContentGenerationResult {
+  success: boolean;
+  wordId: string;
+  contentId?: string;
+  error?: string;
+  duration?: number;
+}
+
+export interface ImageGenerationResult {
+  success: boolean;
+  wordId: string;
+  imageUrl?: string;
+  thumbnailUrl?: string;
+  error?: string;
+  duration?: number;
+}
+
+export interface BatchJobResult {
+  batchId: string;
+  total: number;
+  successful: number;
+  failed: number;
+  results: Array<{
+    wordId: string;
+    success: boolean;
+    error?: string;
+  }>;
+  duration: number;
+}
+
+// ---------------------------------------------
+// Progress Types
+// ---------------------------------------------
+
+export interface JobProgress {
   jobId: string;
   type: JobType;
   status: JobStatus;
-  progress?: JobProgress;
-  result?: JobResult;
+  progress: number; // 0-100
+  current?: number;
+  total?: number;
+  message?: string;
+  startedAt?: Date;
+  completedAt?: Date;
   error?: string;
 }
 
-export interface QueueStatsData {
+export interface BatchProgress {
+  batchId: string;
+  total: number;
+  completed: number;
+  failed: number;
+  inProgress: number;
+  progress: number; // 0-100
+  estimatedTimeRemaining?: number; // seconds
+  jobs: JobProgress[];
+}
+
+// ---------------------------------------------
+// Event Types
+// ---------------------------------------------
+
+export type QueueEventType =
+  | 'job:added'
+  | 'job:started'
+  | 'job:progress'
+  | 'job:completed'
+  | 'job:failed'
+  | 'job:retrying'
+  | 'batch:started'
+  | 'batch:progress'
+  | 'batch:completed'
+  | 'queue:paused'
+  | 'queue:resumed'
+  | 'queue:error';
+
+export interface QueueEvent {
+  type: QueueEventType;
+  timestamp: Date;
+  data: {
+    jobId?: string;
+    batchId?: string;
+    progress?: number;
+    result?: any;
+    error?: string;
+  };
+}
+
+// ---------------------------------------------
+// Dashboard Stats Types
+// ---------------------------------------------
+
+export interface QueueStats {
+  name: string;
   waiting: number;
   active: number;
   completed: number;
   failed: number;
   delayed: number;
-  paused: number;
-  jobCounts: Record<JobType, number>;
+  paused: boolean;
+}
+
+export interface QueueDashboardStats {
+  queues: QueueStats[];
+  totalJobs: number;
+  activeJobs: number;
+  completedToday: number;
+  failedToday: number;
+  averageProcessingTime: number; // ms
+  throughput: number; // jobs per minute
 }
 
 // ---------------------------------------------
-// API Request/Response Types
+// Queue Names
 // ---------------------------------------------
 
-export interface CreateJobRequest {
-  type: JobType;
-  data: Omit<AnyJobData, 'jobId' | 'type' | 'createdAt'>;
-  priority?: JobPriority;
-  delay?: number; // Delay in ms
-  scheduledFor?: string; // ISO date for scheduled jobs
-}
-
-export interface JobListQuery {
-  type?: JobType;
-  status?: JobStatus;
-  page?: number;
-  limit?: number;
-  sortBy?: 'createdAt' | 'priority';
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface JobListResponse {
-  jobs: JobInfo[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface JobInfo {
-  id: string;
-  type: JobType;
-  status: JobStatus;
-  priority: JobPriority;
-  progress: JobProgress | null;
-  data: AnyJobData;
-  result: JobResult | null;
-  failedReason?: string;
-  attemptsMade: number;
-  createdAt: string;
-  processedAt?: string;
-  finishedAt?: string;
-}
-
-export interface QueueActionRequest {
-  action: 'pause' | 'resume' | 'clean' | 'obliterate';
-  options?: {
-    grace?: number;   // For clean: grace period in ms
-    force?: boolean;  // For obliterate
-    status?: JobStatus[]; // For clean: which statuses to clean
-  };
-}
+export const QUEUE_NAMES = {
+  CONTENT: 'vocavision:content',
+  IMAGE: 'vocavision:image',
+  EXPORT: 'vocavision:export',
+  NOTIFICATION: 'vocavision:notification',
+} as const;
 
 // ---------------------------------------------
-// Priority Mapping
+// Rate Limits by Job Type
 // ---------------------------------------------
 
-export const PRIORITY_MAP: Record<JobPriority, number> = {
-  critical: 1,
-  high: 2,
-  normal: 3,
-  low: 4,
+export const JOB_RATE_LIMITS: Record<JobType, { max: number; duration: number }> = {
+  'content-generation': { max: 5, duration: 10000 },    // 5 per 10s (Claude API)
+  'image-generation': { max: 10, duration: 10000 },     // 10 per 10s (Stability AI)
+  'batch-content': { max: 2, duration: 60000 },         // 2 per minute
+  'batch-image': { max: 2, duration: 60000 },           // 2 per minute
+  'content-review': { max: 100, duration: 60000 },      // 100 per minute
+  'export': { max: 5, duration: 60000 },                // 5 per minute
+  'import': { max: 2, duration: 60000 },                // 2 per minute
 };
 
-export const PRIORITY_LABELS: Record<JobPriority, { en: string; ko: string }> = {
-  critical: { en: 'Critical', ko: '긴급' },
-  high: { en: 'High', ko: '높음' },
-  normal: { en: 'Normal', ko: '보통' },
-  low: { en: 'Low', ko: '낮음' },
-};
+// ---------------------------------------------
+// Retry Configuration
+// ---------------------------------------------
 
-export const JOB_TYPE_LABELS: Record<JobType, { en: string; ko: string }> = {
-  'image-generation': { en: 'Image Generation', ko: '이미지 생성' },
-  'content-generation': { en: 'Content Generation', ko: '콘텐츠 생성' },
-  'batch-import': { en: 'Batch Import', ko: '대량 가져오기' },
-  'export': { en: 'Export', ko: '내보내기' },
-  'cleanup': { en: 'Cleanup', ko: '정리' },
-};
-
-export const STATUS_LABELS: Record<JobStatus, { en: string; ko: string; color: string }> = {
-  waiting: { en: 'Waiting', ko: '대기중', color: 'gray' },
-  active: { en: 'Active', ko: '진행중', color: 'blue' },
-  completed: { en: 'Completed', ko: '완료', color: 'green' },
-  failed: { en: 'Failed', ko: '실패', color: 'red' },
-  delayed: { en: 'Delayed', ko: '지연', color: 'yellow' },
-  paused: { en: 'Paused', ko: '일시정지', color: 'orange' },
+export const RETRY_CONFIG: Record<JobType, { attempts: number; backoff: number }> = {
+  'content-generation': { attempts: 3, backoff: 5000 },
+  'image-generation': { attempts: 3, backoff: 3000 },
+  'batch-content': { attempts: 2, backoff: 10000 },
+  'batch-image': { attempts: 2, backoff: 10000 },
+  'content-review': { attempts: 5, backoff: 1000 },
+  'export': { attempts: 2, backoff: 5000 },
+  'import': { attempts: 2, backoff: 5000 },
 };
