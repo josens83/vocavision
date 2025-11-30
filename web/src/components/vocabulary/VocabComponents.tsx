@@ -426,8 +426,15 @@ interface InstructionBoxProps {
 
 export function InstructionBox({ children }: InstructionBoxProps) {
   return (
-    <div className="bg-gray-100 rounded-lg p-4 mb-6">
-      <p className="text-gray-700 font-medium">{children}</p>
+    <div
+      className="rounded-lg p-4 mb-6"
+      style={{
+        backgroundColor: '#ECEFF3',
+        border: '1px solid #CCC',
+        borderRadius: '8px',
+      }}
+    >
+      <p className="text-gray-700 font-medium text-base">{children}</p>
     </div>
   );
 }
