@@ -203,6 +203,61 @@ export const badgeStyles = {
 };
 
 // ============================================
+// 텍스트 스타일
+// ============================================
+
+export const textStyles = {
+  // 페이지 타이틀 (헤더 배너)
+  pageTitle: {
+    fontSize: '1.2em',
+    fontSizeMd: '1.4em',
+    fontSizeLg: '1.8em',
+    fontWeight: 600,
+    textTransform: 'uppercase' as const,
+    color: '#ffffff',
+  },
+  // 섹션 타이틀
+  sectionTitle: {
+    fontSize: '1.6em',
+    fontWeight: 500,
+    lineHeight: 1.3,
+  },
+  // 서브 타이틀
+  subTitle: {
+    fontSize: '1.4em',
+    fontWeight: 500,
+    marginBlock: '30px auto',
+  },
+  // 본문
+  body: {
+    fontSize: '17px',
+    fontWeight: 300,
+    lineHeight: 1.7,
+    color: '#4d4d4d',
+  },
+  // 퀴즈 문항
+  quizText: {
+    fontSize: '17px',
+    fontWeight: 300,
+    lineHeight: 2,
+  },
+  // 인스트럭션 박스
+  instruction: {
+    fontSize: '16px',
+    fontWeight: 500,
+    backgroundColor: '#ECEFF3',
+    padding: '1em',
+    borderRadius: '8px',
+    border: '1px solid #CCC',
+  },
+  // 브레드크럼
+  breadcrumb: {
+    fontSize: '0.9em',
+    fontWeight: 400,
+  },
+};
+
+// ============================================
 // 카테고리 아이콘 경로
 // ============================================
 
