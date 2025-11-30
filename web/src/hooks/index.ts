@@ -24,3 +24,14 @@ export {
 export { useAuth } from './useAuth';
 export { useOnlineStatus } from './useOnlineStatus';
 export { useFeatureDetection } from './useFeatureDetection';
+
+// Admin API Hooks
+export {
+  useDashboardStats,
+  useWordList,
+  useWordDetail,
+  useWordMutations,
+  useContentGeneration,
+  useReview,
+  apiClient,
+} from './useAdminApi';

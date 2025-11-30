@@ -13,6 +13,56 @@ const config: Config = {
       // test-english.com 벤치마킹 기반
       // ============================================
       colors: {
+        // ============================================
+        // VocaVision 브랜드 컬러 (Admin UI)
+        // ============================================
+        voca: {
+          pink: {
+            50: '#FFF0F5',
+            100: '#FFE0EB',
+            200: '#FFC1D6',
+            300: '#FFA3C2',
+            400: '#FF85AD',
+            500: '#FF6699', // Primary Pink
+            600: '#E65C8A',
+            700: '#CC527A',
+            800: '#B3486B',
+            900: '#993D5C',
+          },
+          purple: {
+            50: '#F5F3FF',
+            100: '#EDE9FE',
+            200: '#DDD6FE',
+            300: '#C4B5FD',
+            400: '#A78BFA',
+            500: '#8B5CF6', // Primary Purple
+            600: '#7C3AED',
+            700: '#6D28D9',
+            800: '#5B21B6',
+            900: '#4C1D95',
+          },
+        },
+
+        // CEFR 레벨 컬러 (Admin UI)
+        cefr: {
+          A1: '#10B981', // green
+          A2: '#3B82F6', // blue
+          B1: '#8B5CF6', // purple
+          B2: '#F59E0B', // amber
+          C1: '#EF4444', // red
+          C2: '#EC4899', // pink
+        },
+
+        // 시험 카테고리 컬러 (Admin UI)
+        exam: {
+          suneung: '#FF6699',
+          teps: '#8B5CF6',
+          toefl: '#3B82F6',
+          sat: '#10B981',
+          ielts: '#F59E0B',
+          gre: '#EF4444',
+        },
+
         // 기존 primary 컬러 유지
         primary: {
           50: '#f0f9ff',
@@ -180,9 +230,12 @@ const config: Config = {
         'slide-up': 'slideUp 0.5s ease-out',
         'slide-in-left': 'slideInLeft 0.5s ease-out forwards',
         'slide-in-right': 'slideInRight 0.5s ease-out forwards',
+        'slide-in-up': 'slideInUp 0.3s ease-out',
         'scale-in': 'scaleIn 0.3s ease-out forwards',
         'bounce-soft': 'bounceSoft 0.6s ease-out',
         'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+        'pulse-soft': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'spin-slow': 'spin 3s linear infinite',
         'float': 'float 3s ease-in-out infinite',
         'shake': 'shake 0.5s ease-in-out',
       },
@@ -207,6 +260,10 @@ const config: Config = {
         slideInRight: {
           '0%': { opacity: '0', transform: 'translateX(30px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        slideInUp: {
+          '0%': { transform: 'translateY(20px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         scaleIn: {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
@@ -237,6 +294,7 @@ const config: Config = {
       boxShadow: {
         'card': 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px',
         'card-hover': '0 8px 17px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)',
+        'modal': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
         'button': 'rgba(0, 0, 0, 0.16) 0 2px 5px 0, rgba(0, 0, 0, 0.12) 0 2px 10px 0',
         'navbar': '0 1px 13px 0 rgba(0,0,0,0.3)',
         'glow-blue': '0 0 30px rgba(26, 142, 193, 0.3)',
