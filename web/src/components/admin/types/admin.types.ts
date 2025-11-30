@@ -100,6 +100,7 @@ export interface VocaContentFull {
   // Pronunciation
   ipaUs?: string;
   ipaUk?: string;
+  pronunciation?: string; // Korean pronunciation
   audioUrlUs?: string;
   audioUrlUk?: string;
 
@@ -107,13 +108,22 @@ export interface VocaContentFull {
   definitions: VocaDefinition[];
 
   // Etymology
-  etymology?: VocaEtymology;
+  etymology?: string; // Simple string form
+  etymologyLang?: string;
+  etymologyFull?: VocaEtymology; // Full object form
 
-  // Morphology
-  morphology?: VocaMorphology;
+  // Morphology (flat fields for easy access)
+  prefix?: string;
+  root?: string;
+  suffix?: string;
+  morphologyNote?: string;
+  morphology?: VocaMorphology; // Full object form
 
-  // Mnemonic (연상법)
-  mnemonic?: VocaMnemonic;
+  // Mnemonic (연상법) - supports both string and object forms
+  mnemonic?: string; // Simple string description
+  mnemonicKorean?: string;
+  mnemonicImage?: string;
+  mnemonicFull?: VocaMnemonic; // Full object form
 
   // Collocations
   collocations: VocaCollocation[];
@@ -122,9 +132,11 @@ export interface VocaContentFull {
   synonyms: string[];
   antonyms: string[];
   rhymingWords: string[];
+  rhymingNote?: string;
 
   // Examples
   examples: VocaExample[];
+  funnyExamples?: VocaFunnyExample[];
 
   // Media
   primaryGifUrl?: string;
@@ -138,7 +150,15 @@ export interface VocaContentFull {
   reviewedBy?: string;
 }
 
+export interface VocaFunnyExample {
+  id?: string;
+  sentenceEn: string;
+  sentenceKo: string;
+  isFunny: boolean;
+}
+
 export interface VocaDefinition {
+  id?: string;
   partOfSpeech: PartOfSpeech;
   definitionEn: string;
   definitionKo: string;
@@ -168,6 +188,7 @@ export interface VocaMnemonic {
 }
 
 export interface VocaCollocation {
+  id?: string;
   phrase: string;
   translation: string;
   type?: string;
@@ -241,11 +262,33 @@ export interface WordFormData {
   generateContent?: boolean;
 }
 
+// Alias for consistency with new components
+export interface CreateWordForm {
+  word: string;
+  examCategories: ExamCategory[];
+  level: DifficultyLevel;
+  topics: string[];
+  generateContent: boolean;
+}
+
 export interface BatchUploadData {
   words: string; // newline-separated
   examCategory: ExamCategory;
   level: DifficultyLevel;
   generateContent: boolean;
+}
+
+// Alias for consistency with new components
+export interface BatchCreateForm {
+  words: string;
+  examCategory: ExamCategory;
+  level: DifficultyLevel;
+  generateContent: boolean;
+}
+
+export interface ReviewForm {
+  action: ReviewAction;
+  notes: string;
 }
 
 // ============================================
