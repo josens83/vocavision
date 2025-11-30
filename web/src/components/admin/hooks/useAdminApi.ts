@@ -12,11 +12,19 @@ import {
   VocaContentFull,
   WordFilters,
   WordListResponse,
-  WordFormData,
-  BatchUploadData,
-  ReviewRequest,
-  GenerationProgress,
+  CreateWordForm,
+  BatchCreateForm,
+  ReviewForm,
 } from '../types/admin.types';
+
+// Generation progress type for AI content generation
+interface GenerationProgress {
+  wordId: string;
+  word: string;
+  status: 'pending' | 'generating' | 'completed' | 'failed';
+  progress: number;
+  error?: string;
+}
 
 // API Base URL - NEVER use localhost
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
@@ -169,7 +177,7 @@ export function useWordMutations() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createWord = useCallback(async (data: WordFormData): Promise<VocaWord | null> => {
+  const createWord = useCallback(async (data: CreateWordForm): Promise<VocaWord | null> => {
     setLoading(true);
     setError(null);
     try {
@@ -187,7 +195,7 @@ export function useWordMutations() {
   }, []);
 
   const updateWord = useCallback(
-    async (wordId: string, data: Partial<WordFormData>): Promise<VocaWord | null> => {
+    async (wordId: string, data: Partial<CreateWordForm>): Promise<VocaWord | null> => {
       setLoading(true);
       setError(null);
       try {
@@ -226,7 +234,7 @@ export function useWordMutations() {
   }, []);
 
   const batchCreate = useCallback(
-    async (data: BatchUploadData): Promise<{ created: number; failed: string[] } | null> => {
+    async (data: BatchCreateForm): Promise<{ created: number; failed: string[] } | null> => {
       setLoading(true);
       setError(null);
       try {
@@ -350,7 +358,7 @@ export function useReview() {
   const [error, setError] = useState<string | null>(null);
 
   const reviewWord = useCallback(
-    async (wordId: string, review: ReviewRequest): Promise<boolean> => {
+    async (wordId: string, review: ReviewForm): Promise<boolean> => {
       setLoading(true);
       setError(null);
       try {
