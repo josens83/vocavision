@@ -1,9 +1,9 @@
-'use client';
+// ============================================
+// VocaVision - Image Generation UI Components
+// Admin Dashboard용 이미지 생성 컴포넌트
+// ============================================
 
-// ============================================
-// VocaVision - Image Generation Admin UI
-// AI 이미지 생성 관리 컴포넌트
-// ============================================
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 
@@ -11,7 +11,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 // Types
 // ---------------------------------------------
 
-interface StyleOption {
+interface ImageStyle {
   value: string;
   label: string;
   labelKo: string;
@@ -20,8 +20,9 @@ interface StyleOption {
 interface PendingWord {
   id: string;
   word: string;
-  mnemonic: string | null;
-  mnemonicKorean: string | null;
+  level: string;
+  mnemonic: string;
+  mnemonicKorean?: string;
 }
 
 interface GenerationResult {
@@ -32,532 +33,619 @@ interface GenerationResult {
 }
 
 interface ImageStats {
-  totalGenerated: number;
-  totalPending: number;
-  recentGenerations: Array<{
-    wordId: string;
-    word: string;
-    imageUrl: string;
-    updatedAt: string;
-  }>;
+  totalWithContent: number;
+  withImages: number;
+  pendingImages: number;
+  coveragePercent: number;
+  recentGenerations: number;
+  styleDistribution: Array<{ style: string; count: number }>;
 }
 
 // ---------------------------------------------
-// API Client
+// API Hooks
 // ---------------------------------------------
 
+// API Base URL - NEVER use localhost
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 async function apiClient<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  const res = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
   });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || error.error || `HTTP ${response.status}`);
-  }
-
-  return response.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'API request failed');
+  return data.data;
 }
 
-// ---------------------------------------------
-// Hooks
-// ---------------------------------------------
+function useImageGeneration() {
+  const [generating, setGenerating] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [error, setError] = useState<string | null>(null);
 
-function useImageStyles() {
-  const [styles, setStyles] = useState<StyleOption[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchStyles = async () => {
-      setLoading(true);
-      try {
-        const data = await apiClient<{ data: { styles: StyleOption[] } }>('/api/admin/images/styles');
-        setStyles(data.data.styles);
-      } catch (error) {
-        console.error('Failed to fetch styles:', error);
-        // Fallback styles
-        setStyles([
-          { value: 'cartoon', label: 'Cartoon', labelKo: '카툰' },
-          { value: 'anime', label: 'Anime', labelKo: '애니메이션' },
-          { value: 'watercolor', label: 'Watercolor', labelKo: '수채화' },
-          { value: 'pixel', label: 'Pixel Art', labelKo: '픽셀아트' },
-          { value: 'sketch', label: 'Sketch', labelKo: '스케치' },
-          { value: '3d-render', label: '3D Render', labelKo: '3D 렌더링' },
-          { value: 'comic', label: 'Comic', labelKo: '만화' },
-          { value: 'minimalist', label: 'Minimalist', labelKo: '미니멀' },
-          { value: 'vintage', label: 'Vintage', labelKo: '빈티지' },
-          { value: 'pop-art', label: 'Pop Art', labelKo: '팝아트' },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStyles();
+  const generateSingle = useCallback(async (
+    wordId: string,
+    style?: string,
+    regenerate = false
+  ) => {
+    setGenerating(true);
+    setError(null);
+    try {
+      const result = await apiClient<GenerationResult>('/api/admin/images/generate', {
+        method: 'POST',
+        body: JSON.stringify({ wordId, style, regenerate }),
+      });
+      return result;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Generation failed';
+      setError(msg);
+      throw err;
+    } finally {
+      setGenerating(false);
+    }
   }, []);
 
-  return { styles, loading };
+  const generateBatch = useCallback(async (
+    wordIds: string[],
+    style?: string,
+    regenerate = false
+  ) => {
+    setGenerating(true);
+    setError(null);
+    setProgress({ current: 0, total: wordIds.length });
+
+    try {
+      const result = await apiClient<{
+        total: number;
+        successful: number;
+        failed: number;
+        results: GenerationResult[];
+      }>('/api/admin/images/generate-batch', {
+        method: 'POST',
+        body: JSON.stringify({ wordIds, style, regenerate }),
+      });
+
+      setProgress({ current: result.total, total: result.total });
+      return result;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Batch generation failed';
+      setError(msg);
+      throw err;
+    } finally {
+      setGenerating(false);
+    }
+  }, []);
+
+  return { generating, progress, error, generateSingle, generateBatch };
 }
 
 function useImageStats() {
   const [stats, setStats] = useState<ImageStats | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
-      const data = await apiClient<{ data: ImageStats }>('/api/admin/images/stats');
-      setStats(data.data);
+      const data = await apiClient<ImageStats>('/api/admin/images/stats');
+      setStats(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch stats');
+      console.error('Failed to fetch image stats:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
-
-  return { stats, loading, error, refetch: fetchStats };
+  return { stats, loading, fetchStats };
 }
 
 function usePendingWords() {
   const [words, setWords] = useState<PendingWord[]>([]);
+  const [pagination, setPagination] = useState({ page: 1, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({ total: 0, hasMore: false });
 
-  const fetchWords = useCallback(async (limit = 20, offset = 0) => {
+  const fetchPending = useCallback(async (page = 1) => {
     setLoading(true);
-    setError(null);
     try {
       const data = await apiClient<{
-        data: {
-          words: PendingWord[];
-          pagination: { total: number; hasMore: boolean };
-        };
-      }>(`/api/admin/images/pending?limit=${limit}&offset=${offset}`);
-      setWords(data.data.words);
-      setPagination(data.data.pagination);
+        words: PendingWord[];
+        pagination: typeof pagination;
+      }>(`/api/admin/images/pending?page=${page}&limit=20`);
+      setWords(data.words);
+      setPagination(data.pagination);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch pending words');
+      console.error('Failed to fetch pending words:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  return { words, pagination, loading, fetchPending };
+}
+
+function useImageStyles() {
+  const [styles, setStyles] = useState<ImageStyle[]>([]);
+
   useEffect(() => {
-    fetchWords();
-  }, [fetchWords]);
+    apiClient<{ styles: ImageStyle[] }>('/api/admin/images/styles')
+      .then((data) => setStyles(data.styles))
+      .catch(console.error);
+  }, []);
 
-  return { words, loading, error, pagination, refetch: fetchWords };
+  return styles;
 }
 
 // ---------------------------------------------
-// Components
+// Style Selector Component
 // ---------------------------------------------
-
-interface StatsCardProps {
-  title: string;
-  value: number | string;
-  subtitle?: string;
-  color?: 'blue' | 'green' | 'yellow' | 'gray';
-}
-
-function StatsCard({ title, value, subtitle, color = 'blue' }: StatsCardProps) {
-  const colorClasses = {
-    blue: 'bg-blue-50 border-blue-200 text-blue-700',
-    green: 'bg-green-50 border-green-200 text-green-700',
-    yellow: 'bg-yellow-50 border-yellow-200 text-yellow-700',
-    gray: 'bg-gray-50 border-gray-200 text-gray-700',
-  };
-
-  return (
-    <div className={`rounded-lg border p-4 ${colorClasses[color]}`}>
-      <div className="text-sm font-medium opacity-80">{title}</div>
-      <div className="mt-1 text-2xl font-bold">{value}</div>
-      {subtitle && <div className="mt-1 text-xs opacity-60">{subtitle}</div>}
-    </div>
-  );
-}
 
 interface StyleSelectorProps {
   value: string;
-  onChange: (value: string) => void;
-  styles: StyleOption[];
+  onChange: (style: string) => void;
 }
 
-function StyleSelector({ value, onChange, styles }: StyleSelectorProps) {
+const StyleSelector: React.FC<StyleSelectorProps> = ({ value, onChange }) => {
+  const styles = useImageStyles();
+
+  const styleIcons: Record<string, string> = {
+    cartoon: '🎨',
+    anime: '🌸',
+    watercolor: '💧',
+    pixel: '👾',
+    sketch: '✏️',
+    '3d-render': '🎲',
+    comic: '💥',
+    minimalist: '◻️',
+    vintage: '📷',
+    'pop-art': '🎭',
+  };
+
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">아트 스타일</label>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
+      <label className="block text-sm font-medium text-slate-700">
+        이미지 스타일
+      </label>
+      <div className="grid grid-cols-5 gap-2">
         {styles.map((style) => (
           <button
             key={style.value}
             type="button"
             onClick={() => onChange(style.value)}
-            className={`rounded-lg border-2 p-2 text-center transition-all ${
+            className={`p-3 rounded-xl border-2 transition-all text-center ${
               value === style.value
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-pink-500 bg-pink-50 shadow-md'
+                : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
             }`}
           >
-            <div className="text-sm font-medium">{style.labelKo}</div>
-            <div className="text-xs text-gray-500">{style.label}</div>
+            <div className="text-2xl mb-1">{styleIcons[style.value] || '🖼️'}</div>
+            <div className="text-xs font-medium text-slate-700">{style.labelKo}</div>
           </button>
         ))}
       </div>
     </div>
   );
-}
+};
 
-interface WordSelectionListProps {
-  words: PendingWord[];
-  selectedIds: Set<string>;
-  onToggle: (id: string) => void;
-  onSelectAll: () => void;
-  onDeselectAll: () => void;
-}
+// ---------------------------------------------
+// Image Stats Card Component
+// ---------------------------------------------
 
-function WordSelectionList({
-  words,
-  selectedIds,
-  onToggle,
-  onSelectAll,
-  onDeselectAll,
-}: WordSelectionListProps) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
-          단어 선택 ({selectedIds.size}/{words.length})
-        </label>
-        <div className="space-x-2">
-          <button
-            type="button"
-            onClick={onSelectAll}
-            className="text-sm text-blue-600 hover:text-blue-800"
-          >
-            전체 선택
-          </button>
-          <button
-            type="button"
-            onClick={onDeselectAll}
-            className="text-sm text-gray-600 hover:text-gray-800"
-          >
-            선택 해제
-          </button>
-        </div>
-      </div>
-      <div className="max-h-60 overflow-y-auto rounded-lg border">
-        {words.map((word) => (
-          <label
-            key={word.id}
-            className="flex cursor-pointer items-center gap-3 border-b px-3 py-2 last:border-b-0 hover:bg-gray-50"
-          >
-            <input
-              type="checkbox"
-              checked={selectedIds.has(word.id)}
-              onChange={() => onToggle(word.id)}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <div className="flex-1">
-              <div className="font-medium">{word.word}</div>
-              {word.mnemonic && (
-                <div className="text-xs text-gray-500 line-clamp-1">{word.mnemonic}</div>
-              )}
-            </div>
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-}
+const ImageStatsCard: React.FC = () => {
+  const { stats, loading, fetchStats } = useImageStats();
 
-interface GenerationProgressProps {
-  total: number;
-  completed: number;
-  results: GenerationResult[];
-}
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
-function GenerationProgress({ total, completed, results }: GenerationProgressProps) {
-  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const successful = results.filter((r) => r.success).length;
-  const failed = results.filter((r) => !r.success).length;
-
-  return (
-    <div className="rounded-lg border bg-white p-4">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-medium">이미지 생성 진행률</span>
-        <span className="text-sm text-gray-600">
-          {completed}/{total} ({percentage}%)
-        </span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-        <div
-          className="h-full bg-blue-600 transition-all duration-300"
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-      {completed > 0 && (
-        <div className="mt-2 flex gap-4 text-sm">
-          <span className="text-green-600">성공: {successful}</span>
-          <span className="text-red-600">실패: {failed}</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface RecentGenerationsProps {
-  generations: ImageStats['recentGenerations'];
-}
-
-function RecentGenerations({ generations }: RecentGenerationsProps) {
-  if (generations.length === 0) {
+  if (loading || !stats) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        최근 생성된 이미지가 없습니다.
+      <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+          <div className="h-8 bg-slate-200 rounded w-1/2"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-      {generations.map((gen) => (
-        <div
-          key={gen.wordId}
-          className="group relative overflow-hidden rounded-lg border bg-white"
+    <div className="bg-white rounded-xl border border-slate-200 p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-slate-900">이미지 생성 현황</h3>
+        <button
+          onClick={fetchStats}
+          className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
         >
-          <div className="aspect-square bg-gray-100">
-            {gen.imageUrl ? (
-              <img
-                src={gen.imageUrl}
-                alt={gen.word}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-400">
-                No image
-              </div>
-            )}
-          </div>
-          <div className="p-2">
-            <div className="truncate font-medium">{gen.word}</div>
-            <div className="text-xs text-gray-500">
-              {new Date(gen.updatedAt).toLocaleDateString('ko-KR')}
-            </div>
-          </div>
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="text-center p-3 bg-slate-50 rounded-lg">
+          <div className="text-2xl font-bold text-slate-900">{stats.withImages}</div>
+          <div className="text-xs text-slate-500">이미지 있음</div>
         </div>
-      ))}
+        <div className="text-center p-3 bg-amber-50 rounded-lg">
+          <div className="text-2xl font-bold text-amber-600">{stats.pendingImages}</div>
+          <div className="text-xs text-slate-500">생성 대기</div>
+        </div>
+        <div className="text-center p-3 bg-emerald-50 rounded-lg">
+          <div className="text-2xl font-bold text-emerald-600">{stats.coveragePercent}%</div>
+          <div className="text-xs text-slate-500">커버리지</div>
+        </div>
+        <div className="text-center p-3 bg-purple-50 rounded-lg">
+          <div className="text-2xl font-bold text-purple-600">{stats.recentGenerations}</div>
+          <div className="text-xs text-slate-500">최근 7일</div>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="space-y-1">
+        <div className="flex justify-between text-sm">
+          <span className="text-slate-500">전체 진행률</span>
+          <span className="font-medium text-slate-700">
+            {stats.withImages} / {stats.totalWithContent}
+          </span>
+        </div>
+        <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-pink-500 to-purple-500 transition-all duration-500"
+            style={{ width: `${stats.coveragePercent}%` }}
+          />
+        </div>
+      </div>
     </div>
   );
+};
+
+// ---------------------------------------------
+// Pending Words List Component
+// ---------------------------------------------
+
+interface PendingWordsListProps {
+  onGenerate: (wordIds: string[]) => void;
+  generating: boolean;
 }
 
-// ---------------------------------------------
-// Main Component
-// ---------------------------------------------
+const PendingWordsList: React.FC<PendingWordsListProps> = ({ onGenerate, generating }) => {
+  const { words, pagination, loading, fetchPending } = usePendingWords();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-export function ImageGenerationPage() {
-  const { styles } = useImageStyles();
-  const { stats, loading: statsLoading, refetch: refetchStats } = useImageStats();
-  const { words, loading: wordsLoading, refetch: refetchWords, pagination } = usePendingWords();
+  useEffect(() => {
+    fetchPending(1);
+  }, [fetchPending]);
 
-  const [selectedStyle, setSelectedStyle] = useState('cartoon');
-  const [selectedWordIds, setSelectedWordIds] = useState<Set<string>>(new Set());
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationResults, setGenerationResults] = useState<GenerationResult[]>([]);
-  const [generationTotal, setGenerationTotal] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleToggleWord = (id: string) => {
-    setSelectedWordIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
   };
 
-  const handleSelectAll = () => {
-    setSelectedWordIds(new Set(words.map((w) => w.id)));
-  };
-
-  const handleDeselectAll = () => {
-    setSelectedWordIds(new Set());
-  };
-
-  const handleGenerateBatch = async () => {
-    if (selectedWordIds.size === 0) {
-      setError('생성할 단어를 선택해주세요.');
-      return;
+  const toggleAll = () => {
+    if (selectedIds.length === words.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(words.map((w) => w.id));
     }
+  };
 
-    setIsGenerating(true);
-    setError(null);
-    setGenerationResults([]);
-    setGenerationTotal(selectedWordIds.size);
+  const handleGenerate = () => {
+    if (selectedIds.length > 0) {
+      onGenerate(selectedIds);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="flex items-center justify-center h-48">
+          <div className="animate-spin w-8 h-8 border-4 border-pink-500 border-t-transparent rounded-full" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">이미지 생성 대기</h3>
+          <p className="text-sm text-slate-500">{pagination.total}개 단어 대기 중</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {selectedIds.length > 0 && (
+            <span className="text-sm text-pink-600 font-medium">
+              {selectedIds.length}개 선택됨
+            </span>
+          )}
+          <button
+            onClick={handleGenerate}
+            disabled={selectedIds.length === 0 || generating}
+            className="px-4 py-2 bg-pink-500 text-white rounded-lg font-medium hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {generating ? (
+              <>
+                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                생성 중...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                이미지 생성
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      {words.length === 0 ? (
+        <div className="p-12 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
+            <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-slate-900 mb-1">모든 이미지 생성 완료!</h3>
+          <p className="text-slate-500">대기 중인 단어가 없습니다.</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-100">
+          {/* Select All */}
+          <div className="px-6 py-3 bg-slate-50 flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={selectedIds.length === words.length && words.length > 0}
+              onChange={toggleAll}
+              className="w-4 h-4 rounded border-slate-300 text-pink-500 focus:ring-pink-500"
+            />
+            <span className="text-sm text-slate-600">전체 선택</span>
+          </div>
+
+          {/* Word Items */}
+          {words.map((word) => (
+            <div
+              key={word.id}
+              className="px-6 py-4 flex items-center gap-4 hover:bg-slate-50"
+            >
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(word.id)}
+                onChange={() => toggleSelect(word.id)}
+                className="w-4 h-4 rounded border-slate-300 text-pink-500 focus:ring-pink-500"
+              />
+
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-xl font-bold text-pink-500">
+                  {word.word[0].toUpperCase()}
+                </span>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-slate-900">{word.word}</span>
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+                    {word.level}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500 truncate mt-0.5">
+                  {word.mnemonic}
+                </p>
+                {word.mnemonicKorean && (
+                  <p className="text-xs text-amber-600 mt-0.5">
+                    🇰🇷 {word.mnemonicKorean}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+          <span className="text-sm text-slate-500">
+            페이지 {pagination.page} / {pagination.totalPages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => fetchPending(pagination.page - 1)}
+              disabled={pagination.page <= 1}
+              className="px-3 py-1 text-sm border border-slate-300 rounded-lg disabled:opacity-50"
+            >
+              이전
+            </button>
+            <button
+              onClick={() => fetchPending(pagination.page + 1)}
+              disabled={pagination.page >= pagination.totalPages}
+              className="px-3 py-1 text-sm border border-slate-300 rounded-lg disabled:opacity-50"
+            >
+              다음
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ---------------------------------------------
+// Generation Progress Modal
+// ---------------------------------------------
+
+interface GenerationProgressProps {
+  isOpen: boolean;
+  progress: { current: number; total: number };
+  results: GenerationResult[];
+  onClose: () => void;
+}
+
+const GenerationProgressModal: React.FC<GenerationProgressProps> = ({
+  isOpen,
+  progress,
+  results,
+  onClose,
+}) => {
+  if (!isOpen) return null;
+
+  const successful = results.filter((r) => r.success).length;
+  const failed = results.filter((r) => !r.success).length;
+  const isComplete = progress.current >= progress.total && progress.total > 0;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl">
+          <div className="p-6">
+            {/* Header */}
+            <div className="text-center mb-6">
+              {isComplete ? (
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              ) : (
+                <div className="w-16 h-16 mx-auto mb-4 relative">
+                  <div className="absolute inset-0 rounded-full border-4 border-slate-200" />
+                  <div
+                    className="absolute inset-0 rounded-full border-4 border-pink-500 border-t-transparent animate-spin"
+                  />
+                </div>
+              )}
+              <h3 className="text-lg font-semibold text-slate-900">
+                {isComplete ? '생성 완료!' : '이미지 생성 중...'}
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                {progress.current} / {progress.total}
+              </p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-pink-500 to-purple-500 transition-all duration-300"
+                  style={{ width: `${progress.total > 0 ? (progress.current / progress.total) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Stats */}
+            {results.length > 0 && (
+              <div className="flex justify-center gap-6 mb-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-emerald-600">{successful}</div>
+                  <div className="text-xs text-slate-500">성공</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-500">{failed}</div>
+                  <div className="text-xs text-slate-500">실패</div>
+                </div>
+              </div>
+            )}
+
+            {/* Close Button */}
+            {isComplete && (
+              <button
+                onClick={onClose}
+                className="w-full py-3 bg-pink-500 text-white rounded-lg font-medium hover:bg-pink-600"
+              >
+                확인
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------
+// Main Image Generation Page Component
+// ---------------------------------------------
+
+export const ImageGenerationPage: React.FC = () => {
+  const { generating, progress, error, generateBatch } = useImageGeneration();
+  const [selectedStyle, setSelectedStyle] = useState('cartoon');
+  const [showProgress, setShowProgress] = useState(false);
+  const [results, setResults] = useState<GenerationResult[]>([]);
+
+  const handleGenerate = async (wordIds: string[]) => {
+    setShowProgress(true);
+    setResults([]);
 
     try {
-      const data = await apiClient<{
-        data: {
-          total: number;
-          successful: number;
-          failed: number;
-          results: GenerationResult[];
-        };
-      }>('/api/admin/images/generate-batch', {
-        method: 'POST',
-        body: JSON.stringify({
-          wordIds: Array.from(selectedWordIds),
-          style: selectedStyle,
-          regenerate: false,
-        }),
-      });
-
-      setGenerationResults(data.data.results);
-
-      // Refresh stats and pending words
-      await Promise.all([refetchStats(), refetchWords()]);
-
-      // Clear selection
-      setSelectedWordIds(new Set());
+      const result = await generateBatch(wordIds, selectedStyle);
+      setResults(result.results);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '이미지 생성에 실패했습니다.');
-    } finally {
-      setIsGenerating(false);
+      console.error('Generation failed:', err);
     }
+  };
+
+  const handleCloseProgress = () => {
+    setShowProgress(false);
+    setResults([]);
+    // Refresh the pending list
+    window.location.reload();
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">이미지 생성</h1>
-        <button
-          onClick={() => {
-            refetchStats();
-            refetchWords();
-          }}
-          className="rounded-lg border px-4 py-2 text-sm hover:bg-gray-50"
-        >
-          새로고침
-        </button>
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">이미지 생성</h1>
+        <p className="text-slate-500 mt-1">
+          연상 기억법을 AI 이미지로 변환합니다
+        </p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatsCard
-          title="생성 완료"
-          value={stats?.totalGenerated ?? '-'}
-          color="green"
-        />
-        <StatsCard
-          title="대기 중"
-          value={stats?.totalPending ?? '-'}
-          color="yellow"
-        />
-        <StatsCard
-          title="선택됨"
-          value={selectedWordIds.size}
-          color="blue"
-        />
-        <StatsCard
-          title="총 단어"
-          value={pagination.total}
-          color="gray"
-        />
+      <ImageStatsCard />
+
+      {/* Style Selector */}
+      <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <StyleSelector value={selectedStyle} onChange={setSelectedStyle} />
       </div>
 
       {/* Error Alert */}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-          {error}
-          <button
-            onClick={() => setError(null)}
-            className="ml-2 text-red-500 hover:text-red-700"
-          >
-            닫기
-          </button>
-        </div>
-      )}
-
-      {/* Generation Progress */}
-      {isGenerating && (
-        <GenerationProgress
-          total={generationTotal}
-          completed={generationResults.length}
-          results={generationResults}
-        />
-      )}
-
-      {/* Generation Form */}
-      <div className="rounded-lg border bg-white p-4 space-y-4">
-        <h2 className="text-lg font-semibold">배치 이미지 생성</h2>
-
-        <StyleSelector
-          value={selectedStyle}
-          onChange={setSelectedStyle}
-          styles={styles}
-        />
-
-        {wordsLoading ? (
-          <div className="py-8 text-center text-gray-500">로딩 중...</div>
-        ) : words.length === 0 ? (
-          <div className="py-8 text-center text-gray-500">
-            이미지가 필요한 단어가 없습니다.
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <span className="text-red-700">{error}</span>
           </div>
-        ) : (
-          <WordSelectionList
-            words={words}
-            selectedIds={selectedWordIds}
-            onToggle={handleToggleWord}
-            onSelectAll={handleSelectAll}
-            onDeselectAll={handleDeselectAll}
-          />
-        )}
-
-        <div className="flex justify-end">
-          <button
-            onClick={handleGenerateBatch}
-            disabled={isGenerating || selectedWordIds.size === 0}
-            className={`rounded-lg px-6 py-2 font-medium text-white transition-colors ${
-              isGenerating || selectedWordIds.size === 0
-                ? 'cursor-not-allowed bg-gray-400'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            {isGenerating ? '생성 중...' : `${selectedWordIds.size}개 이미지 생성`}
-          </button>
         </div>
-      </div>
+      )}
 
-      {/* Recent Generations */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="mb-4 text-lg font-semibold">최근 생성된 이미지</h2>
-        {statsLoading ? (
-          <div className="py-8 text-center text-gray-500">로딩 중...</div>
-        ) : (
-          <RecentGenerations generations={stats?.recentGenerations ?? []} />
-        )}
-      </div>
+      {/* Pending Words */}
+      <PendingWordsList onGenerate={handleGenerate} generating={generating} />
+
+      {/* Progress Modal */}
+      <GenerationProgressModal
+        isOpen={showProgress}
+        progress={progress}
+        results={results}
+        onClose={handleCloseProgress}
+      />
     </div>
   );
-}
+};
 
 export default ImageGenerationPage;

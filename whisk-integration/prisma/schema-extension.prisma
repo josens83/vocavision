@@ -1,142 +1,205 @@
 // ============================================
-// VocaVision - WHISK Image Generation Schema Extension
-// 이 파일의 내용을 schema.prisma에 머지하세요
+// VocaVision - Prisma Schema Extension for Image Generation
+// 이 내용을 기존 schema.prisma의 VocaMedia 모델에 추가/수정하세요
 // ============================================
 
 // ---------------------------------------------
-// 기존 Mnemonic 모델에 이미 포함된 필드들
-// (참고용 - 이미 schema.prisma에 있음)
+// VocaMedia 모델 확장 (기존 모델 수정)
 // ---------------------------------------------
 
-// model Mnemonic {
-//   // ... 기존 필드들 ...
-//
-//   // WHISK 이미지 생성 필드 (이미 존재)
-//   whiskPrompt String?  // WHISK 이미지 생성 프롬프트
-//   whiskStyle  String?  // "animation", "illustration"
-//   gifUrl      String?  // WHISK 생성 GIF URL
-//   imageUrl    String?  // 연상 이미지 URL
-// }
+/*
+model VocaMedia {
+  id          String   @id @default(uuid())
+  contentId   String
+  content     VocaContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  // 기본 필드
+  type        MediaType   // 'gif' | 'image' | 'video'
+  url         String
+  thumbnailUrl String?
+  caption     String?
+  altText     String?
+  source      String?     // 'ai-generated' | 'uploaded' | 'external'
+  order       Int         @default(0)
+
+  // WHISK/AI 생성 관련 필드 추가
+  whiskPrompt    String?   @db.Text    // 이미지 생성에 사용된 프롬프트
+  whiskStyle     String?               // 사용된 스타일 (cartoon, anime, etc.)
+  whiskSeed      Int?                  // 재현용 시드값
+  whiskModel     String?               // 사용된 모델 (stability-sdxl, dall-e-3)
+  whiskMetadata  Json?                 // 추가 메타데이터 (steps, cfg_scale 등)
+
+  // 관리 필드
+  isActive    Boolean  @default(true)
+  generatedAt DateTime?              // AI 생성 시점
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([contentId])
+  @@index([type])
+  @@index([source])
+  @@index([whiskStyle])
+}
+
+enum MediaType {
+  gif
+  image
+  video
+}
+*/
 
 // ---------------------------------------------
-// 새로운 모델: ImageGenerationJob
-// AI 이미지 생성 작업 추적용
+// ImageGenerationJob 모델 (새로 추가)
+// 배치 이미지 생성 작업 추적용
 // ---------------------------------------------
 
+/*
 model ImageGenerationJob {
-  id              String      @id @default(uuid())
+  id          String   @id @default(uuid())
 
-  // 작업 대상
-  wordId          String?     // 단일 단어 ID
-  mnemonicId      String?     // Mnemonic ID (선택)
-  batchId         String?     // 배치 작업 그룹 ID
+  // 작업 정보
+  status      ImageJobStatus @default(PENDING)
+  totalWords  Int
+  completed   Int       @default(0)
+  failed      Int       @default(0)
 
-  // 입력 데이터
-  inputWord       String      // 단어
-  inputMnemonic   String      // 연상법 텍스트 (영문)
-  inputMnemonicKo String?     // 연상법 텍스트 (한글)
+  // 설정
+  style       String?   // 사용할 스타일
+  size        String?   // 이미지 크기
+  regenerate  Boolean   @default(false)
 
-  // 이미지 생성 설정
-  style           String      @default("cartoon")  // cartoon, anime, watercolor, etc.
-  size            String      @default("512x512")
-  model           String      @default("stability-sdxl")  // stability-sdxl, dall-e-3
+  // 입력/결과
+  wordIds     String[]  // 대상 단어 ID 목록
+  results     Json?     // 생성 결과 상세
+  errorLog    Json?     // 에러 로그
 
-  // 프롬프트
-  whiskPrompt     String?     // 최종 이미지 생성 프롬프트
-  negativePrompt  String?     // 제외할 요소들
+  // 타이밍
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  // 작업 상태
-  status          String      @default("pending")  // pending, generating, uploading, completed, failed
-  progress        Int         @default(0)          // 0-100
-
-  // 결과
-  imageUrl        String?     // 생성된 이미지 URL (Cloudinary)
-  thumbnailUrl    String?     // 썸네일 URL
-  cloudinaryId    String?     // Cloudinary public_id
-
-  // 메타데이터
-  seed            Int?        // 생성 시드 (재현용)
-  steps           Int?        // 생성 스텝 수
-  cfgScale        Float?      // CFG Scale
-
-  // 에러 처리
-  errorMessage    String?
-  retryCount      Int         @default(0)
-
-  // 요청자
-  requestedById   String?
-
-  // 타임스탬프
-  startedAt       DateTime?
-  completedAt     DateTime?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  // 생성자
+  createdBy   String?
 
   @@index([status])
-  @@index([batchId])
-  @@index([wordId])
   @@index([createdAt])
 }
 
-// ---------------------------------------------
-// 새로운 모델: ImageGenerationStats
-// 이미지 생성 통계 (캐시용)
-// ---------------------------------------------
-
-model ImageGenerationStats {
-  id              String      @id @default("singleton")
-
-  totalGenerated  Int         @default(0)
-  totalFailed     Int         @default(0)
-  totalPending    Int         @default(0)
-
-  // 스타일별 통계
-  byStyleCartoon  Int         @default(0)
-  byStyleAnime    Int         @default(0)
-  byStyleWatercolor Int       @default(0)
-  byStylePixel    Int         @default(0)
-  byStyleSketch   Int         @default(0)
-  byStyle3dRender Int         @default(0)
-  byStyleComic    Int         @default(0)
-  byStyleMinimalist Int       @default(0)
-  byStyleVintage  Int         @default(0)
-  byStylePopArt   Int         @default(0)
-
-  // 모델별 통계
-  byModelStability Int        @default(0)
-  byModelDalle    Int         @default(0)
-
-  // 비용 추적
-  estimatedCost   Float       @default(0)
-
-  lastUpdated     DateTime    @updatedAt
+enum ImageJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
 }
+*/
 
 // ---------------------------------------------
-// ImageStyle 열거형 (선택)
-// 타입 안전성을 위해 사용할 수 있음
+// ImageGenerationLog 모델 (새로 추가)
+// 개별 이미지 생성 로그용
 // ---------------------------------------------
 
-// enum ImageStyle {
-//   CARTOON
-//   ANIME
-//   WATERCOLOR
-//   PIXEL
-//   SKETCH
-//   THREE_D_RENDER
-//   COMIC
-//   MINIMALIST
-//   VINTAGE
-//   POP_ART
-// }
+/*
+model ImageGenerationLog {
+  id          String   @id @default(uuid())
+
+  // 연결
+  wordId      String
+  word        VocaWord @relation(fields: [wordId], references: [id])
+  jobId       String?  // 배치 작업 ID (있는 경우)
+
+  // 결과
+  success     Boolean
+  imageUrl    String?
+  thumbnailUrl String?
+
+  // 생성 정보
+  prompt      String?   @db.Text
+  style       String?
+  model       String?
+  seed        Int?
+
+  // 에러 (실패 시)
+  errorCode   String?
+  errorMessage String?
+
+  // 비용/시간 추적
+  durationMs  Int?      // 생성 소요 시간
+  apiCost     Float?    // 예상 API 비용
+
+  // 타이밍
+  createdAt   DateTime  @default(now())
+
+  @@index([wordId])
+  @@index([jobId])
+  @@index([success])
+  @@index([createdAt])
+}
+*/
 
 // ---------------------------------------------
-// 마이그레이션 명령어
+// Migration SQL (참고용)
 // ---------------------------------------------
 
-// 1. 이 파일 내용을 schema.prisma에 복사
-// 2. 다음 명령어 실행:
-//    npx prisma migrate dev --name add_image_generation_job
-//
-// 3. Prisma 클라이언트 재생성:
-//    npx prisma generate
+/*
+-- VocaMedia 테이블에 WHISK 필드 추가
+ALTER TABLE "VocaMedia"
+ADD COLUMN "whiskPrompt" TEXT,
+ADD COLUMN "whiskStyle" VARCHAR(50),
+ADD COLUMN "whiskSeed" INTEGER,
+ADD COLUMN "whiskModel" VARCHAR(50),
+ADD COLUMN "whiskMetadata" JSONB,
+ADD COLUMN "generatedAt" TIMESTAMP;
+
+-- 인덱스 추가
+CREATE INDEX "VocaMedia_whiskStyle_idx" ON "VocaMedia"("whiskStyle");
+CREATE INDEX "VocaMedia_source_idx" ON "VocaMedia"("source");
+
+-- ImageGenerationJob 테이블 생성
+CREATE TABLE "ImageGenerationJob" (
+  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  "status" VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+  "totalWords" INTEGER NOT NULL,
+  "completed" INTEGER NOT NULL DEFAULT 0,
+  "failed" INTEGER NOT NULL DEFAULT 0,
+  "style" VARCHAR(50),
+  "size" VARCHAR(20),
+  "regenerate" BOOLEAN NOT NULL DEFAULT false,
+  "wordIds" TEXT[] NOT NULL,
+  "results" JSONB,
+  "errorLog" JSONB,
+  "startedAt" TIMESTAMP,
+  "completedAt" TIMESTAMP,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+  "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+  "createdBy" VARCHAR(255)
+);
+
+CREATE INDEX "ImageGenerationJob_status_idx" ON "ImageGenerationJob"("status");
+CREATE INDEX "ImageGenerationJob_createdAt_idx" ON "ImageGenerationJob"("createdAt");
+
+-- ImageGenerationLog 테이블 생성
+CREATE TABLE "ImageGenerationLog" (
+  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  "wordId" UUID NOT NULL REFERENCES "VocaWord"("id") ON DELETE CASCADE,
+  "jobId" UUID,
+  "success" BOOLEAN NOT NULL,
+  "imageUrl" TEXT,
+  "thumbnailUrl" TEXT,
+  "prompt" TEXT,
+  "style" VARCHAR(50),
+  "model" VARCHAR(50),
+  "seed" INTEGER,
+  "errorCode" VARCHAR(50),
+  "errorMessage" TEXT,
+  "durationMs" INTEGER,
+  "apiCost" DECIMAL(10, 6),
+  "createdAt" TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX "ImageGenerationLog_wordId_idx" ON "ImageGenerationLog"("wordId");
+CREATE INDEX "ImageGenerationLog_jobId_idx" ON "ImageGenerationLog"("jobId");
+CREATE INDEX "ImageGenerationLog_success_idx" ON "ImageGenerationLog"("success");
+CREATE INDEX "ImageGenerationLog_createdAt_idx" ON "ImageGenerationLog"("createdAt");
+*/
