@@ -29,10 +29,14 @@ export type QuizType = 'multiple-choice' | 'fill-in-blank' | 'dropdown' | 'match
 export interface QuizQuestion {
   id: number;
   type: QuizType;
-  question: string;
+  questionText?: string;     // 문제 텍스트 (question 대신 사용 가능)
+  question?: string;         // 레거시 호환
+  prefix?: string;           // 드롭다운용: "A", "An", ""
+  suffix?: string;           // 드롭다운용: "is a bag..."
   options?: string[];
   correctAnswer: string | string[];
   explanation?: string;
+  columns?: 1 | 2;           // 객관식 2열 옵션
 }
 
 export interface QuizResult {
@@ -59,6 +63,7 @@ export interface QuizSession {
 export interface VocabItem {
   id: number;
   word: string;
+  article?: string;        // "a", "an", "" for articles
   image?: string;
   definition?: string;
   exampleSentence?: string;
@@ -82,8 +87,18 @@ export interface VocabQuestionData {
 }
 
 export interface ExampleSentenceData {
-  sentence: string;
-  keyword: string;
+  id: number;
+  number: number;
+  text: string;             // "I live in a big {house} with my family."
+  keyword: string;          // "house"
+}
+
+// 퀴즈 페이지 (여러 문항 그룹)
+export interface QuizPage {
+  pageNumber: number;
+  title: string;
+  instruction: string;
+  questions: QuizQuestion[];
 }
 
 export interface RelatedTestData {
@@ -98,16 +113,32 @@ export interface RelatedTestData {
 
 export interface Lesson {
   id: string;
+  slug: string;
   title: string;
   category: Category;
   level: Level;
   description: string;
   thumbnail: string;
-  exercises: QuizQuestion[];
+
+  // Exercises 탭
+  exercises?: QuizQuestion[];        // 레거시 호환
+  quizPages?: QuizPage[];            // 페이지별 퀴즈 그룹
+
+  // Explanation 탭
+  explanationTitle?: string;
+  explanationText?: string;
   vocabItems?: VocabItem[];
-  videoUrl?: string;
+  exampleSentences?: ExampleSentenceData[];
+  videoId?: string;                  // YouTube video ID
+  videoUrl?: string;                 // 레거시 호환
+  flashcardLink?: string;
+
+  // 메타
+  relatedLessons?: string[];
   estimatedTime?: number;
   difficulty?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LessonProgress {
