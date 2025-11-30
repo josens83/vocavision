@@ -55,3 +55,24 @@ export {
   type TestimonialProps,
   type FAQItemData,
 } from "./pricing";
+
+// Vocabulary Components
+export {
+  vocabColors,
+  TabButton,
+  TabContainer,
+  NumberBadge,
+  VocabSelect,
+  QuizQuestion as VocabQuizQuestion,
+  VocabImageCard,
+  ExampleSentence,
+  RelatedTestCard,
+  Pagination,
+  Breadcrumb,
+  ContentHeader,
+  InstructionBox,
+  SectionDivider,
+  SocialShare,
+  VideoPlayer,
+  VocabularyPage,
+} from "./vocabulary";

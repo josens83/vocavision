@@ -10,15 +10,36 @@
 
 @layer base {
   :root {
+    /* Level Colors */
     --color-beginner: #50af31;
     --color-intermediate: #1a8ec1;
     --color-advanced: #ec6825;
     --color-expert: #a84d98;
+
+    /* Study Type Colors */
     --color-flashcard: #fecc00;
     --color-quiz: #ed1c24;
     --color-review: #ff6699;
+
+    /* Category Colors */
+    --color-grammar: #1a8ec1;
+    --color-vocabulary: #ff6699;
+    --color-listening: #fecc00;
+    --color-reading: #ed1c24;
+    --color-use-of-english: #ec6825;
+    --color-writing: #a84d98;
+    --color-exams: #50af31;
+
+    /* UI Colors */
+    --color-greyblue: #37424e;
+    --color-brand-primary: #50af31;
+    --color-brand-secondary: #1a8ec1;
+
+    /* Transitions */
     --transition-base: 200ms ease;
     --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: 150ms ease-in-out;
+    --transition-slow: 550ms ease-in-out;
   }
 
   html {
@@ -63,6 +84,93 @@
 
   .card-level-expert {
     @apply hover:border-level-expert hover:shadow-glow-purple;
+  }
+
+  /* Category Card Styles */
+  .card-category-grammar {
+    @apply hover:border-category-grammar hover:shadow-glow-blue;
+  }
+
+  .card-category-vocabulary {
+    @apply hover:border-category-vocabulary hover:shadow-glow-pink;
+  }
+
+  .card-category-listening {
+    @apply hover:border-category-listening hover:shadow-glow-yellow;
+  }
+
+  .card-category-reading {
+    @apply hover:border-category-reading hover:shadow-glow-red;
+  }
+
+  .card-category-use-of-english {
+    @apply hover:border-category-use-of-english hover:shadow-glow-orange;
+  }
+
+  .card-category-writing {
+    @apply hover:border-category-writing hover:shadow-glow-purple;
+  }
+
+  .card-category-exams {
+    @apply hover:border-category-exams hover:shadow-glow-green;
+  }
+
+  /* Category Badges */
+  .badge-category-grammar {
+    @apply bg-category-grammar-light text-category-grammar;
+  }
+
+  .badge-category-vocabulary {
+    @apply bg-category-vocabulary-light text-category-vocabulary;
+  }
+
+  .badge-category-listening {
+    @apply bg-category-listening-light text-category-listening;
+  }
+
+  .badge-category-reading {
+    @apply bg-category-reading-light text-category-reading;
+  }
+
+  .badge-category-use-of-english {
+    @apply bg-category-use-of-english-light text-category-use-of-english;
+  }
+
+  .badge-category-writing {
+    @apply bg-category-writing-light text-category-writing;
+  }
+
+  .badge-category-exams {
+    @apply bg-category-exams-light text-category-exams;
+  }
+
+  /* Category Headers */
+  .header-category-grammar {
+    @apply bg-category-grammar text-white;
+  }
+
+  .header-category-vocabulary {
+    @apply bg-category-vocabulary text-white;
+  }
+
+  .header-category-listening {
+    @apply bg-category-listening text-greyblue;
+  }
+
+  .header-category-reading {
+    @apply bg-category-reading text-white;
+  }
+
+  .header-category-use-of-english {
+    @apply bg-category-use-of-english text-white;
+  }
+
+  .header-category-writing {
+    @apply bg-category-writing text-white;
+  }
+
+  .header-category-exams {
+    @apply bg-category-exams text-white;
   }
 
   /* Button Styles */

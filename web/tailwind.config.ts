@@ -27,6 +27,55 @@ const config: Config = {
           900: '#0c4a6e',
         },
 
+        // 카테고리별 컬러 (test-english.com 벤치마킹)
+        category: {
+          grammar: {
+            DEFAULT: '#1a8ec1',
+            light: '#add6e8',
+            bg: '#fafdff',
+            border: '#cfe5f3',
+          },
+          vocabulary: {
+            DEFAULT: '#ff6699',
+            light: '#fee2eb',
+            bg: '#fdfcfd',
+            border: '#fee2eb',
+          },
+          listening: {
+            DEFAULT: '#fecc00',
+            light: '#ffe89b',
+            bg: '#fffef8',
+            border: '#fef5c5',
+          },
+          reading: {
+            DEFAULT: '#ed1c24',
+            light: '#f8a1a6',
+            bg: '#fff9f8',
+            border: '#ffd4d6',
+          },
+          'use-of-english': {
+            DEFAULT: '#ec6825',
+            light: '#f7c1a8',
+            bg: '#fffaf7',
+            border: '#ffe4d4',
+          },
+          writing: {
+            DEFAULT: '#a84d98',
+            light: '#dfbdda',
+            bg: '#fdfcfd',
+            border: '#ebdeed',
+          },
+          exams: {
+            DEFAULT: '#50af31',
+            light: '#bde1b2',
+            bg: '#f9fdf8',
+            border: '#d0e9ce',
+          },
+        },
+
+        // greyblue (네비게이션, 푸터 배경)
+        greyblue: '#37424e',
+
         // 난이도별 메인 컬러
         level: {
           beginner: {
@@ -186,12 +235,24 @@ const config: Config = {
       // 그림자
       // ============================================
       boxShadow: {
-        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
-        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+        'card': 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px',
+        'card-hover': '0 8px 17px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)',
+        'button': 'rgba(0, 0, 0, 0.16) 0 2px 5px 0, rgba(0, 0, 0, 0.12) 0 2px 10px 0',
+        'navbar': '0 1px 13px 0 rgba(0,0,0,0.3)',
         'glow-blue': '0 0 30px rgba(26, 142, 193, 0.3)',
         'glow-green': '0 0 30px rgba(80, 175, 49, 0.3)',
         'glow-orange': '0 0 30px rgba(236, 104, 37, 0.3)',
         'glow-purple': '0 0 30px rgba(168, 77, 152, 0.3)',
+        'glow-pink': '0 0 30px rgba(255, 102, 153, 0.3)',
+        'glow-yellow': '0 0 30px rgba(254, 204, 0, 0.3)',
+        'glow-red': '0 0 30px rgba(237, 28, 36, 0.3)',
+      },
+
+      // ============================================
+      // 배경 이미지
+      // ============================================
+      backgroundImage: {
+        'gradient-main': 'linear-gradient(174.2deg, rgb(255, 252, 248) 7.1%, rgba(240, 246, 238, 1) 67.4%)',
       },
 
       // ============================================
