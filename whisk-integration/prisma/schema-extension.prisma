@@ -1,0 +1,142 @@
+// ============================================
+// VocaVision - WHISK Image Generation Schema Extension
+// 이 파일의 내용을 schema.prisma에 머지하세요
+// ============================================
+
+// ---------------------------------------------
+// 기존 Mnemonic 모델에 이미 포함된 필드들
+// (참고용 - 이미 schema.prisma에 있음)
+// ---------------------------------------------
+
+// model Mnemonic {
+//   // ... 기존 필드들 ...
+//
+//   // WHISK 이미지 생성 필드 (이미 존재)
+//   whiskPrompt String?  // WHISK 이미지 생성 프롬프트
+//   whiskStyle  String?  // "animation", "illustration"
+//   gifUrl      String?  // WHISK 생성 GIF URL
+//   imageUrl    String?  // 연상 이미지 URL
+// }
+
+// ---------------------------------------------
+// 새로운 모델: ImageGenerationJob
+// AI 이미지 생성 작업 추적용
+// ---------------------------------------------
+
+model ImageGenerationJob {
+  id              String      @id @default(uuid())
+
+  // 작업 대상
+  wordId          String?     // 단일 단어 ID
+  mnemonicId      String?     // Mnemonic ID (선택)
+  batchId         String?     // 배치 작업 그룹 ID
+
+  // 입력 데이터
+  inputWord       String      // 단어
+  inputMnemonic   String      // 연상법 텍스트 (영문)
+  inputMnemonicKo String?     // 연상법 텍스트 (한글)
+
+  // 이미지 생성 설정
+  style           String      @default("cartoon")  // cartoon, anime, watercolor, etc.
+  size            String      @default("512x512")
+  model           String      @default("stability-sdxl")  // stability-sdxl, dall-e-3
+
+  // 프롬프트
+  whiskPrompt     String?     // 최종 이미지 생성 프롬프트
+  negativePrompt  String?     // 제외할 요소들
+
+  // 작업 상태
+  status          String      @default("pending")  // pending, generating, uploading, completed, failed
+  progress        Int         @default(0)          // 0-100
+
+  // 결과
+  imageUrl        String?     // 생성된 이미지 URL (Cloudinary)
+  thumbnailUrl    String?     // 썸네일 URL
+  cloudinaryId    String?     // Cloudinary public_id
+
+  // 메타데이터
+  seed            Int?        // 생성 시드 (재현용)
+  steps           Int?        // 생성 스텝 수
+  cfgScale        Float?      // CFG Scale
+
+  // 에러 처리
+  errorMessage    String?
+  retryCount      Int         @default(0)
+
+  // 요청자
+  requestedById   String?
+
+  // 타임스탬프
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([status])
+  @@index([batchId])
+  @@index([wordId])
+  @@index([createdAt])
+}
+
+// ---------------------------------------------
+// 새로운 모델: ImageGenerationStats
+// 이미지 생성 통계 (캐시용)
+// ---------------------------------------------
+
+model ImageGenerationStats {
+  id              String      @id @default("singleton")
+
+  totalGenerated  Int         @default(0)
+  totalFailed     Int         @default(0)
+  totalPending    Int         @default(0)
+
+  // 스타일별 통계
+  byStyleCartoon  Int         @default(0)
+  byStyleAnime    Int         @default(0)
+  byStyleWatercolor Int       @default(0)
+  byStylePixel    Int         @default(0)
+  byStyleSketch   Int         @default(0)
+  byStyle3dRender Int         @default(0)
+  byStyleComic    Int         @default(0)
+  byStyleMinimalist Int       @default(0)
+  byStyleVintage  Int         @default(0)
+  byStylePopArt   Int         @default(0)
+
+  // 모델별 통계
+  byModelStability Int        @default(0)
+  byModelDalle    Int         @default(0)
+
+  // 비용 추적
+  estimatedCost   Float       @default(0)
+
+  lastUpdated     DateTime    @updatedAt
+}
+
+// ---------------------------------------------
+// ImageStyle 열거형 (선택)
+// 타입 안전성을 위해 사용할 수 있음
+// ---------------------------------------------
+
+// enum ImageStyle {
+//   CARTOON
+//   ANIME
+//   WATERCOLOR
+//   PIXEL
+//   SKETCH
+//   THREE_D_RENDER
+//   COMIC
+//   MINIMALIST
+//   VINTAGE
+//   POP_ART
+// }
+
+// ---------------------------------------------
+// 마이그레이션 명령어
+// ---------------------------------------------
+
+// 1. 이 파일 내용을 schema.prisma에 복사
+// 2. 다음 명령어 실행:
+//    npx prisma migrate dev --name add_image_generation_job
+//
+// 3. Prisma 클라이언트 재생성:
+//    npx prisma generate
