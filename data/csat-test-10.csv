@@ -1,0 +1,11 @@
+word,examCategory,cefrLevel,difficulty,partOfSpeech,level,tags
+abandon,CSAT,B2,INTERMEDIATE,VERB,L1,"일반,감정"
+ability,CSAT,B1,BASIC,NOUN,L1,"일반"
+absorb,CSAT,B2,INTERMEDIATE,VERB,L2,"과학"
+abstract,CSAT,C1,ADVANCED,ADJECTIVE,L3,"학술,철학"
+abundant,CSAT,B2,INTERMEDIATE,ADJECTIVE,L2,"자연,경제"
+accelerate,CSAT,C1,ADVANCED,VERB,L3,"과학,경제"
+accomplish,CSAT,B2,INTERMEDIATE,VERB,L2,"일반"
+accumulate,CSAT,B2,INTERMEDIATE,VERB,L2,"경제,과학"
+accurate,CSAT,B2,INTERMEDIATE,ADJECTIVE,L2,"일반"
+acknowledge,CSAT,B2,INTERMEDIATE,VERB,L2,"일반,학술"
