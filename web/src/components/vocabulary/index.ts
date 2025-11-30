@@ -20,3 +20,23 @@ export {
 } from "./VocabComponents";
 
 export { default as VocabularyPage } from "./VocabularyPage";
+
+// Lesson Card and Category Page Components
+export {
+  LevelBadge,
+  LessonCard,
+  PageHeader,
+  levelConfigs,
+  vocabCategoryColors,
+  sampleA1Lessons,
+  type Level,
+  type LevelConfig,
+  type VocabularyLesson,
+} from "./LessonCard";
+
+export {
+  default as VocabularyCategoryPage,
+  Footer as VocabFooter,
+} from "./VocabularyCategoryPage";
+
+export { default as VocabularyLandingPage } from "./VocabularyLandingPage";
