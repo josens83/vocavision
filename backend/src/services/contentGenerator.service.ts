@@ -316,10 +316,30 @@ export async function saveGeneratedContent(
     await prisma.rhyme.deleteMany({ where: { wordId } });
     await prisma.mnemonic.deleteMany({ where: { wordId } });
 
+    // Get primary definition from generated content
+    const primaryDef = generated.definitions?.[0];
+    const posMapping: Record<string, string> = {
+      'noun': 'NOUN',
+      'verb': 'VERB',
+      'adjective': 'ADJECTIVE',
+      'adverb': 'ADVERB',
+      'pronoun': 'PRONOUN',
+      'preposition': 'PREPOSITION',
+      'conjunction': 'CONJUNCTION',
+      'interjection': 'INTERJECTION',
+    };
+
     // Update Word with generated content
     await prisma.word.update({
       where: { id: wordId },
       data: {
+        // Definition (from AI if empty)
+        definition: primaryDef?.definitionEn || undefined,
+        definitionKo: primaryDef?.definitionKo || undefined,
+        partOfSpeech: primaryDef?.partOfSpeech
+          ? (posMapping[primaryDef.partOfSpeech.toLowerCase()] as any) || undefined
+          : undefined,
+
         // Pronunciation
         ipaUs: generated.pronunciation.ipaUs,
         ipaUk: generated.pronunciation.ipaUk,
@@ -577,6 +597,28 @@ export async function processGenerationJob(jobId: string): Promise<void> {
               where: { word: wordText },
             });
           });
+
+          // If word doesn't exist, create it with basic info
+          if (!wordRecord) {
+            logger.info(`Word "${wordText}" not found in DB, creating new record...`);
+            wordRecord = await withRetry(async () => {
+              return prisma.word.create({
+                data: {
+                  word: wordText,
+                  definition: '', // Will be filled by AI
+                  definitionKo: '',
+                  partOfSpeech: 'NOUN', // Default, will be updated
+                  examCategory: job.examCategory || 'CSAT',
+                  cefrLevel: job.cefrLevel || 'B1',
+                  difficulty: 'INTERMEDIATE',
+                  status: 'DRAFT',
+                  level: 'L1',
+                  frequency: 100,
+                },
+              });
+            });
+            logger.info(`Created new word record: ${wordText} (ID: ${wordRecord.id})`);
+          }
         }
 
         // Generate content using Claude
