@@ -30,6 +30,7 @@ import deckRoutes from './routes/deck.routes';
 import leagueRoutes from './routes/league.routes';
 import internalRoutes from './routes/internal.routes';
 import contentGenerationRoutes from './routes/contentGeneration.routes';
+import adminRoutes from './routes/admin.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error.middleware';
@@ -145,6 +146,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/decks', deckRoutes);
 app.use('/api/leagues', leagueRoutes);
 app.use('/api/content', contentGenerationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Internal routes (for admin operations via browser URL)
 app.use('/internal', internalRoutes);
