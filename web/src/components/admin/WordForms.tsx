@@ -939,50 +939,82 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
   const [showJsonImport, setShowJsonImport] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  // Export word data as JSON for Claude Max editing
+  // Export word data as JSON for Claude Max editing with guide template
   const handleExportJson = async () => {
-    const exportData = {
-      word: word.word,
-      level: word.level,
-      examCategories: word.examCategories,
-      topics: word.topics,
-      content: content ? {
-        ipaUs: content.ipaUs,
-        ipaUk: content.ipaUk,
-        pronunciation: content.pronunciation,
-        etymology: content.etymology,
-        etymologyLang: content.etymologyLang,
-        prefix: content.prefix,
-        root: content.root,
-        suffix: content.suffix,
-        morphologyNote: content.morphologyNote,
-        mnemonic: content.mnemonic,
-        mnemonicKorean: content.mnemonicKorean,
-        rhymingWords: content.rhymingWords,
-        rhymingNote: content.rhymingNote,
-        synonyms: content.synonyms,
-        antonyms: content.antonyms,
-        definitions: content.definitions?.map(d => ({
-          partOfSpeech: d.partOfSpeech,
-          definitionEn: d.definitionEn,
-          definitionKo: d.definitionKo,
-          exampleEn: d.exampleEn,
-          exampleKo: d.exampleKo,
-        })),
-        collocations: content.collocations?.map(c => ({
-          phrase: c.phrase,
-          translation: c.translation,
-        })),
-        funnyExamples: content.funnyExamples?.map(e => ({
-          sentenceEn: e.sentenceEn,
-          sentenceKo: e.sentenceKo,
-          isFunny: e.isFunny,
-        })),
-      } : null,
-    };
+    const contentData = content ? {
+      ipaUs: content.ipaUs,
+      ipaUk: content.ipaUk,
+      pronunciation: content.pronunciation,
+      etymology: content.etymology,
+      etymologyLang: content.etymologyLang,
+      prefix: content.prefix,
+      root: content.root,
+      suffix: content.suffix,
+      morphologyNote: content.morphologyNote,
+      mnemonic: content.mnemonic,
+      mnemonicKorean: content.mnemonicKorean,
+      rhymingWords: content.rhymingWords,
+      rhymingNote: content.rhymingNote,
+      synonyms: content.synonyms,
+      antonyms: content.antonyms,
+      definitions: content.definitions?.map(d => ({
+        partOfSpeech: d.partOfSpeech,
+        definitionEn: d.definitionEn,
+        definitionKo: d.definitionKo,
+        exampleEn: d.exampleEn,
+        exampleKo: d.exampleKo,
+      })),
+      collocations: content.collocations?.map(c => ({
+        phrase: c.phrase,
+        translation: c.translation,
+      })),
+      funnyExamples: content.funnyExamples?.map(e => ({
+        sentenceEn: e.sentenceEn,
+        sentenceKo: e.sentenceKo,
+        isFunny: e.isFunny,
+      })),
+    } : null;
+
+    // Claude Max editing guide template
+    const guideTemplate = `# VocaVision 콘텐츠 편집 요청
+
+## 단어 정보
+- **단어**: ${word.word}
+- **난이도**: ${word.level}
+- **시험 카테고리**: ${word.examCategories.join(', ')}
+${word.topics.length > 0 ? `- **토픽**: ${word.topics.join(', ')}` : ''}
+
+## 편집 목적
+AI가 생성한 콘텐츠를 고품질로 개선해주세요.
+
+## 편집 규칙
+1. **연상 기억법 (mnemonic)**: 경선식 스타일로 한국어 발음과 연결하여 재미있고 기억에 남게 작성
+   - 예: "abandon" → "'어밴던'은 '아! 밴(van)에서 던져버린다!'고 기억하세요"
+2. **한글 연상 (mnemonicKorean)**: 짧고 임팩트 있는 한 줄 연상 공식
+   - 예: "아! 밴(van)에서 던지다 → 버리다"
+3. **예문 (funnyExamples)**: 유머러스하고 기억에 남는 상황 설정, 한국 고등학생 맥락 권장
+4. **어원 (etymology)**: 정확한 어원 정보와 의미 변화 설명
+5. **형태 분석**: prefix, root, suffix를 정확히 분리하고 각 의미 설명
+
+## 현재 데이터
+\`\`\`json
+${JSON.stringify({ word: word.word, level: word.level, examCategories: word.examCategories, topics: word.topics, content: contentData }, null, 2)}
+\`\`\`
+
+## 응답 형식
+편집 완료 후 아래 JSON 형식으로만 응답해주세요 (VocaVision에 바로 가져오기 가능):
+\`\`\`json
+{
+  "word": "${word.word}",
+  "content": {
+    // 개선된 콘텐츠 데이터
+  }
+}
+\`\`\`
+`;
 
     try {
-      await navigator.clipboard.writeText(JSON.stringify(exportData, null, 2));
+      await navigator.clipboard.writeText(guideTemplate);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {

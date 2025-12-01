@@ -153,7 +153,19 @@ const BarChart: React.FC<BarChartProps> = ({ data, maxValue }) => {
 // ---------------------------------------------
 // Dashboard Stats Component
 // ---------------------------------------------
-export const DashboardStatsView: React.FC = () => {
+interface DashboardStatsViewProps {
+  onAddWord?: () => void;
+  onBatchUpload?: () => void;
+  onNavigateToReview?: () => void;
+  onNavigateToNoContent?: () => void;
+}
+
+export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
+  onAddWord,
+  onBatchUpload,
+  onNavigateToReview,
+  onNavigateToNoContent,
+}) => {
   const { stats, loading, error, fetchStats } = useDashboardStats();
 
   useEffect(() => {
@@ -336,7 +348,10 @@ export const DashboardStatsView: React.FC = () => {
           빠른 작업
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button className="flex flex-col items-center gap-2 p-4 rounded-xl bg-pink-50 hover:bg-pink-100 transition-colors group">
+          <button
+            onClick={onAddWord}
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-pink-50 hover:bg-pink-100 transition-colors group"
+          >
             <div className="w-10 h-10 rounded-lg bg-pink-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -345,7 +360,10 @@ export const DashboardStatsView: React.FC = () => {
             <span className="text-sm font-medium text-slate-700">단어 추가</span>
           </button>
 
-          <button className="flex flex-col items-center gap-2 p-4 rounded-xl bg-purple-50 hover:bg-purple-100 transition-colors group">
+          <button
+            onClick={onBatchUpload}
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-purple-50 hover:bg-purple-100 transition-colors group"
+          >
             <div className="w-10 h-10 rounded-lg bg-purple-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -354,22 +372,34 @@ export const DashboardStatsView: React.FC = () => {
             <span className="text-sm font-medium text-slate-700">배치 업로드</span>
           </button>
 
-          <button className="flex flex-col items-center gap-2 p-4 rounded-xl bg-amber-50 hover:bg-amber-100 transition-colors group">
+          <button
+            onClick={onNavigateToReview}
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-amber-50 hover:bg-amber-100 transition-colors group"
+          >
             <div className="w-10 h-10 rounded-lg bg-amber-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
             <span className="text-sm font-medium text-slate-700">검토하기</span>
+            {stats.pendingReview > 0 && (
+              <span className="text-xs text-amber-600 font-medium">
+                {stats.pendingReview}개 대기
+              </span>
+            )}
           </button>
 
-          <button className="flex flex-col items-center gap-2 p-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 transition-colors group">
+          <button
+            onClick={onNavigateToNoContent}
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 transition-colors group"
+          >
             <div className="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
-            <span className="text-sm font-medium text-slate-700">AI 생성</span>
+            <span className="text-sm font-medium text-slate-700">AI 생성 필요</span>
+            <span className="text-xs text-slate-500">콘텐츠 없는 단어</span>
           </button>
         </div>
       </Card>
