@@ -601,6 +601,14 @@ interface WordListProps {
   onAddWord: () => void;
   onBatchUpload: () => void;
   onGenerateContent: (word: VocaWord) => void;
+  /** 초기 필터 설정 (검토 대기 목록 등에서 사용) */
+  initialFilters?: Partial<WordFilters>;
+  /** 헤더 타이틀 커스텀 */
+  title?: string;
+  /** 필터 패널 숨기기 */
+  hideFilters?: boolean;
+  /** 추가/배치 버튼 숨기기 */
+  hideActions?: boolean;
 }
 
 export const WordList: React.FC<WordListProps> = ({
@@ -608,6 +616,10 @@ export const WordList: React.FC<WordListProps> = ({
   onAddWord,
   onBatchUpload,
   onGenerateContent,
+  initialFilters = {},
+  title = '단어 관리',
+  hideFilters = false,
+  hideActions = false,
 }) => {
   const { words, pagination, loading, error, fetchWords } = useWordList();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -622,6 +634,7 @@ export const WordList: React.FC<WordListProps> = ({
     sortOrder: 'desc',
     page: 1,
     limit: 20,
+    ...initialFilters,
   });
 
   // Debounced search
@@ -666,33 +679,37 @@ export const WordList: React.FC<WordListProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">단어 관리</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
           <p className="text-slate-500 mt-1">
             전체 {pagination.total.toLocaleString()}개 단어
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={onBatchUpload}>
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            배치 업로드
-          </Button>
-          <Button variant="primary" onClick={onAddWord}>
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            단어 추가
-          </Button>
-        </div>
+        {!hideActions && (
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={onBatchUpload}>
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              배치 업로드
+            </Button>
+            <Button variant="primary" onClick={onAddWord}>
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              단어 추가
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Filters */}
-      <FilterPanel
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onReset={handleResetFilters}
-      />
+      {!hideFilters && (
+        <FilterPanel
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onReset={handleResetFilters}
+        />
+      )}
 
       {/* Bulk Actions */}
       {selectedIds.length > 0 && (
