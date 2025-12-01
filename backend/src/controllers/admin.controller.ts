@@ -30,7 +30,7 @@ export const getDashboardStats = async (
     ] = await Promise.all([
       prisma.word.count(),
       prisma.word.count({ where: { status: 'DRAFT' } }),
-      prisma.word.count({ where: { status: 'REVIEW' } }),
+      prisma.word.count({ where: { status: 'PENDING_REVIEW' } }),
       prisma.word.count({ where: { status: 'PUBLISHED' } }),
       prisma.example.count(),
       prisma.mnemonic.count(),
@@ -298,7 +298,7 @@ export const deleteAdminWord = async (
       prisma.antonym.deleteMany({ where: { wordId } }),
       prisma.collocation.deleteMany({ where: { wordId } }),
       prisma.rhyme.deleteMany({ where: { wordId } }),
-      prisma.image.deleteMany({ where: { wordId } }),
+      prisma.wordImage.deleteMany({ where: { wordId } }),
       prisma.word.delete({ where: { id: wordId } }),
     ]);
 
@@ -418,9 +418,7 @@ export const getBatchJobs = async (
         id: true,
         status: true,
         progress: true,
-        totalWords: true,
-        completedWords: true,
-        failedWords: true,
+        inputWords: true,
         examCategory: true,
         cefrLevel: true,
         createdAt: true,
