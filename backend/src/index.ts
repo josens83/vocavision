@@ -68,7 +68,8 @@ app.use(cors({
       callback(null, false);
     }
   },
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'],
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
