@@ -302,9 +302,8 @@ export const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
   });
 
   const [result, setResult] = useState<{
-    created: string[];
-    skipped: string[];
-    errors: { word: string; error: string }[];
+    created: number;
+    failed: string[];
   } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -312,7 +311,7 @@ export const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
     try {
       const res = await batchCreate(form);
       setResult(res);
-      if (res.created.length > 0) {
+      if (res && res.created > 0) {
         onSuccess();
       }
     } catch {
@@ -342,20 +341,14 @@ export const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
         <div className="space-y-4">
           {/* Results */}
           <Alert type="success" title="업로드 완료">
-            {result.created.length}개 단어가 추가되었습니다.
+            {result.created}개 단어가 추가되었습니다.
           </Alert>
 
-          {result.skipped.length > 0 && (
-            <Alert type="warning" title="건너뛴 단어">
-              {result.skipped.length}개 단어가 이미 존재합니다:{' '}
-              {result.skipped.slice(0, 10).join(', ')}
-              {result.skipped.length > 10 && ` 외 ${result.skipped.length - 10}개`}
-            </Alert>
-          )}
-
-          {result.errors.length > 0 && (
-            <Alert type="error" title="오류 발생">
-              {result.errors.length}개 단어에서 오류가 발생했습니다.
+          {result.failed.length > 0 && (
+            <Alert type="error" title="실패한 단어">
+              {result.failed.length}개 단어 처리 실패:{' '}
+              {result.failed.slice(0, 10).join(', ')}
+              {result.failed.length > 10 && ` 외 ${result.failed.length - 10}개`}
             </Alert>
           )}
 
