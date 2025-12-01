@@ -265,6 +265,40 @@ export async function generateWordContent(
 }
 
 // ---------------------------------------------
+// Retry helper for PgBouncer connection errors
+// ---------------------------------------------
+
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  delayMs: number = 500
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error as Error;
+      const errorMsg = error instanceof Error ? error.message : String(error);
+
+      // Check if it's a PgBouncer prepared statement error
+      if (errorMsg.includes('prepared statement') && errorMsg.includes('does not exist')) {
+        logger.warn(`PgBouncer error on attempt ${attempt}/${maxRetries}, retrying in ${delayMs}ms...`);
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          delayMs *= 2; // Exponential backoff
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+
+  throw lastError;
+}
+
+// ---------------------------------------------
 // Save Generated Content to DB
 // ---------------------------------------------
 
@@ -272,7 +306,16 @@ export async function saveGeneratedContent(
   wordId: string,
   generated: GeneratedContent
 ): Promise<void> {
-  try {
+  // Wrap entire save operation with retry logic for PgBouncer errors
+  await withRetry(async () => {
+    // First, clean up any existing related data to avoid duplicates on retry
+    await prisma.example.deleteMany({ where: { wordId } });
+    await prisma.collocation.deleteMany({ where: { wordId } });
+    await prisma.synonym.deleteMany({ where: { wordId } });
+    await prisma.antonym.deleteMany({ where: { wordId } });
+    await prisma.rhyme.deleteMany({ where: { wordId } });
+    await prisma.mnemonic.deleteMany({ where: { wordId } });
+
     // Update Word with generated content
     await prisma.word.update({
       where: { id: wordId },
@@ -334,11 +377,10 @@ export async function saveGeneratedContent(
       });
     }
 
-    // Create Examples
-    for (let i = 0; i < generated.examples.length; i++) {
-      const example = generated.examples[i];
-      await prisma.example.create({
-        data: {
+    // Create Examples - use createMany for efficiency
+    if (generated.examples.length > 0) {
+      await prisma.example.createMany({
+        data: generated.examples.map((example, i) => ({
           wordId,
           sentence: example.sentenceEn,
           translation: example.sentenceKo,
@@ -346,15 +388,14 @@ export async function saveGeneratedContent(
           isReal: !example.isFunny,
           source: example.source,
           order: i,
-        },
+        })),
       });
     }
 
-    // Create Collocations
-    for (let i = 0; i < generated.collocations.length; i++) {
-      const collocation = generated.collocations[i];
-      await prisma.collocation.create({
-        data: {
+    // Create Collocations - use createMany for efficiency
+    if (generated.collocations.length > 0) {
+      await prisma.collocation.createMany({
+        data: generated.collocations.map((collocation, i) => ({
           wordId,
           phrase: collocation.phrase,
           translation: collocation.translation,
@@ -362,47 +403,44 @@ export async function saveGeneratedContent(
           exampleEn: collocation.exampleEn,
           exampleKo: collocation.exampleKo,
           order: i,
-        },
+        })),
       });
     }
 
-    // Create Synonyms
-    for (const synonym of generated.relatedWords.synonyms) {
-      await prisma.synonym.create({
-        data: {
+    // Create Synonyms - use createMany for efficiency
+    if (generated.relatedWords.synonyms.length > 0) {
+      await prisma.synonym.createMany({
+        data: generated.relatedWords.synonyms.map(synonym => ({
           wordId,
           synonym,
-        },
+        })),
       });
     }
 
-    // Create Antonyms
-    for (const antonym of generated.relatedWords.antonyms) {
-      await prisma.antonym.create({
-        data: {
+    // Create Antonyms - use createMany for efficiency
+    if (generated.relatedWords.antonyms.length > 0) {
+      await prisma.antonym.createMany({
+        data: generated.relatedWords.antonyms.map(antonym => ({
           wordId,
           antonym,
-        },
+        })),
       });
     }
 
-    // Create Rhymes
-    for (const rhymingWord of generated.rhyming.words) {
-      await prisma.rhyme.create({
-        data: {
+    // Create Rhymes - use createMany for efficiency
+    if (generated.rhyming.words.length > 0) {
+      await prisma.rhyme.createMany({
+        data: generated.rhyming.words.map(rhymingWord => ({
           wordId,
           rhymingWord,
-          similarity: 0.8, // Default similarity
+          similarity: 0.8,
           example: generated.rhyming.note,
-        },
+        })),
       });
     }
 
     logger.info(`Content saved for word: ${wordId}`);
-  } catch (error) {
-    logger.error('Failed to save generated content:', error);
-    throw error;
-  }
+  }, 3, 1000); // 3 retries with 1 second initial delay
 }
 
 // ---------------------------------------------
@@ -521,19 +559,23 @@ export async function processGenerationJob(jobId: string): Promise<void> {
         let wordText: string;
 
         if (isUUID) {
-          // Input is a word ID - fetch the word from DB
-          wordRecord = await prisma.word.findUnique({
-            where: { id: input },
+          // Input is a word ID - fetch the word from DB with retry
+          wordRecord = await withRetry(async () => {
+            return prisma.word.findUnique({
+              where: { id: input },
+            });
           });
           if (!wordRecord) {
             throw new Error(`Word not found with ID: ${input}`);
           }
           wordText = wordRecord.word;
         } else {
-          // Input is a word string - find or create word record
+          // Input is a word string - find or create word record with retry
           wordText = input.trim().toLowerCase();
-          wordRecord = await prisma.word.findFirst({
-            where: { word: wordText },
+          wordRecord = await withRetry(async () => {
+            return prisma.word.findFirst({
+              where: { word: wordText },
+            });
           });
         }
 
@@ -554,11 +596,13 @@ export async function processGenerationJob(jobId: string): Promise<void> {
           results.push({ word: wordText, success: true, content });
         }
 
-        // Update progress
+        // Update progress with retry
         const progress = Math.round(((i + 1) / inputWords.length) * 100);
-        await prisma.contentGenerationJob.update({
-          where: { id: jobId },
-          data: { progress },
+        await withRetry(async () => {
+          return prisma.contentGenerationJob.update({
+            where: { id: jobId },
+            data: { progress },
+          });
         });
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
