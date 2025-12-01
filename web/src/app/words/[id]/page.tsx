@@ -17,10 +17,26 @@ interface Word {
   id: string;
   word: string;
   definition: string;
+  definitionKo?: string;
   pronunciation?: string;
   phonetic?: string;
+  ipaUs?: string;
+  ipaUk?: string;
   partOfSpeech: string;
   difficulty: string;
+  level?: string;
+  examCategory?: string;
+  // Morphology
+  prefix?: string;
+  root?: string;
+  suffix?: string;
+  morphologyNote?: string;
+  // Related words
+  synonymList?: string[];
+  antonymList?: string[];
+  rhymingWords?: string[];
+  relatedWords?: string[];
+  // Related data
   examples?: any[];
   images?: any[];
   videos?: any[];
@@ -29,6 +45,7 @@ interface Word {
   etymology?: any;
   synonyms?: any[];
   antonyms?: any[];
+  collocations?: any[];
 }
 
 export default function WordDetailPage({ params }: { params: { id: string } }) {
@@ -166,9 +183,62 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          <div className="text-2xl text-gray-800 mb-6">
+          <div className="text-2xl text-gray-800 mb-4">
             {word.definition}
           </div>
+          {word.definitionKo && (
+            <div className="text-lg text-gray-600 mb-6">
+              {word.definitionKo}
+            </div>
+          )}
+
+          {/* Pronunciation Section */}
+          {(word.ipaUs || word.ipaUk) && (
+            <div className="bg-blue-50 rounded-xl p-4 mb-4">
+              <h3 className="text-sm font-semibold text-blue-800 mb-2">📢 발음</h3>
+              <div className="flex gap-6">
+                {word.ipaUs && (
+                  <div>
+                    <span className="text-xs text-blue-600">🇺🇸 US</span>
+                    <p className="text-lg font-mono text-blue-900">{word.ipaUs}</p>
+                  </div>
+                )}
+                {word.ipaUk && (
+                  <div>
+                    <span className="text-xs text-blue-600">🇬🇧 UK</span>
+                    <p className="text-lg font-mono text-blue-900">{word.ipaUk}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Morphology Section */}
+          {(word.prefix || word.root || word.suffix) && (
+            <div className="bg-purple-50 rounded-xl p-4">
+              <h3 className="text-sm font-semibold text-purple-800 mb-3">🔍 형태 분석</h3>
+              <div className="flex flex-wrap gap-2 items-center">
+                {word.prefix && (
+                  <span className="bg-purple-200 text-purple-900 px-3 py-1 rounded-lg text-sm font-medium">
+                    {word.prefix}- <span className="text-purple-600 text-xs">(접두사)</span>
+                  </span>
+                )}
+                {word.root && (
+                  <span className="bg-purple-300 text-purple-900 px-3 py-1 rounded-lg text-sm font-bold">
+                    {word.root} <span className="text-purple-600 text-xs">(어근)</span>
+                  </span>
+                )}
+                {word.suffix && (
+                  <span className="bg-purple-200 text-purple-900 px-3 py-1 rounded-lg text-sm font-medium">
+                    -{word.suffix} <span className="text-purple-600 text-xs">(접미사)</span>
+                  </span>
+                )}
+              </div>
+              {word.morphologyNote && (
+                <p className="text-sm text-purple-700 mt-3">{word.morphologyNote}</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
@@ -239,6 +309,26 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
                   </div>
                 )}
 
+                {/* Collocations */}
+                {word.collocations && word.collocations.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-bold mb-4">🔗 연어 (Collocations)</h3>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {word.collocations.map((col: any, i: number) => (
+                        <div key={i} className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                          <div className="font-semibold text-amber-900 mb-1">{col.collocation}</div>
+                          {col.example && (
+                            <p className="text-sm text-amber-700 italic">"{col.example}"</p>
+                          )}
+                          {col.translation && (
+                            <p className="text-xs text-amber-600 mt-1">{col.translation}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Synonyms & Antonyms */}
                 <div className="grid md:grid-cols-2 gap-6">
                   {word.synonyms && word.synonyms.length > 0 && (
@@ -273,6 +363,55 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
                     </div>
                   )}
                 </div>
+
+                {/* Related Word Lists */}
+                {(word.synonymList?.length || word.antonymList?.length || word.rhymingWords?.length || word.relatedWords?.length) && (
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h3 className="text-lg font-bold mb-4">📚 관련 단어</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {word.synonymList && word.synonymList.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-600 mb-2">유의어</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {word.synonymList.map((s: string, i: number) => (
+                              <span key={i} className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">{s}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {word.antonymList && word.antonymList.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-600 mb-2">반의어</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {word.antonymList.map((a: string, i: number) => (
+                              <span key={i} className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">{a}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {word.rhymingWords && word.rhymingWords.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-600 mb-2">라이밍</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {word.rhymingWords.map((r: string, i: number) => (
+                              <span key={i} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">{r}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {word.relatedWords && word.relatedWords.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-600 mb-2">관련어</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {word.relatedWords.map((r: string, i: number) => (
+                              <span key={i} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{r}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
