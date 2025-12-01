@@ -117,6 +117,18 @@ interface Word {
   definitionKo: string;
   partOfSpeech: string;
   level: string;
+  pronunciation?: string;
+  ipaUs?: string;
+  ipaUk?: string;
+  mnemonics?: {
+    id: string;
+    content: string;
+    koreanHint: string;
+  }[];
+  etymology?: {
+    origin: string;
+    language: string;
+  };
 }
 
 export default function ExamCoursePage() {
@@ -154,12 +166,14 @@ export default function ExamCoursePage() {
 
   const fetchWords = async () => {
     try {
+      // Fetch PUBLISHED words with AI-generated content
       const response = await fetch(
-        `${API_URL}/words/public?examCategory=${examKey.toUpperCase()}&limit=10`
+        `${API_URL}/words?examCategory=${examKey.toUpperCase()}&status=PUBLISHED&limit=12`
       );
       if (response.ok) {
         const data = await response.json();
-        setWords(data.data || []);
+        // API returns data in 'data' or 'words' field
+        setWords(data.data || data.words || []);
       }
     } catch (error) {
       console.error('Failed to fetch words:', error);
@@ -288,27 +302,53 @@ export default function ExamCoursePage() {
           {loading ? (
             <div className="text-center py-8 text-gray-500">로딩 중...</div>
           ) : words.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {words.map((word) => (
-                <div
+                <Link
                   key={word.id}
-                  className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition"
+                  href={`/words/${word.id}`}
+                  className="bg-white rounded-xl p-5 shadow-sm hover:shadow-lg transition group border border-gray-100"
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-bold text-gray-900">{word.word}</h3>
-                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600">
+                        {word.word}
+                      </h3>
+                      {word.ipaUs && (
+                        <p className="text-xs text-gray-400">{word.ipaUs}</p>
+                      )}
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full ${exam.bgColor} text-gray-700`}>
                       {word.level}
                     </span>
                   </div>
+
                   <p className="text-xs text-gray-400 mb-1">{word.partOfSpeech}</p>
-                  <p className="text-sm text-gray-700">{word.definitionKo}</p>
-                </div>
+                  <p className="text-sm text-gray-700 mb-3">{word.definitionKo}</p>
+
+                  {/* Mnemonic - AI 연상법 */}
+                  {word.mnemonics && word.mnemonics[0]?.koreanHint && (
+                    <div className="bg-indigo-50 rounded-lg px-3 py-2 mb-2">
+                      <p className="text-xs text-indigo-600 font-medium mb-1">💡 연상법</p>
+                      <p className="text-xs text-indigo-800">
+                        {word.mnemonics[0].koreanHint}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Korean pronunciation hint */}
+                  {word.pronunciation && (
+                    <p className="text-xs text-gray-500">
+                      🔊 {word.pronunciation}
+                    </p>
+                  )}
+                </Link>
               ))}
             </div>
           ) : (
             <div className="bg-white rounded-xl p-8 text-center text-gray-500">
-              <p>아직 단어가 없습니다.</p>
-              <p className="text-sm mt-2">관리자에게 문의하세요.</p>
+              <p className="text-lg mb-2">아직 발행된 단어가 없습니다.</p>
+              <p className="text-sm">관리자가 콘텐츠를 준비 중입니다.</p>
             </div>
           )}
         </div>
