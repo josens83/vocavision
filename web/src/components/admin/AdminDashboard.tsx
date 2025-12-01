@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { DashboardStatsView } from './DashboardStats';
 import { WordList } from './WordList';
 import {
@@ -16,7 +16,7 @@ import {
   WordDetailView,
 } from './WordForms';
 import { VocaWord, VocaContentFull } from './types/admin.types';
-import { useWordDetail } from './hooks/useAdminApi';
+import { useWordDetail, useDashboardStats } from './hooks/useAdminApi';
 
 // ---------------------------------------------
 // Sidebar Navigation
@@ -72,9 +72,10 @@ const navItems: NavItem[] = [
 interface SidebarProps {
   activeNav: string;
   onNavChange: (id: string) => void;
+  pendingReviewCount?: number;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeNav, onNavChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeNav, onNavChange, pendingReviewCount = 0 }) => {
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-slate-900 text-white flex flex-col">
       {/* Logo */}
@@ -104,9 +105,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeNav, onNavChange }) => {
           >
             {item.icon}
             <span className="font-medium">{item.label}</span>
-            {item.id === 'review' && (
+            {item.id === 'review' && pendingReviewCount > 0 && (
               <span className="ml-auto bg-amber-500 text-xs font-bold px-2 py-0.5 rounded-full">
-                12
+                {pendingReviewCount}
               </span>
             )}
           </button>
@@ -202,6 +203,14 @@ export const AdminDashboard: React.FC = () => {
   // Word detail
   const { word: detailWord, fetchWord, clearWord } = useWordDetail();
 
+  // Dashboard stats for pending review count
+  const { stats, fetchStats } = useDashboardStats();
+
+  // Fetch stats on mount
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
   // Refresh trigger
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -268,10 +277,17 @@ export const AdminDashboard: React.FC = () => {
         );
       case 'review':
         return (
-          <div className="text-center py-12">
-            <h2 className="text-xl font-semibold text-slate-900">검토 대기 목록</h2>
-            <p className="text-slate-500 mt-2">Coming soon...</p>
-          </div>
+          <WordList
+            key={`review-${refreshTrigger}`}
+            onWordSelect={handleWordSelect}
+            onAddWord={handleAddWord}
+            onBatchUpload={handleBatchUpload}
+            onGenerateContent={handleGenerateContent}
+            initialFilters={{ status: ['PENDING_REVIEW'] }}
+            title="검토 대기 목록"
+            hideFilters={false}
+            hideActions={true}
+          />
         );
       case 'sets':
         return (
@@ -288,7 +304,11 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Sidebar */}
-      <Sidebar activeNav={activeNav} onNavChange={setActiveNav} />
+      <Sidebar
+        activeNav={activeNav}
+        onNavChange={setActiveNav}
+        pendingReviewCount={stats?.pendingReview ?? 0}
+      />
 
       {/* Main Content */}
       <div className="ml-64">
