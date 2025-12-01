@@ -530,7 +530,7 @@ export const AIGenerationModal: React.FC<AIGenerationModalProps> = ({
             <p className="text-center text-slate-600">
               Claude AI가 콘텐츠를 생성하고 있습니다...
             </p>
-            <ProgressBar progress={progress} color="pink" />
+            <ProgressBar progress={progress?.progress || 0} color="pink" />
             <p className="text-center text-sm text-slate-400">
               어원, 연상법, 예문 등을 분석 중
             </p>
