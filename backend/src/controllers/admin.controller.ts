@@ -21,42 +21,63 @@ export const getDashboardStats = async (
     const [
       totalWords,
       draftWords,
-      reviewWords,
+      pendingReview,
       publishedWords,
-      totalExamples,
-      totalMnemonics,
-      recentWords,
       wordsByCategory,
+      wordsByLevel,
+      hasEtymology,
+      hasMnemonic,
+      hasExamples,
+      hasMedia,
     ] = await Promise.all([
       prisma.word.count(),
       prisma.word.count({ where: { status: 'DRAFT' } }),
       prisma.word.count({ where: { status: 'PENDING_REVIEW' } }),
       prisma.word.count({ where: { status: 'PUBLISHED' } }),
-      prisma.example.count(),
-      prisma.mnemonic.count(),
-      prisma.word.findMany({
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-        select: { id: true, word: true, status: true, createdAt: true },
-      }),
       prisma.word.groupBy({
         by: ['examCategory'],
         _count: { id: true },
       }),
+      prisma.word.groupBy({
+        by: ['difficulty'],
+        _count: { id: true },
+      }),
+      // Content coverage counts
+      prisma.word.count({ where: { etymology: { not: null } } }),
+      prisma.mnemonic.count(),
+      prisma.example.count(),
+      prisma.wordImage.count(),
     ]);
+
+    // Convert category counts to Record
+    const byExamCategory: Record<string, number> = {};
+    for (const c of wordsByCategory) {
+      if (c.examCategory) {
+        byExamCategory[c.examCategory] = c._count.id;
+      }
+    }
+
+    // Convert level counts to Record
+    const byLevel: Record<string, number> = {};
+    for (const l of wordsByLevel) {
+      if (l.difficulty) {
+        byLevel[l.difficulty] = l._count.id;
+      }
+    }
 
     const stats = {
       totalWords,
       draftWords,
-      reviewWords,
+      pendingReview,
       publishedWords,
-      totalExamples,
-      totalMnemonics,
-      recentWords,
-      wordsByCategory: wordsByCategory.map((c) => ({
-        category: c.examCategory,
-        count: c._count.id,
-      })),
+      byExamCategory,
+      byLevel,
+      contentCoverage: {
+        hasEtymology,
+        hasMnemonic,
+        hasExamples,
+        hasMedia,
+      },
     };
 
     res.json({ stats });
