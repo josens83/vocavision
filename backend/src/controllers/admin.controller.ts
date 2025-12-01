@@ -412,7 +412,7 @@ export const getBatchJobs = async (
 ) => {
   try {
     const jobs = await prisma.contentGenerationJob.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { id: 'desc' },
       take: 20,
       select: {
         id: true,
@@ -421,8 +421,8 @@ export const getBatchJobs = async (
         inputWords: true,
         examCategory: true,
         cefrLevel: true,
-        createdAt: true,
-        updatedAt: true,
+        batchId: true,
+        errorMessage: true,
       },
     });
 
