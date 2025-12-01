@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
 import OpenAI from 'openai';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 // Initialize OpenAI client
 const openai = new OpenAI({

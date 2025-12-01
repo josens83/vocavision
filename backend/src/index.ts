@@ -2,13 +2,16 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 
 // Utilities
 import logger from './utils/logger';
 import { validateEnv } from './utils/validateEnv';
+
+// Shared Prisma client with pgBouncer compatibility
+import prisma from './lib/prisma';
+export { prisma };
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -40,26 +43,6 @@ validateEnv();
 
 const app: Application = express();
 const PORT = process.env.PORT || 3001;
-
-// Helper function to add pgbouncer parameter for Supabase pooler connections
-const getDatabaseUrl = (): string | undefined => {
-  const url = process.env.DATABASE_URL;
-  if (!url) return undefined;
-
-  // If using Supabase pooler, add pgbouncer=true to avoid prepared statement errors
-  if (url.includes('pooler.supabase.com') && !url.includes('pgbouncer=true')) {
-    const separator = url.includes('?') ? '&' : '?';
-    console.log('[Prisma] Adding pgbouncer=true for Supabase pooler connection');
-    return `${url}${separator}pgbouncer=true`;
-  }
-  return url;
-};
-
-// Prisma Client with pgBouncer compatibility
-export const prisma = new PrismaClient({
-  datasourceUrl: getDatabaseUrl(),
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-});
 
 // Middleware
 app.use(helmet());

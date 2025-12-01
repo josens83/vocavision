@@ -4,10 +4,9 @@
 // ============================================
 
 import Anthropic from '@anthropic-ai/sdk';
-import { PrismaClient, ExamCategory, CEFRLevel } from '@prisma/client';
+import { ExamCategory, CEFRLevel } from '@prisma/client';
 import logger from '../utils/logger';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 // Claude API Client
 let anthropic: Anthropic | null = null;
