@@ -472,22 +472,34 @@ const WordTable: React.FC<WordTableProps> = ({
               </td>
               <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-end gap-2">
-                  {!word.content && (
-                    <button
-                      onClick={() => onGenerateClick(word)}
-                      className="p-2 text-purple-500 hover:bg-purple-50 rounded-lg transition-colors"
-                      title="AI 콘텐츠 생성"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {/* AI 생성/재생성 버튼 */}
+                  <button
+                    onClick={() => onGenerateClick(word)}
+                    className={`p-2 rounded-lg transition-colors ${
+                      word.content
+                        ? 'text-amber-500 hover:bg-amber-50'
+                        : 'text-purple-500 hover:bg-purple-50'
+                    }`}
+                    title={word.content ? 'AI 콘텐츠 재생성' : 'AI 콘텐츠 생성'}
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      {word.content ? (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      ) : (
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
                           d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                         />
-                      </svg>
-                    </button>
-                  )}
+                      )}
+                    </svg>
+                  </button>
                   <button
                     className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                     title="상세 보기"
@@ -601,6 +613,8 @@ interface WordListProps {
   onAddWord: () => void;
   onBatchUpload: () => void;
   onGenerateContent: (word: VocaWord) => void;
+  /** 여러 단어 일괄 AI 생성 */
+  onBatchGenerate?: (wordIds: string[]) => void;
   /** 초기 필터 설정 (검토 대기 목록 등에서 사용) */
   initialFilters?: Partial<WordFilters>;
   /** 헤더 타이틀 커스텀 */
@@ -616,6 +630,7 @@ export const WordList: React.FC<WordListProps> = ({
   onAddWord,
   onBatchUpload,
   onGenerateContent,
+  onBatchGenerate,
   initialFilters = {},
   title = '단어 관리',
   hideFilters = false,
@@ -718,14 +733,23 @@ export const WordList: React.FC<WordListProps> = ({
             <strong>{selectedIds.length}</strong>개 선택됨
           </span>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              AI 생성
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (onBatchGenerate) {
+                  onBatchGenerate(selectedIds);
+                  setSelectedIds([]);
+                }
+              }}
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              AI 일괄 생성
             </Button>
-            <Button variant="ghost" size="sm">
-              상태 변경
-            </Button>
-            <Button variant="danger" size="sm">
-              삭제
+            <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
+              선택 해제
             </Button>
           </div>
         </div>

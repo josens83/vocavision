@@ -423,6 +423,156 @@ export const bulkUpdateStatus = async (
 };
 
 // ============================================
+// Update Word Content (for Claude Max import)
+// ============================================
+
+export const updateWordContent = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { wordId } = req.params;
+    const content = req.body;
+
+    // Verify word exists
+    const existingWord = await prisma.word.findUnique({
+      where: { id: wordId },
+    });
+
+    if (!existingWord) {
+      return res.status(404).json({ message: 'Word not found' });
+    }
+
+    // Update word fields
+    const wordUpdate: any = {};
+    if (content.ipaUs !== undefined) wordUpdate.ipaUs = content.ipaUs;
+    if (content.ipaUk !== undefined) wordUpdate.ipaUk = content.ipaUk;
+    if (content.pronunciation !== undefined) wordUpdate.pronunciation = content.pronunciation;
+    if (content.prefix !== undefined) wordUpdate.prefix = content.prefix;
+    if (content.root !== undefined) wordUpdate.root = content.root;
+    if (content.suffix !== undefined) wordUpdate.suffix = content.suffix;
+    if (content.morphologyNote !== undefined) wordUpdate.morphologyNote = content.morphologyNote;
+    if (content.synonyms !== undefined) wordUpdate.synonymList = content.synonyms;
+    if (content.antonyms !== undefined) wordUpdate.antonymList = content.antonyms;
+    if (content.rhymingWords !== undefined) wordUpdate.rhymingWords = content.rhymingWords;
+
+    // Start transaction
+    await prisma.$transaction(async (tx) => {
+      // Update word fields
+      if (Object.keys(wordUpdate).length > 0) {
+        await tx.word.update({
+          where: { id: wordId },
+          data: wordUpdate,
+        });
+      }
+
+      // Update Etymology
+      if (content.etymology) {
+        await tx.etymology.upsert({
+          where: { wordId },
+          create: {
+            wordId,
+            origin: content.etymology,
+            language: content.etymologyLang || null,
+            evolution: content.etymology,
+            rootWords: [],
+            relatedWords: [],
+          },
+          update: {
+            origin: content.etymology,
+            language: content.etymologyLang || null,
+            evolution: content.etymology,
+          },
+        });
+      }
+
+      // Update Mnemonic
+      if (content.mnemonic) {
+        // Delete existing and create new
+        await tx.mnemonic.deleteMany({ where: { wordId } });
+        await tx.mnemonic.create({
+          data: {
+            wordId,
+            title: 'Primary Mnemonic',
+            content: content.mnemonic,
+            koreanHint: content.mnemonicKorean || null,
+            imageUrl: content.mnemonicImage || null,
+          },
+        });
+      }
+
+      // Update Collocations
+      if (content.collocations && Array.isArray(content.collocations)) {
+        await tx.collocation.deleteMany({ where: { wordId } });
+        for (let i = 0; i < content.collocations.length; i++) {
+          const col = content.collocations[i];
+          await tx.collocation.create({
+            data: {
+              wordId,
+              phrase: col.phrase,
+              translation: col.translation || null,
+              order: i,
+            },
+          });
+        }
+      }
+
+      // Update Examples (funnyExamples)
+      if (content.funnyExamples && Array.isArray(content.funnyExamples)) {
+        await tx.example.deleteMany({ where: { wordId } });
+        for (let i = 0; i < content.funnyExamples.length; i++) {
+          const ex = content.funnyExamples[i];
+          await tx.example.create({
+            data: {
+              wordId,
+              sentence: ex.sentenceEn,
+              translation: ex.sentenceKo || null,
+              isFunny: ex.isFunny || false,
+              order: i,
+            },
+          });
+        }
+      }
+
+      // Update Definitions (stored in examples with special handling)
+      if (content.definitions && Array.isArray(content.definitions)) {
+        // Store definition in word table if available
+        const firstDef = content.definitions[0];
+        if (firstDef) {
+          await tx.word.update({
+            where: { id: wordId },
+            data: {
+              definition: firstDef.definitionEn || '',
+              definitionKo: firstDef.definitionKo || null,
+              partOfSpeech: (firstDef.partOfSpeech?.toUpperCase() as any) || 'NOUN',
+            },
+          });
+        }
+      }
+    });
+
+    // Fetch updated word with content
+    const updatedWord = await prisma.word.findUnique({
+      where: { id: wordId },
+      include: {
+        examples: true,
+        mnemonics: true,
+        etymology: true,
+        collocations: true,
+      },
+    });
+
+    res.json({
+      message: 'Content updated successfully',
+      word: updatedWord,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================
 // Get Batch Jobs
 // ============================================
 

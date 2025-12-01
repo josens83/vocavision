@@ -10,6 +10,7 @@ import {
   getAdminWordById,
   createAdminWord,
   updateAdminWord,
+  updateWordContent,
   deleteAdminWord,
   batchCreateWords,
   bulkUpdateStatus,
@@ -98,6 +99,17 @@ router.post('/words', createAdminWord);
  *       - bearerAuth: []
  */
 router.patch('/words/:wordId', updateAdminWord);
+
+/**
+ * @swagger
+ * /admin/words/{wordId}/content:
+ *   put:
+ *     summary: Update word content (for Claude Max import)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.put('/words/:wordId/content', updateWordContent);
 
 /**
  * @swagger

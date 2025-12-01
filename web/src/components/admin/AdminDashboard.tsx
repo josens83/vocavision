@@ -16,7 +16,7 @@ import {
   WordDetailView,
 } from './WordForms';
 import { VocaWord, VocaContentFull } from './types/admin.types';
-import { useWordDetail, useDashboardStats } from './hooks/useAdminApi';
+import { useWordDetail, useDashboardStats, useBatchGeneration } from './hooks/useAdminApi';
 
 // ---------------------------------------------
 // Sidebar Navigation
@@ -206,6 +206,9 @@ export const AdminDashboard: React.FC = () => {
   // Dashboard stats for pending review count
   const { stats, fetchStats } = useDashboardStats();
 
+  // Batch generation
+  const { startBatchGeneration } = useBatchGeneration();
+
   // Fetch stats on mount
   useEffect(() => {
     fetchStats();
@@ -251,6 +254,14 @@ export const AdminDashboard: React.FC = () => {
     }
   }, [detailWord]);
 
+  const handleBatchGenerate = useCallback(async (wordIds: string[]) => {
+    const success = await startBatchGeneration(wordIds);
+    if (success) {
+      alert(`${wordIds.length}개 단어에 대한 AI 생성이 시작되었습니다. 백그라운드에서 처리됩니다.`);
+      triggerRefresh();
+    }
+  }, [startBatchGeneration, triggerRefresh]);
+
   const handleCloseDetail = useCallback(() => {
     clearWord();
   }, [clearWord]);
@@ -273,6 +284,7 @@ export const AdminDashboard: React.FC = () => {
             onAddWord={handleAddWord}
             onBatchUpload={handleBatchUpload}
             onGenerateContent={handleGenerateContent}
+            onBatchGenerate={handleBatchGenerate}
           />
         );
       case 'review':
@@ -283,6 +295,7 @@ export const AdminDashboard: React.FC = () => {
             onAddWord={handleAddWord}
             onBatchUpload={handleBatchUpload}
             onGenerateContent={handleGenerateContent}
+            onBatchGenerate={handleBatchGenerate}
             initialFilters={{ status: ['PENDING_REVIEW'] }}
             title="검토 대기 목록"
             hideFilters={false}

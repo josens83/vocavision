@@ -354,6 +354,59 @@ export function useContentGeneration() {
 }
 
 // ============================================
+// useBatchGeneration Hook
+// ============================================
+
+export function useBatchGeneration() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+
+  const startBatchGeneration = useCallback(
+    async (wordIds: string[]): Promise<boolean> => {
+      setLoading(true);
+      setError(null);
+      try {
+        // First, get the words to extract their text
+        const wordsData = await Promise.all(
+          wordIds.map((id) =>
+            apiClient<{ word: { word: string } }>(`/admin/words/${id}`)
+          )
+        );
+
+        const words = wordsData.map((d) => d.word.word);
+
+        const result = await apiClient<{ success: boolean; jobId: string }>(
+          '/content/batch',
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              words,
+              examCategory: 'CSAT',
+              cefrLevel: 'B1',
+            }),
+          }
+        );
+
+        if (result.success && result.jobId) {
+          setJobId(result.jobId);
+          return true;
+        }
+        return false;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Batch generation failed');
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  return { startBatchGeneration, loading, error, jobId };
+}
+
+// ============================================
 // useReview Hook
 // ============================================
 

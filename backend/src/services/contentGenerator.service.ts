@@ -98,50 +98,126 @@ const CONTENT_GENERATION_PROMPT = `
 - 시험 카테고리: {{EXAM_CATEGORY}}
 - CEFR 레벨: {{CEFR_LEVEL}}
 
+## 품질 기준 (GOLD Standard)
+다음 기준을 반드시 충족해야 합니다:
+1. **정확성**: 모든 정보는 사전적으로 정확해야 함
+2. **기억성**: 연상법은 한국어 발음을 창의적으로 활용해야 함
+3. **맥락성**: 예문은 실제 사용 맥락을 반영해야 함
+4. **재미**: 유머러스한 요소로 학습 동기 유발
+
 ## 생성해야 할 콘텐츠
 
 ### 1. 발음 (Pronunciation)
-- IPA 발음 기호 (미국식, 영국식)
-- 한글 발음 표기
+- IPA 발음 기호 (미국식, 영국식) - 정확한 음성학적 표기
+- 한글 발음 표기 - 한국어 화자가 이해하기 쉽게
 
 ### 2. 정의 (Definitions)
-- 품사별 영어 정의
-- 한국어 번역
-- 각 정의에 대한 예문
+- 품사별 영어 정의 - 간결하고 명확하게
+- 한국어 번역 - 자연스러운 한국어로
+- 각 정의에 대한 예문 - 맥락이 풍부한 예문
 
 ### 3. 어원 (Etymology)
-- 단어의 기원과 역사
+- 단어의 기원과 역사 - 스토리텔링 방식으로
 - 어원 언어 (라틴어, 그리스어, 프랑스어 등)
-- 어원을 통한 의미 이해 설명
+- 어원을 통한 의미 이해 설명 - "왜 이 의미인지" 납득 가능하게
 
 ### 4. 형태 분석 (Morphology)
 - 접두사 (prefix): 있다면 의미와 함께
-- 어근 (root): 핵심 의미
+- 어근 (root): 핵심 의미 - 다른 단어와의 연결성 강조
 - 접미사 (suffix): 있다면 품사 변화 설명
 
 ### 5. 콜로케이션 (Collocations)
-- 자주 함께 쓰이는 단어 조합 5-7개
+- 자주 함께 쓰이는 단어 조합 5-7개 - 실제 코퍼스 빈도 높은 것
 - 각 콜로케이션의 한국어 번역
 - 유형 (verb+noun, adj+noun 등)
 
 ### 6. 라이밍 (Rhyming Words)
-- 발음이 비슷한 단어 3-5개
-- 라이밍을 활용한 암기 팁
+- 발음이 비슷한 단어 3-5개 - 유의미한 단어 선택
+- 라이밍을 활용한 암기 팁 - 문장이나 스토리로 연결
 
-### 7. 연상 기억법 (Mnemonic - 경선식 스타일)
-- 발음과 의미를 연결하는 창의적 연상법
-- 한글 발음을 활용한 기억 트릭
-- 이미지화하기 좋은 스토리
+### 7. 연상 기억법 (Mnemonic - 경선식 스타일) ⭐ 핵심
+이것이 가장 중요합니다! 다음 원칙을 따르세요:
+- 한글 발음과 의미를 연결하는 창의적 연상법
+- 예: "abandon [어밴던] → '아! 밴(van)에서 던져버리다' → 버리다, 포기하다"
+- 시각적 장면을 떠올릴 수 있는 구체적 이미지
+- 한국어 언어유희 적극 활용
+- imagePrompt는 DALL-E/WHISK용 영어 이미지 생성 프롬프트
 
 ### 8. 재미있는 예문 (Fun Examples)
-- 기억에 남는 유머러스한 예문 2-3개
-- 실제 사용 맥락이 담긴 예문 2-3개
+- 기억에 남는 유머러스한 예문 2-3개 - 약간 과장되거나 웃긴 상황
+- 실제 사용 맥락이 담긴 예문 2-3개 - 뉴스, 영화, 일상 대화
 - 한국어 번역 포함
 
 ### 9. 관련어
-- 동의어 (synonyms) 3-5개
+- 동의어 (synonyms) 3-5개 - 뉘앙스 차이가 있는 것들
 - 반의어 (antonyms) 2-3개
-- 관련 단어 (related words) 3-5개
+- 관련 단어 (related words) 3-5개 - 같은 어근을 공유하거나 주제 관련
+
+## GOLD 샘플 예시 (abandon)
+다음은 이상적인 출력 예시입니다:
+\`\`\`json
+{
+  "pronunciation": {
+    "ipaUs": "/əˈbæn.dən/",
+    "ipaUk": "/əˈbæn.dən/",
+    "korean": "어밴던"
+  },
+  "definitions": [
+    {
+      "partOfSpeech": "verb",
+      "definitionEn": "to leave someone or something permanently, especially when you should not",
+      "definitionKo": "버리다, 포기하다 (특히 책임이 있는 것을)",
+      "exampleEn": "The crew abandoned the sinking ship.",
+      "exampleKo": "승무원들은 침몰하는 배를 버렸다."
+    }
+  ],
+  "etymology": {
+    "description": "중세 프랑스어 'abandoner'에서 유래. 'a-'(~에게) + 'bandon'(통제, 권력)의 조합으로, 원래 '누군가의 통제 하에 두다'라는 뜻이었으나 점차 '포기하다'로 의미가 변화함.",
+    "language": "French",
+    "breakdown": "a-(to) + bandon(control) → 통제권을 넘기다 → 버리다"
+  },
+  "morphology": {
+    "prefix": null,
+    "root": { "part": "bandon", "meaning": "통제, 권력 (프랑스어)" },
+    "suffix": null,
+    "note": "abandon은 하나의 어근에서 파생된 단어로, 명사형 abandonment(-ment 접미사 추가)로 변형됨"
+  },
+  "collocations": [
+    { "phrase": "abandon hope", "translation": "희망을 버리다", "type": "verb+noun" },
+    { "phrase": "abandon ship", "translation": "배를 버리다/탈출하다", "type": "verb+noun" },
+    { "phrase": "abandon a plan", "translation": "계획을 포기하다", "type": "verb+noun" },
+    { "phrase": "feel abandoned", "translation": "버림받은 느낌이 들다", "type": "verb+adj" },
+    { "phrase": "completely abandon", "translation": "완전히 버리다", "type": "adv+verb" }
+  ],
+  "rhyming": {
+    "words": ["cannon", "Shannon", "fandom", "random"],
+    "note": "'-andon' 소리가 비슷한 단어들. 'I abandon my random cannon' 같은 문장으로 함께 기억!"
+  },
+  "mnemonic": {
+    "description": "'어밴던'은 '아! 밴(van)에서 던져버린다!'고 기억하세요. 이사 갈 때 밴(van)에서 필요 없는 짐을 던져버리는 장면을 상상하세요.",
+    "koreanAssociation": "아! 밴(van)에서 던지다 → 버리다",
+    "imagePrompt": "A cartoon scene of someone throwing old furniture out of a moving van, items flying through the air, exaggerated comedic style, bright colors"
+  },
+  "examples": [
+    {
+      "sentenceEn": "My cat abandoned me for the neighbor who gives her more treats.",
+      "sentenceKo": "우리 고양이가 간식을 더 많이 주는 이웃집으로 나를 버렸다.",
+      "isFunny": true
+    },
+    {
+      "sentenceEn": "The project was abandoned due to lack of funding.",
+      "sentenceKo": "그 프로젝트는 자금 부족으로 중단되었다.",
+      "isFunny": false,
+      "source": "Business News"
+    }
+  ],
+  "relatedWords": {
+    "synonyms": ["desert", "forsake", "leave", "quit", "relinquish"],
+    "antonyms": ["keep", "maintain", "continue"],
+    "related": ["abandonment", "abandoned"]
+  }
+}
+\`\`\`
 
 ## 출력 형식
 반드시 아래 JSON 형식으로 출력하세요:

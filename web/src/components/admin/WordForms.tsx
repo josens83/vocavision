@@ -796,6 +796,128 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 };
 
 // ---------------------------------------------
+// JSON Import Modal (for Claude Max workflow)
+// ---------------------------------------------
+interface JsonImportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  wordId: string;
+  wordName: string;
+}
+
+const JsonImportModal: React.FC<JsonImportModalProps> = ({
+  isOpen,
+  onClose,
+  wordId,
+  wordName,
+}) => {
+  const [jsonInput, setJsonInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleImport = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const parsed = JSON.parse(jsonInput);
+
+      // Validate structure
+      if (!parsed.content) {
+        throw new Error('JSON에 content 필드가 필요합니다.');
+      }
+
+      // Call API to update content
+      const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
+      const adminKey = process.env.NEXT_PUBLIC_ADMIN_KEY || '';
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
+
+      const response = await fetch(`${apiBase}/admin/words/${wordId}/content`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(adminKey ? { 'x-admin-key': adminKey } : {}),
+        },
+        body: JSON.stringify(parsed.content),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ message: 'Import failed' }));
+        throw new Error(err.message || `HTTP ${response.status}`);
+      }
+
+      setSuccess(true);
+      setTimeout(() => {
+        onClose();
+        window.location.reload(); // Refresh to see changes
+      }, 1500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'JSON 파싱 실패');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setJsonInput('');
+    setError(null);
+    setSuccess(false);
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={handleClose} title="Claude Max에서 가져오기" size="lg">
+      <div className="space-y-4">
+        {success ? (
+          <Alert type="success" title="가져오기 완료!">
+            콘텐츠가 성공적으로 업데이트되었습니다.
+          </Alert>
+        ) : (
+          <>
+            <Alert type="info">
+              <strong>{wordName}</strong> 단어의 콘텐츠를 업데이트합니다.
+              <br />
+              Claude Max에서 편집한 JSON을 붙여넣으세요.
+            </Alert>
+
+            {error && (
+              <Alert type="error" title="오류">
+                {error}
+              </Alert>
+            )}
+
+            <Textarea
+              label="JSON 데이터"
+              placeholder='{"word": "example", "content": {...}}'
+              value={jsonInput}
+              onChange={(e) => setJsonInput(e.target.value)}
+              rows={15}
+              className="font-mono text-sm"
+            />
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+              <Button variant="outline" onClick={handleClose}>
+                취소
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleImport}
+                loading={loading}
+                disabled={!jsonInput.trim()}
+              >
+                가져오기
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+};
+
+// ---------------------------------------------
 // Word Detail View
 // ---------------------------------------------
 interface WordDetailViewProps {
@@ -814,6 +936,59 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
   onReview,
 }) => {
   const content = word.content;
+  const [showJsonImport, setShowJsonImport] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // Export word data as JSON for Claude Max editing
+  const handleExportJson = async () => {
+    const exportData = {
+      word: word.word,
+      level: word.level,
+      examCategories: word.examCategories,
+      topics: word.topics,
+      content: content ? {
+        ipaUs: content.ipaUs,
+        ipaUk: content.ipaUk,
+        pronunciation: content.pronunciation,
+        etymology: content.etymology,
+        etymologyLang: content.etymologyLang,
+        prefix: content.prefix,
+        root: content.root,
+        suffix: content.suffix,
+        morphologyNote: content.morphologyNote,
+        mnemonic: content.mnemonic,
+        mnemonicKorean: content.mnemonicKorean,
+        rhymingWords: content.rhymingWords,
+        rhymingNote: content.rhymingNote,
+        synonyms: content.synonyms,
+        antonyms: content.antonyms,
+        definitions: content.definitions?.map(d => ({
+          partOfSpeech: d.partOfSpeech,
+          definitionEn: d.definitionEn,
+          definitionKo: d.definitionKo,
+          exampleEn: d.exampleEn,
+          exampleKo: d.exampleKo,
+        })),
+        collocations: content.collocations?.map(c => ({
+          phrase: c.phrase,
+          translation: c.translation,
+        })),
+        funnyExamples: content.funnyExamples?.map(e => ({
+          sentenceEn: e.sentenceEn,
+          sentenceKo: e.sentenceKo,
+          isFunny: e.isFunny,
+        })),
+      } : null,
+    };
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(exportData, null, 2));
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -855,6 +1030,35 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
           </div>
 
           <div className="flex gap-2">
+            {/* Claude Max Export/Import */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleExportJson}
+              title="Claude Max로 내보내기 (JSON 복사)"
+            >
+              {copySuccess ? (
+                <span className="text-emerald-600">복사됨!</span>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  JSON
+                </>
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowJsonImport(true)}
+              title="Claude Max에서 가져오기"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              가져오기
+            </Button>
             <Button variant="ghost" size="sm" onClick={onEdit}>
               수정
             </Button>
@@ -1099,6 +1303,14 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* JSON Import Modal */}
+      <JsonImportModal
+        isOpen={showJsonImport}
+        onClose={() => setShowJsonImport(false)}
+        wordId={word.id}
+        wordName={word.word}
+      />
     </div>
   );
 };
