@@ -53,15 +53,41 @@ export const authenticateToken = async (
   }
 };
 
-export const requireAdmin = (
+// Admin 권한 필수 이메일 목록 (DB role과 별개로 항상 Admin 접근 허용)
+const ADMIN_EMAILS = [
+  'dohurnk@gmail.com',
+  'admin@vocavision.ai',
+];
+
+export const requireAdmin = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
-  if (req.userRole !== 'ADMIN') {
-    return res.status(403).json({ error: 'Admin access required' });
+  // 이미 ADMIN role이면 통과
+  if (req.userRole === 'ADMIN') {
+    return next();
   }
-  next();
+
+  // ADMIN_EMAILS에 있는 사용자는 자동 Admin 권한 부여
+  if (req.userId) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.userId },
+        select: { email: true }
+      });
+
+      if (user && ADMIN_EMAILS.includes(user.email)) {
+        console.log('[Auth] Admin bypass for:', user.email);
+        req.userRole = 'ADMIN';
+        return next();
+      }
+    } catch (error) {
+      console.error('[Auth] Admin check error:', error);
+    }
+  }
+
+  return res.status(403).json({ error: 'Admin access required' });
 };
 
 export const requireSubscription = async (
