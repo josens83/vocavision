@@ -56,8 +56,9 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN,
 ].filter(Boolean) as string[];
 
-app.use(cors({
-  origin: (origin, callback) => {
+// CORS configuration
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
 
@@ -70,7 +71,13 @@ app.use(cors({
   },
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'],
-}));
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+};
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(rateLimiter);
