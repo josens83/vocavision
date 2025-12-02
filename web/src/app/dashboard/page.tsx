@@ -145,7 +145,8 @@ export default function DashboardPage() {
 
   // Compute exam courses with dynamic word counts
   const examCourses = examCoursesBase.map((course) => {
-    const count = wordCounts[course.id] || 0;
+    const examId = course.id as string;
+    const count = examId ? wordCounts[examId] || 0 : 0;
     const isActive = count > 0;
     return {
       ...course,
