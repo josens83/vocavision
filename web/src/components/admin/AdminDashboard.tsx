@@ -217,7 +217,7 @@ export const AdminDashboard: React.FC = () => {
   const { stats, fetchStats } = useDashboardStats();
 
   // Batch generation
-  const { startBatchGeneration } = useBatchGeneration();
+  const { startBatchGeneration, error: batchError } = useBatchGeneration();
 
   // Fetch stats on mount
   useEffect(() => {
@@ -265,12 +265,18 @@ export const AdminDashboard: React.FC = () => {
   }, [detailWord]);
 
   const handleBatchGenerate = useCallback(async (wordIds: string[]) => {
-    const success = await startBatchGeneration(wordIds);
-    if (success) {
-      alert(`${wordIds.length}개 단어에 대한 AI 생성이 시작되었습니다. 백그라운드에서 처리됩니다.`);
-      triggerRefresh();
+    try {
+      const success = await startBatchGeneration(wordIds);
+      if (success) {
+        alert(`${wordIds.length}개 단어에 대한 AI 생성이 시작되었습니다. 백그라운드에서 처리됩니다.`);
+        triggerRefresh();
+      } else {
+        alert(`AI 생성 실패: ${batchError || '알 수 없는 오류가 발생했습니다.'}`);
+      }
+    } catch (err) {
+      alert(`AI 생성 오류: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
     }
-  }, [startBatchGeneration, triggerRefresh]);
+  }, [startBatchGeneration, triggerRefresh, batchError]);
 
   const handleCloseDetail = useCallback(() => {
     clearWord();
