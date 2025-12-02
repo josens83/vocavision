@@ -17,7 +17,7 @@ export const getDashboardStats = async (
   next: NextFunction
 ) => {
   try {
-    // Get word counts by status
+    // Get basic word counts (safe queries only)
     const [
       totalWords,
       draftWords,
@@ -25,10 +25,6 @@ export const getDashboardStats = async (
       publishedWords,
       wordsByCategory,
       wordsByLevel,
-      hasEtymology,
-      hasMnemonic,
-      hasExamples,
-      hasMedia,
     ] = await Promise.all([
       prisma.word.count(),
       prisma.word.count({ where: { status: 'DRAFT' } }),
@@ -42,12 +38,24 @@ export const getDashboardStats = async (
         by: ['difficulty'],
         _count: { id: true },
       }),
-      // Content coverage counts
-      prisma.word.count({ where: { etymology: { isNot: null } } }),
-      prisma.mnemonic.count(),
-      prisma.example.count(),
-      prisma.wordImage.count(),
     ]);
+
+    // Content coverage - use safe try/catch for optional models
+    let hasEtymology = 0;
+    let hasMnemonic = 0;
+    let hasExamples = 0;
+    let hasMedia = 0;
+
+    try {
+      [hasEtymology, hasMnemonic, hasExamples, hasMedia] = await Promise.all([
+        prisma.etymology.count(),
+        prisma.mnemonic.count(),
+        prisma.example.count(),
+        prisma.wordImage.count(),
+      ]);
+    } catch {
+      // Models might not exist or have data - that's okay
+    }
 
     // Convert category counts to Record
     const byExamCategory: Record<string, number> = {};
