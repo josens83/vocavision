@@ -318,7 +318,7 @@ export const AdminDashboard: React.FC = () => {
             initialFilters={{ status: ['PENDING_REVIEW'] }}
             title="검토 대기 목록"
             hideFilters={false}
-            hideActions={true}
+            hideActions={false}
           />
         );
       case 'no-content':

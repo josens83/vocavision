@@ -498,7 +498,9 @@ export const AIGenerationModal: React.FC<AIGenerationModalProps> = ({
           <div>
             <h3 className="text-xl font-bold text-slate-900">{word.word}</h3>
             <div className="flex gap-2 mt-1">
-              <Badge color="pink">{EXAM_CATEGORY_LABELS[word.examCategories[0]]}</Badge>
+              {word.examCategories?.[0] && (
+                <Badge color="pink">{EXAM_CATEGORY_LABELS[word.examCategories[0]]}</Badge>
+              )}
               <Badge color="blue">
                 {word.level}
               </Badge>
