@@ -4,8 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { wordsAPI } from '@/lib/api';
 
 // 시험별 코스 정보
 const examInfo: Record<string, {
@@ -166,15 +165,13 @@ export default function ExamCoursePage() {
 
   const fetchWords = async () => {
     try {
-      // Fetch PUBLISHED words with AI-generated content
-      const response = await fetch(
-        `${API_URL}/words?examCategory=${examKey.toUpperCase()}&status=PUBLISHED&limit=12`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        // API returns data in 'data' or 'words' field
-        setWords(data.data || data.words || []);
-      }
+      // Fetch PUBLISHED words with AI-generated content (using authenticated API)
+      const data = await wordsAPI.getWords({
+        examCategory: examKey.toUpperCase(),
+        limit: 12,
+      });
+      // API returns data in 'data' or 'words' field
+      setWords(data.data || data.words || []);
     } catch (error) {
       console.error('Failed to fetch words:', error);
     } finally {

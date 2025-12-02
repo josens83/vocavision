@@ -130,6 +130,8 @@ export const wordsAPI = {
     page?: number;
     limit?: number;
     difficulty?: string;
+    examCategory?: string;
+    level?: string;
     search?: string;
   }) => {
     const response = await api.get('/words', { params });
