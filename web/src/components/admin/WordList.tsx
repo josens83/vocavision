@@ -413,14 +413,14 @@ const WordTable: React.FC<WordTableProps> = ({
               </td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-1">
-                  {word.examCategories.slice(0, 2).map((cat) => (
+                  {(word.examCategories || []).slice(0, 2).map((cat) => (
                     <Badge key={cat} color="pink" size="sm">
                       {EXAM_CATEGORY_LABELS[cat]}
                     </Badge>
                   ))}
-                  {word.examCategories.length > 2 && (
+                  {(word.examCategories?.length || 0) > 2 && (
                     <Badge color="gray" size="sm">
-                      +{word.examCategories.length - 2}
+                      +{(word.examCategories?.length || 0) - 2}
                     </Badge>
                   )}
                 </div>
