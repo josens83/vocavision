@@ -290,6 +290,9 @@ export const AdminDashboard: React.FC = () => {
             onBatchUpload={handleBatchUpload}
             onNavigateToReview={() => setActiveNav('review')}
             onNavigateToNoContent={() => setActiveNav('no-content')}
+            onNavigateToWords={() => setActiveNav('words')}
+            onNavigateToPublished={() => setActiveNav('published')}
+            onNavigateToDraft={() => setActiveNav('draft')}
           />
         );
       case 'words':
@@ -329,6 +332,36 @@ export const AdminDashboard: React.FC = () => {
             onBatchGenerate={handleBatchGenerate}
             initialFilters={{ hasContent: false }}
             title="콘텐츠 없는 단어"
+            hideFilters={false}
+            hideActions={false}
+          />
+        );
+      case 'published':
+        return (
+          <WordList
+            key={`published-${refreshTrigger}`}
+            onWordSelect={handleWordSelect}
+            onAddWord={handleAddWord}
+            onBatchUpload={handleBatchUpload}
+            onGenerateContent={handleGenerateContent}
+            onBatchGenerate={handleBatchGenerate}
+            initialFilters={{ status: ['PUBLISHED'] }}
+            title="발행된 단어"
+            hideFilters={false}
+            hideActions={true}
+          />
+        );
+      case 'draft':
+        return (
+          <WordList
+            key={`draft-${refreshTrigger}`}
+            onWordSelect={handleWordSelect}
+            onAddWord={handleAddWord}
+            onBatchUpload={handleBatchUpload}
+            onGenerateContent={handleGenerateContent}
+            onBatchGenerate={handleBatchGenerate}
+            initialFilters={{ status: ['DRAFT'] }}
+            title="초안 단어"
             hideFilters={false}
             hideActions={false}
           />
