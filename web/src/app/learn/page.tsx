@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore, useLearningStore } from '@/lib/store';
 import { progressAPI, wordsAPI } from '@/lib/api';
@@ -31,7 +31,25 @@ const examNames: Record<string, string> = {
   TEPS: 'TEPS',
 };
 
+// Loading fallback component
+function LearnPageLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="text-xl">로딩 중...</div>
+    </div>
+  );
+}
+
+// Main page component wrapped in Suspense
 export default function LearnPage() {
+  return (
+    <Suspense fallback={<LearnPageLoading />}>
+      <LearnPageContent />
+    </Suspense>
+  );
+}
+
+function LearnPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const examParam = searchParams.get('exam')?.toUpperCase();
