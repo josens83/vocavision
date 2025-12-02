@@ -57,6 +57,24 @@ const navItems: NavItem[] = [
     ),
   },
   {
+    id: 'approved',
+    label: '승인됨 (발행 대기)',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'published',
+    label: '발행됨',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+    ),
+  },
+  {
     id: 'no-content',
     label: '콘텐츠 없음',
     icon: (
@@ -326,6 +344,21 @@ export const AdminDashboard: React.FC = () => {
             title="검토 대기 목록"
             hideFilters={false}
             hideActions={false}
+          />
+        );
+      case 'approved':
+        return (
+          <WordList
+            key={`approved-${refreshTrigger}`}
+            onWordSelect={handleWordSelect}
+            onAddWord={handleAddWord}
+            onBatchUpload={handleBatchUpload}
+            onGenerateContent={handleGenerateContent}
+            onBatchGenerate={handleBatchGenerate}
+            initialFilters={{ status: ['APPROVED'] }}
+            title="승인됨 (발행 대기)"
+            hideFilters={false}
+            hideActions={true}
           />
         );
       case 'no-content':
