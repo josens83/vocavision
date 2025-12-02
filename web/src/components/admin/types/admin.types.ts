@@ -5,7 +5,7 @@
 // ---------------------------------------------
 // Enums
 // ---------------------------------------------
-export type ExamCategory = 'SUNEUNG' | 'TEPS' | 'TOEFL' | 'SAT' | 'IELTS' | 'GRE';
+export type ExamCategory = 'CSAT' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT';
 
 export type ContentStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'ARCHIVED';
 
@@ -207,12 +207,11 @@ export interface WordFilters {
 // Constants
 // ---------------------------------------------
 export const EXAM_CATEGORY_LABELS: Record<ExamCategory, string> = {
-  SUNEUNG: '수능',
+  CSAT: '수능',
   TEPS: 'TEPS',
+  TOEIC: 'TOEIC',
   TOEFL: 'TOEFL',
   SAT: 'SAT',
-  IELTS: 'IELTS',
-  GRE: 'GRE',
 };
 
 export const LEVEL_LABELS: Record<DifficultyLevel, string> = {

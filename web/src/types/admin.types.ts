@@ -10,14 +10,11 @@
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 
 export type ExamCategory =
-  | 'SUNEUNG'  // 수능
+  | 'CSAT'    // 수능 (대학수학능력시험)
   | 'TEPS'
-  | 'TOEFL'
   | 'TOEIC'
-  | 'IELTS'
-  | 'SAT'
-  | 'GRE'
-  | 'GENERAL';
+  | 'TOEFL'
+  | 'SAT';
 
 export type ContentStatus =
   | 'DRAFT'           // 초안 - AI 생성 직후
@@ -35,14 +32,11 @@ export type ReviewAction = 'approve' | 'reject' | 'request_changes';
 export const CEFR_LEVELS: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 export const EXAM_CATEGORIES: { value: ExamCategory; label: string }[] = [
-  { value: 'SUNEUNG', label: '수능' },
+  { value: 'CSAT', label: '수능' },
   { value: 'TEPS', label: 'TEPS' },
-  { value: 'TOEFL', label: 'TOEFL' },
   { value: 'TOEIC', label: 'TOEIC' },
-  { value: 'IELTS', label: 'IELTS' },
+  { value: 'TOEFL', label: 'TOEFL' },
   { value: 'SAT', label: 'SAT' },
-  { value: 'GRE', label: 'GRE' },
-  { value: 'GENERAL', label: '일반' },
 ];
 
 export const CONTENT_STATUS_LABELS: Record<ContentStatus, string> = {

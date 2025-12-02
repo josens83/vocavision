@@ -298,7 +298,7 @@ export const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
 
   const [form, setForm] = useState<BatchCreateForm>({
     words: '',
-    examCategory: 'SUNEUNG',
+    examCategory: 'CSAT',
     level: 'B1',
     generateContent: false,
   });
@@ -330,7 +330,7 @@ export const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
     setResult(null);
     setForm({
       words: '',
-      examCategory: 'SUNEUNG',
+      examCategory: 'CSAT',
       level: 'B1',
       generateContent: false,
     });
