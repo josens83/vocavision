@@ -32,6 +32,14 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 // Admin Key for internal authentication (optional, falls back to JWT)
 const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_KEY || '';
 
+// Debug: Log configuration on initialization (development only)
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  console.log('[Admin API Config]', {
+    API_BASE: API_BASE || '(not set - using relative URLs)',
+    ADMIN_KEY: ADMIN_KEY ? '(set)' : '(not set - will use JWT fallback)',
+  });
+}
+
 // ============================================
 // API Client
 // ============================================
@@ -56,6 +64,14 @@ async function apiClient<T>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
+    // Debug: Log failed requests
+    console.error('[Admin API Error]', {
+      endpoint,
+      status: response.status,
+      statusText: response.statusText,
+      error: error.message,
+      hasAdminKey: !!ADMIN_KEY,
+    });
     throw new Error(error.message || `HTTP ${response.status}`);
   }
 

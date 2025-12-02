@@ -19,10 +19,36 @@ const router = Router();
  */
 const adminAuth = async (req: Request, res: Response, next: NextFunction) => {
   const secretKey = (req.query.key as string) || req.headers['x-admin-key'];
+  const authHeader = req.headers['authorization'];
 
   // Check for internal secret key (query param or header)
-  if (secretKey && secretKey === process.env.INTERNAL_SECRET_KEY) {
-    return next();
+  if (secretKey) {
+    if (!process.env.INTERNAL_SECRET_KEY) {
+      console.error('[Content Auth] INTERNAL_SECRET_KEY not configured on server');
+      return res.status(500).json({
+        error: 'Server configuration error',
+        message: 'Admin authentication not configured'
+      });
+    }
+
+    if (secretKey === process.env.INTERNAL_SECRET_KEY) {
+      return next();
+    }
+
+    // Key provided but doesn't match
+    console.log('[Content Auth] Admin key mismatch');
+    return res.status(401).json({
+      error: 'Invalid admin key',
+      message: 'The provided admin key is incorrect'
+    });
+  }
+
+  // No admin key provided, check for JWT
+  if (!authHeader) {
+    return res.status(401).json({
+      error: 'Authentication required',
+      message: 'Provide x-admin-key header or Bearer token'
+    });
   }
 
   // Fall back to JWT authentication
