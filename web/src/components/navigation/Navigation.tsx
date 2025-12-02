@@ -21,14 +21,15 @@ export interface NavSubItem {
 
 export const navigationItems: NavItem[] = [
   {
-    label: "단어 학습",
+    label: "시험별 학습",
     color: "text-level-intermediate",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
     children: [
-      { label: "Beginner", href: "/words?level=beginner", count: 13, description: "기초 필수 단어" },
-      { label: "Intermediate", href: "/words?level=intermediate", count: 35, description: "중급 확장 어휘" },
-      { label: "Advanced", href: "/words?level=advanced", count: 35, description: "고급 전문 용어" },
-      { label: "Expert", href: "/words?level=expert", count: 18, badge: "NEW", description: "전문가 심화 단어" },
+      { label: "수능 (CSAT)", href: "/courses/csat", description: "수능 필수 어휘", badge: "학습 가능" },
+      { label: "SAT", href: "/courses/sat", description: "미국 대학입학시험" },
+      { label: "TOEFL", href: "/courses/toefl", description: "학술 영어 능력시험" },
+      { label: "TOEIC", href: "/courses/toeic", description: "국제 의사소통 영어" },
+      { label: "TEPS", href: "/courses/teps", description: "서울대 영어 능력시험" },
     ],
   },
   {
