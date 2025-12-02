@@ -218,7 +218,80 @@ export const getAdminWordById = async (
       return res.status(404).json({ message: 'Word not found' });
     }
 
-    res.json({ word });
+    // Check if word has AI-generated content (definition, pronunciation, etc.)
+    const hasContent = word.aiGeneratedAt !== null ||
+                       word.definition !== '' ||
+                       word.ipaUs !== null ||
+                       word.mnemonics?.length > 0 ||
+                       word.etymology !== null;
+
+    // Build content object for frontend
+    const content = hasContent ? {
+      id: word.id,
+      wordId: word.id,
+
+      // Pronunciation
+      ipaUs: word.ipaUs,
+      ipaUk: word.ipaUk,
+      pronunciation: word.pronunciation,
+
+      // Etymology
+      etymology: word.etymology?.origin,
+      etymologyLang: word.etymology?.language,
+
+      // Morphology
+      prefix: word.prefix,
+      root: word.root,
+      suffix: word.suffix,
+      morphologyNote: word.morphologyNote,
+
+      // Related words
+      synonymList: word.synonymList || [],
+      antonymList: word.antonymList || [],
+      relatedWords: word.relatedWords || [],
+
+      // Collocations
+      collocations: word.collocations?.map(c => ({
+        id: c.id,
+        phrase: c.phrase,
+        translation: c.translation,
+        example: c.example,
+      })) || [],
+
+      // Rhyming
+      rhymingWords: word.rhymingWords || [],
+
+      // Mnemonic
+      mnemonic: word.mnemonics?.[0]?.association,
+      mnemonicImage: word.mnemonics?.[0]?.imageUrl,
+
+      // Examples
+      examples: word.examples?.map(e => ({
+        id: e.id,
+        sentence: e.sentence,
+        translation: e.translation,
+        difficulty: e.difficulty,
+        source: e.source,
+      })) || [],
+
+      // Definitions
+      definitions: [{
+        partOfSpeech: word.partOfSpeech,
+        definitionEn: word.definition,
+        definitionKo: word.definitionKo,
+      }],
+
+      // AI metadata
+      humanReviewed: word.humanReviewed || false,
+      aiGeneratedAt: word.aiGeneratedAt?.toISOString(),
+    } : null;
+
+    res.json({
+      word: {
+        ...word,
+        content,
+      }
+    });
   } catch (error) {
     next(error);
   }
