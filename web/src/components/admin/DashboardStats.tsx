@@ -23,6 +23,7 @@ interface StatCardProps {
   icon: React.ReactNode;
   color: string;
   subtext?: string;
+  onClick?: () => void;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -31,9 +32,15 @@ const StatCard: React.FC<StatCardProps> = ({
   icon,
   color,
   subtext,
+  onClick,
 }) => {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
+    <div
+      className={`bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-all ${
+        onClick ? 'cursor-pointer hover:border-pink-300 active:scale-[0.98]' : ''
+      }`}
+      onClick={onClick}
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-slate-500">{title}</p>
@@ -65,6 +72,8 @@ interface ProgressRingProps {
   color: string;
   label: string;
   value: number;
+  isAverage?: boolean;
+  average?: string;
 }
 
 const ProgressRing: React.FC<ProgressRingProps> = ({
@@ -74,6 +83,8 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   color,
   label,
   value,
+  isAverage = false,
+  average,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -110,7 +121,11 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       </div>
       <div className="text-center">
         <p className="text-sm font-medium text-slate-700">{label}</p>
-        <p className="text-xs text-slate-400">{value.toLocaleString()}개</p>
+        {isAverage && average ? (
+          <p className="text-xs text-slate-400">단어당 {average}개</p>
+        ) : (
+          <p className="text-xs text-slate-400">{value.toLocaleString()}개</p>
+        )}
       </div>
     </div>
   );
@@ -158,6 +173,9 @@ interface DashboardStatsViewProps {
   onBatchUpload?: () => void;
   onNavigateToReview?: () => void;
   onNavigateToNoContent?: () => void;
+  onNavigateToWords?: () => void;
+  onNavigateToPublished?: () => void;
+  onNavigateToDraft?: () => void;
 }
 
 export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
@@ -165,6 +183,9 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
   onBatchUpload,
   onNavigateToReview,
   onNavigateToNoContent,
+  onNavigateToWords,
+  onNavigateToPublished,
+  onNavigateToDraft,
 }) => {
   const { stats, loading, error, fetchStats } = useDashboardStats();
 
@@ -196,32 +217,43 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
 
   if (!stats) return null;
 
-  // Calculate content coverage percentages
+  // Calculate content coverage - use percentages for word-count stats, averages for content-count stats
   const totalWithContent = Math.max(stats.totalWords, 1);
+
+  // Etymology and Mnemonic are word counts, so use percentage
+  // Examples and Media are content counts, so show average per word instead
   const coverageData = [
     {
       label: '어원',
       value: stats.contentCoverage.hasEtymology,
-      progress: Math.round((stats.contentCoverage.hasEtymology / totalWithContent) * 100),
+      progress: Math.min(100, Math.round((stats.contentCoverage.hasEtymology / totalWithContent) * 100)),
       color: '#8B5CF6',
+      isAverage: false,
     },
     {
       label: '연상법',
       value: stats.contentCoverage.hasMnemonic,
-      progress: Math.round((stats.contentCoverage.hasMnemonic / totalWithContent) * 100),
+      progress: Math.min(100, Math.round((stats.contentCoverage.hasMnemonic / totalWithContent) * 100)),
       color: '#F59E0B',
+      isAverage: false,
     },
     {
       label: '예문',
       value: stats.contentCoverage.hasExamples,
-      progress: Math.round((stats.contentCoverage.hasExamples / totalWithContent) * 100),
+      // Show as "X.X개/단어" average instead of broken percentage
+      progress: Math.min(100, Math.round((stats.contentCoverage.hasExamples / totalWithContent / 3) * 100)), // Target: 3 examples per word = 100%
       color: '#10B981',
+      isAverage: true,
+      average: (stats.contentCoverage.hasExamples / totalWithContent).toFixed(1),
     },
     {
       label: '미디어',
       value: stats.contentCoverage.hasMedia,
-      progress: Math.round((stats.contentCoverage.hasMedia / totalWithContent) * 100),
+      // Media is optional, target 1 per word = 100%
+      progress: Math.min(100, Math.round((stats.contentCoverage.hasMedia / totalWithContent) * 100)),
       color: '#EC4899',
+      isAverage: true,
+      average: (stats.contentCoverage.hasMedia / totalWithContent).toFixed(1),
     },
   ];
 
@@ -266,6 +298,7 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
           title="전체 단어"
           value={stats.totalWords}
           color="#FF6699"
+          onClick={onNavigateToWords}
           icon={
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -276,17 +309,19 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
           title="발행됨"
           value={stats.publishedWords}
           color="#10B981"
+          onClick={onNavigateToPublished}
           icon={
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           }
-          subtext={`${Math.round((stats.publishedWords / stats.totalWords) * 100)}% 발행률`}
+          subtext={`${Math.round((stats.publishedWords / Math.max(stats.totalWords, 1)) * 100)}% 발행률`}
         />
         <StatCard
           title="검토 대기"
           value={stats.pendingReview}
           color="#F59E0B"
+          onClick={onNavigateToReview}
           icon={
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -297,6 +332,7 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
           title="초안"
           value={stats.draftWords}
           color="#94A3B8"
+          onClick={onNavigateToDraft}
           icon={
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -337,6 +373,8 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
               color={item.color}
               label={item.label}
               value={item.value}
+              isAverage={item.isAverage}
+              average={item.average}
             />
           ))}
         </div>
