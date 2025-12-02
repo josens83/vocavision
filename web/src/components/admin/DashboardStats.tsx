@@ -292,6 +292,40 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
         </button>
       </div>
 
+      {/* Daily Workflow Guide */}
+      <div className="bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-100 rounded-xl p-4">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-pink-500 text-white flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-semibold text-slate-900 text-sm">오늘의 작업 루틴</h3>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+              <span className="inline-flex items-center gap-1">
+                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 text-xs flex items-center justify-center font-medium">1</span>
+                콘텐츠 없는 단어 → AI 생성
+              </span>
+              <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className="inline-flex items-center gap-1">
+                <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-600 text-xs flex items-center justify-center font-medium">2</span>
+                검토 대기 → 승인/수정
+              </span>
+              <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className="inline-flex items-center gap-1">
+                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 text-xs flex items-center justify-center font-medium">3</span>
+                발행 단어 수 확인
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard

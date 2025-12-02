@@ -1316,6 +1316,65 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories: word.exam
                   )}
                 </Card>
               )}
+
+              {/* Claude Max Editing Section */}
+              <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
+                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                  </svg>
+                  Claude Max로 편집하기
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 text-sm text-slate-600">
+                    <span className="w-6 h-6 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center flex-shrink-0 font-medium">1</span>
+                    <span>아래 버튼으로 JSON 복사 후 Claude Max에 붙여넣기</span>
+                  </div>
+                  <div className="flex items-start gap-3 text-sm text-slate-600">
+                    <span className="w-6 h-6 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center flex-shrink-0 font-medium">2</span>
+                    <span>&quot;이 구조 유지한 채로 내용만 개선해줘&quot; 요청</span>
+                  </div>
+                  <div className="flex items-start gap-3 text-sm text-slate-600">
+                    <span className="w-6 h-6 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center flex-shrink-0 font-medium">3</span>
+                    <span>수정된 JSON을 &apos;가져오기&apos; 버튼으로 적용</span>
+                  </div>
+                  <div className="flex gap-2 mt-4 pt-3 border-t border-violet-200">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportJson}
+                      className="border-violet-300 text-violet-700 hover:bg-violet-100"
+                    >
+                      {copySuccess ? (
+                        <span className="text-emerald-600 flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          복사됨!
+                        </span>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          JSON 내보내기
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setShowJsonImport(true)}
+                      className="bg-violet-600 hover:bg-violet-700"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      JSON 가져오기
+                    </Button>
+                  </div>
+                </div>
+              </Card>
             </>
           ) : (
             <div className="text-center py-12">
