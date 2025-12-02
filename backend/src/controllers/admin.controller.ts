@@ -351,7 +351,7 @@ export const batchCreateWords = async (
     // Get all existing words in ONE query (much faster!)
     const existingWords = await prisma.word.findMany({
       where: {
-        word: { in: normalizedWords, mode: 'insensitive' },
+        word: { in: normalizedWords },
       },
       select: { word: true },
     });
