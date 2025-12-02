@@ -16,11 +16,12 @@ const examCourses = [
     name: '수능',
     fullName: '대학수학능력시험',
     description: '수능 1~2등급 목표',
-    wordCount: '3,000+',
+    wordCount: '429',
     icon: '📝',
     gradient: 'from-blue-500 to-blue-600',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-300',
+    isActive: true,  // 실제 데이터 있음
   },
   {
     id: 'SAT' as ExamType,
@@ -32,6 +33,7 @@ const examCourses = [
     gradient: 'from-red-500 to-red-600',
     bgColor: 'bg-red-50',
     borderColor: 'border-red-300',
+    isActive: false,  // 준비 중
   },
   {
     id: 'TOEFL' as ExamType,
@@ -43,6 +45,7 @@ const examCourses = [
     gradient: 'from-orange-500 to-orange-600',
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-300',
+    isActive: false,  // 준비 중
   },
   {
     id: 'TOEIC' as ExamType,
@@ -54,6 +57,7 @@ const examCourses = [
     gradient: 'from-green-500 to-green-600',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-300',
+    isActive: false,  // 준비 중
   },
   {
     id: 'TEPS' as ExamType,
@@ -65,6 +69,7 @@ const examCourses = [
     gradient: 'from-purple-500 to-purple-600',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-300',
+    isActive: false,  // 준비 중
   },
 ];
 
@@ -200,17 +205,42 @@ export default function DashboardPage() {
             {examCourses.map((course) => (
               <Link
                 key={course.id}
-                href={`/courses/${course.id?.toLowerCase()}`}
-                className={`${course.bgColor} ${course.borderColor} border-2 rounded-xl p-4 hover:shadow-lg transition-all duration-300 group`}
+                href={course.isActive ? `/courses/${course.id?.toLowerCase()}` : '#'}
+                onClick={(e) => !course.isActive && e.preventDefault()}
+                className={`${course.bgColor} ${course.borderColor} border-2 rounded-xl p-4 transition-all duration-300 group relative ${
+                  course.isActive
+                    ? 'hover:shadow-lg cursor-pointer'
+                    : 'opacity-70 cursor-not-allowed'
+                }`}
               >
+                {/* 준비 중 뱃지 */}
+                {!course.isActive && (
+                  <div className="absolute top-2 right-2 bg-gray-500 text-white text-[10px] px-2 py-0.5 rounded-full">
+                    준비 중
+                  </div>
+                )}
+                {/* 활성 뱃지 */}
+                {course.isActive && (
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full">
+                    학습 가능
+                  </div>
+                )}
                 <div className="text-3xl mb-2">{course.icon}</div>
-                <h4 className="font-bold text-gray-900 group-hover:text-blue-600 transition">
+                <h4 className={`font-bold transition ${
+                  course.isActive
+                    ? 'text-gray-900 group-hover:text-blue-600'
+                    : 'text-gray-500'
+                }`}>
                   {course.name}
                 </h4>
                 <p className="text-xs text-gray-500 mb-1">{course.fullName}</p>
-                <p className="text-sm text-gray-600">{course.description}</p>
-                <div className="mt-2 text-xs font-medium text-gray-500">
-                  {course.wordCount} 단어
+                <p className={`text-sm ${course.isActive ? 'text-gray-600' : 'text-gray-400'}`}>
+                  {course.isActive ? course.description : '곧 업데이트 예정'}
+                </p>
+                <div className={`mt-2 text-xs font-medium ${
+                  course.isActive ? 'text-gray-700' : 'text-gray-400'
+                }`}>
+                  {course.isActive ? `${course.wordCount}개 단어` : `${course.wordCount} 단어 예정`}
                 </div>
               </Link>
             ))}
