@@ -209,7 +209,7 @@ export const getAdminWords = async (
           id: w.id,
           humanReviewed: w.humanReviewed,
           aiGeneratedAt: w.aiGeneratedAt?.toISOString(),
-          primaryGifUrl: w.images?.[0]?.url || null,
+          primaryGifUrl: w.images?.[0]?.imageUrl || null,
         } : null,
         // Additional fields for admin
         exampleCount: w._count.examples,
@@ -491,7 +491,7 @@ export const batchCreateWords = async (
     const skippedWords = normalizedWords.filter((w) => existingSet.has(w));
 
     // Map level to difficulty for backward compatibility
-    const levelToDifficulty: Record<string, string> = {
+    const levelToDifficulty: Record<string, 'BASIC' | 'INTERMEDIATE' | 'ADVANCED'> = {
       L1: 'BASIC',
       L2: 'INTERMEDIATE',
       L3: 'ADVANCED',
@@ -505,12 +505,12 @@ export const batchCreateWords = async (
         data: newWords.map((wordText) => ({
           word: wordText,
           definition: '',
-          partOfSpeech: 'NOUN',
+          partOfSpeech: 'NOUN' as const,
           examCategory: examCategory || 'CSAT',
           difficulty: difficulty,
-          level: wordLevel,  // L1, L2, L3
+          level: wordLevel,
           frequency: 100,
-          status: 'DRAFT',
+          status: 'DRAFT' as const,
         })),
         skipDuplicates: true,
       });
