@@ -18,6 +18,13 @@ export type ExamWithLevel = `${ExamCategory}-${DifficultyLevel}`;
 // ---------------------------------------------
 // Word & Content Types
 // ---------------------------------------------
+// Exam-level mapping (for multi-exam support)
+export interface WordExamLevel {
+  examCategory: ExamCategory;
+  level: string;  // L1, L2, L3
+  displayLevel: DifficultyLevel;  // BEGINNER, INTERMEDIATE, ADVANCED
+}
+
 export interface VocaWord {
   id: string;
   word: string;
@@ -35,6 +42,8 @@ export interface VocaWord {
   // Additional fields from backend
   examCategory?: ExamCategory;
   wordLevel?: string; // L1, L2, L3
+  // Multi-exam mappings
+  examLevels?: WordExamLevel[];
 }
 
 export interface VocaContentSummary {
