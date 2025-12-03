@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
 import { CSAT_L1_WORDS, CSAT_L2_WORDS, CSAT_L3_WORDS } from '../data/csat-words';
+import { processGenerationJob } from '../services/contentGenerator.service';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -431,6 +433,20 @@ router.get('/status', async (req: Request, res: Response) => {
       _count: { level: true },
     });
 
+    // Get content generation stats
+    const draftWithoutContent = await prisma.word.count({
+      where: {
+        status: 'DRAFT',
+        aiGeneratedAt: null,
+      },
+    });
+    const pendingReview = await prisma.word.count({
+      where: { status: 'PENDING_REVIEW' },
+    });
+    const published = await prisma.word.count({
+      where: { status: 'PUBLISHED' },
+    });
+
     res.json({
       status: 'ok',
       database: 'connected',
@@ -442,11 +458,263 @@ router.get('/status', async (req: Request, res: Response) => {
           return acc;
         }, {} as Record<string, number>),
       },
+      contentStatus: {
+        needsGeneration: draftWithoutContent,
+        pendingReview,
+        published,
+      },
       timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error('[Internal/Status] Error:', error);
     res.status(500).json({ error: 'Status check failed' });
+  }
+});
+
+// ============================================
+// AI Content Generation Endpoints
+// ============================================
+
+/**
+ * GET /internal/generate-content?key=YOUR_SECRET&limit=50&level=L1
+ * DRAFT 상태이고 AI 콘텐츠가 없는 단어들에 대해 콘텐츠 생성 시작
+ * - limit: 한 번에 처리할 단어 수 (기본 50, 최대 100)
+ * - level: L1, L2, L3 필터 (선택사항)
+ */
+router.get('/generate-content', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+    const level = req.query.level as string; // L1, L2, L3
+
+    // Find words that need content generation
+    const whereClause: any = {
+      status: 'DRAFT',
+      aiGeneratedAt: null,
+    };
+
+    if (level && ['L1', 'L2', 'L3'].includes(level)) {
+      whereClause.level = level;
+    }
+
+    const wordsToGenerate = await prisma.word.findMany({
+      where: whereClause,
+      select: { id: true, word: true, level: true },
+      orderBy: { createdAt: 'asc' },
+      take: limit,
+    });
+
+    if (wordsToGenerate.length === 0) {
+      return res.json({
+        message: 'No words need content generation',
+        processed: 0,
+        remaining: 0,
+      });
+    }
+
+    // Get remaining count
+    const remainingCount = await prisma.word.count({
+      where: whereClause,
+    });
+
+    // Create a batch job
+    const wordIds = wordsToGenerate.map(w => w.id);
+
+    const job = await prisma.contentGenerationJob.create({
+      data: {
+        inputWords: wordIds, // Use word IDs
+        examCategory: 'CSAT',
+        cefrLevel: 'B1',
+        status: 'pending',
+        progress: 0,
+      },
+    });
+
+    // Start processing in background
+    processGenerationJob(job.id).catch((error) => {
+      logger.error(`[Internal/Generate] Background job ${job.id} failed:`, error);
+    });
+
+    logger.info(`[Internal/Generate] Started job ${job.id} for ${wordsToGenerate.length} words`);
+
+    res.json({
+      message: `Content generation started for ${wordsToGenerate.length} words`,
+      jobId: job.id,
+      wordsCount: wordsToGenerate.length,
+      remaining: remainingCount - wordsToGenerate.length,
+      words: wordsToGenerate.map(w => ({ id: w.id, word: w.word, level: w.level })),
+    });
+  } catch (error) {
+    console.error('[Internal/Generate] Error:', error);
+    res.status(500).json({ error: 'Content generation failed', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/generation-status?key=YOUR_SECRET
+ * 콘텐츠 생성 작업 상태 확인
+ */
+router.get('/generation-status', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    // Get recent jobs
+    const jobs = await prisma.contentGenerationJob.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        status: true,
+        progress: true,
+        inputWords: true,
+        errorMessage: true,
+        createdAt: true,
+        startedAt: true,
+        completedAt: true,
+      },
+    });
+
+    // Get overall content generation stats
+    const stats = await Promise.all([
+      prisma.word.count({ where: { aiGeneratedAt: null, status: 'DRAFT' } }),
+      prisma.word.count({ where: { aiGeneratedAt: { not: null } } }),
+      prisma.word.count({ where: { status: 'PENDING_REVIEW' } }),
+      prisma.word.count({ where: { status: 'PUBLISHED' } }),
+      prisma.contentGenerationJob.count({ where: { status: 'processing' } }),
+    ]);
+
+    res.json({
+      overallStats: {
+        needsGeneration: stats[0],
+        hasAiContent: stats[1],
+        pendingReview: stats[2],
+        published: stats[3],
+        activeJobs: stats[4],
+      },
+      recentJobs: jobs.map(job => ({
+        id: job.id,
+        status: job.status,
+        progress: job.progress,
+        wordCount: job.inputWords.length,
+        error: job.errorMessage,
+        createdAt: job.createdAt,
+        startedAt: job.startedAt,
+        completedAt: job.completedAt,
+      })),
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[Internal/GenerationStatus] Error:', error);
+    res.status(500).json({ error: 'Status check failed' });
+  }
+});
+
+/**
+ * GET /internal/job/:jobId?key=YOUR_SECRET
+ * 특정 작업 상세 정보
+ */
+router.get('/job/:jobId', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const { jobId } = req.params;
+
+    const job = await prisma.contentGenerationJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    res.json({
+      job: {
+        id: job.id,
+        status: job.status,
+        progress: job.progress,
+        wordCount: job.inputWords.length,
+        inputWords: job.inputWords,
+        result: job.result,
+        errorMessage: job.errorMessage,
+        createdAt: job.createdAt,
+        startedAt: job.startedAt,
+        completedAt: job.completedAt,
+      },
+    });
+  } catch (error) {
+    console.error('[Internal/Job] Error:', error);
+    res.status(500).json({ error: 'Job fetch failed' });
+  }
+});
+
+/**
+ * GET /internal/content-stats?key=YOUR_SECRET
+ * 콘텐츠 생성 상세 통계
+ */
+router.get('/content-stats', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    // Count by status
+    const statusCounts = await prisma.word.groupBy({
+      by: ['status'],
+      _count: { status: true },
+    });
+
+    // Count words with AI content
+    const withAiContent = await prisma.word.count({
+      where: { aiGeneratedAt: { not: null } },
+    });
+
+    // Count by level for words needing generation
+    const needsGenerationByLevel = await prisma.word.groupBy({
+      by: ['level'],
+      where: { status: 'DRAFT', aiGeneratedAt: null },
+      _count: { level: true },
+    });
+
+    // Count related content
+    const contentCounts = await Promise.all([
+      prisma.etymology.count(),
+      prisma.mnemonic.count(),
+      prisma.example.count(),
+      prisma.collocation.count(),
+    ]);
+
+    res.json({
+      statusBreakdown: statusCounts.reduce((acc, s) => {
+        acc[s.status] = s._count.status;
+        return acc;
+      }, {} as Record<string, number>),
+      aiContentGenerated: withAiContent,
+      needsGenerationByLevel: needsGenerationByLevel.reduce((acc, l) => {
+        acc[l.level || 'unknown'] = l._count.level;
+        return acc;
+      }, {} as Record<string, number>),
+      relatedContent: {
+        etymologies: contentCounts[0],
+        mnemonics: contentCounts[1],
+        examples: contentCounts[2],
+        collocations: contentCounts[3],
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[Internal/ContentStats] Error:', error);
+    res.status(500).json({ error: 'Stats fetch failed' });
   }
 });
 
