@@ -98,8 +98,8 @@ model Word {
   partOfSpeech PartOfSpeech
   difficulty  DifficultyLevel @default(INTERMEDIATE)
   cefrLevel   CEFRLevel?      // CEFR 레벨 (A1-C2)
-  examCategory ExamCategory   // 시험 카테고리 (수능, TEPS, TOEIC, TOEFL, SAT)
-  level       String?         // 시험 내 레벨 (L1, L2, L3 등)
+  examCategory ExamCategory   // 기본 시험 카테고리 (하위 호환용)
+  level       String?         // 기본 레벨 (L1, L2, L3 등)
   frequency   Int      @default(0) // Word frequency ranking
   tags        String[] // 의미/주제 태그 (일반, 과학, 심리 등)
 
@@ -153,6 +153,7 @@ model Word {
   antonyms    Antonym[]
   collocations Collocation[]
   progress    UserProgress[]
+  examLevels  WordExamLevel[]  // 다중 시험/레벨 매핑
 
   @@index([word])
   @@index([difficulty])
@@ -161,6 +162,26 @@ model Word {
   @@index([frequency])
   @@index([level])
   @@index([status])
+}
+
+// 단어-시험-레벨 매핑 테이블 (다중 시험 지원)
+// 예: "abandon"이 CSAT-L1, TEPS-L2에 동시에 속할 수 있음
+model WordExamLevel {
+  id           String       @id @default(uuid())
+  wordId       String
+  examCategory ExamCategory
+  level        String       // L1, L2, L3
+  frequency    Int          @default(0)  // 시험별 빈도
+
+  createdAt    DateTime     @default(now())
+
+  word         Word         @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([wordId, examCategory])  // 단어당 시험은 하나의 레벨만
+  @@index([wordId])
+  @@index([examCategory])
+  @@index([level])
+  @@index([examCategory, level])
 }
 
 enum PartOfSpeech {

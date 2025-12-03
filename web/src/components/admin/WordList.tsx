@@ -419,15 +419,39 @@ const WordTable: React.FC<WordTableProps> = ({
               </td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-1">
-                  {(word.examCategories || []).slice(0, 2).map((cat) => (
-                    <Badge key={cat} color="pink" size="sm">
-                      {EXAM_CATEGORY_LABELS[cat]}
-                    </Badge>
-                  ))}
-                  {(word.examCategories?.length || 0) > 2 && (
-                    <Badge color="gray" size="sm">
-                      +{(word.examCategories?.length || 0) - 2}
-                    </Badge>
+                  {/* Show exam-level mappings if available */}
+                  {word.examLevels && word.examLevels.length > 0 ? (
+                    <>
+                      {word.examLevels.slice(0, 2).map((el, idx) => (
+                        <Badge
+                          key={`${el.examCategory}-${el.level}-${idx}`}
+                          color="pink"
+                          size="sm"
+                          title={`${EXAM_CATEGORY_LABELS[el.examCategory]} - ${LEVEL_SHORT_LABELS[el.displayLevel]}`}
+                        >
+                          {EXAM_CATEGORY_LABELS[el.examCategory]}-{el.level}
+                        </Badge>
+                      ))}
+                      {word.examLevels.length > 2 && (
+                        <Badge color="gray" size="sm">
+                          +{word.examLevels.length - 2}
+                        </Badge>
+                      )}
+                    </>
+                  ) : (
+                    /* Fallback to examCategories for backward compatibility */
+                    <>
+                      {(word.examCategories || []).slice(0, 2).map((cat) => (
+                        <Badge key={cat} color="pink" size="sm">
+                          {EXAM_CATEGORY_LABELS[cat]}
+                        </Badge>
+                      ))}
+                      {(word.examCategories?.length || 0) > 2 && (
+                        <Badge color="gray" size="sm">
+                          +{(word.examCategories?.length || 0) - 2}
+                        </Badge>
+                      )}
+                    </>
                   )}
                 </div>
               </td>

@@ -167,6 +167,7 @@ export const getAdminWords = async (
           images: { take: 1 },
           mnemonics: { take: 1 },
           etymology: true,
+          examLevels: true, // Include exam-level mappings
         },
       }),
       prisma.word.count({ where }),
@@ -189,13 +190,19 @@ export const getAdminWords = async (
                          w.etymology !== null ||
                          w._count.examples > 0;
 
+      // Build exam categories from examLevels table (or fallback to single examCategory)
+      const examCategoriesFromMappings = w.examLevels?.map((el) => el.examCategory) || [];
+      const allExamCategories = examCategoriesFromMappings.length > 0
+        ? [...new Set(examCategoriesFromMappings)]
+        : (w.examCategory ? [w.examCategory] : []);
+
       return {
         id: w.id,
         word: w.word,
         partOfSpeech: w.partOfSpeech,
         frequency: w.frequency,
-        // Transform single examCategory to array for frontend compatibility
-        examCategories: w.examCategory ? [w.examCategory] : [],
+        // Transform exam levels to array for frontend compatibility
+        examCategories: allExamCategories,
         // Map DB level (L1, L2, L3) to frontend (BEGINNER, INTERMEDIATE, ADVANCED)
         level: dbLevelToFrontend[w.level || 'L1'] || 'BEGINNER',
         topics: w.tags || [],
@@ -219,6 +226,12 @@ export const getAdminWords = async (
         cefrLevel: w.cefrLevel,
         examCategory: w.examCategory,
         wordLevel: w.level, // L1, L2, L3
+        // Detailed exam-level mappings
+        examLevels: w.examLevels?.map((el) => ({
+          examCategory: el.examCategory,
+          level: el.level,
+          displayLevel: dbLevelToFrontend[el.level] || 'BEGINNER',
+        })) || [],
       };
     });
 
@@ -458,7 +471,7 @@ export const deleteAdminWord = async (
 };
 
 // ============================================
-// Batch Create Words
+// Batch Create Words (with Content Reuse)
 // ============================================
 
 export const batchCreateWords = async (
@@ -475,20 +488,8 @@ export const batchCreateWords = async (
 
     // Normalize all words to lowercase
     const normalizedWords = words.map((w: string) => w.toLowerCase().trim());
-
-    // Get all existing words in ONE query (much faster!)
-    const existingWords = await prisma.word.findMany({
-      where: {
-        word: { in: normalizedWords },
-      },
-      select: { word: true },
-    });
-
-    const existingSet = new Set(existingWords.map((w) => w.word.toLowerCase()));
-
-    // Filter out existing words
-    const newWords = normalizedWords.filter((w) => !existingSet.has(w));
-    const skippedWords = normalizedWords.filter((w) => existingSet.has(w));
+    const exam = examCategory || 'CSAT';
+    const wordLevel = level || 'L1';
 
     // Map level to difficulty for backward compatibility
     const levelToDifficulty: Record<string, 'BASIC' | 'INTERMEDIATE' | 'ADVANCED'> = {
@@ -496,17 +497,64 @@ export const batchCreateWords = async (
       L2: 'INTERMEDIATE',
       L3: 'ADVANCED',
     };
-    const wordLevel = level || 'L1';
     const difficulty = levelToDifficulty[wordLevel] || 'INTERMEDIATE';
 
-    // Bulk create all new words at once
-    if (newWords.length > 0) {
+    // Get all existing words with their exam mappings
+    const existingWords = await prisma.word.findMany({
+      where: {
+        word: { in: normalizedWords },
+      },
+      select: {
+        id: true,
+        word: true,
+        aiGeneratedAt: true,
+        examLevels: {
+          select: { examCategory: true, level: true }
+        }
+      },
+    });
+
+    const existingMap = new Map(existingWords.map((w) => [w.word.toLowerCase(), w]));
+
+    // Separate words into: new (create), existing-same-exam (skip), existing-different-exam (add mapping)
+    const newWordTexts: string[] = [];
+    const mappingsToAdd: { wordId: string; word: string; hasContent: boolean }[] = [];
+    const alreadyMapped: string[] = [];
+
+    for (const wordText of normalizedWords) {
+      const existing = existingMap.get(wordText);
+
+      if (!existing) {
+        // Word doesn't exist - will create new
+        newWordTexts.push(wordText);
+      } else {
+        // Word exists - check if it already has this exam mapping
+        const hasExamMapping = existing.examLevels.some(
+          (el) => el.examCategory === exam
+        );
+
+        if (hasExamMapping) {
+          // Already has this exam mapping - skip
+          alreadyMapped.push(wordText);
+        } else {
+          // Exists but needs new exam mapping
+          mappingsToAdd.push({
+            wordId: existing.id,
+            word: wordText,
+            hasContent: existing.aiGeneratedAt !== null,
+          });
+        }
+      }
+    }
+
+    // Create new words
+    if (newWordTexts.length > 0) {
       await prisma.word.createMany({
-        data: newWords.map((wordText) => ({
+        data: newWordTexts.map((wordText) => ({
           word: wordText,
           definition: '',
           partOfSpeech: 'NOUN' as const,
-          examCategory: examCategory || 'CSAT',
+          examCategory: exam,
           difficulty: difficulty,
           level: wordLevel,
           frequency: 100,
@@ -514,11 +562,56 @@ export const batchCreateWords = async (
         })),
         skipDuplicates: true,
       });
+
+      // Get the newly created words to add exam mappings
+      const newlyCreated = await prisma.word.findMany({
+        where: { word: { in: newWordTexts } },
+        select: { id: true, word: true },
+      });
+
+      // Create WordExamLevel mappings for new words
+      if (newlyCreated.length > 0) {
+        await prisma.wordExamLevel.createMany({
+          data: newlyCreated.map((w) => ({
+            wordId: w.id,
+            examCategory: exam,
+            level: wordLevel,
+            frequency: 0,
+          })),
+          skipDuplicates: true,
+        });
+      }
     }
 
+    // Add exam mappings for existing words
+    if (mappingsToAdd.length > 0) {
+      await prisma.wordExamLevel.createMany({
+        data: mappingsToAdd.map((m) => ({
+          wordId: m.wordId,
+          examCategory: exam,
+          level: wordLevel,
+          frequency: 0,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    // Count words that need content generation (no aiGeneratedAt)
+    const wordsNeedingContent = newWordTexts.length +
+      mappingsToAdd.filter((m) => !m.hasContent).length;
+    const wordsWithContent = mappingsToAdd.filter((m) => m.hasContent).length;
+
     res.json({
-      created: newWords.length,
-      failed: skippedWords,
+      created: newWordTexts.length,
+      mappingAdded: mappingsToAdd.length,
+      alreadyMapped: alreadyMapped.length,
+      needsContentGeneration: wordsNeedingContent,
+      hasExistingContent: wordsWithContent,
+      details: {
+        newWords: newWordTexts,
+        reusedWords: mappingsToAdd.map((m) => m.word),
+        skippedWords: alreadyMapped,
+      },
     });
   } catch (error) {
     next(error);

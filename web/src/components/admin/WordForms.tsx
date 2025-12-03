@@ -308,7 +308,17 @@ export const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
 
   const [result, setResult] = useState<{
     created: number;
-    failed: string[];
+    mappingAdded?: number;
+    alreadyMapped?: number;
+    needsContentGeneration?: number;
+    hasExistingContent?: number;
+    details?: {
+      newWords?: string[];
+      reusedWords?: string[];
+      skippedWords?: string[];
+    };
+    // Legacy support
+    failed?: string[];
   } | null>(null);
 
   // Get selected option details
@@ -348,15 +358,66 @@ export const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
         <div className="space-y-4">
           {/* Results */}
           <Alert type="success" title="업로드 완료">
-            {result.created}개 단어가 추가되었습니다.
-            {selectedOption && (
-              <span className="block text-sm mt-1">
-                ({EXAM_CATEGORY_LABELS[selectedOption.exam]} - {LEVEL_SHORT_LABELS[selectedOption.level]})
-              </span>
-            )}
+            <div className="space-y-1">
+              {result.created > 0 && (
+                <p><strong>{result.created}</strong>개 신규 단어 생성됨</p>
+              )}
+              {(result.mappingAdded || 0) > 0 && (
+                <p className="text-emerald-700">
+                  <strong>{result.mappingAdded}</strong>개 기존 단어에 시험 매핑 추가됨 (콘텐츠 재사용)
+                </p>
+              )}
+              {selectedOption && (
+                <p className="text-sm text-slate-600 mt-2">
+                  시험: {EXAM_CATEGORY_LABELS[selectedOption.exam]} - {LEVEL_SHORT_LABELS[selectedOption.level]}
+                </p>
+              )}
+            </div>
           </Alert>
 
-          {result.failed.length > 0 && (
+          {/* Content Reuse Info */}
+          {(result.hasExistingContent || 0) > 0 && (
+            <Alert type="info" title="콘텐츠 재사용">
+              <strong>{result.hasExistingContent}</strong>개 단어는 이미 AI 생성된 콘텐츠가 있습니다.
+              <br />
+              콘텐츠 생성이 필요한 단어: <strong>{result.needsContentGeneration || 0}</strong>개
+            </Alert>
+          )}
+
+          {/* Reused Words */}
+          {result.details?.reusedWords && result.details.reusedWords.length > 0 && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+              <p className="text-sm font-medium text-emerald-800 mb-2">
+                재사용된 기존 단어 ({result.details.reusedWords.length}개):
+              </p>
+              <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
+                {result.details.reusedWords.slice(0, 20).map((w, i) => (
+                  <Badge key={i} color="green" size="sm">{w}</Badge>
+                ))}
+                {result.details.reusedWords.length > 20 && (
+                  <Badge color="gray" size="sm">
+                    +{result.details.reusedWords.length - 20}개
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Skipped Words (already mapped to this exam) */}
+          {(result.alreadyMapped || 0) > 0 && (
+            <Alert type="warning" title="이미 매핑된 단어">
+              {result.alreadyMapped}개 단어는 이미 이 시험에 매핑되어 있어 건너뜀
+              {result.details?.skippedWords && result.details.skippedWords.length > 0 && (
+                <span className="block text-sm mt-1">
+                  {result.details.skippedWords.slice(0, 10).join(', ')}
+                  {result.details.skippedWords.length > 10 && ` 외 ${result.details.skippedWords.length - 10}개`}
+                </span>
+              )}
+            </Alert>
+          )}
+
+          {/* Legacy support for failed field */}
+          {result.failed && result.failed.length > 0 && (
             <Alert type="error" title="이미 존재하는 단어">
               {result.failed.length}개 단어 건너뜀:{' '}
               {result.failed.slice(0, 10).join(', ')}
