@@ -423,14 +423,14 @@ const WordTable: React.FC<WordTableProps> = ({
                   {word.examLevels && word.examLevels.length > 0 ? (
                     <>
                       {word.examLevels.slice(0, 2).map((el, idx) => (
-                        <Badge
+                        <span
                           key={`${el.examCategory}-${el.level}-${idx}`}
-                          color="pink"
-                          size="sm"
                           title={`${EXAM_CATEGORY_LABELS[el.examCategory]} - ${LEVEL_SHORT_LABELS[el.displayLevel]}`}
                         >
-                          {EXAM_CATEGORY_LABELS[el.examCategory]}-{el.level}
-                        </Badge>
+                          <Badge color="pink" size="sm">
+                            {EXAM_CATEGORY_LABELS[el.examCategory]}-{el.level}
+                          </Badge>
+                        </span>
                       ))}
                       {word.examLevels.length > 2 && (
                         <Badge color="gray" size="sm">
