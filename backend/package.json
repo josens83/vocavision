@@ -15,6 +15,7 @@
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed.ts",
     "seed:csat-l1": "tsx prisma/seed-csat-l1.ts",
+    "seed:csat-l2": "tsx prisma/seed-csat-l2.ts",
     "test": "jest",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
