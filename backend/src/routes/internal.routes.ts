@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
+import { CSAT_L1_WORDS, CSAT_L2_WORDS, CSAT_L3_WORDS } from '../data/csat-words';
 
 const router = Router();
 
@@ -53,6 +54,251 @@ const sampleWords = [
   { word: 'ephemeral', partOfSpeech: 'ADJECTIVE', definitionKo: '일시적인', definition: 'lasting for a very short time', examCategory: 'SAT', level: 'L3', tags: ['시간'], frequency: 741 },
   { word: 'sycophant', partOfSpeech: 'NOUN', definitionKo: '아첨꾼', definition: 'a person who flatters someone important', examCategory: 'SAT', level: 'L3', tags: ['인물', '사회'], frequency: 742 },
 ];
+
+// ============================================
+// Helper: Seed CSAT words by level
+// ============================================
+type DifficultyLevel = 'BASIC' | 'INTERMEDIATE' | 'ADVANCED';
+
+interface SeedResult {
+  level: string;
+  totalWords: number;
+  newWords: number;
+  existingWithMapping: number;
+  newMappings: number;
+  alreadyMapped: number;
+}
+
+async function seedCSATLevel(
+  words: string[],
+  level: 'L1' | 'L2' | 'L3',
+  difficulty: DifficultyLevel
+): Promise<SeedResult> {
+  const examCategory = 'CSAT';
+
+  // Get existing words with their exam mappings
+  const existingWords = await prisma.word.findMany({
+    where: { word: { in: words.map(w => w.toLowerCase()) } },
+    select: {
+      id: true,
+      word: true,
+      aiGeneratedAt: true,
+      examLevels: { select: { examCategory: true } },
+    },
+  });
+
+  const existingMap = new Map(existingWords.map(w => [w.word.toLowerCase(), w]));
+
+  const newWordTexts: string[] = [];
+  const mappingsToAdd: { wordId: string; word: string }[] = [];
+  const alreadyMapped: string[] = [];
+
+  for (const wordText of words) {
+    const normalized = wordText.toLowerCase().trim();
+    const existing = existingMap.get(normalized);
+
+    if (!existing) {
+      newWordTexts.push(normalized);
+    } else {
+      const hasMapping = existing.examLevels.some(el => el.examCategory === examCategory);
+      if (hasMapping) {
+        alreadyMapped.push(normalized);
+      } else {
+        mappingsToAdd.push({ wordId: existing.id, word: normalized });
+      }
+    }
+  }
+
+  // Create new words in batches
+  const batchSize = 100;
+  if (newWordTexts.length > 0) {
+    for (let i = 0; i < newWordTexts.length; i += batchSize) {
+      const batch = newWordTexts.slice(i, i + batchSize);
+      await prisma.word.createMany({
+        data: batch.map(word => ({
+          word,
+          definition: '',
+          partOfSpeech: 'NOUN' as const,
+          examCategory: examCategory as any,
+          difficulty: difficulty as any,
+          level,
+          frequency: 100,
+          status: 'DRAFT' as const,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    // Get newly created words for exam level mapping
+    const newlyCreated = await prisma.word.findMany({
+      where: { word: { in: newWordTexts } },
+      select: { id: true, word: true },
+    });
+
+    // Create WordExamLevel mappings for new words
+    for (let i = 0; i < newlyCreated.length; i += batchSize) {
+      const batch = newlyCreated.slice(i, i + batchSize);
+      await prisma.wordExamLevel.createMany({
+        data: batch.map(w => ({
+          wordId: w.id,
+          examCategory: examCategory as any,
+          level,
+          frequency: 100,
+        })),
+        skipDuplicates: true,
+      });
+    }
+  }
+
+  // Add exam mappings for existing words (content reuse)
+  if (mappingsToAdd.length > 0) {
+    for (let i = 0; i < mappingsToAdd.length; i += batchSize) {
+      const batch = mappingsToAdd.slice(i, i + batchSize);
+      await prisma.wordExamLevel.createMany({
+        data: batch.map(m => ({
+          wordId: m.wordId,
+          examCategory: examCategory as any,
+          level,
+          frequency: 100,
+        })),
+        skipDuplicates: true,
+      });
+    }
+  }
+
+  return {
+    level,
+    totalWords: words.length,
+    newWords: newWordTexts.length,
+    existingWithMapping: mappingsToAdd.length,
+    newMappings: newWordTexts.length + mappingsToAdd.length,
+    alreadyMapped: alreadyMapped.length,
+  };
+}
+
+// ============================================
+// CSAT Seed Endpoints
+// ============================================
+
+/**
+ * GET /internal/seed-csat-l1?key=YOUR_SECRET
+ * 수능 L1 (초급) 1000단어 시드
+ */
+router.get('/seed-csat-l1', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    console.log('[Internal/Seed] Starting CSAT L1 seed...');
+    const result = await seedCSATLevel(CSAT_L1_WORDS, 'L1', 'BASIC');
+    console.log('[Internal/Seed] CSAT L1 completed:', result);
+
+    res.json({
+      message: 'CSAT L1 seed completed',
+      ...result,
+    });
+  } catch (error) {
+    console.error('[Internal/Seed] CSAT L1 error:', error);
+    res.status(500).json({ error: 'Seed failed', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/seed-csat-l2?key=YOUR_SECRET
+ * 수능 L2 (중급) 1051단어 시드
+ */
+router.get('/seed-csat-l2', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    console.log('[Internal/Seed] Starting CSAT L2 seed...');
+    const result = await seedCSATLevel(CSAT_L2_WORDS, 'L2', 'INTERMEDIATE');
+    console.log('[Internal/Seed] CSAT L2 completed:', result);
+
+    res.json({
+      message: 'CSAT L2 seed completed',
+      ...result,
+    });
+  } catch (error) {
+    console.error('[Internal/Seed] CSAT L2 error:', error);
+    res.status(500).json({ error: 'Seed failed', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/seed-csat-l3?key=YOUR_SECRET
+ * 수능 L3 (고급) 1053단어 시드
+ */
+router.get('/seed-csat-l3', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    console.log('[Internal/Seed] Starting CSAT L3 seed...');
+    const result = await seedCSATLevel(CSAT_L3_WORDS, 'L3', 'ADVANCED');
+    console.log('[Internal/Seed] CSAT L3 completed:', result);
+
+    res.json({
+      message: 'CSAT L3 seed completed',
+      ...result,
+    });
+  } catch (error) {
+    console.error('[Internal/Seed] CSAT L3 error:', error);
+    res.status(500).json({ error: 'Seed failed', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/seed-csat-all?key=YOUR_SECRET
+ * 수능 전체 (L1+L2+L3) 시드
+ */
+router.get('/seed-csat-all', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    console.log('[Internal/Seed] Starting CSAT ALL seed...');
+
+    const l1Result = await seedCSATLevel(CSAT_L1_WORDS, 'L1', 'BASIC');
+    console.log('[Internal/Seed] CSAT L1 completed:', l1Result);
+
+    const l2Result = await seedCSATLevel(CSAT_L2_WORDS, 'L2', 'INTERMEDIATE');
+    console.log('[Internal/Seed] CSAT L2 completed:', l2Result);
+
+    const l3Result = await seedCSATLevel(CSAT_L3_WORDS, 'L3', 'ADVANCED');
+    console.log('[Internal/Seed] CSAT L3 completed:', l3Result);
+
+    const totalNew = l1Result.newWords + l2Result.newWords + l3Result.newWords;
+    const totalMappings = l1Result.newMappings + l2Result.newMappings + l3Result.newMappings;
+
+    res.json({
+      message: 'CSAT ALL seed completed',
+      summary: {
+        totalNewWords: totalNew,
+        totalNewMappings: totalMappings,
+      },
+      L1: l1Result,
+      L2: l2Result,
+      L3: l3Result,
+    });
+  } catch (error) {
+    console.error('[Internal/Seed] CSAT ALL error:', error);
+    res.status(500).json({ error: 'Seed failed', details: String(error) });
+  }
+});
+
+// ============================================
+// Existing Endpoints
+// ============================================
 
 /**
  * GET /internal/run-seed?key=YOUR_SECRET
@@ -178,12 +424,23 @@ router.get('/status', async (req: Request, res: Response) => {
     const wordCount = await prisma.word.count();
     const userCount = await prisma.user.count();
 
+    // Get word counts by exam and level
+    const csatCounts = await prisma.wordExamLevel.groupBy({
+      by: ['level'],
+      where: { examCategory: 'CSAT' },
+      _count: { level: true },
+    });
+
     res.json({
       status: 'ok',
       database: 'connected',
       counts: {
-        words: wordCount,
-        users: userCount
+        totalWords: wordCount,
+        users: userCount,
+        csat: csatCounts.reduce((acc, c) => {
+          acc[c.level] = c._count.level;
+          return acc;
+        }, {} as Record<string, number>),
       },
       timestamp: new Date().toISOString()
     });
