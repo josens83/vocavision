@@ -98,10 +98,14 @@ function LearnPageContent() {
         const data = await wordsAPI.getWords({
           examCategory: examParam,
           level: levelParam || undefined,
-          limit: 20,
+          limit: 50, // Fetch more to filter
         });
         const words = data.words || data.data || [];
-        setReviews(words.map((word: Word) => ({ word })));
+        // Filter to only include words with actual content (definition exists)
+        const wordsWithContent = words.filter((word: Word) =>
+          word.definition && word.definition.trim() !== ''
+        );
+        setReviews(wordsWithContent.slice(0, 20).map((word: Word) => ({ word })));
       } else {
         // Default: Get due reviews or random words
         const data = await progressAPI.getDueReviews();
@@ -176,18 +180,30 @@ function LearnPageContent() {
   if (reviews.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="bg-white rounded-2xl p-8 max-w-md text-center">
+        <div className="bg-white rounded-2xl p-8 max-w-md text-center shadow-xl">
           <div className="text-6xl mb-4">📚</div>
           <h2 className="text-2xl font-bold mb-4">학습할 단어가 없습니다</h2>
           <p className="text-gray-600 mb-6">
-            새로운 단어를 추가하거나 나중에 다시 시도해주세요.
+            {examParam
+              ? `${examNames[examParam] || examParam} 콘텐츠가 준비 중입니다. 곧 학습할 수 있습니다!`
+              : '새로운 단어를 추가하거나 나중에 다시 시도해주세요.'}
           </p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
-          >
-            대시보드로 돌아가기
-          </button>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+            >
+              대시보드
+            </button>
+            {examParam && (
+              <button
+                onClick={() => router.push('/courses')}
+                className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition"
+              >
+                다른 코스 보기
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
