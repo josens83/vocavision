@@ -718,4 +718,237 @@ router.get('/content-stats', async (req: Request, res: Response) => {
   }
 });
 
+// ============================================
+// Continuous Generation (Auto-batch)
+// ============================================
+
+// Track active continuous generation sessions
+const activeContinuousSessions: Map<string, {
+  isRunning: boolean;
+  batchesCompleted: number;
+  wordsProcessed: number;
+  errors: string[];
+  startedAt: Date;
+  lastBatchAt: Date | null;
+  level?: string;
+  batchSize: number;
+  maxBatches: number;
+}> = new Map();
+
+/**
+ * GET /internal/generate-continuous?key=YOUR_SECRET&batchSize=50&maxBatches=20&level=L1
+ * 자동 연속 콘텐츠 생성
+ * - batchSize: 배치당 단어 수 (기본 50, 최대 100)
+ * - maxBatches: 최대 배치 수 (기본 20, 최대 100)
+ * - level: L1, L2, L3 필터 (선택사항)
+ */
+router.get('/generate-continuous', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const batchSize = Math.min(parseInt(req.query.batchSize as string) || 50, 100);
+    const maxBatches = Math.min(parseInt(req.query.maxBatches as string) || 20, 100);
+    const level = req.query.level as string;
+
+    // Check if there's already a continuous session running
+    const existingSession = Array.from(activeContinuousSessions.entries())
+      .find(([_, session]) => session.isRunning);
+
+    if (existingSession) {
+      return res.json({
+        message: 'Continuous generation already running',
+        sessionId: existingSession[0],
+        session: existingSession[1],
+      });
+    }
+
+    // Create session ID
+    const sessionId = `continuous-${Date.now()}`;
+
+    // Initialize session
+    activeContinuousSessions.set(sessionId, {
+      isRunning: true,
+      batchesCompleted: 0,
+      wordsProcessed: 0,
+      errors: [],
+      startedAt: new Date(),
+      lastBatchAt: null,
+      level,
+      batchSize,
+      maxBatches,
+    });
+
+    // Start the continuous generation process
+    runContinuousGeneration(sessionId, batchSize, maxBatches, level);
+
+    logger.info(`[Internal/Continuous] Started session ${sessionId}: batchSize=${batchSize}, maxBatches=${maxBatches}, level=${level || 'all'}`);
+
+    res.json({
+      message: 'Continuous generation started',
+      sessionId,
+      config: {
+        batchSize,
+        maxBatches,
+        level: level || 'all',
+        estimatedWords: batchSize * maxBatches,
+      },
+    });
+  } catch (error) {
+    console.error('[Internal/Continuous] Error:', error);
+    res.status(500).json({ error: 'Failed to start continuous generation', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/continuous-status?key=YOUR_SECRET
+ * 연속 생성 세션 상태 확인
+ */
+router.get('/continuous-status', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const sessions = Array.from(activeContinuousSessions.entries()).map(([id, session]) => ({
+      sessionId: id,
+      ...session,
+      runningTime: session.isRunning
+        ? Math.round((Date.now() - session.startedAt.getTime()) / 1000) + 's'
+        : null,
+    }));
+
+    // Get remaining words count
+    const remainingWords = await prisma.word.count({
+      where: { status: 'DRAFT', aiGeneratedAt: null },
+    });
+
+    res.json({
+      activeSessions: sessions.filter(s => s.isRunning),
+      completedSessions: sessions.filter(s => !s.isRunning).slice(-5),
+      remainingWords,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[Internal/ContinuousStatus] Error:', error);
+    res.status(500).json({ error: 'Status check failed' });
+  }
+});
+
+/**
+ * GET /internal/stop-continuous?key=YOUR_SECRET&sessionId=xxx
+ * 연속 생성 중지
+ */
+router.get('/stop-continuous', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const sessionId = req.query.sessionId as string;
+
+    if (sessionId) {
+      const session = activeContinuousSessions.get(sessionId);
+      if (session) {
+        session.isRunning = false;
+        return res.json({ message: `Session ${sessionId} stopped`, session });
+      }
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    // Stop all sessions
+    let stoppedCount = 0;
+    activeContinuousSessions.forEach((session) => {
+      if (session.isRunning) {
+        session.isRunning = false;
+        stoppedCount++;
+      }
+    });
+
+    res.json({ message: `Stopped ${stoppedCount} sessions` });
+  } catch (error) {
+    console.error('[Internal/StopContinuous] Error:', error);
+    res.status(500).json({ error: 'Failed to stop' });
+  }
+});
+
+// Helper function to run continuous generation
+async function runContinuousGeneration(
+  sessionId: string,
+  batchSize: number,
+  maxBatches: number,
+  level?: string
+): Promise<void> {
+  const session = activeContinuousSessions.get(sessionId);
+  if (!session) return;
+
+  while (session.isRunning && session.batchesCompleted < maxBatches) {
+    try {
+      // Build where clause
+      const whereClause: any = {
+        status: 'DRAFT',
+        aiGeneratedAt: null,
+      };
+      if (level && ['L1', 'L2', 'L3'].includes(level)) {
+        whereClause.level = level;
+      }
+
+      // Find words to generate
+      const wordsToGenerate = await prisma.word.findMany({
+        where: whereClause,
+        select: { id: true, word: true },
+        orderBy: { createdAt: 'asc' },
+        take: batchSize,
+      });
+
+      if (wordsToGenerate.length === 0) {
+        logger.info(`[Internal/Continuous] Session ${sessionId}: No more words to generate`);
+        session.isRunning = false;
+        break;
+      }
+
+      // Create batch job
+      const job = await prisma.contentGenerationJob.create({
+        data: {
+          inputWords: wordsToGenerate.map(w => w.id),
+          examCategory: 'CSAT',
+          cefrLevel: 'B1',
+          status: 'pending',
+          progress: 0,
+        },
+      });
+
+      logger.info(`[Internal/Continuous] Session ${sessionId}: Starting batch ${session.batchesCompleted + 1}/${maxBatches} (Job: ${job.id}, Words: ${wordsToGenerate.length})`);
+
+      // Process the job (this will take time)
+      await processGenerationJob(job.id);
+
+      // Update session stats
+      session.batchesCompleted++;
+      session.wordsProcessed += wordsToGenerate.length;
+      session.lastBatchAt = new Date();
+
+      logger.info(`[Internal/Continuous] Session ${sessionId}: Batch ${session.batchesCompleted} completed. Total words: ${session.wordsProcessed}`);
+
+      // Small delay between batches
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.error(`[Internal/Continuous] Session ${sessionId} error:`, error);
+      session.errors.push(`Batch ${session.batchesCompleted + 1}: ${errorMsg}`);
+
+      // Continue despite errors, but add a longer delay
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+  }
+
+  session.isRunning = false;
+  logger.info(`[Internal/Continuous] Session ${sessionId} finished. Batches: ${session.batchesCompleted}, Words: ${session.wordsProcessed}`);
+}
+
 export default router;
