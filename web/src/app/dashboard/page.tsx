@@ -18,6 +18,13 @@ const examInfo: Record<string, { name: string; icon: string; gradient: string }>
   TEPS: { name: 'TEPS', icon: '🎓', gradient: 'from-purple-500 to-purple-600' },
 };
 
+// Level info
+const levelInfo = [
+  { id: 'L1', name: '초급', description: '기초 필수 단어', target: '3등급 목표', color: 'bg-green-100 text-green-700 border-green-300' },
+  { id: 'L2', name: '중급', description: '핵심 어휘', target: '2등급 목표', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { id: 'L3', name: '고급', description: '고난도 어휘', target: '1등급 목표', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+];
+
 interface UserStats {
   totalWordsLearned: number;
   currentStreak: number;
@@ -38,8 +45,7 @@ export default function DashboardPage() {
 
   const [stats, setStats] = useState<UserStats | null>(null);
   const [dueReviews, setDueReviews] = useState<DueReview>({ count: 0 });
-  const [dailyGoal, setDailyGoal] = useState({ current: 0, target: 50 });
-  const [currentDay, setCurrentDay] = useState(1);
+  const [selectedLevel, setSelectedLevel] = useState('L1');
   const [dDay, setDDay] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -68,13 +74,11 @@ export default function DashboardPage() {
       setStats(progressData.stats);
       setDueReviews({ count: reviewsData.count });
 
-      // Calculate daily goal progress (words studied today)
-      const todayWords = progressData.stats?.totalWordsLearned || 0;
-      setDailyGoal({ current: Math.min(todayWords % 50, 50), target: 50 });
-
-      // Calculate current day based on total progress
-      const day = Math.floor((progressData.stats?.totalWordsLearned || 0) / 50) + 1;
-      setCurrentDay(Math.min(day, 30));
+      // Load saved level from localStorage
+      const savedLevel = localStorage.getItem('selectedLevel');
+      if (savedLevel) {
+        setSelectedLevel(savedLevel);
+      }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
@@ -97,7 +101,12 @@ export default function DashboardPage() {
 
   const selectedExam = activeExam || 'CSAT';
   const examData = examInfo[selectedExam];
-  const progressPercent = Math.round((dailyGoal.current / dailyGoal.target) * 100);
+  const selectedLevelInfo = levelInfo.find(l => l.id === selectedLevel) || levelInfo[0];
+
+  const handleLevelChange = (level: string) => {
+    setSelectedLevel(level);
+    localStorage.setItem('selectedLevel', level);
+  };
 
   if (!hasHydrated || loading) {
     return (
@@ -133,51 +142,46 @@ export default function DashboardPage() {
       }
     >
       <div className="container mx-auto px-4 py-6">
-        {/* Main CTA Card - 오늘의 학습 목표 */}
+        {/* Level Selection */}
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-gray-600 mb-2">학습 레벨 선택</h3>
+          <div className="grid grid-cols-3 gap-2">
+            {levelInfo.map((level) => (
+              <button
+                key={level.id}
+                onClick={() => handleLevelChange(level.id)}
+                className={`p-3 rounded-xl border-2 transition text-left ${
+                  selectedLevel === level.id
+                    ? level.color + ' border-current'
+                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                <p className="font-bold text-sm">{level.name}</p>
+                <p className="text-xs opacity-80">{level.target}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Main CTA Card */}
         <div className={`bg-gradient-to-br ${examData.gradient} rounded-2xl p-6 text-white mb-6 shadow-lg`}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-white/80 text-sm mb-1">오늘의 학습 목표</p>
-              <h2 className="text-2xl font-bold">
-                {dailyGoal.current}/{dailyGoal.target} 단어
-              </h2>
-            </div>
-            {/* Progress Ring */}
-            <div className="relative w-20 h-20">
-              <svg className="w-20 h-20 transform -rotate-90">
-                <circle
-                  cx="40"
-                  cy="40"
-                  r="36"
-                  stroke="rgba(255,255,255,0.3)"
-                  strokeWidth="8"
-                  fill="none"
-                />
-                <circle
-                  cx="40"
-                  cy="40"
-                  r="36"
-                  stroke="white"
-                  strokeWidth="8"
-                  fill="none"
-                  strokeDasharray={`${2 * Math.PI * 36}`}
-                  strokeDashoffset={`${2 * Math.PI * 36 * (1 - progressPercent / 100)}`}
-                  strokeLinecap="round"
-                  className="transition-all duration-500"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-lg font-bold">{progressPercent}%</span>
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-3xl">{examData.icon}</span>
+              <div>
+                <p className="text-white/80 text-sm">{examData.name} • {selectedLevelInfo.name}</p>
+                <p className="font-bold">{selectedLevelInfo.description}</p>
               </div>
             </div>
+            <p className="text-white/70 text-sm">{selectedLevelInfo.target}</p>
           </div>
 
           {/* Primary CTA Button */}
           <Link
-            href={`/learn?exam=${selectedExam.toLowerCase()}&level=L1`}
+            href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
             className="block w-full bg-white text-blue-600 py-4 rounded-xl text-center font-bold text-lg hover:bg-blue-50 transition shadow-md"
           >
-            ▶ 이어서 학습하기
+            ▶ 학습 시작하기
           </Link>
         </div>
 
@@ -200,16 +204,13 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Current Day Progress */}
+          {/* Total Words Learned */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <p className="text-xs text-gray-500 mb-1">현재 진도</p>
-            <p className="text-2xl font-bold text-gray-900">Day {currentDay}</p>
-            <div className="mt-2 bg-gray-200 rounded-full h-1.5">
-              <div
-                className="bg-blue-600 h-1.5 rounded-full transition-all"
-                style={{ width: `${(currentDay / 30) * 100}%` }}
-              />
-            </div>
+            <p className="text-xs text-gray-500 mb-1">총 학습 단어</p>
+            <p className="text-2xl font-bold text-blue-600">{stats?.totalWordsLearned || 0}개</p>
+            <p className="text-xs text-gray-400 mt-1">
+              🔥 {stats?.currentStreak || 0}일 연속 학습 중
+            </p>
           </div>
         </div>
 

@@ -244,7 +244,8 @@ function LearnPageContent() {
               onClick={handleRestart}
               className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
             >
-              다시 학습하기
+              <span className="block">다시</span>
+              <span className="block">학습하기</span>
             </button>
             <button
               onClick={() => router.push('/dashboard')}
@@ -268,26 +269,30 @@ function LearnPageContent() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-6">
           <button
-            onClick={() => router.push(examParam ? `/courses/${examParam.toLowerCase()}` : '/dashboard')}
-            className="text-gray-600 hover:text-gray-900"
+            onClick={() => router.push('/dashboard')}
+            className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-medium transition"
           >
-            ← {examParam ? examNames[examParam] || examParam : '대시보드'}
+            <span className="text-lg">←</span>
+            <span>홈으로</span>
           </button>
           <div className="text-center">
             {examParam && (
-              <div className="text-xs text-blue-600 font-medium mb-1">
-                {examNames[examParam]} {levelParam && `- ${levelParam}`}
+              <div className="inline-block bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded-full text-sm mb-2">
+                {examNames[examParam]} {levelParam && `• ${levelParam}`}
               </div>
             )}
-            <div className="text-sm text-gray-600">진행 상황</div>
-            <div className="text-lg font-semibold">
+            <div className="text-gray-500 text-sm">진행 상황</div>
+            <div className="text-2xl font-bold text-gray-900">
               {currentWordIndex + 1} / {reviews.length}
             </div>
           </div>
-          <div className="text-sm text-gray-600">
-            정확도: {wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0}%
+          <div className="text-right">
+            <div className="text-gray-500 text-sm">정확도</div>
+            <div className="text-xl font-bold text-green-600">
+              {wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0}%
+            </div>
           </div>
         </div>
 
