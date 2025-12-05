@@ -137,34 +137,32 @@ function LearnPageContent() {
     }
   };
 
-  const handleAnswer = async (correct: boolean, rating: number) => {
+  const handleAnswer = (correct: boolean, rating: number) => {
     const currentWord = reviews[currentWordIndex]?.word;
 
     if (!currentWord) return;
 
-    try {
-      await progressAPI.submitReview({
-        wordId: currentWord.id,
-        rating,
-        learningMethod: 'FLASHCARD',
-        sessionId: sessionId || undefined,
-      });
+    // Fire and forget - don't wait for API response
+    progressAPI.submitReview({
+      wordId: currentWord.id,
+      rating,
+      learningMethod: 'FLASHCARD',
+      sessionId: sessionId || undefined,
+    }).catch(error => console.error('Failed to submit review:', error));
 
-      incrementWord(correct);
+    // Immediately advance to next word
+    incrementWord(correct);
 
-      // Check if we've finished all words
-      if (currentWordIndex + 1 >= reviews.length) {
-        setShowResult(true);
-        if (sessionId) {
-          await progressAPI.endSession({
-            sessionId,
-            wordsStudied: wordsStudied + 1,
-            wordsCorrect: wordsCorrect + (correct ? 1 : 0),
-          });
-        }
+    // Check if we've finished all words
+    if (currentWordIndex + 1 >= reviews.length) {
+      setShowResult(true);
+      if (sessionId) {
+        progressAPI.endSession({
+          sessionId,
+          wordsStudied: wordsStudied + 1,
+          wordsCorrect: wordsCorrect + (correct ? 1 : 0),
+        }).catch(error => console.error('Failed to end session:', error));
       }
-    } catch (error) {
-      console.error('Failed to submit review:', error);
     }
   };
 
