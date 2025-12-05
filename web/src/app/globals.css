@@ -362,4 +362,23 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Scrollbar hide for horizontal scroll */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Safe area for bottom navigation on mobile */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  /* Safe area for top navigation on mobile */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
 }
