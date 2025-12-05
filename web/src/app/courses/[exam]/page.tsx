@@ -224,7 +224,7 @@ export default function ExamCoursePage() {
             <div>
               <h1 className="text-4xl font-bold mb-2">{exam.name} 코스</h1>
               <p className="text-lg text-white/90 mb-4">{exam.fullName}</p>
-              <p className="text-white/80 max-w-2xl">{exam.description}</p>
+              <p className="text-white/80">{exam.description}</p>
             </div>
           </div>
         </div>
@@ -236,12 +236,12 @@ export default function ExamCoursePage() {
           <h2 className="text-xl font-bold mb-4">오늘의 학습</h2>
           <div className="grid md:grid-cols-3 gap-4">
             <Link
-              href={`/learn?exam=${examKey}`}
+              href={`/learn?exam=${examKey}&level=L1`}
               className={`bg-gradient-to-r ${exam.gradient} text-white rounded-xl p-4 hover:opacity-90 transition`}
             >
               <div className="text-2xl mb-2">📚</div>
               <h3 className="font-bold">단어 학습</h3>
-              <p className="text-sm text-white/80">새로운 단어 배우기</p>
+              <p className="text-sm text-white/80">기초부터 시작하기</p>
             </Link>
             <Link
               href={`/quiz?exam=${examKey}`}
@@ -288,7 +288,7 @@ export default function ExamCoursePage() {
         {/* Sample Words */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">샘플 단어</h2>
+            <h2 className="text-xl font-bold">{exam.name} 필수 어휘</h2>
             <Link
               href={`/words?exam=${examKey}`}
               className="text-blue-600 hover:text-blue-700 text-sm font-medium"
