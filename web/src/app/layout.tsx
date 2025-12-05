@@ -1,9 +1,6 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { RootErrorBoundaryWrapper } from '@/components/errors/RootErrorBoundaryWrapper';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'VocaVision - 영어 단어 학습 플랫폼',
@@ -17,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body className={inter.className}>
+      <body className="font-sans antialiased">
         <RootErrorBoundaryWrapper>
           {children}
         </RootErrorBoundaryWrapper>
