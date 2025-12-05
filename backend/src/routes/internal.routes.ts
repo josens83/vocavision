@@ -951,4 +951,110 @@ async function runContinuousGeneration(
   logger.info(`[Internal/Continuous] Session ${sessionId} finished. Batches: ${session.batchesCompleted}, Words: ${session.wordsProcessed}`);
 }
 
+// ============================================
+// Bulk Publish Words
+// ============================================
+
+/**
+ * GET /internal/publish-ai-words?key=YOUR_SECRET&examCategory=CSAT
+ * AI 생성된 단어들을 PUBLISHED 상태로 일괄 변경
+ */
+router.get('/publish-ai-words', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const examCategory = req.query.examCategory as string;
+
+    // Build where clause
+    const whereClause: any = {
+      status: 'PENDING_REVIEW',
+      aiGeneratedAt: { not: null },
+    };
+
+    if (examCategory) {
+      whereClause.examCategory = examCategory;
+    }
+
+    // Count before update
+    const countBefore = await prisma.word.count({ where: whereClause });
+
+    if (countBefore === 0) {
+      return res.json({
+        message: 'No words to publish',
+        updated: 0,
+      });
+    }
+
+    // Bulk update to PUBLISHED
+    const result = await prisma.word.updateMany({
+      where: whereClause,
+      data: {
+        status: 'PUBLISHED',
+        humanReviewed: true,
+      },
+    });
+
+    logger.info(`[Internal/Publish] Published ${result.count} words${examCategory ? ` for ${examCategory}` : ''}`);
+
+    res.json({
+      message: `Successfully published ${result.count} words`,
+      updated: result.count,
+      examCategory: examCategory || 'all',
+    });
+  } catch (error) {
+    console.error('[Internal/Publish] Error:', error);
+    res.status(500).json({ error: 'Publish failed', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/word-status-stats?key=YOUR_SECRET
+ * 단어 상태별 통계 조회
+ */
+router.get('/word-status-stats', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    // Group by status
+    const statusStats = await prisma.word.groupBy({
+      by: ['status'],
+      _count: { status: true },
+    });
+
+    // Group by status and examCategory
+    const examStats = await prisma.word.groupBy({
+      by: ['status', 'examCategory'],
+      _count: { status: true },
+    });
+
+    // Count with AI content
+    const withAiContent = await prisma.word.count({
+      where: { aiGeneratedAt: { not: null } },
+    });
+
+    res.json({
+      byStatus: statusStats.reduce((acc, s) => {
+        acc[s.status] = s._count.status;
+        return acc;
+      }, {} as Record<string, number>),
+      byExamAndStatus: examStats.map(e => ({
+        exam: e.examCategory,
+        status: e.status,
+        count: e._count.status,
+      })),
+      totalWithAiContent: withAiContent,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[Internal/StatusStats] Error:', error);
+    res.status(500).json({ error: 'Stats failed' });
+  }
+});
+
 export default router;

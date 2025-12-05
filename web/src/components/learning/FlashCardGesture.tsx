@@ -28,12 +28,17 @@ interface Word {
   id: string;
   word: string;
   definition: string;
+  definitionKo?: string;
   pronunciation?: string;
+  ipaUs?: string;
+  ipaUk?: string;
+  partOfSpeech?: string;
   images?: any[];
   mnemonics?: any[];
   examples?: any[];
   rhymes?: any[];
   etymology?: any;
+  collocations?: any[];
 }
 
 interface FlashCardGestureProps {
@@ -227,12 +232,27 @@ export default function FlashCardGesture({ word, onAnswer }: FlashCardGesturePro
                 <div className="p-8">
                   {activeTab === 'definition' && (
                     <div className="text-center">
-                      <h3 className="text-4xl font-bold text-gray-900 mb-6">
+                      <h3 className="text-4xl font-bold text-gray-900 mb-4">
                         {word.word}
                       </h3>
-                      <p className="text-3xl text-gray-700 mb-8">
-                        {word.definition}
+                      {word.partOfSpeech && (
+                        <p className="text-lg text-blue-600 mb-2">
+                          ({word.partOfSpeech})
+                        </p>
+                      )}
+                      {(word.ipaUs || word.pronunciation) && (
+                        <p className="text-xl text-gray-500 mb-4">
+                          {word.ipaUs || word.pronunciation}
+                        </p>
+                      )}
+                      <p className="text-3xl text-gray-700 mb-4">
+                        {word.definitionKo || word.definition || '정의 없음'}
                       </p>
+                      {word.definition && word.definitionKo && (
+                        <p className="text-lg text-gray-500 mb-6">
+                          {word.definition}
+                        </p>
+                      )}
                       {word.examples && word.examples.length > 0 && (
                         <div className="bg-gray-50 rounded-xl p-6 text-left max-w-2xl mx-auto">
                           <h4 className="font-semibold mb-4">예문:</h4>
@@ -246,6 +266,18 @@ export default function FlashCardGesture({ word, onAnswer }: FlashCardGesturePro
                               )}
                             </div>
                           ))}
+                        </div>
+                      )}
+                      {word.collocations && word.collocations.length > 0 && (
+                        <div className="bg-blue-50 rounded-xl p-4 mt-4 text-left max-w-2xl mx-auto">
+                          <h4 className="font-semibold mb-2 text-blue-800">🔗 연어 표현:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {word.collocations.slice(0, 5).map((col: any, i: number) => (
+                              <span key={i} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                                {col.phrase}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>

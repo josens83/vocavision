@@ -56,7 +56,9 @@ export const getWords = async (
             take: 1,
             orderBy: { rating: 'desc' }
           },
-          etymology: true
+          examples: { take: 3 },
+          etymology: true,
+          collocations: { take: 5 },
         },
         skip,
         take: limitNum,

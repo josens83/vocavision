@@ -10,12 +10,17 @@ interface Word {
   id: string;
   word: string;
   definition: string;
+  definitionKo?: string;
   pronunciation?: string;
+  ipaUs?: string;
+  ipaUk?: string;
+  partOfSpeech?: string;
   images?: any[];
   mnemonics?: any[];
   examples?: any[];
   rhymes?: any[];
   etymology?: any;
+  collocations?: any[];
 }
 
 interface Review {
@@ -101,9 +106,10 @@ function LearnPageContent() {
           limit: 50, // Fetch more to filter
         });
         const words = data.words || data.data || [];
-        // Filter to only include words with actual content (definition exists)
-        const wordsWithContent = words.filter((word: Word) =>
-          word.definition && word.definition.trim() !== ''
+        // Filter to only include words with actual content (definition or definitionKo exists)
+        const wordsWithContent = words.filter((word: any) =>
+          (word.definition && word.definition.trim() !== '') ||
+          (word.definitionKo && word.definitionKo.trim() !== '')
         );
         setReviews(wordsWithContent.slice(0, 20).map((word: Word) => ({ word })));
       } else {
