@@ -5,7 +5,9 @@ import {
   createWord,
   getRandomWords,
   getPublicWords,
-  getWordCountsByExam
+  getWordCountsByExam,
+  getLevelTestQuestions,
+  getQuizQuestions,
 } from '../controllers/word.controller';
 import { authenticateToken, requireAdmin, optionalAuth } from '../middleware/auth.middleware';
 
@@ -151,6 +153,113 @@ router.get('/', authenticateToken, getWords);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/random', authenticateToken, getRandomWords);
+
+/**
+ * @swagger
+ * /words/level-test-questions:
+ *   get:
+ *     summary: 레벨 테스트 문제 조회 (인증 불필요)
+ *     tags: [Words]
+ *     parameters:
+ *       - in: query
+ *         name: examCategory
+ *         schema:
+ *           type: string
+ *           enum: [CSAT, TEPS, TOEIC, TOEFL, SAT]
+ *         description: 시험 카테고리
+ *       - in: query
+ *         name: count
+ *         schema:
+ *           type: integer
+ *           default: 15
+ *         description: 문제 수 (최대 30)
+ *     responses:
+ *       200:
+ *         description: 레벨 테스트 문제 목록
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 questions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       word:
+ *                         type: string
+ *                       level:
+ *                         type: string
+ *                       options:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       correctAnswer:
+ *                         type: string
+ */
+router.get('/level-test-questions', getLevelTestQuestions);
+
+/**
+ * @swagger
+ * /words/quiz-questions:
+ *   get:
+ *     summary: 퀴즈 문제 조회 (인증 불필요)
+ *     tags: [Words]
+ *     parameters:
+ *       - in: query
+ *         name: examCategory
+ *         schema:
+ *           type: string
+ *           enum: [CSAT, TEPS, TOEIC, TOEFL, SAT]
+ *         description: 시험 카테고리
+ *       - in: query
+ *         name: level
+ *         schema:
+ *           type: string
+ *           enum: [L1, L2, L3]
+ *         description: 레벨 필터
+ *       - in: query
+ *         name: mode
+ *         schema:
+ *           type: string
+ *           enum: [eng-to-kor, kor-to-eng]
+ *           default: eng-to-kor
+ *         description: 퀴즈 모드
+ *       - in: query
+ *         name: count
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: 문제 수 (최대 50)
+ *     responses:
+ *       200:
+ *         description: 퀴즈 문제 목록
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 questions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       question:
+ *                         type: string
+ *                       options:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       correctAnswer:
+ *                         type: string
+ *                       mnemonic:
+ *                         type: string
+ */
+router.get('/quiz-questions', getQuizQuestions);
 
 /**
  * @swagger

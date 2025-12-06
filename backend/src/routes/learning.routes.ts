@@ -3,6 +3,9 @@ import {
   getLearningMethods,
   generateMnemonic,
   generateImage,
+  recordLearning,
+  recordLearningBatch,
+  getLearningStats,
 } from '../controllers/learning.controller';
 import { authenticateToken, requireSubscription } from '../middleware/auth.middleware';
 
@@ -130,5 +133,149 @@ router.post('/generate-mnemonic', authenticateToken, requireSubscription, genera
  *         description: 구독 필요
  */
 router.post('/generate-image', authenticateToken, requireSubscription, generateImage);
+
+/**
+ * @swagger
+ * /learning/record:
+ *   post:
+ *     summary: 학습 기록 저장 (단일)
+ *     tags: [Learning]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - wordId
+ *               - quizType
+ *               - isCorrect
+ *             properties:
+ *               wordId:
+ *                 type: string
+ *                 description: 단어 ID
+ *               quizType:
+ *                 type: string
+ *                 enum: [LEVEL_TEST, ENG_TO_KOR, KOR_TO_ENG, FLASHCARD, SPELLING]
+ *                 description: 퀴즈 타입
+ *               isCorrect:
+ *                 type: boolean
+ *                 description: 정답 여부
+ *               selectedAnswer:
+ *                 type: string
+ *                 description: 선택한 답
+ *               correctAnswer:
+ *                 type: string
+ *                 description: 정답
+ *               responseTime:
+ *                 type: integer
+ *                 description: 응답 시간 (ms)
+ *               sessionId:
+ *                 type: string
+ *                 description: 세션 ID
+ *     responses:
+ *       201:
+ *         description: 학습 기록 저장 성공
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.post('/record', authenticateToken, recordLearning);
+
+/**
+ * @swagger
+ * /learning/record-batch:
+ *   post:
+ *     summary: 학습 기록 일괄 저장
+ *     tags: [Learning]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - records
+ *             properties:
+ *               records:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - wordId
+ *                     - quizType
+ *                     - isCorrect
+ *                   properties:
+ *                     wordId:
+ *                       type: string
+ *                     quizType:
+ *                       type: string
+ *                       enum: [LEVEL_TEST, ENG_TO_KOR, KOR_TO_ENG, FLASHCARD, SPELLING]
+ *                     isCorrect:
+ *                       type: boolean
+ *                     selectedAnswer:
+ *                       type: string
+ *                     correctAnswer:
+ *                       type: string
+ *                     responseTime:
+ *                       type: integer
+ *               sessionId:
+ *                 type: string
+ *                 description: 세션 ID (모든 레코드에 적용)
+ *     responses:
+ *       201:
+ *         description: 학습 기록 일괄 저장 성공
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.post('/record-batch', authenticateToken, recordLearningBatch);
+
+/**
+ * @swagger
+ * /learning/stats:
+ *   get:
+ *     summary: 학습 통계 조회
+ *     tags: [Learning]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 학습 통계
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 overall:
+ *                   type: object
+ *                   properties:
+ *                     totalQuestions:
+ *                       type: integer
+ *                     correctAnswers:
+ *                       type: integer
+ *                     accuracy:
+ *                       type: integer
+ *                 byLevel:
+ *                   type: object
+ *                 byMode:
+ *                   type: object
+ *                 weeklyActivity:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 streak:
+ *                   type: object
+ *                   properties:
+ *                     current:
+ *                       type: integer
+ *                     longest:
+ *                       type: integer
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/stats', authenticateToken, getLearningStats);
 
 export default router;

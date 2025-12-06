@@ -225,6 +225,204 @@ export const getWordCountsByExam = async (
   }
 };
 
+// Get level test questions (shuffled words from all levels)
+export const getLevelTestQuestions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { examCategory = 'CSAT', count = '15' } = req.query;
+    const countNum = Math.min(parseInt(count as string), 30); // Max 30 questions
+
+    // Get words from each level (L1, L2, L3)
+    const levels = ['L1', 'L2', 'L3'];
+    const questionsPerLevel = Math.ceil(countNum / levels.length);
+
+    const wordsByLevel = await Promise.all(
+      levels.map(async (level) => {
+        const totalCount = await prisma.word.count({
+          where: {
+            examCategory: examCategory as ExamCategory,
+            level,
+            status: 'PUBLISHED',
+          },
+        });
+
+        const skip = Math.max(0, Math.floor(Math.random() * Math.max(0, totalCount - questionsPerLevel)));
+
+        return prisma.word.findMany({
+          where: {
+            examCategory: examCategory as ExamCategory,
+            level,
+            status: 'PUBLISHED',
+          },
+          select: {
+            id: true,
+            word: true,
+            definitionKo: true,
+            definition: true,
+            level: true,
+            examCategory: true,
+          },
+          skip,
+          take: questionsPerLevel,
+        });
+      })
+    );
+
+    // Combine and shuffle all words
+    const allWords = wordsByLevel.flat();
+    const shuffled = allWords.sort(() => Math.random() - 0.5).slice(0, countNum);
+
+    // Generate wrong options for each question
+    const questions = await Promise.all(
+      shuffled.map(async (word) => {
+        // Get random wrong options (3 other words)
+        const otherWords = await prisma.word.findMany({
+          where: {
+            id: { not: word.id },
+            examCategory: examCategory as ExamCategory,
+            status: 'PUBLISHED',
+          },
+          select: {
+            id: true,
+            definitionKo: true,
+            definition: true,
+          },
+          take: 100, // Get a pool to pick from
+        });
+
+        // Shuffle and pick 3
+        const wrongOptions = otherWords
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3)
+          .map((w) => w.definitionKo || w.definition);
+
+        // Create options array with correct answer
+        const correctAnswer = word.definitionKo || word.definition;
+        const options = [...wrongOptions, correctAnswer].sort(() => Math.random() - 0.5);
+
+        return {
+          id: word.id,
+          word: word.word,
+          level: word.level,
+          options,
+          correctAnswer,
+        };
+      })
+    );
+
+    res.json({ questions });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get quiz questions (for eng-to-kor or kor-to-eng quiz)
+export const getQuizQuestions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {
+      examCategory = 'CSAT',
+      level,
+      mode = 'eng-to-kor',
+      count = '10',
+    } = req.query;
+    const countNum = Math.min(parseInt(count as string), 50); // Max 50 questions
+
+    const where: any = {
+      examCategory: examCategory as ExamCategory,
+      status: 'PUBLISHED',
+    };
+
+    if (level) {
+      where.level = level;
+    }
+
+    // Get total count for random selection
+    const totalCount = await prisma.word.count({ where });
+    const skip = Math.max(0, Math.floor(Math.random() * Math.max(0, totalCount - countNum)));
+
+    const words = await prisma.word.findMany({
+      where,
+      include: {
+        mnemonics: {
+          take: 1,
+          orderBy: { rating: 'desc' },
+        },
+      },
+      skip,
+      take: countNum,
+    });
+
+    // Shuffle words
+    const shuffled = words.sort(() => Math.random() - 0.5);
+
+    // Generate questions based on mode
+    const questions = await Promise.all(
+      shuffled.map(async (word) => {
+        // Get pool of wrong options
+        const otherWords = await prisma.word.findMany({
+          where: {
+            id: { not: word.id },
+            examCategory: examCategory as ExamCategory,
+            status: 'PUBLISHED',
+          },
+          select: {
+            id: true,
+            word: true,
+            definitionKo: true,
+            definition: true,
+          },
+          take: 100,
+        });
+
+        // Shuffle and pick 3
+        const wrongPool = otherWords.sort(() => Math.random() - 0.5).slice(0, 3);
+
+        if (mode === 'kor-to-eng') {
+          // Korean meaning -> English word
+          const correctAnswer = word.word;
+          const options = [...wrongPool.map((w) => w.word), correctAnswer].sort(
+            () => Math.random() - 0.5
+          );
+
+          return {
+            id: word.id,
+            question: word.definitionKo || word.definition,
+            options,
+            correctAnswer,
+            mnemonic: word.mnemonics[0]?.koreanHint || word.mnemonics[0]?.content || null,
+          };
+        } else {
+          // English word -> Korean meaning (default)
+          const correctAnswer = word.definitionKo || word.definition;
+          const options = [
+            ...wrongPool.map((w) => w.definitionKo || w.definition),
+            correctAnswer,
+          ].sort(() => Math.random() - 0.5);
+
+          return {
+            id: word.id,
+            question: word.word,
+            options,
+            correctAnswer,
+            mnemonic: word.mnemonics[0]?.koreanHint || word.mnemonics[0]?.content || null,
+          };
+        }
+      })
+    );
+
+    res.json({ questions });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Public endpoint - no authentication required
 export const getPublicWords = async (
   req: Request,
