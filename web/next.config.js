@@ -88,7 +88,7 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https: blob:",
               "media-src 'self' https:",
-              "connect-src 'self' https://www.google-analytics.com https://*.railway.app https://*.vercel.app https://*.supabase.co https://vercel.live https://*.vercel-insights.com",
+              "connect-src 'self' https://www.google-analytics.com https://*.railway.app https://*.vercel.app https://*.supabase.co https://vercel.live https://*.vercel-insights.com https://api.dictionaryapi.dev",
               "frame-src 'self' https://vercel.live",
               "frame-ancestors 'self'",
               "base-uri 'self'",
