@@ -108,6 +108,51 @@ export const mockWordsAPI = {
 
     return { words };
   },
+
+  getLevelTestQuestions: async () => {
+    await delay(MOCK_DELAY);
+
+    // 레벨별로 문제 선택
+    const l1Words = mockWords.filter(w => w.level === 'L1').slice(0, 3);
+    const l2Words = mockWords.filter(w => w.level === 'L2').slice(0, 4);
+    const l3Words = mockWords.filter(w => w.level === 'L3').slice(0, 3);
+
+    const allDefinitions = mockWords
+      .map(w => w.definitionKo)
+      .filter(Boolean) as string[];
+
+    // 오답 선택지 생성
+    const generateOptions = (correctAnswer: string) => {
+      const wrongAnswers = allDefinitions
+        .filter(d => d !== correctAnswer)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3);
+      return [correctAnswer, ...wrongAnswers].sort(() => 0.5 - Math.random());
+    };
+
+    const questions = [
+      ...l1Words.map(w => ({
+        word: w.word,
+        correctAnswer: w.definitionKo || w.definition,
+        options: generateOptions(w.definitionKo || w.definition),
+        level: 'L1',
+      })),
+      ...l2Words.map(w => ({
+        word: w.word,
+        correctAnswer: w.definitionKo || w.definition,
+        options: generateOptions(w.definitionKo || w.definition),
+        level: 'L2',
+      })),
+      ...l3Words.map(w => ({
+        word: w.word,
+        correctAnswer: w.definitionKo || w.definition,
+        options: generateOptions(w.definitionKo || w.definition),
+        level: 'L3',
+      })),
+    ].sort(() => 0.5 - Math.random());
+
+    return { questions };
+  },
 };
 
 // Mock Progress API
