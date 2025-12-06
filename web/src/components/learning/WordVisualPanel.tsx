@@ -5,6 +5,11 @@
  * - Concept (의미): 단어 의미를 직관적으로 보여주는 이미지
  * - Mnemonic (연상): 한국어식 연상법에 맞는 이미지
  * - Rhyme (라이밍): 발음/라이밍 기반 상황 이미지
+ *
+ * 확장 사양:
+ * - 이중 언어 캡션 (captionEn, captionKo)
+ * - GIF 지원 (3초 루프)
+ * - 새로운 WordVisual 모델 구조 지원
  */
 
 'use client';
@@ -13,60 +18,113 @@ import { useState } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
 
-interface WordImage {
+// Visual type from backend
+export type VisualType = 'CONCEPT' | 'MNEMONIC' | 'RHYME';
+
+// Legacy interface (for backward compatibility)
+interface LegacyWordImage {
   type: 'concept' | 'mnemonic' | 'rhyme';
   url: string | null;
   caption: string | null;
 }
 
-interface WordVisualPanelProps {
-  images: WordImage[];
-  word: string;
+// New WordVisual interface (from Prisma model)
+export interface WordVisual {
+  id?: string;
+  wordId?: string;
+  type: VisualType;
+  labelEn?: string;
+  labelKo?: string;
+  captionEn?: string;
+  captionKo?: string;
+  imageUrl?: string | null;
+  promptEn?: string;
+  order?: number;
 }
 
-const TAB_CONFIG = {
-  concept: {
-    label: '의미',
+interface WordVisualPanelProps {
+  // Support both legacy format and new format
+  images?: LegacyWordImage[];
+  visuals?: WordVisual[];
+  word: string;
+  showEnglishCaption?: boolean; // Option to show English caption
+}
+
+const TAB_CONFIG: Record<string, {
+  label: string;
+  labelKo: string;
+  description: string;
+  color: string;
+  lightColor: string;
+}> = {
+  CONCEPT: {
+    label: 'Concept',
+    labelKo: '의미',
     description: '단어 의미 시각화',
     color: 'bg-blue-500',
     lightColor: 'bg-blue-50 text-blue-700 border-blue-200',
   },
-  mnemonic: {
-    label: '연상',
+  MNEMONIC: {
+    label: 'Mnemonic',
+    labelKo: '연상',
     description: '한국어식 연상법',
     color: 'bg-green-500',
     lightColor: 'bg-green-50 text-green-700 border-green-200',
   },
-  rhyme: {
-    label: '라이밍',
+  RHYME: {
+    label: 'Rhyme',
+    labelKo: '라이밍',
     description: '발음 기반 연상',
     color: 'bg-purple-500',
     lightColor: 'bg-purple-50 text-purple-700 border-purple-200',
   },
 };
 
-type TabType = 'concept' | 'mnemonic' | 'rhyme';
+// Map legacy type to new type
+const legacyToVisualType: Record<string, VisualType> = {
+  concept: 'CONCEPT',
+  mnemonic: 'MNEMONIC',
+  rhyme: 'RHYME',
+};
 
-export default function WordVisualPanel({ images, word }: WordVisualPanelProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('concept');
+export default function WordVisualPanel({
+  images,
+  visuals,
+  word,
+  showEnglishCaption = false,
+}: WordVisualPanelProps) {
+  const [activeTab, setActiveTab] = useState<VisualType>('CONCEPT');
   const [imageError, setImageError] = useState<Record<string, boolean>>({});
 
-  // 유효한 이미지만 필터링
-  const validImages = images.filter((img) => img.url && !imageError[img.type]);
+  // Normalize data: convert legacy format to new format if needed
+  const normalizedVisuals: WordVisual[] = visuals
+    ? visuals
+    : images
+    ? images.map((img) => ({
+        type: legacyToVisualType[img.type],
+        imageUrl: img.url || undefined,
+        captionKo: img.caption || undefined,
+      }))
+    : [];
 
-  // 이미지가 하나도 없으면 패널 숨김
-  if (validImages.length === 0) {
+  // Filter valid visuals (has imageUrl and no error)
+  const validVisuals = normalizedVisuals.filter(
+    (v) => v.imageUrl && !imageError[v.type]
+  );
+
+  // If no valid visuals, don't render
+  if (validVisuals.length === 0) {
     return null;
   }
 
-  const currentImage = images.find((img) => img.type === activeTab);
-  const tabOrder: TabType[] = ['concept', 'mnemonic', 'rhyme'];
-  const currentIndex = tabOrder.indexOf(activeTab);
+  const currentVisual = normalizedVisuals.find((v) => v.type === activeTab);
+  const tabOrder: VisualType[] = ['CONCEPT', 'MNEMONIC', 'RHYME'];
 
   const handleSwipe = (direction: 'left' | 'right') => {
-    // 유효한 탭만 순회
     const validTabs = tabOrder.filter(
-      (tab) => images.find((img) => img.type === tab)?.url && !imageError[tab]
+      (tab) =>
+        normalizedVisuals.find((v) => v.type === tab)?.imageUrl &&
+        !imageError[tab]
     );
     if (validTabs.length === 0) return;
 
@@ -82,7 +140,10 @@ export default function WordVisualPanel({ images, word }: WordVisualPanelProps) 
     setActiveTab(validTabs[newIndex]);
   };
 
-  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handleDragEnd = (
+    _: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
     if (info.offset.x < -50) {
       handleSwipe('left');
     } else if (info.offset.x > 50) {
@@ -94,14 +155,30 @@ export default function WordVisualPanel({ images, word }: WordVisualPanelProps) 
     setImageError((prev) => ({ ...prev, [type]: true }));
   };
 
+  // Get label for tab (prefer custom labelKo from visual, fallback to config)
+  const getTabLabel = (type: VisualType): string => {
+    const visual = normalizedVisuals.find((v) => v.type === type);
+    return visual?.labelKo || TAB_CONFIG[type].labelKo;
+  };
+
+  // Get caption (prefer Korean, optionally show English)
+  const getCaption = (visual: WordVisual): string | null => {
+    if (showEnglishCaption && visual.captionEn) {
+      return visual.captionKo
+        ? `${visual.captionKo}\n${visual.captionEn}`
+        : visual.captionEn;
+    }
+    return visual.captionKo || visual.captionEn || null;
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       {/* 탭 헤더 */}
       <div className="flex border-b border-gray-100">
         {tabOrder.map((tab) => {
           const config = TAB_CONFIG[tab];
-          const img = images.find((i) => i.type === tab);
-          const hasImage = img?.url && !imageError[tab];
+          const visual = normalizedVisuals.find((v) => v.type === tab);
+          const hasImage = visual?.imageUrl && !imageError[tab];
           const isActive = activeTab === tab;
 
           return (
@@ -120,7 +197,7 @@ export default function WordVisualPanel({ images, word }: WordVisualPanelProps) 
                 }
               `}
             >
-              {config.label}
+              {getTabLabel(tab)}
               {isActive && (
                 <motion.div
                   layoutId="activeTab"
@@ -135,7 +212,7 @@ export default function WordVisualPanel({ images, word }: WordVisualPanelProps) 
       {/* 이미지 영역 */}
       <div className="relative aspect-square bg-gray-50">
         <AnimatePresence mode="wait">
-          {currentImage?.url && !imageError[currentImage.type] ? (
+          {currentVisual?.imageUrl && !imageError[currentVisual.type] ? (
             <motion.div
               key={activeTab}
               initial={{ opacity: 0 }}
@@ -149,10 +226,10 @@ export default function WordVisualPanel({ images, word }: WordVisualPanelProps) 
               className="w-full h-full cursor-grab active:cursor-grabbing"
             >
               <img
-                src={currentImage.url}
-                alt={`${word} - ${TAB_CONFIG[activeTab].label}`}
+                src={currentVisual.imageUrl}
+                alt={`${word} - ${TAB_CONFIG[activeTab].labelKo}`}
                 className="w-full h-full object-cover"
-                onError={() => handleImageError(currentImage.type)}
+                onError={() => handleImageError(currentVisual.type)}
               />
             </motion.div>
           ) : (
@@ -164,7 +241,7 @@ export default function WordVisualPanel({ images, word }: WordVisualPanelProps) 
         </AnimatePresence>
 
         {/* 좌우 화살표 (데스크톱) */}
-        {validImages.length > 1 && (
+        {validVisuals.length > 1 && (
           <>
             <button
               onClick={() => handleSwipe('right')}
@@ -183,23 +260,25 @@ export default function WordVisualPanel({ images, word }: WordVisualPanelProps) 
       </div>
 
       {/* 캡션 */}
-      {currentImage?.caption && (
+      {currentVisual && getCaption(currentVisual) && (
         <div className="p-4 border-t border-gray-100">
           <span
             className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full border mb-2 ${TAB_CONFIG[activeTab].lightColor}`}
           >
-            {TAB_CONFIG[activeTab].label}
+            {getTabLabel(activeTab)}
           </span>
-          <p className="text-sm text-gray-700 leading-relaxed">{currentImage.caption}</p>
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+            {getCaption(currentVisual)}
+          </p>
         </div>
       )}
 
       {/* 도트 인디케이터 (모바일) */}
-      {validImages.length > 1 && (
+      {validVisuals.length > 1 && (
         <div className="flex justify-center gap-2 pb-3 md:hidden">
           {tabOrder.map((tab) => {
-            const img = images.find((i) => i.type === tab);
-            const hasImage = img?.url && !imageError[tab];
+            const visual = normalizedVisuals.find((v) => v.type === tab);
+            const hasImage = visual?.imageUrl && !imageError[tab];
             if (!hasImage) return null;
 
             return (

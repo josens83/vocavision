@@ -469,3 +469,275 @@ export const getPublicWords = async (
     next(error);
   }
 };
+
+// ============================================
+// 3-이미지 시각화 시스템 (Word Visuals) API
+// ============================================
+
+// VisualType for validation
+type VisualType = 'CONCEPT' | 'MNEMONIC' | 'RHYME';
+const VALID_VISUAL_TYPES: VisualType[] = ['CONCEPT', 'MNEMONIC', 'RHYME'];
+
+// Get visuals for a word
+export const getWordVisuals = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    const visuals = await prisma.wordVisual.findMany({
+      where: { wordId: id },
+      orderBy: { order: 'asc' },
+    });
+
+    res.json({ visuals });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update/create visuals for a word (upsert)
+export const updateWordVisuals = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    const { visuals } = req.body;
+
+    if (!Array.isArray(visuals)) {
+      throw new AppError('visuals must be an array', 400);
+    }
+
+    // Verify word exists
+    const word = await prisma.word.findUnique({ where: { id } });
+    if (!word) {
+      throw new AppError('Word not found', 404);
+    }
+
+    // Process each visual (upsert)
+    const upsertedVisuals = await Promise.all(
+      visuals.map(async (visual: any, index: number) => {
+        const type = visual.type as VisualType;
+
+        // Validate type
+        if (!VALID_VISUAL_TYPES.includes(type)) {
+          throw new AppError(`Invalid visual type: ${type}`, 400);
+        }
+
+        return prisma.wordVisual.upsert({
+          where: {
+            wordId_type: {
+              wordId: id,
+              type,
+            },
+          },
+          create: {
+            wordId: id,
+            type,
+            labelEn: visual.labelEn,
+            labelKo: visual.labelKo,
+            captionEn: visual.captionEn,
+            captionKo: visual.captionKo,
+            imageUrl: visual.imageUrl,
+            promptEn: visual.promptEn,
+            order: visual.order ?? index,
+          },
+          update: {
+            labelEn: visual.labelEn,
+            labelKo: visual.labelKo,
+            captionEn: visual.captionEn,
+            captionKo: visual.captionKo,
+            imageUrl: visual.imageUrl,
+            promptEn: visual.promptEn,
+            order: visual.order ?? index,
+          },
+        });
+      })
+    );
+
+    res.json({ visuals: upsertedVisuals });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Delete a specific visual
+export const deleteWordVisual = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id, type } = req.params;
+
+    // Validate type
+    if (!VALID_VISUAL_TYPES.includes(type as VisualType)) {
+      throw new AppError(`Invalid visual type: ${type}`, 400);
+    }
+
+    await prisma.wordVisual.delete({
+      where: {
+        wordId_type: {
+          wordId: id,
+          type: type as VisualType,
+        },
+      },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Import visuals from JSON template (batch)
+export const importWordVisualsFromTemplate = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { templates } = req.body;
+
+    if (!Array.isArray(templates)) {
+      throw new AppError('templates must be an array', 400);
+    }
+
+    const results: { word: string; success: boolean; error?: string }[] = [];
+
+    for (const template of templates) {
+      try {
+        // Find word by name
+        const word = await prisma.word.findFirst({
+          where: { word: template.word },
+        });
+
+        if (!word) {
+          results.push({
+            word: template.word,
+            success: false,
+            error: 'Word not found',
+          });
+          continue;
+        }
+
+        // Process each visual type
+        const visualsToUpsert: any[] = [];
+
+        if (template.visuals?.concept) {
+          visualsToUpsert.push({
+            type: 'CONCEPT' as VisualType,
+            labelEn: 'Concept',
+            labelKo: template.visuals.concept.labelKo || '의미',
+            captionEn: template.visuals.concept.captionEn,
+            captionKo: template.visuals.concept.captionKo,
+            imageUrl: template.visuals.concept.imageUrl,
+            promptEn: template.visuals.concept.promptEn,
+            order: 0,
+          });
+        }
+
+        if (template.visuals?.mnemonic) {
+          visualsToUpsert.push({
+            type: 'MNEMONIC' as VisualType,
+            labelEn: 'Mnemonic',
+            labelKo: template.visuals.mnemonic.labelKo || '연상',
+            captionEn: template.visuals.mnemonic.captionEn,
+            captionKo: template.visuals.mnemonic.captionKo,
+            imageUrl: template.visuals.mnemonic.imageUrl,
+            promptEn: template.visuals.mnemonic.promptEn,
+            order: 1,
+          });
+        }
+
+        if (template.visuals?.rhyme) {
+          visualsToUpsert.push({
+            type: 'RHYME' as VisualType,
+            labelEn: 'Rhyme',
+            labelKo: template.visuals.rhyme.labelKo || '라이밍',
+            captionEn: template.visuals.rhyme.captionEn,
+            captionKo: template.visuals.rhyme.captionKo,
+            imageUrl: template.visuals.rhyme.imageUrl,
+            promptEn: template.visuals.rhyme.promptEn,
+            order: 2,
+          });
+        }
+
+        // Upsert each visual
+        await Promise.all(
+          visualsToUpsert.map((visual) =>
+            prisma.wordVisual.upsert({
+              where: {
+                wordId_type: {
+                  wordId: word.id,
+                  type: visual.type,
+                },
+              },
+              create: {
+                wordId: word.id,
+                ...visual,
+              },
+              update: visual,
+            })
+          )
+        );
+
+        results.push({ word: template.word, success: true });
+      } catch (err: any) {
+        results.push({
+          word: template.word,
+          success: false,
+          error: err.message || 'Unknown error',
+        });
+      }
+    }
+
+    const successCount = results.filter((r) => r.success).length;
+    const failCount = results.filter((r) => !r.success).length;
+
+    res.json({
+      message: `Imported ${successCount} words, ${failCount} failed`,
+      results,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get word with visuals (for learning view)
+export const getWordWithVisuals = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    const word = await prisma.word.findFirst({
+      where: {
+        id,
+        status: 'PUBLISHED',
+      },
+      include: {
+        examples: { take: 3 },
+        images: { take: 1 },
+        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+        etymology: true,
+        collocations: { take: 5, orderBy: { frequency: 'desc' } },
+        visuals: { orderBy: { order: 'asc' } },
+      },
+    });
+
+    if (!word) {
+      throw new AppError('Word not found', 404);
+    }
+
+    res.json({ word });
+  } catch (error) {
+    next(error);
+  }
+};
