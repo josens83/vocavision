@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
+import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmModal';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -13,6 +15,9 @@ export default function SettingsPage() {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const logout = useAuthStore((state) => state.logout);
+
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'subscription'>('profile');
   const [loading, setLoading] = useState(false);
@@ -64,10 +69,10 @@ export default function SettingsPage() {
         { name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('프로필이 업데이트되었습니다');
+      toast.success('프로필 업데이트 완료', '프로필이 성공적으로 업데이트되었습니다');
     } catch (error) {
       console.error('Failed to update profile:', error);
-      alert('프로필 업데이트 실패');
+      toast.error('프로필 업데이트 실패', '다시 시도해주세요');
     } finally {
       setLoading(false);
     }
@@ -77,12 +82,12 @@ export default function SettingsPage() {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      alert('새 비밀번호가 일치하지 않습니다');
+      toast.warning('비밀번호 불일치', '새 비밀번호가 일치하지 않습니다');
       return;
     }
 
     if (newPassword.length < 8) {
-      alert('비밀번호는 8자 이상이어야 합니다');
+      toast.warning('비밀번호 길이 부족', '비밀번호는 8자 이상이어야 합니다');
       return;
     }
 
@@ -95,20 +100,28 @@ export default function SettingsPage() {
         { currentPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('비밀번호가 변경되었습니다');
+      toast.success('비밀번호 변경 완료', '비밀번호가 성공적으로 변경되었습니다');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
       console.error('Failed to change password:', error);
-      alert('비밀번호 변경 실패');
+      toast.error('비밀번호 변경 실패', '현재 비밀번호를 확인해주세요');
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancelSubscription = async () => {
-    if (!confirm('정말 구독을 취소하시겠습니까?')) return;
+    const confirmed = await confirm({
+      title: '구독 취소',
+      message: '정말 구독을 취소하시겠습니까? 남은 기간 동안은 계속 이용하실 수 있습니다.',
+      confirmText: '구독 취소',
+      cancelText: '유지하기',
+      type: 'danger',
+    });
+
+    if (!confirmed) return;
 
     try {
       const token = localStorage.getItem('authToken');
@@ -117,11 +130,27 @@ export default function SettingsPage() {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('구독이 취소되었습니다');
+      toast.success('구독 취소 완료', '구독이 취소되었습니다');
       loadSubscription();
     } catch (error) {
       console.error('Failed to cancel subscription:', error);
-      alert('구독 취소 실패');
+      toast.error('구독 취소 실패', '다시 시도해주세요');
+    }
+  };
+
+  const handleLogout = async () => {
+    const confirmed = await confirm({
+      title: '로그아웃',
+      message: '정말 로그아웃 하시겠습니까?',
+      confirmText: '로그아웃',
+      cancelText: '취소',
+      type: 'info',
+    });
+
+    if (confirmed) {
+      logout();
+      toast.info('로그아웃 완료', '안녕히 가세요!');
+      router.push('/');
     }
   };
 
@@ -348,12 +377,7 @@ export default function SettingsPage() {
                 <div className="border-t pt-6 mt-6">
                   <h4 className="font-semibold mb-4 text-red-600">위험 영역</h4>
                   <button
-                    onClick={() => {
-                      if (confirm('정말 로그아웃 하시겠습니까?')) {
-                        logout();
-                        router.push('/');
-                      }
-                    }}
+                    onClick={handleLogout}
                     className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
                   >
                     로그아웃
