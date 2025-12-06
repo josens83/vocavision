@@ -139,20 +139,13 @@ model Word {
   reviewedAt      DateTime?
   reviewNotes     String?   // 검토 노트
 
-  // ===== 3-이미지 시각화 시스템 =====
-  imageConceptUrl       String?   // 의미 이미지 URL (dormant → 휴화산)
-  imageConceptCaption   String?   // 의미 이미지 캡션
-  imageMnemonicUrl      String?   // 연상법 이미지 URL (dormant → 문 앞 doorman)
-  imageMnemonicCaption  String?   // 연상법 이미지 캡션
-  imageRhymeUrl         String?   // 라이밍 이미지 URL
-  imageRhymeCaption     String?   // 라이밍 이미지 캡션
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relations
   examples    Example[]
   images      WordImage[]
+  visuals     WordVisual[]   // 3-이미지 시각화 시스템
   videos      WordVideo[]
   rhymes      Rhyme[]
   mnemonics   Mnemonic[]
@@ -286,6 +279,48 @@ enum ImageSource {
   STOCK_PHOTO
   ILLUSTRATION
   USER_UPLOADED
+}
+
+// ===== 3-이미지 시각화 시스템 (VocaVision 핵심 기능) =====
+// 각 단어마다 3가지 이미지로 시각화
+// - Concept (의미): 단어 의미를 직관적으로 보여주는 이미지
+// - Mnemonic (연상): 한국어식 연상법에 맞는 이미지
+// - Rhyme (라이밍): 발음/라이밍 기반 상황 이미지
+model WordVisual {
+  id          String      @id @default(uuid())
+  wordId      String
+  type        VisualType
+
+  // 라벨 (탭 표시용)
+  labelEn     String?     // "Concept", "Mnemonic", "Rhyme"
+  labelKo     String?     // "의미", "연상", "라이밍"
+
+  // 캡션 (이미지 설명)
+  captionEn   String?     // 영어 캡션
+  captionKo   String?     // 한국어 캡션 (학습자용)
+
+  // 이미지 URL (정적 이미지 또는 GIF)
+  imageUrl    String?     // Cloudinary URL (GIF 지원)
+
+  // AI 이미지 생성 프롬프트
+  promptEn    String?     @db.Text  // DALL-E/Midjourney 프롬프트
+
+  // 정렬 순서
+  order       Int         @default(0)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  word        Word        @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([wordId, type])
+  @@index([wordId])
+}
+
+enum VisualType {
+  CONCEPT    // 의미 시각화 (dormant → 휴화산)
+  MNEMONIC   // 연상법 이미지 (dormant → doorman이 졸고 있음)
+  RHYME      // 라이밍 이미지 (daunting to dormant man)
 }
 
 // 3. Videos/Animations

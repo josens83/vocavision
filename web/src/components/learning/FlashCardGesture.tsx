@@ -14,6 +14,15 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WordVisualPanel from './WordVisualPanel';
 
+// WordVisual type for the new visuals system
+interface WordVisual {
+  type: 'CONCEPT' | 'MNEMONIC' | 'RHYME';
+  imageUrl?: string | null;
+  captionEn?: string;
+  captionKo?: string;
+  labelKo?: string;
+}
+
 interface Word {
   id: string;
   word: string;
@@ -29,7 +38,9 @@ interface Word {
   rhymes?: any[];
   etymology?: any;
   collocations?: any[];
-  // 3-이미지 시각화 시스템
+  // New visuals system (preferred)
+  visuals?: WordVisual[];
+  // Legacy 3-이미지 시각화 시스템 (backward compatibility)
   imageConceptUrl?: string;
   imageConceptCaption?: string;
   imageMnemonicUrl?: string;
@@ -60,13 +71,18 @@ export default function FlashCardGesture({ word, onAnswer }: FlashCardGesturePro
   const mnemonic = word.mnemonics?.[0];
   const example = word.examples?.[0];
 
-  // 3-이미지 시각화 데이터
-  const visualImages = [
+  // 3-이미지 시각화 데이터 (support both new and legacy format)
+  const hasNewVisuals = word.visuals && word.visuals.length > 0;
+  const hasLegacyVisuals = word.imageConceptUrl || word.imageMnemonicUrl || word.imageRhymeUrl;
+
+  // Legacy format for backward compatibility
+  const legacyVisualImages = [
     { type: 'concept' as const, url: word.imageConceptUrl || null, caption: word.imageConceptCaption || null },
     { type: 'mnemonic' as const, url: word.imageMnemonicUrl || null, caption: word.imageMnemonicCaption || null },
     { type: 'rhyme' as const, url: word.imageRhymeUrl || null, caption: word.imageRhymeCaption || null },
   ];
-  const hasVisualImages = visualImages.some((img) => img.url);
+
+  const hasVisualImages = hasNewVisuals || hasLegacyVisuals;
 
   return (
     <div className="space-y-4">
@@ -148,7 +164,11 @@ export default function FlashCardGesture({ word, onAnswer }: FlashCardGesturePro
 
               {/* 3-이미지 시각화 패널 */}
               {hasVisualImages && (
-                <WordVisualPanel images={visualImages} word={word.word} />
+                <WordVisualPanel
+                  visuals={hasNewVisuals ? word.visuals : undefined}
+                  images={!hasNewVisuals ? legacyVisualImages : undefined}
+                  word={word.word}
+                />
               )}
 
               {/* Mnemonic */}

@@ -301,3 +301,109 @@ export const LEVEL_COLORS: Record<DifficultyLevel, string> = {
   INTERMEDIATE: '#F59E0B', // amber
   ADVANCED: '#EF4444', // red
 };
+
+// ---------------------------------------------
+// 3-이미지 시각화 시스템 (Word Visuals)
+// ---------------------------------------------
+export type VisualType = 'CONCEPT' | 'MNEMONIC' | 'RHYME';
+
+export interface WordVisual {
+  id: string;
+  wordId: string;
+  type: VisualType;
+
+  // 라벨 (탭 표시용)
+  labelEn?: string;   // "Concept", "Mnemonic", "Rhyme"
+  labelKo?: string;   // "의미", "연상", "라이밍"
+
+  // 캡션 (이미지 설명)
+  captionEn?: string; // 영어 캡션
+  captionKo?: string; // 한국어 캡션 (학습자용)
+
+  // 이미지 URL (정적 이미지 또는 GIF)
+  imageUrl?: string;  // Cloudinary URL
+
+  // AI 이미지 생성 프롬프트
+  promptEn?: string;  // DALL-E/Midjourney 프롬프트
+
+  // 정렬 순서
+  order: number;
+
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Visual input for creating/updating (without id, timestamps)
+export interface WordVisualInput {
+  type: VisualType;
+  labelEn?: string;
+  labelKo?: string;
+  captionEn?: string;
+  captionKo?: string;
+  imageUrl?: string;
+  promptEn?: string;
+  order?: number;
+}
+
+// JSON template format for bulk import
+export interface VisualTemplate {
+  word: string;
+  visuals: {
+    concept?: {
+      labelKo?: string;
+      captionEn?: string;
+      captionKo?: string;
+      imageUrl?: string;
+      promptEn?: string;
+    };
+    mnemonic?: {
+      labelKo?: string;
+      captionEn?: string;
+      captionKo?: string;
+      imageUrl?: string;
+      promptEn?: string;
+    };
+    rhyme?: {
+      labelKo?: string;
+      captionEn?: string;
+      captionKo?: string;
+      imageUrl?: string;
+      promptEn?: string;
+    };
+  };
+}
+
+// Constants for visual types
+export const VISUAL_TYPE_CONFIG: Record<VisualType, {
+  labelEn: string;
+  labelKo: string;
+  description: string;
+  example: string;
+  color: string;
+  lightColor: string;
+}> = {
+  CONCEPT: {
+    labelEn: 'Concept',
+    labelKo: '의미',
+    description: '단어 의미를 직관적으로 보여주는 이미지',
+    example: 'dormant → 휴화산 (dormant volcano)',
+    color: 'bg-blue-500',
+    lightColor: 'bg-blue-50 text-blue-700 border-blue-200',
+  },
+  MNEMONIC: {
+    labelEn: 'Mnemonic',
+    labelKo: '연상',
+    description: '한국어식 연상법에 맞는 이미지',
+    example: 'dormant → 문 앞에서 졸고 있는 doorman',
+    color: 'bg-green-500',
+    lightColor: 'bg-green-50 text-green-700 border-green-200',
+  },
+  RHYME: {
+    labelEn: 'Rhyme',
+    labelKo: '라이밍',
+    description: '발음/라이밍 기반 상황 이미지',
+    example: 'daunting to dormant man',
+    color: 'bg-purple-500',
+    lightColor: 'bg-purple-50 text-purple-700 border-purple-200',
+  },
+};
