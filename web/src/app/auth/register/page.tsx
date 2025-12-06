@@ -1,25 +1,80 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
+import { validateEmail, validatePassword, validateName, validateForm } from '@/lib/validation';
+import { FormInput, FormError, SubmitButton } from '@/components/ui/FormInput';
 
 export default function RegisterPage() {
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
   });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+
+  const validateField = useCallback((field: string, value: string) => {
+    let result;
+    switch (field) {
+      case 'name':
+        result = validateName(value, { required: false });
+        break;
+      case 'email':
+        result = validateEmail(value);
+        break;
+      case 'password':
+        result = validatePassword(value, { minLength: 8 });
+        break;
+      default:
+        return;
+    }
+
+    setErrors((prev) => ({
+      ...prev,
+      [field]: result.isValid ? '' : result.error || '',
+    }));
+  }, []);
+
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+    // Only validate if the field has been touched
+    if (touched[field]) {
+      validateField(field, value);
+    }
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateField(field, formData[field as keyof typeof formData]);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setServerError('');
+
+    // Validate all fields
+    const validation = validateForm({
+      name: validateName(formData.name, { required: false }),
+      email: validateEmail(formData.email),
+      password: validatePassword(formData.password, { minLength: 8 }),
+    });
+
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      setTouched({ name: true, email: true, password: true });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -27,7 +82,12 @@ export default function RegisterPage() {
       setAuth(response.user, response.token);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.error || '회원가입 실패');
+      const errorMessage = err.response?.data?.error || '회원가입에 실패했습니다. 다시 시도해주세요.';
+      if (errorMessage.toLowerCase().includes('email') || errorMessage.includes('이메일')) {
+        setErrors((prev) => ({ ...prev, email: '이미 사용 중인 이메일입니다' }));
+      } else {
+        setServerError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -43,75 +103,72 @@ export default function RegisterPage() {
           7일 무료 체험을 시작하세요
         </p>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
+        {serverError && (
+          <div className="mb-6">
+            <FormError message={serverError} />
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              이름
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="홍길동"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          <FormInput
+            label="이름"
+            type="text"
+            value={formData.name}
+            onChange={(e) => handleChange('name', e.target.value)}
+            onBlur={() => handleBlur('name')}
+            error={touched.name ? errors.name : undefined}
+            placeholder="홍길동"
+            autoComplete="name"
+            hint="선택 사항입니다"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              이메일
-            </label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="your@email.com"
-            />
-          </div>
+          <FormInput
+            label="이메일"
+            type="email"
+            required
+            value={formData.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+            onBlur={() => handleBlur('email')}
+            error={touched.email ? errors.email : undefined}
+            placeholder="your@email.com"
+            autoComplete="email"
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              비밀번호
-            </label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="8자 이상"
-            />
-          </div>
+          <FormInput
+            label="비밀번호"
+            type="password"
+            required
+            value={formData.password}
+            onChange={(e) => handleChange('password', e.target.value)}
+            onBlur={() => handleBlur('password')}
+            error={touched.password ? errors.password : undefined}
+            placeholder="8자 이상 입력하세요"
+            autoComplete="new-password"
+            showPasswordStrength
+          />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {loading ? '가입 중...' : '무료 체험 시작'}
-          </button>
+          <SubmitButton loading={loading} loadingText="가입 중...">
+            무료 체험 시작
+          </SubmitButton>
         </form>
 
         <p className="mt-6 text-center text-gray-600">
           이미 계정이 있으신가요?{' '}
-          <Link href="/auth/login" className="text-blue-600 hover:underline">
+          <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">
             로그인
           </Link>
+        </p>
+
+        <p className="mt-4 text-center text-xs text-gray-500">
+          가입 시{' '}
+          <Link href="/terms" className="text-blue-600 hover:underline">
+            이용약관
+          </Link>
+          {' '}및{' '}
+          <Link href="/privacy" className="text-blue-600 hover:underline">
+            개인정보처리방침
+          </Link>
+          에 동의하는 것으로 간주됩니다.
         </p>
       </div>
     </div>
