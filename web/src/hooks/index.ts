@@ -35,3 +35,10 @@ export {
   useReview,
   apiClient,
 } from './useAdminApi';
+
+// Level Test Hook
+export {
+  useLevelTest,
+  type QuizQuestion as LevelTestQuestion,
+  type LevelTestResult,
+} from './useLevelTest';

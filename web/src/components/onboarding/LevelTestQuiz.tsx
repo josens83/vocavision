@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { X, CheckCircle, XCircle } from 'lucide-react';
+import LevelTestProgress from './LevelTestProgress';
 
 export interface QuizQuestion {
   word: string;
@@ -116,10 +117,10 @@ export default function LevelTestQuiz({
       </div>
 
       {/* 진행률 바 */}
-      <div className="w-full h-2 bg-gray-200 rounded-full mb-8 overflow-hidden">
-        <div
-          className="h-full bg-pink-500 transition-all duration-500"
-          style={{ width: `${progress}%` }}
+      <div className="mb-8">
+        <LevelTestProgress
+          current={currentIndex + 1}
+          total={questions.length}
         />
       </div>
 

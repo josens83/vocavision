@@ -8,6 +8,7 @@ interface LevelTestResultProps {
   correct: number;
   total: number;
   recommendedLevel: string;
+  onRetry?: () => void;
 }
 
 const LEVEL_INFO = {
@@ -38,6 +39,7 @@ export default function LevelTestResult({
   correct,
   total,
   recommendedLevel,
+  onRetry,
 }: LevelTestResultProps) {
   const router = useRouter();
   const percentage = Math.round((correct / total) * 100);
@@ -60,8 +62,12 @@ export default function LevelTestResult({
   };
 
   const handleRetry = () => {
-    // 테스트 다시 시작
-    window.location.reload();
+    // 외부에서 onRetry가 전달되면 사용, 아니면 페이지 리로드
+    if (onRetry) {
+      onRetry();
+    } else {
+      window.location.reload();
+    }
   };
 
   return (

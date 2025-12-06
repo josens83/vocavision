@@ -5,4 +5,5 @@
 export { default as LevelTestIntro } from './LevelTestIntro';
 export { default as LevelTestQuiz } from './LevelTestQuiz';
 export { default as LevelTestResult } from './LevelTestResult';
+export { default as LevelTestProgress } from './LevelTestProgress';
 export type { QuizQuestion } from './LevelTestQuiz';
