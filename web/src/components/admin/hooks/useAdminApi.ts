@@ -17,6 +17,8 @@ import {
   ReviewForm,
   EXAM_LEVEL_OPTIONS,
   LEVEL_TO_DB,
+  WordVisual,
+  WordVisualInput,
 } from '../types/admin.types';
 
 // Generation progress type for AI content generation
@@ -749,6 +751,67 @@ export function useAuditLogs() {
   }, []);
 
   return { logs, loading, error, fetchAuditLogs, clearLogs };
+}
+
+// ============================================
+// useVisuals Hook - Word Visual 3-Image System
+// ============================================
+
+export function useVisuals() {
+  const [visuals, setVisuals] = useState<WordVisual[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchVisuals = useCallback(async (wordId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await apiClient<{ visuals: WordVisual[] }>(
+        `/words/${wordId}/visuals`
+      );
+      setVisuals(data.visuals || []);
+    } catch (err) {
+      // If 404 or no visuals, just set empty array
+      setVisuals([]);
+      // Only set error for non-404 errors
+      if (err instanceof Error && !err.message.includes('404')) {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const saveVisuals = useCallback(
+    async (wordId: string, visualsData: WordVisualInput[]): Promise<boolean> => {
+      setSaving(true);
+      setError(null);
+      try {
+        const data = await apiClient<{ visuals: WordVisual[] }>(
+          `/words/${wordId}/visuals`,
+          {
+            method: 'PUT',
+            body: JSON.stringify({ visuals: visualsData }),
+          }
+        );
+        setVisuals(data.visuals || []);
+        return true;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to save visuals');
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    []
+  );
+
+  const clearVisuals = useCallback(() => {
+    setVisuals([]);
+  }, []);
+
+  return { visuals, loading, saving, error, fetchVisuals, saveVisuals, clearVisuals };
 }
 
 // ============================================
