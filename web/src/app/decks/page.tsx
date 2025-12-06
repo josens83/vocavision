@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
 import { decksAPI } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmModal';
+import { SkeletonDeckCard } from '@/components/ui/Skeleton';
 
 // Benchmarking: Anki-style custom deck system
 // Phase 2-1: 커스텀 덱 시스템 - 사용자 정의 덱 생성 및 관리
@@ -26,6 +29,8 @@ interface Deck {
 export default function DecksPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const [myDecks, setMyDecks] = useState<Deck[]>([]);
   const [publicDecks, setPublicDecks] = useState<Deck[]>([]);
@@ -115,22 +120,31 @@ export default function DecksPage() {
     try {
       await decksAPI.cloneDeck(deckId);
       loadDecks(); // Reload to show cloned deck
-      alert('덱이 내 덱 목록에 추가되었습니다!');
+      toast.success('덱 복사 완료', '덱이 내 덱 목록에 추가되었습니다!');
     } catch (error) {
       console.error('Failed to clone deck:', error);
-      alert('덱 복사에 실패했습니다.');
+      toast.error('덱 복사 실패', '다시 시도해주세요');
     }
   };
 
   const handleDeleteDeck = async (deckId: string) => {
-    if (!confirm('정말 이 덱을 삭제하시겠습니까?')) return;
+    const confirmed = await confirm({
+      title: '덱 삭제',
+      message: '정말 이 덱을 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.',
+      confirmText: '삭제',
+      cancelText: '취소',
+      type: 'danger',
+    });
+
+    if (!confirmed) return;
 
     try {
       await decksAPI.deleteDeck(deckId);
+      toast.success('덱 삭제 완료', '덱이 삭제되었습니다');
       loadDecks();
     } catch (error) {
       console.error('Failed to delete deck:', error);
-      alert('덱 삭제에 실패했습니다.');
+      toast.error('덱 삭제 실패', '다시 시도해주세요');
     }
   };
 
@@ -238,9 +252,10 @@ export default function DecksPage() {
 
         {/* Loading State */}
         {loading ? (
-          <div className="text-center py-20">
-            <div className="text-4xl mb-4">⏳</div>
-            <p className="text-gray-600">덱 로딩 중...</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <SkeletonDeckCard key={i} />
+            ))}
           </div>
         ) : (
           <AnimatePresence mode="wait">

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
 import { progressAPI } from '@/lib/api';
 import TabLayout from '@/components/layout/TabLayout';
+import { SkeletonDashboard } from '@/components/ui/Skeleton';
 
 // Exam info
 const examInfo: Record<string, { name: string; icon: string; gradient: string; color: string }> = {
@@ -92,9 +93,7 @@ export default function DashboardPage() {
   if (!hasHydrated || loading) {
     return (
       <TabLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-xl text-gray-500">로딩 중...</div>
-        </div>
+        <SkeletonDashboard />
       </TabLayout>
     );
   }

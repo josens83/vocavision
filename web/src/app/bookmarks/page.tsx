@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
+import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmModal';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -24,6 +26,8 @@ interface Bookmark {
 export default function BookmarksPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +56,15 @@ export default function BookmarksPage() {
   };
 
   const handleRemoveBookmark = async (wordId: string) => {
-    if (!confirm('북마크를 삭제하시겠습니까?')) return;
+    const confirmed = await confirm({
+      title: '북마크 삭제',
+      message: '이 단어를 북마크에서 삭제하시겠습니까?',
+      confirmText: '삭제',
+      cancelText: '취소',
+      type: 'warning',
+    });
+
+    if (!confirmed) return;
 
     try {
       const token = localStorage.getItem('authToken');
@@ -60,9 +72,10 @@ export default function BookmarksPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBookmarks(bookmarks.filter(b => b.wordId !== wordId));
+      toast.success('북마크 삭제 완료', '북마크가 삭제되었습니다');
     } catch (error) {
       console.error('Failed to remove bookmark:', error);
-      alert('북마크 삭제 실패');
+      toast.error('북마크 삭제 실패', '다시 시도해주세요');
     }
   };
 

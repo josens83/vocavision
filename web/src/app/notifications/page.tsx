@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
+import { useToast } from '@/components/ui/Toast';
+import { useConfirm } from '@/components/ui/ConfirmModal';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -28,6 +30,8 @@ interface NotificationPreferences {
 export default function NotificationsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
@@ -128,7 +132,15 @@ export default function NotificationsPage() {
   };
 
   const clearAllNotifications = async () => {
-    if (!confirm('모든 알림을 삭제하시겠습니까?')) return;
+    const confirmed = await confirm({
+      title: '모든 알림 삭제',
+      message: '모든 알림을 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.',
+      confirmText: '모두 삭제',
+      cancelText: '취소',
+      type: 'danger',
+    });
+
+    if (!confirmed) return;
 
     try {
       const token = localStorage.getItem('authToken');
@@ -138,8 +150,10 @@ export default function NotificationsPage() {
 
       setNotifications([]);
       setUnreadCount(0);
+      toast.success('알림 삭제 완료', '모든 알림이 삭제되었습니다');
     } catch (error) {
       console.error('Failed to clear notifications:', error);
+      toast.error('알림 삭제 실패', '다시 시도해주세요');
     }
   };
 
