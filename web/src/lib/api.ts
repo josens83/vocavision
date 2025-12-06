@@ -166,10 +166,157 @@ export const wordsAPI = {
     });
     return response.data;
   },
-  getLevelTestQuestions: async () => {
+  getLevelTestQuestions: async (params?: {
+    examCategory?: string;
+    count?: number;
+  }) => {
     if (isMockMode()) return mockWordsAPI.getLevelTestQuestions();
-    const response = await api.get('/words/level-test-questions');
+    const response = await api.get('/words/level-test-questions', { params });
     return response.data;
+  },
+  // 4지선다 퀴즈 문제 조회
+  getQuizQuestions: async (params?: {
+    examCategory?: string;
+    level?: string;
+    mode?: 'eng-to-kor' | 'kor-to-eng';
+    count?: number;
+  }) => {
+    const response = await api.get('/words/quiz-questions', { params });
+    return response.data;
+  },
+  // 단어 + 시각화 이미지 포함 조회
+  getWordWithVisuals: async (id: string) => {
+    const response = await api.get(`/words/${id}/with-visuals`);
+    return response.data;
+  },
+};
+
+// Learning Records API - 학습 기록 저장/조회
+export const learningAPI = {
+  // 개별 학습 기록 저장
+  recordLearning: async (data: {
+    wordId: string;
+    quizType: 'LEVEL_TEST' | 'ENG_TO_KOR' | 'KOR_TO_ENG' | 'FLASHCARD' | 'SPELLING';
+    isCorrect: boolean;
+    selectedAnswer?: string;
+    correctAnswer?: string;
+    responseTime?: number;
+    sessionId?: string;
+  }) => {
+    const response = await api.post('/learning/record', data);
+    return response.data;
+  },
+
+  // 배치 학습 기록 저장
+  recordLearningBatch: async (records: Array<{
+    wordId: string;
+    quizType: 'LEVEL_TEST' | 'ENG_TO_KOR' | 'KOR_TO_ENG' | 'FLASHCARD' | 'SPELLING';
+    isCorrect: boolean;
+    selectedAnswer?: string;
+    correctAnswer?: string;
+    responseTime?: number;
+  }>, sessionId?: string) => {
+    const response = await api.post('/learning/record-batch', { records, sessionId });
+    return response.data;
+  },
+
+  // 학습 통계 조회
+  getStats: async () => {
+    const response = await api.get('/learning/stats');
+    return response.data;
+  },
+};
+
+// Word Visuals API - 3-이미지 시각화 시스템
+export const visualsAPI = {
+  // 단어의 시각화 이미지 조회
+  getVisuals: async (wordId: string) => {
+    const response = await api.get(`/words/${wordId}/visuals`);
+    return response.data;
+  },
+
+  // 시각화 이미지 업데이트 (admin)
+  updateVisuals: async (wordId: string, visuals: Array<{
+    type: 'CONCEPT' | 'MNEMONIC' | 'RHYME';
+    labelKo?: string;
+    captionEn?: string;
+    captionKo?: string;
+    imageUrl?: string;
+    promptEn?: string;
+    order?: number;
+  }>) => {
+    const response = await api.put(`/words/${wordId}/visuals`, { visuals });
+    return response.data;
+  },
+
+  // 시각화 이미지 삭제 (admin)
+  deleteVisual: async (wordId: string, type: 'CONCEPT' | 'MNEMONIC' | 'RHYME') => {
+    const response = await api.delete(`/words/${wordId}/visuals/${type}`);
+    return response.data;
+  },
+
+  // JSON 템플릿에서 일괄 가져오기 (admin)
+  importFromTemplate: async (templates: Array<{
+    word: string;
+    visuals: {
+      concept?: { captionKo?: string; imageUrl?: string; promptEn?: string };
+      mnemonic?: { captionKo?: string; imageUrl?: string; promptEn?: string };
+      rhyme?: { captionKo?: string; imageUrl?: string; promptEn?: string };
+    };
+  }>) => {
+    const response = await api.post('/words/visuals/import', { templates });
+    return response.data;
+  },
+};
+
+// Pronunciation API - 발음 듣기 (Free Dictionary API)
+export const pronunciationAPI = {
+  // Free Dictionary API에서 발음 URL 가져오기
+  getPronunciation: async (word: string): Promise<{
+    audioUrl: string | null;
+    phonetic: string | null;
+  }> => {
+    try {
+      const response = await fetch(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`
+      );
+      if (!response.ok) return { audioUrl: null, phonetic: null };
+
+      const data = await response.json();
+      const entry = data[0];
+
+      // Find audio URL (prefer US pronunciation)
+      let audioUrl: string | null = null;
+      let phonetic: string | null = entry?.phonetic || null;
+
+      if (entry?.phonetics) {
+        for (const p of entry.phonetics) {
+          if (p.audio) {
+            audioUrl = p.audio;
+            if (p.audio.includes('-us')) break; // Prefer US pronunciation
+          }
+          if (p.text && !phonetic) phonetic = p.text;
+        }
+      }
+
+      return { audioUrl, phonetic };
+    } catch {
+      return { audioUrl: null, phonetic: null };
+    }
+  },
+
+  // 발음 재생
+  playPronunciation: async (word: string): Promise<boolean> => {
+    const { audioUrl } = await pronunciationAPI.getPronunciation(word);
+    if (!audioUrl) return false;
+
+    try {
+      const audio = new Audio(audioUrl);
+      await audio.play();
+      return true;
+    } catch {
+      return false;
+    }
   },
 };
 

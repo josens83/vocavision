@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WordVisualPanel from './WordVisualPanel';
+import PronunciationButton from './PronunciationButton';
 
 // WordVisual type for the new visuals system
 interface WordVisual {
@@ -97,10 +98,13 @@ export default function FlashCardGesture({ word, onAnswer }: FlashCardGesturePro
             </span>
           )}
 
-          {/* English Word */}
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
-            {word.word}
-          </h2>
+          {/* English Word with Pronunciation */}
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+              {word.word}
+            </h2>
+            <PronunciationButton word={word.word} size="md" variant="ghost" />
+          </div>
 
           {/* IPA Pronunciation */}
           {displayPronunciation && (
