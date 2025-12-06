@@ -1,5 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../index';
+import {
+  checkDuplicates,
+  getDeduplicationStats,
+  getAllDeduplicationStats,
+  COST_PER_WORD,
+} from '../utils/wordDeduplication';
 import { CSAT_L1_WORDS, CSAT_L2_WORDS, CSAT_L3_WORDS } from '../data/csat-words';
 import { processGenerationJob } from '../services/contentGenerator.service';
 import logger from '../utils/logger';
@@ -1054,6 +1060,160 @@ router.get('/word-status-stats', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('[Internal/StatusStats] Error:', error);
     res.status(500).json({ error: 'Stats failed' });
+  }
+});
+
+// ============================================
+// Word Deduplication Endpoints
+// ============================================
+
+/**
+ * GET /internal/deduplication-stats?key=SECRET&source=CSAT&target=TOEFL
+ * 두 시험 간 중복 통계 조회
+ */
+router.get('/deduplication-stats', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const { source = 'CSAT', target } = req.query;
+
+    if (!target) {
+      return res.status(400).json({ error: 'target exam required' });
+    }
+
+    const stats = await getDeduplicationStats(
+      source as string,
+      target as string
+    );
+
+    res.json(stats);
+  } catch (error) {
+    console.error('[Internal/Deduplication] Stats error:', error);
+    res.status(500).json({ error: 'Failed to get stats' });
+  }
+});
+
+/**
+ * GET /internal/deduplication-stats-all?key=SECRET&source=CSAT
+ * 모든 시험에 대한 중복 통계 일괄 조회
+ */
+router.get('/deduplication-stats-all', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const { source = 'CSAT' } = req.query;
+
+    const stats = await getAllDeduplicationStats(source as string);
+
+    // Calculate totals
+    const totals = {
+      totalOverlap: 0,
+      totalNew: 0,
+      totalSavings: 0,
+      totalCost: 0,
+    };
+
+    for (const exam of Object.keys(stats)) {
+      totals.totalOverlap += stats[exam].overlapCount;
+      totals.totalNew += stats[exam].newWordsNeeded;
+      totals.totalSavings += stats[exam].estimatedSavings;
+      totals.totalCost += stats[exam].estimatedCost;
+    }
+
+    res.json({
+      source,
+      byExam: stats,
+      totals,
+      costPerWord: COST_PER_WORD,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[Internal/Deduplication] Stats all error:', error);
+    res.status(500).json({ error: 'Failed to get stats' });
+  }
+});
+
+/**
+ * POST /internal/check-duplicates
+ * 단어 목록 중복 체크
+ */
+router.post('/check-duplicates', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string || req.body.key;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const { words, targetExam } = req.body;
+
+    if (!words || !Array.isArray(words)) {
+      return res.status(400).json({ error: 'words array required' });
+    }
+
+    const results = await checkDuplicates(words, targetExam || 'CSAT');
+
+    const newWords = results.filter((r) => r.isNew);
+    const existingWords = results.filter((r) => !r.isNew);
+
+    res.json({
+      total: results.length,
+      newCount: newWords.length,
+      existingCount: existingWords.length,
+      estimatedCost: Number((newWords.length * COST_PER_WORD).toFixed(2)),
+      estimatedSavings: Number((existingWords.length * COST_PER_WORD).toFixed(2)),
+      results,
+    });
+  } catch (error) {
+    console.error('[Internal/Deduplication] Check error:', error);
+    res.status(500).json({ error: 'Failed to check duplicates' });
+  }
+});
+
+/**
+ * POST /internal/seed-exam
+ * 시험별 단어 시드 (중복 체크 포함)
+ */
+router.post('/seed-exam', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string || req.body.key;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const { exam, wordList, reuseContent = true, dryRun = true } = req.body;
+
+    if (!exam) {
+      return res.status(400).json({ error: 'exam required' });
+    }
+
+    if (!wordList || !Array.isArray(wordList)) {
+      return res.status(400).json({ error: 'wordList array required' });
+    }
+
+    // Import seed function dynamically to avoid circular dependency
+    const { seedExamWords } = await import('../scripts/seedExamWords');
+
+    const result = await seedExamWords({
+      exam,
+      wordList,
+      reuseContent,
+      dryRun,
+    });
+
+    res.json({
+      success: true,
+      message: `${exam} seed ${dryRun ? '(dry run)' : ''} completed`,
+      result,
+    });
+  } catch (error) {
+    console.error('[Internal/Seed] Exam seed error:', error);
+    res.status(500).json({ error: 'Failed to seed exam', details: String(error) });
   }
 });
 
