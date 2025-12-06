@@ -166,6 +166,11 @@ export const wordsAPI = {
     });
     return response.data;
   },
+  getLevelTestQuestions: async () => {
+    if (isMockMode()) return mockWordsAPI.getLevelTestQuestions();
+    const response = await api.get('/words/level-test-questions');
+    return response.data;
+  },
 };
 
 // Progress API

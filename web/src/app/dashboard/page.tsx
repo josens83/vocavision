@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const [dueReviewCount, setDueReviewCount] = useState(0);
   const [selectedLevel, setSelectedLevel] = useState('L1');
   const [loading, setLoading] = useState(true);
+  const [showLevelTestBanner, setShowLevelTestBanner] = useState(false);
 
   // Get current month calendar data
   const today = new Date();
@@ -69,6 +70,10 @@ export default function DashboardPage() {
       // Load saved preferences
       const savedLevel = localStorage.getItem('selectedLevel');
       if (savedLevel) setSelectedLevel(savedLevel);
+
+      // Check if level test was completed
+      const levelTestCompleted = localStorage.getItem('levelTestCompleted');
+      setShowLevelTestBanner(levelTestCompleted !== 'true');
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -124,6 +129,45 @@ export default function DashboardPage() {
             매일 조금씩, 꾸준히 학습하면 실력이 쑥쑥 늘어요.
           </p>
         </div>
+
+        {/* 레벨 테스트 배너 - 첫 방문 사용자에게 표시 */}
+        {showLevelTestBanner && (
+          <div className="bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl p-6 mb-6 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 opacity-10">
+              <svg width="200" height="200" viewBox="0 0 200 200" fill="currentColor">
+                <circle cx="150" cy="50" r="100" />
+              </svg>
+            </div>
+            <div className="relative">
+              <h3 className="text-lg font-bold mb-2">
+                나의 영단어 수준은? 🎯
+              </h3>
+              <p className="text-pink-100 text-sm mb-4">
+                맞춤 학습을 위해 간단한 테스트를 진행해보세요 (약 2분)
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/level-test"
+                  className="inline-flex items-center gap-2 bg-white text-pink-600 font-semibold px-4 py-2 rounded-lg hover:bg-pink-50 transition-colors"
+                >
+                  테스트 시작
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+                <button
+                  onClick={() => {
+                    localStorage.setItem('levelTestCompleted', 'true');
+                    setShowLevelTestBanner(false);
+                  }}
+                  className="text-pink-200 hover:text-white text-sm underline transition-colors"
+                >
+                  건너뛰기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 이어서 학습 섹션 - FastCampus 스타일 */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
