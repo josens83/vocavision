@@ -1304,3 +1304,29 @@ export const convertPronunciations = async (
     next(error);
   }
 };
+
+// ============================================
+// Regenerate Pronunciation with AI (한국어 발음 AI 재생성)
+// ============================================
+
+import { regeneratePronunciations } from '../services/pronunciationGenerator.service';
+
+export const regeneratePronunciationsHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { dryRun = true, limit, batchSize = 20 } = req.body;
+    const maxLimit = limit ? parseInt(limit, 10) : undefined;
+    const batchSizeNum = parseInt(batchSize, 10) || 20;
+
+    console.log(`[Admin] Regenerate Pronunciation: dryRun=${dryRun}, limit=${maxLimit}, batchSize=${batchSizeNum}`);
+
+    const result = await regeneratePronunciations(dryRun, maxLimit, batchSizeNum);
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};

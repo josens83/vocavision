@@ -27,6 +27,8 @@ import {
   getWordAuditLogs,
   // Pronunciation conversion
   convertPronunciations,
+  // Pronunciation regeneration with AI
+  regeneratePronunciationsHandler,
 } from '../controllers/admin.controller';
 import {
   getWordVisuals,
@@ -343,5 +345,33 @@ router.get('/words/:wordId/audit-logs', getWordAuditLogs);
  *                 description: Maximum number of words to process
  */
 router.post('/convert-pronunciation', convertPronunciations);
+
+/**
+ * @swagger
+ * /admin/regenerate-pronunciation:
+ *   post:
+ *     summary: Regenerate Korean pronunciation with AI (accurate syllables + stress)
+ *     tags: [Admin - Utilities]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               dryRun:
+ *                 type: boolean
+ *                 default: true
+ *                 description: If true, only shows preview without changing DB
+ *               limit:
+ *                 type: integer
+ *                 description: Maximum number of words to process
+ *               batchSize:
+ *                 type: integer
+ *                 default: 20
+ *                 description: Number of words per API call
+ */
+router.post('/regenerate-pronunciation', regeneratePronunciationsHandler);
 
 export default router;
