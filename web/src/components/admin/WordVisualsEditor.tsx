@@ -38,7 +38,7 @@ import {
 interface WordVisualsEditorProps {
   wordId?: string;
   word: string; // Display word for context
-  visuals: WordVisual[];
+  visuals: (WordVisual | WordVisualInput)[];  // Accept both types
   onChange: (visuals: WordVisualInput[]) => void;
   onImageDelete?: (type: VisualType, updatedVisuals: WordVisualInput[]) => void;
   cloudinaryCloudName?: string;

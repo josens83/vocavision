@@ -1572,7 +1572,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                   <WordVisualsEditor
                     wordId={word.id}
                     word={word.word}
-                    visuals={visuals}
+                    visuals={localVisuals}
                     onChange={handleVisualsChange}
                     onImageDelete={handleImageDelete}
                     cloudinaryCloudName={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
@@ -1764,7 +1764,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                   <WordVisualsEditor
                     wordId={word.id}
                     word={word.word}
-                    visuals={visuals}
+                    visuals={localVisuals}
                     onChange={handleVisualsChange}
                     onImageDelete={handleImageDelete}
                     cloudinaryCloudName={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
