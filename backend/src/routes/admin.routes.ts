@@ -29,6 +29,8 @@ import {
   convertPronunciations,
   // Pronunciation regeneration with AI
   regeneratePronunciationsHandler,
+  // Exam words seeding
+  seedExamWordsHandler,
 } from '../controllers/admin.controller';
 import {
   getWordVisuals,
@@ -373,5 +375,62 @@ router.post('/convert-pronunciation', convertPronunciations);
  *                 description: Number of words per API call
  */
 router.post('/regenerate-pronunciation', regeneratePronunciationsHandler);
+
+// ============================================
+// Exam Words Seeding (시험별 단어 시드)
+// ============================================
+
+/**
+ * @swagger
+ * /admin/seed-exam-words:
+ *   post:
+ *     summary: Seed words for an exam category with duplicate checking
+ *     description: |
+ *       Add words to TOEFL/TOEIC/TEPS/SAT with smart duplicate detection.
+ *       Words that exist in CSAT will have their content copied (free!).
+ *       New words are created as DRAFT and need AI content generation.
+ *     tags: [Admin - Exam Seeding]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - examCategory
+ *               - words
+ *             properties:
+ *               examCategory:
+ *                 type: string
+ *                 enum: [TOEFL, TOEIC, TEPS, SAT]
+ *                 description: Target exam category
+ *               words:
+ *                 type: array
+ *                 items:
+ *                   oneOf:
+ *                     - type: string
+ *                     - type: object
+ *                       properties:
+ *                         word:
+ *                           type: string
+ *                         level:
+ *                           type: string
+ *                           enum: [L1, L2, L3]
+ *                 description: Array of words (strings or {word, level} objects)
+ *               dryRun:
+ *                 type: boolean
+ *                 default: true
+ *                 description: If true, only shows preview without changing DB
+ *               reuseContent:
+ *                 type: boolean
+ *                 default: true
+ *                 description: If true, copies content from existing words
+ *     responses:
+ *       200:
+ *         description: Seeding result with statistics
+ */
+router.post('/seed-exam-words', seedExamWordsHandler);
 
 export default router;
