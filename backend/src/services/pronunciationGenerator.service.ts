@@ -25,8 +25,12 @@ interface RegenerationStats {
   total: number;
   updated: number;
   skipped: number;
+  alreadyConverted: number;
   errors: string[];
   examples: Array<{ word: string; before: string | null; after: string }>;
+  offset: number;
+  nextOffset: number | null;
+  remaining: number;
 }
 
 /**
@@ -99,8 +103,9 @@ JSON 배열로만 응답해주세요 (다른 텍스트 없이):
  */
 export async function regeneratePronunciations(
   dryRun: boolean = true,
-  limit?: number,
-  batchSize: number = 20
+  limit: number = 100,
+  batchSize: number = 20,
+  offset: number = 0
 ): Promise<{
   success: boolean;
   mode: string;
@@ -108,12 +113,20 @@ export async function regeneratePronunciations(
   message: string;
 }> {
   console.log(
-    `[Pronunciation Regenerate] Mode: ${dryRun ? 'DRY RUN' : 'EXECUTE'}, Limit: ${limit || 'ALL'}, BatchSize: ${batchSize}`
+    `[Pronunciation Regenerate] Mode: ${dryRun ? 'DRY RUN' : 'EXECUTE'}, Limit: ${limit}, Offset: ${offset}, BatchSize: ${batchSize}`
   );
 
-  // Get words that need pronunciation
+  // Get total count first (for remaining calculation)
+  const totalCount = await prisma.word.count({
+    where: {
+      OR: [{ ipaUs: { not: null } }, { ipaUk: { not: null } }],
+    },
+  });
+
+  // Get words that need pronunciation with offset
   const words: WordInput[] = await prisma.word.findMany({
-    ...(limit ? { take: limit } : {}),
+    skip: offset,
+    take: limit,
     where: {
       OR: [{ ipaUs: { not: null } }, { ipaUk: { not: null } }],
     },
@@ -127,23 +140,41 @@ export async function regeneratePronunciations(
     orderBy: { word: 'asc' },
   });
 
-  console.log(`[Pronunciation Regenerate] Found ${words.length} words`);
+  console.log(`[Pronunciation Regenerate] Found ${words.length} words (offset: ${offset}, total: ${totalCount})`);
+
+  const nextOffset = offset + limit < totalCount ? offset + limit : null;
+  const remaining = Math.max(0, totalCount - offset - words.length);
 
   const stats: RegenerationStats = {
     total: words.length,
     updated: 0,
     skipped: 0,
+    alreadyConverted: 0,
     errors: [],
     examples: [],
+    offset,
+    nextOffset,
+    remaining,
   };
 
   // Process in batches
   for (let i = 0; i < words.length; i += batchSize) {
-    const batch = words.slice(i, i + batchSize);
+    const rawBatch = words.slice(i, i + batchSize);
     const batchNum = Math.floor(i / batchSize) + 1;
     const totalBatches = Math.ceil(words.length / batchSize);
 
-    console.log(`[Pronunciation Regenerate] Processing batch ${batchNum}/${totalBatches}`);
+    // Filter out already converted words (containing "(강세:")
+    const alreadyConverted = rawBatch.filter((w) => w.pronunciation?.includes('(강세:'));
+    const batch = rawBatch.filter((w) => !w.pronunciation?.includes('(강세:'));
+
+    stats.alreadyConverted += alreadyConverted.length;
+
+    if (batch.length === 0) {
+      console.log(`[Pronunciation Regenerate] Batch ${batchNum}/${totalBatches}: All ${alreadyConverted.length} words already converted, skipping`);
+      continue;
+    }
+
+    console.log(`[Pronunciation Regenerate] Processing batch ${batchNum}/${totalBatches} (${batch.length} words, ${alreadyConverted.length} already converted)`);
 
     try {
       const pronunciations = await generatePronunciationsBatch(

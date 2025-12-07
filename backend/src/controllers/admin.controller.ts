@@ -1317,13 +1317,14 @@ export const regeneratePronunciationsHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { dryRun = true, limit, batchSize = 20 } = req.body;
-    const maxLimit = limit ? parseInt(limit, 10) : undefined;
+    const { dryRun = true, limit = 100, batchSize = 20, offset = 0 } = req.body;
+    const limitNum = parseInt(limit, 10) || 100;
     const batchSizeNum = parseInt(batchSize, 10) || 20;
+    const offsetNum = parseInt(offset, 10) || 0;
 
-    console.log(`[Admin] Regenerate Pronunciation: dryRun=${dryRun}, limit=${maxLimit}, batchSize=${batchSizeNum}`);
+    console.log(`[Admin] Regenerate Pronunciation: dryRun=${dryRun}, limit=${limitNum}, offset=${offsetNum}, batchSize=${batchSizeNum}`);
 
-    const result = await regeneratePronunciations(dryRun, maxLimit, batchSizeNum);
+    const result = await regeneratePronunciations(dryRun, limitNum, batchSizeNum, offsetNum);
 
     res.json(result);
   } catch (error) {
