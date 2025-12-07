@@ -40,6 +40,7 @@ interface WordVisualsEditorProps {
   word: string; // Display word for context
   visuals: WordVisual[];
   onChange: (visuals: WordVisualInput[]) => void;
+  onImageDelete?: (type: VisualType, updatedVisuals: WordVisualInput[]) => void;
   cloudinaryCloudName?: string;
   onJsonImport?: (template: VisualTemplate) => void;
 }
@@ -50,6 +51,7 @@ export default function WordVisualsEditor({
   word,
   visuals,
   onChange,
+  onImageDelete,
   cloudinaryCloudName,
   onJsonImport,
 }: WordVisualsEditorProps) {
@@ -91,6 +93,20 @@ export default function WordVisualsEditor({
       v.type === type ? { ...v, ...updates } : v
     );
     onChange(updatedVisuals);
+  };
+
+  // Handle image delete with immediate save
+  const handleImageDelete = (type: VisualType) => {
+    const currentVisuals = VISUAL_TYPES.map(getVisual);
+    const updatedVisuals = currentVisuals.map((v) =>
+      v.type === type ? { ...v, imageUrl: undefined } : v
+    );
+    onChange(updatedVisuals);
+
+    // Trigger immediate save if callback provided
+    if (onImageDelete) {
+      onImageDelete(type, updatedVisuals);
+    }
   };
 
   // Handle image upload
@@ -346,7 +362,7 @@ export default function WordVisualsEditor({
                       />
                       <button
                         type="button"
-                        onClick={() => updateVisual(type, { imageUrl: undefined })}
+                        onClick={() => handleImageDelete(type)}
                         className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition opacity-0 group-hover:opacity-100"
                       >
                         <X className="w-4 h-4" />

@@ -1138,6 +1138,17 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
     }
   };
 
+  // Handle image delete with immediate save
+  const handleImageDelete = async (_type: string, updatedVisuals: WordVisualInput[]) => {
+    setLocalVisuals(updatedVisuals);
+    const success = await saveVisuals(word.id, updatedVisuals);
+    if (success) {
+      setVisualsChanged(false);
+      setVisualsSaveSuccess(true);
+      setTimeout(() => setVisualsSaveSuccess(false), 3000);
+    }
+  };
+
   // Export word data as JSON for Claude Max editing with guide template
   const handleExportJson = async () => {
     const contentData = content ? {
@@ -1563,6 +1574,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                     word={word.word}
                     visuals={visuals}
                     onChange={handleVisualsChange}
+                    onImageDelete={handleImageDelete}
                     cloudinaryCloudName={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
                   />
                 )}
@@ -1754,6 +1766,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                     word={word.word}
                     visuals={visuals}
                     onChange={handleVisualsChange}
+                    onImageDelete={handleImageDelete}
                     cloudinaryCloudName={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
                   />
                 )}
