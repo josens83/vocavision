@@ -1331,3 +1331,241 @@ export const regeneratePronunciationsHandler = async (
     next(error);
   }
 };
+
+// ============================================
+// Exam Words Seeding (시험별 단어 시드)
+// ============================================
+
+import { checkDuplicates, copyWordContent } from '../utils/wordDeduplication';
+
+type ExamCategory = 'CSAT' | 'TOEFL' | 'TOEIC' | 'TEPS' | 'SAT';
+
+interface WordEntry {
+  word: string;
+  level?: string;
+}
+
+interface SeedExamWordsRequest {
+  examCategory: ExamCategory;
+  words: string[] | WordEntry[];
+  dryRun?: boolean;
+  reuseContent?: boolean;
+}
+
+export const seedExamWordsHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {
+      examCategory,
+      words: inputWords,
+      dryRun = true,
+      reuseContent = true,
+    } = req.body as SeedExamWordsRequest;
+
+    // Validate exam category
+    const validCategories: ExamCategory[] = ['CSAT', 'TOEFL', 'TOEIC', 'TEPS', 'SAT'];
+    if (!validCategories.includes(examCategory)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid examCategory. Must be one of: ${validCategories.join(', ')}`,
+      });
+    }
+
+    if (!inputWords || !Array.isArray(inputWords) || inputWords.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'words array is required and must not be empty',
+      });
+    }
+
+    // Normalize input - support both string[] and WordEntry[]
+    const wordList: WordEntry[] = inputWords.map((w) =>
+      typeof w === 'string' ? { word: w, level: 'L1' } : w
+    );
+
+    console.log(`[Admin] Seed Exam Words: exam=${examCategory}, count=${wordList.length}, dryRun=${dryRun}, reuseContent=${reuseContent}`);
+
+    const stats = {
+      total: wordList.length,
+      duplicates: 0,
+      newWords: 0,
+      skipped: 0,
+      copied: 0,
+      errors: 0,
+      examples: [] as Array<{
+        word: string;
+        action: 'copied' | 'new' | 'skipped' | 'error';
+        from?: string;
+        message?: string;
+      }>,
+    };
+
+    // Check duplicates
+    const words = wordList.map((w) => w.word);
+    const duplicateResults = await checkDuplicates(words, examCategory);
+
+    for (const result of duplicateResults) {
+      const wordData = wordList.find(
+        (w) => w.word.toLowerCase() === result.word.toLowerCase()
+      );
+      const targetLevel = wordData?.level || 'L1';
+
+      if (!result.isNew && result.existingWordId) {
+        // Word exists in another exam - can reuse
+        stats.duplicates++;
+
+        if (result.existingExam === examCategory) {
+          // Already in target exam
+          stats.skipped++;
+          if (stats.examples.length < 10) {
+            stats.examples.push({
+              word: result.word,
+              action: 'skipped',
+              message: `Already exists in ${examCategory}`,
+            });
+          }
+          continue;
+        }
+
+        if (reuseContent && !dryRun) {
+          // Copy content from existing word
+          const copyResult = await copyWordContent(
+            result.existingWordId,
+            examCategory,
+            targetLevel
+          );
+
+          if (copyResult.success) {
+            stats.copied++;
+            if (stats.examples.length < 10) {
+              stats.examples.push({
+                word: result.word,
+                action: 'copied',
+                from: result.existingExam || undefined,
+              });
+            }
+          } else if (copyResult.error?.includes('already exists')) {
+            stats.skipped++;
+            if (stats.examples.length < 10) {
+              stats.examples.push({
+                word: result.word,
+                action: 'skipped',
+                message: 'Already exists in target exam',
+              });
+            }
+          } else {
+            stats.errors++;
+            if (stats.examples.length < 10) {
+              stats.examples.push({
+                word: result.word,
+                action: 'error',
+                message: copyResult.error,
+              });
+            }
+          }
+        } else if (reuseContent && dryRun) {
+          // Dry run - would copy
+          stats.copied++;
+          if (stats.examples.length < 10) {
+            stats.examples.push({
+              word: result.word,
+              action: 'copied',
+              from: result.existingExam || undefined,
+              message: '[DRY RUN] Would copy',
+            });
+          }
+        }
+      } else {
+        // New word - needs AI generation
+        stats.newWords++;
+
+        if (!dryRun) {
+          // Create word as DRAFT
+          try {
+            const existing = await prisma.word.findFirst({
+              where: {
+                word: { equals: result.word, mode: 'insensitive' },
+                examCategory,
+              },
+            });
+
+            if (existing) {
+              stats.skipped++;
+              stats.newWords--;
+              continue;
+            }
+
+            await prisma.word.create({
+              data: {
+                word: result.word,
+                definition: '',
+                partOfSpeech: 'NOUN',
+                examCategory,
+                level: targetLevel,
+                status: 'DRAFT',
+              },
+            });
+
+            if (stats.examples.length < 10) {
+              stats.examples.push({
+                word: result.word,
+                action: 'new',
+                message: 'Created as DRAFT - needs AI content',
+              });
+            }
+          } catch (error: any) {
+            if (error.code === 'P2002') {
+              stats.skipped++;
+              stats.newWords--;
+            } else {
+              stats.errors++;
+              if (stats.examples.length < 10) {
+                stats.examples.push({
+                  word: result.word,
+                  action: 'error',
+                  message: error.message,
+                });
+              }
+            }
+          }
+        } else {
+          // Dry run
+          if (stats.examples.length < 10) {
+            stats.examples.push({
+              word: result.word,
+              action: 'new',
+              message: '[DRY RUN] Would create as DRAFT',
+            });
+          }
+        }
+      }
+    }
+
+    // Calculate cost savings
+    const COST_PER_WORD = 0.03;
+    const estimatedSavings = stats.copied * COST_PER_WORD;
+    const estimatedCost = stats.newWords * COST_PER_WORD;
+
+    res.json({
+      success: true,
+      mode: dryRun ? 'dry_run' : 'executed',
+      examCategory,
+      stats: {
+        ...stats,
+        estimatedSavings: Number(estimatedSavings.toFixed(2)),
+        estimatedCost: Number(estimatedCost.toFixed(2)),
+        savingsPercentage: stats.total > 0
+          ? Math.round((stats.duplicates / stats.total) * 100)
+          : 0,
+      },
+      message: dryRun
+        ? `테스트 모드: ${stats.duplicates}개 재사용 가능, ${stats.newWords}개 신규 (예상 절감: $${estimatedSavings.toFixed(2)})`
+        : `완료: ${stats.copied}개 복사됨, ${stats.newWords}개 생성됨 (DRAFT 상태)`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
