@@ -1050,6 +1050,7 @@ interface WordDetailViewProps {
   onEdit: () => void;
   onGenerate: () => void;
   onReview: () => void;
+  onContentUpdated?: () => void; // Callback to refresh word data after save
 }
 
 // Action labels for audit log
@@ -1070,6 +1071,7 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
   onEdit,
   onGenerate,
   onReview,
+  onContentUpdated,
 }) => {
   const content = word.content;
   const [showJsonImport, setShowJsonImport] = useState(false);
@@ -1202,6 +1204,8 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
       setEditingMnemonic(false);
       setContentSaveSuccess(true);
       setTimeout(() => setContentSaveSuccess(false), 3000);
+      // Trigger parent to refresh word data for auto-update
+      onContentUpdated?.();
     }
   };
 
@@ -1220,6 +1224,8 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
       setEditingExamples(false);
       setContentSaveSuccess(true);
       setTimeout(() => setContentSaveSuccess(false), 3000);
+      // Trigger parent to refresh word data for auto-update
+      onContentUpdated?.();
     }
   };
 

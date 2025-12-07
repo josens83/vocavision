@@ -477,6 +477,10 @@ export const AdminDashboard: React.FC = () => {
             setShowAIGeneration(true);
           }}
           onReview={handleReview}
+          onContentUpdated={() => {
+            // Refetch word data after content update for auto UI refresh
+            fetchWord(detailWord.id);
+          }}
         />
       )}
     </div>
