@@ -1413,6 +1413,9 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                         <span className="text-slate-400">한글:</span> {content.pronunciation}
                       </p>
                     )}
+                    <p className="text-xs text-slate-400 mt-2">
+                      💡 강세 표시: <code className="bg-slate-100 px-1 rounded">어**밴**던</code> → 밴 강조
+                    </p>
                   </div>
                 </Card>
               )}
