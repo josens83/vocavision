@@ -1091,9 +1091,10 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
   const [visualsChanged, setVisualsChanged] = useState(false);
   const [visualsSaveSuccess, setVisualsSaveSuccess] = useState(false);
 
-  // Content Editing (연상법/예문 직접 편집)
+  // Content Editing (연상법/예문 직접 편집 - 분리)
   const { updateContent, saving: contentSaving, error: contentError } = useContentUpdate();
-  const [editingContent, setEditingContent] = useState(false);
+  const [editingMnemonic, setEditingMnemonic] = useState(false);
+  const [editingExamples, setEditingExamples] = useState(false);
   const [editedMnemonic, setEditedMnemonic] = useState('');
   const [editedMnemonicKorean, setEditedMnemonicKorean] = useState('');
   const [editedExamples, setEditedExamples] = useState<Array<{ sentenceEn: string; sentenceKo: string }>>([]);
@@ -1159,31 +1160,54 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
     }
   };
 
-  // Start editing content
-  const handleStartEditContent = () => {
+  // Start editing mnemonic (연상법만)
+  const handleStartEditMnemonic = () => {
     setEditedMnemonic(content?.mnemonic || '');
     setEditedMnemonicKorean(content?.mnemonicKorean || '');
+    setEditingMnemonic(true);
+    setContentSaveSuccess(false);
+  };
+
+  // Start editing examples (예문만)
+  const handleStartEditExamples = () => {
     setEditedExamples(
       content?.funnyExamples?.map((ex) => ({
         sentenceEn: ex.sentenceEn || '',
         sentenceKo: ex.sentenceKo || '',
       })) || [{ sentenceEn: '', sentenceKo: '' }]
     );
-    setEditingContent(true);
+    setEditingExamples(true);
     setContentSaveSuccess(false);
   };
 
-  // Cancel editing content
-  const handleCancelEditContent = () => {
-    setEditingContent(false);
-    setContentSaveSuccess(false);
+  // Cancel editing mnemonic
+  const handleCancelEditMnemonic = () => {
+    setEditingMnemonic(false);
   };
 
-  // Save edited content
-  const handleSaveContent = async () => {
+  // Cancel editing examples
+  const handleCancelEditExamples = () => {
+    setEditingExamples(false);
+  };
+
+  // Save mnemonic only
+  const handleSaveMnemonic = async () => {
     const data: ContentUpdateData = {
       mnemonic: editedMnemonic || undefined,
       mnemonicKorean: editedMnemonicKorean || undefined,
+    };
+
+    const success = await updateContent(word.id, data);
+    if (success) {
+      setEditingMnemonic(false);
+      setContentSaveSuccess(true);
+      setTimeout(() => setContentSaveSuccess(false), 3000);
+    }
+  };
+
+  // Save examples only
+  const handleSaveExamples = async () => {
+    const data: ContentUpdateData = {
       funnyExamples: editedExamples.filter((ex) => ex.sentenceEn.trim()).map((ex) => ({
         sentenceEn: ex.sentenceEn,
         sentenceKo: ex.sentenceKo || undefined,
@@ -1193,10 +1217,9 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
 
     const success = await updateContent(word.id, data);
     if (success) {
-      setEditingContent(false);
+      setEditingExamples(false);
       setContentSaveSuccess(true);
       setTimeout(() => setContentSaveSuccess(false), 3000);
-      // Refresh the word data - this will be handled by parent re-fetch
     }
   };
 
@@ -1488,17 +1511,17 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                 </Card>
               )}
 
-              {/* Mnemonic - Editable */}
+              {/* Mnemonic - Editable (분리) */}
               <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-slate-900 flex items-center gap-2">
                     💡 연상 기억법
                   </h3>
-                  {!editingContent && (
+                  {!editingMnemonic && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={handleStartEditContent}
+                      onClick={handleStartEditMnemonic}
                       className="text-amber-600 hover:bg-amber-100"
                     >
                       <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1509,7 +1532,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                   )}
                 </div>
 
-                {editingContent ? (
+                {editingMnemonic ? (
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -1535,6 +1558,15 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                         className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
                       />
                     </div>
+                    {/* 연상법 저장/취소 버튼 */}
+                    <div className="flex gap-2 justify-end pt-2 border-t border-amber-200">
+                      <Button variant="ghost" size="sm" onClick={handleCancelEditMnemonic} disabled={contentSaving}>
+                        취소
+                      </Button>
+                      <Button variant="primary" size="sm" onClick={handleSaveMnemonic} loading={contentSaving} className="bg-amber-500 hover:bg-amber-600">
+                        저장
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -1553,7 +1585,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                   </>
                 )}
 
-                {content.mnemonicImage && !editingContent && (
+                {content.mnemonicImage && !editingMnemonic && (
                   <div className="mt-4">
                     <img
                       src={content.mnemonicImage}
@@ -1603,13 +1635,28 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                 </Card>
               )}
 
-              {/* Examples - Editable */}
+              {/* Examples - Editable (분리) */}
               <Card>
-                <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                  ✍️ 예문
-                </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                    ✍️ 예문
+                  </h3>
+                  {!editingExamples && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleStartEditExamples}
+                      className="text-pink-600 hover:bg-pink-100"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      편집
+                    </Button>
+                  )}
+                </div>
 
-                {editingContent ? (
+                {editingExamples ? (
                   <div className="space-y-4">
                     {editedExamples.map((ex, i) => (
                       <div key={i} className="p-3 bg-slate-50 rounded-lg space-y-2">
@@ -1646,6 +1693,15 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                     >
                       + 예문 추가
                     </button>
+                    {/* 예문 저장/취소 버튼 */}
+                    <div className="flex gap-2 justify-end pt-2 border-t border-slate-200">
+                      <Button variant="ghost" size="sm" onClick={handleCancelEditExamples} disabled={contentSaving}>
+                        취소
+                      </Button>
+                      <Button variant="primary" size="sm" onClick={handleSaveExamples} loading={contentSaving} className="bg-pink-500 hover:bg-pink-600">
+                        저장
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1664,41 +1720,10 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                 )}
               </Card>
 
-              {/* Save/Cancel Buttons for Content Editing */}
-              {editingContent && (
-                <Card className="bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200">
-                  {contentError && (
-                    <Alert type="error" className="mb-3">
-                      {contentError}
-                    </Alert>
-                  )}
-                  <div className="flex gap-3 justify-end">
-                    <Button
-                      variant="ghost"
-                      onClick={handleCancelEditContent}
-                      disabled={contentSaving}
-                    >
-                      취소
-                    </Button>
-                    <Button
-                      variant="primary"
-                      onClick={handleSaveContent}
-                      loading={contentSaving}
-                      className="bg-pink-500 hover:bg-pink-600"
-                    >
-                      <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      저장하기
-                    </Button>
-                  </div>
-                </Card>
-              )}
-
               {/* Content Save Success Message */}
-              {contentSaveSuccess && !editingContent && (
+              {contentSaveSuccess && !editingMnemonic && !editingExamples && (
                 <Alert type="success">
-                  연상법/예문이 저장되었습니다!
+                  저장되었습니다!
                 </Alert>
               )}
 
