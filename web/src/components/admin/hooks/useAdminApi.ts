@@ -229,10 +229,22 @@ export function useWordMutations() {
       setError(null);
       try {
         // Map frontend level to DB level if provided
-        const payload = { ...data };
-        if (data.level) {
-          payload.level = LEVEL_TO_DB[data.level] as any;
+        // Also convert examCategories (array) to examCategory (single) for backend
+        const payload: Record<string, unknown> = {};
+
+        if (data.word) payload.word = data.word;
+        if (data.topics) payload.tags = data.topics; // topics -> tags for backend
+
+        // Convert examCategories array to single examCategory
+        if (data.examCategories && data.examCategories.length > 0) {
+          payload.examCategory = data.examCategories[0];
         }
+
+        // Convert frontend level to DB level
+        if (data.level) {
+          payload.level = LEVEL_TO_DB[data.level];
+        }
+
         const result = await apiClient<{ word: VocaWord }>(
           `/admin/words/${wordId}`,
           {
