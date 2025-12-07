@@ -15,6 +15,35 @@ import { motion, AnimatePresence } from 'framer-motion';
 import WordVisualPanel from './WordVisualPanel';
 import PronunciationButton from './PronunciationButton';
 
+/**
+ * StressedPronunciation - 강세 표시된 발음 렌더링
+ * 형식: "어**밴**던" → 어<strong>밴</strong>던
+ */
+function StressedPronunciation({ text }: { text: string }) {
+  // Parse **stressed** patterns
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          // Stressed syllable - remove ** and apply styling
+          const stressed = part.slice(2, -2);
+          return (
+            <span
+              key={i}
+              className="text-pink-600 font-bold underline underline-offset-4 decoration-2 decoration-pink-400"
+            >
+              {stressed}
+            </span>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
+
 // WordVisual type for the new visuals system
 interface WordVisual {
   type: 'CONCEPT' | 'MNEMONIC' | 'RHYME';
@@ -113,10 +142,10 @@ export default function FlashCardGesture({ word, onAnswer }: FlashCardGesturePro
             </p>
           )}
 
-          {/* Korean Pronunciation - 스피커 없이 텍스트만 */}
+          {/* Korean Pronunciation with stress marking - 강세 표시 지원 */}
           {koreanPronunciation && (
             <span className="text-pink-500 font-medium">
-              {koreanPronunciation}
+              <StressedPronunciation text={koreanPronunciation} />
             </span>
           )}
         </div>
