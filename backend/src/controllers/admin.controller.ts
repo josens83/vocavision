@@ -324,14 +324,15 @@ export const getAdminWordById = async (
 
       // Mnemonic
       mnemonic: word.mnemonics?.[0]?.content,
+      mnemonicKorean: word.mnemonics?.[0]?.koreanHint,
       mnemonicImage: word.mnemonics?.[0]?.imageUrl,
 
-      // Examples
-      examples: word.examples?.map(e => ({
+      // Examples (funnyExamples for frontend compatibility)
+      funnyExamples: word.examples?.map(e => ({
         id: e.id,
-        sentence: e.sentence,
-        translation: e.translation,
-        source: e.source,
+        sentenceEn: e.sentence,
+        sentenceKo: e.translation,
+        isFunny: e.isFunny || false,
       })) || [],
 
       // Definitions
