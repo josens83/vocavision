@@ -766,6 +766,47 @@ export function useAuditLogs() {
 }
 
 // ============================================
+// useContentUpdate Hook - 연상법/예문 직접 편집
+// ============================================
+
+export interface ContentUpdateData {
+  mnemonic?: string;
+  mnemonicKorean?: string;
+  funnyExamples?: Array<{
+    sentenceEn: string;
+    sentenceKo?: string;
+    isFunny?: boolean;
+  }>;
+}
+
+export function useContentUpdate() {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateContent = useCallback(
+    async (wordId: string, data: ContentUpdateData): Promise<boolean> => {
+      setSaving(true);
+      setError(null);
+      try {
+        await apiClient(`/admin/words/${wordId}/content`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        });
+        return true;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update content');
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    []
+  );
+
+  return { updateContent, saving, error };
+}
+
+// ============================================
 // useVisuals Hook - Word Visual 3-Image System
 // ============================================
 
