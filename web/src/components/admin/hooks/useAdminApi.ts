@@ -779,8 +779,9 @@ export function useVisuals() {
     setLoading(true);
     setError(null);
     try {
+      // Use admin route for admin key authentication
       const data = await apiClient<{ visuals: WordVisual[] }>(
-        `/words/${wordId}/visuals`
+        `/admin/words/${wordId}/visuals`
       );
       setVisuals(data.visuals || []);
     } catch (err) {
@@ -800,8 +801,9 @@ export function useVisuals() {
       setSaving(true);
       setError(null);
       try {
+        // Use admin route for admin key authentication
         const data = await apiClient<{ visuals: WordVisual[] }>(
-          `/words/${wordId}/visuals`,
+          `/admin/words/${wordId}/visuals`,
           {
             method: 'PUT',
             body: JSON.stringify({ visuals: visualsData }),
