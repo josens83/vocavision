@@ -1223,15 +1223,30 @@ export const seedExamWordsHandler = async (
       const fileData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
       const levelKey = level.toUpperCase();
 
-      if (!fileData[levelKey]) {
+      // Handle nested structure: { levels: { L1: { words: [...] } } } or flat: { L1: [...] }
+      const levelsData = fileData.levels || fileData;
+      const levelData = levelsData[levelKey];
+
+      if (!levelData) {
         res.status(400).json({
           success: false,
-          message: `Level ${level} not found in word list. Available: ${Object.keys(fileData).join(', ')}`,
+          message: `Level ${level} not found in word list. Available: ${Object.keys(levelsData).join(', ')}`,
         });
         return;
       }
 
-      wordList = fileData[levelKey].map((word: string) => ({
+      // Handle { words: [...] } or direct array
+      const wordsArray = Array.isArray(levelData) ? levelData : levelData.words;
+
+      if (!wordsArray || !Array.isArray(wordsArray)) {
+        res.status(400).json({
+          success: false,
+          message: `Invalid word list format for level ${level}`,
+        });
+        return;
+      }
+
+      wordList = wordsArray.map((word: string) => ({
         word,
         level: levelKey,
       }));
