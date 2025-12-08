@@ -324,15 +324,14 @@ export const getAdminWordById = async (
 
       // Mnemonic
       mnemonic: word.mnemonics?.[0]?.content,
-      mnemonicKorean: word.mnemonics?.[0]?.koreanHint,
       mnemonicImage: word.mnemonics?.[0]?.imageUrl,
 
-      // Examples (funnyExamples for frontend compatibility)
-      funnyExamples: word.examples?.map(e => ({
+      // Examples
+      examples: word.examples?.map(e => ({
         id: e.id,
-        sentenceEn: e.sentence,
-        sentenceKo: e.translation,
-        isFunny: e.isFunny || false,
+        sentence: e.sentence,
+        translation: e.translation,
+        source: e.source,
       })) || [],
 
       // Definitions
@@ -1143,561 +1142,308 @@ export const createAuditLog = async (
 };
 
 // ============================================
-// Convert Pronunciation Format (한국어 발음 강세 일괄 변환)
+// Exam Word Seeding (TEPS/TOEFL/TOEIC/SAT)
 // ============================================
 
-// 한글 유니코드 범위
-const HANGUL_START = 0xAC00;
-const HANGUL_END = 0xD7A3;
-
-function isHangul(char: string): boolean {
-  const code = char.charCodeAt(0);
-  return code >= HANGUL_START && code <= HANGUL_END;
-}
-
-function splitKoreanSyllables(korean: string): string[] {
-  const syllables: string[] = [];
-  for (const char of korean) {
-    if (isHangul(char)) {
-      syllables.push(char);
-    }
-  }
-  return syllables;
-}
-
-function findStressPosition(ipa: string, totalSyllables: number): number {
-  if (!ipa || totalSyllables <= 1) return 0;
-
-  const primaryStressIndex = ipa.indexOf('ˈ');
-  if (primaryStressIndex === -1) return 0;
-
-  const beforeStress = ipa.substring(0, primaryStressIndex);
-  const vowelPattern = /[aeiouəɪʊɛɔæɑʌɒɜɐ]/gi;
-  const diphthongPattern = /eɪ|aɪ|ɔɪ|aʊ|oʊ|ɪə|eə|ʊə/gi;
-
-  const cleanedBefore = beforeStress.replace(diphthongPattern, 'V');
-  const vowelsBefore = (cleanedBefore.match(vowelPattern) || []).length;
-
-  return Math.min(vowelsBefore, totalSyllables - 1);
-}
-
-function convertPronunciationFormat(ipa: string, koreanPron: string): {
-  converted: string;
-  changed: boolean;
-  stressSyllable: string;
-} {
-  if (!koreanPron) {
-    return { converted: koreanPron, changed: false, stressSyllable: '' };
-  }
-
-  // 이미 변환된 경우 스킵
-  if (koreanPron.includes('강세:')) {
-    return { converted: koreanPron, changed: false, stressSyllable: '' };
-  }
-
-  // 이미 하이픈으로 분리된 경우 (강세 표시만 추가)
-  if (koreanPron.includes('-')) {
-    const syllables = koreanPron.split('-');
-    const stressIndex = findStressPosition(ipa, syllables.length);
-    const stressSyllable = syllables[stressIndex] || syllables[0];
-    const result = `${koreanPron} (강세: ${stressSyllable})`;
-    return { converted: result, changed: true, stressSyllable };
-  }
-
-  const syllables = splitKoreanSyllables(koreanPron);
-
-  if (syllables.length === 0) {
-    return { converted: koreanPron, changed: false, stressSyllable: '' };
-  }
-
-  if (syllables.length === 1) {
-    const result = `${syllables[0]} (강세: ${syllables[0]})`;
-    return { converted: result, changed: true, stressSyllable: syllables[0] };
-  }
-
-  const stressIndex = findStressPosition(ipa, syllables.length);
-  const stressSyllable = syllables[stressIndex];
-  const hyphenated = syllables.join('-');
-  const result = `${hyphenated} (강세: ${stressSyllable})`;
-
-  return { converted: result, changed: true, stressSyllable };
-}
-
-export const convertPronunciations = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { dryRun = true, limit } = req.body;
-    const maxLimit = limit ? parseInt(limit, 10) : undefined;
-
-    console.log(`[Pronunciation Convert] Mode: ${dryRun ? 'DRY RUN' : 'EXECUTE'}, Limit: ${maxLimit || 'ALL'}`);
-
-    // Get words with pronunciation
-    const words = await prisma.word.findMany({
-      ...(maxLimit ? { take: maxLimit } : {}),
-      where: {
-        pronunciation: { not: null }
-      },
-      select: {
-        id: true,
-        word: true,
-        pronunciation: true,
-        ipaUs: true,
-        ipaUk: true,
-      },
-    });
-
-    console.log(`[Pronunciation Convert] Found ${words.length} words with pronunciation`);
-
-    let updated = 0;
-    let skipped = 0;
-    const examples: Array<{ word: string; before: string; after: string }> = [];
-
-    for (const wordData of words) {
-      const ipa = wordData.ipaUs || wordData.ipaUk || '';
-      const korean = wordData.pronunciation || '';
-
-      const { converted, changed } = convertPronunciationFormat(ipa, korean);
-
-      if (!changed) {
-        skipped++;
-        continue;
-      }
-
-      // Collect examples (first 10)
-      if (examples.length < 10) {
-        examples.push({
-          word: wordData.word,
-          before: korean,
-          after: converted,
-        });
-      }
-
-      if (!dryRun) {
-        await prisma.word.update({
-          where: { id: wordData.id },
-          data: { pronunciation: converted },
-        });
-      }
-
-      updated++;
-    }
-
-    console.log(`[Pronunciation Convert] Complete: ${updated} updated, ${skipped} skipped`);
-
-    res.json({
-      success: true,
-      mode: dryRun ? 'dry_run' : 'executed',
-      stats: {
-        total: words.length,
-        updated,
-        skipped,
-      },
-      examples,
-      message: dryRun
-        ? `테스트 모드: ${updated}개 변환 예정 (DB 미변경)`
-        : `완료: ${updated}개 변환됨`,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// ============================================
-// Regenerate Pronunciation with AI (한국어 발음 AI 재생성)
-// ============================================
-
-import { regeneratePronunciations } from '../services/pronunciationGenerator.service';
-
-export const regeneratePronunciationsHandler = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { dryRun = true, limit = 100, batchSize = 20, offset = 0 } = req.body;
-    const limitNum = parseInt(limit, 10) || 100;
-    const batchSizeNum = parseInt(batchSize, 10) || 20;
-    const offsetNum = parseInt(offset, 10) || 0;
-
-    console.log(`[Admin] Regenerate Pronunciation: dryRun=${dryRun}, limit=${limitNum}, offset=${offsetNum}, batchSize=${batchSizeNum}`);
-
-    const result = await regeneratePronunciations(dryRun, limitNum, batchSizeNum, offsetNum);
-
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// ============================================
-// Exam Words Seeding (시험별 단어 시드)
-// ============================================
-
-import { checkDuplicates, copyWordContent } from '../utils/wordDeduplication';
-
-type ExamCategory = 'CSAT' | 'TOEFL' | 'TOEIC' | 'TEPS' | 'SAT';
-
-interface WordEntry {
-  word: string;
-  level?: string;
-}
-
-interface SeedExamWordsRequest {
-  examCategory: ExamCategory;
-  words?: string[] | WordEntry[];
-  level?: string;  // L1, L2, L3 - if provided without words, loads from file
-  dryRun?: boolean;
-  reuseContent?: boolean;
-  limit?: number;   // Batch size (default 50)
-  offset?: number;  // Starting offset (default 0)
-}
-
-// Word list files for each exam
+import {
+  checkDuplicates,
+  copyWordContent,
+  DeduplicationResult,
+} from '../utils/wordDeduplication';
 import * as fs from 'fs';
 import * as path from 'path';
 
-function loadWordsFromFile(examCategory: string, level?: string): WordEntry[] {
-  const fileName = `${examCategory.toLowerCase()}-words.json`;
-  const filePath = path.join(__dirname, '../../data', fileName);
-
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Word list file not found: ${fileName}`);
-  }
-
-  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-
-  if (level && data.levels && data.levels[level]) {
-    // Return words for specific level
-    return data.levels[level].words.map((w: string) => ({ word: w, level }));
-  } else if (data.levels) {
-    // Return all words from all levels
-    const allWords: WordEntry[] = [];
-    for (const [lvl, levelData] of Object.entries(data.levels)) {
-      const words = (levelData as any).words || [];
-      allWords.push(...words.map((w: string) => ({ word: w, level: lvl })));
-    }
-    return allWords;
-  }
-
-  return [];
+interface SeedStats {
+  total: number;
+  copied: number;
+  created: number;
+  skipped: number;
+  errors: number;
+  errorDetails: string[];
+  debugLogs: string[];
 }
 
+/**
+ * Seed exam words with deduplication
+ * POST /admin/seed-exam-words
+ */
 export const seedExamWordsHandler = async (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const {
-      examCategory,
-      words: inputWords,
+      examCategory = 'TEPS',
       level,
-      dryRun = true,
-      reuseContent = true,
+      words: providedWords,
+      dryRun = false,
       limit = 50,
       offset = 0,
-    } = req.body as SeedExamWordsRequest;
-
-    const limitNum = parseInt(String(limit), 10) || 50;
-    const offsetNum = parseInt(String(offset), 10) || 0;
+    } = req.body;
 
     // Validate exam category
-    const validCategories: ExamCategory[] = ['CSAT', 'TOEFL', 'TOEIC', 'TEPS', 'SAT'];
-    if (!validCategories.includes(examCategory)) {
+    const validExams = ['TOEFL', 'TOEIC', 'TEPS', 'SAT'];
+    if (!validExams.includes(examCategory)) {
       return res.status(400).json({
         success: false,
-        error: `Invalid examCategory. Must be one of: ${validCategories.join(', ')}`,
+        message: `Invalid exam category. Must be one of: ${validExams.join(', ')}`,
       });
     }
 
-    // Load words from file if not provided
-    let allWords: WordEntry[];
+    // Load words from JSON file if not provided
+    let wordList: { word: string; level: string }[] = [];
 
-    if (!inputWords || !Array.isArray(inputWords) || inputWords.length === 0) {
-      // Try to load from file
-      try {
-        allWords = loadWordsFromFile(examCategory, level);
-        if (allWords.length === 0) {
-          return res.status(400).json({
-            success: false,
-            error: `No words found for ${examCategory}${level ? ` level ${level}` : ''}. Either provide 'words' array or ensure the word list file exists.`,
-          });
-        }
-        console.log(`[Admin] Loaded ${allWords.length} words from file for ${examCategory}${level ? ` ${level}` : ''}`);
-      } catch (error: any) {
+    if (providedWords && Array.isArray(providedWords)) {
+      wordList = providedWords;
+    } else if (level) {
+      // Load from JSON file
+      const dataPath = path.join(__dirname, '../../data', `${examCategory.toLowerCase()}-words.json`);
+
+      if (!fs.existsSync(dataPath)) {
         return res.status(400).json({
           success: false,
-          error: error.message || 'Failed to load words from file',
+          message: `Word list file not found: ${dataPath}`,
         });
       }
+
+      const fileData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+      const levelKey = level.toUpperCase();
+
+      if (!fileData[levelKey]) {
+        return res.status(400).json({
+          success: false,
+          message: `Level ${level} not found in word list. Available: ${Object.keys(fileData).join(', ')}`,
+        });
+      }
+
+      wordList = fileData[levelKey].map((word: string) => ({
+        word,
+        level: levelKey,
+      }));
     } else {
-      // Normalize input - support both string[] and WordEntry[]
-      allWords = inputWords.map((w) =>
-        typeof w === 'string' ? { word: w, level: level || 'L1' } : w
-      );
+      return res.status(400).json({
+        success: false,
+        message: 'Either "words" array or "level" parameter is required',
+      });
     }
 
-    // Apply limit/offset for batch processing
-    const totalWords = allWords.length;
-    const wordList = allWords.slice(offsetNum, offsetNum + limitNum);
-    const nextOffset = offsetNum + limitNum < totalWords ? offsetNum + limitNum : null;
-    const remaining = Math.max(0, totalWords - offsetNum - limitNum);
+    // Apply limit and offset
+    const paginatedWords = wordList.slice(offset, offset + limit);
+    const hasMore = offset + limit < wordList.length;
 
-    console.log(`[Admin] Seed Exam Words: exam=${examCategory}, total=${totalWords}, processing=${wordList.length}, offset=${offsetNum}, dryRun=${dryRun}`);
-
-    const stats = {
-      total: wordList.length,
-      duplicates: 0,
-      newWords: 0,
-      skipped: 0,
+    const stats: SeedStats = {
+      total: paginatedWords.length,
       copied: 0,
+      created: 0,
+      skipped: 0,
       errors: 0,
-      examples: [] as Array<{
-        word: string;
-        action: 'copied' | 'new' | 'skipped' | 'error';
-        from?: string;
-        message?: string;
-      }>,
+      errorDetails: [],
+      debugLogs: [],
     };
 
-    // Check duplicates
-    const words = wordList.map((w) => w.word);
-    const duplicateResults = await checkDuplicates(words, examCategory);
+    // Check duplicates (finds CSAT words, excludes target exam)
+    const wordsToCheck = paginatedWords.map((w) => w.word);
+    const duplicateResults = await checkDuplicates(wordsToCheck, examCategory);
 
-    console.log(`[Admin] Processing ${duplicateResults.length} words for ${examCategory}`);
+    stats.debugLogs.push(`checkDuplicates returned ${duplicateResults.length} results`);
 
-    for (const result of duplicateResults) {
-      const wordData = wordList.find(
-        (w) => w.word.toLowerCase() === result.word.toLowerCase()
+    for (let i = 0; i < duplicateResults.length; i++) {
+      const result = duplicateResults[i];
+      const wordData = paginatedWords[i];
+      const targetLevel = wordData.level || 'L1';
+
+      stats.debugLogs.push(
+        `[${result.word}] isNew=${result.isNew}, existingExam=${result.existingExam}, existingWordId=${result.existingWordId}`
       );
-      const targetLevel = wordData?.level || 'L1';
 
-      // Case 1: Word already exists in target exam (TEPS) - skip
+      // CASE 1: Word already exists in target exam (TEPS) - skip
       if (!result.isNew && result.existingExam === examCategory) {
+        stats.debugLogs.push(`[${result.word}] CASE 1: Already in ${examCategory}, skipping`);
         stats.skipped++;
-        if (stats.examples.length < 10) {
-          stats.examples.push({
-            word: result.word,
-            action: 'skipped',
-            message: `Already exists in ${examCategory}`,
-          });
-        }
         continue;
       }
 
-      // Case 2: Word exists in another exam (CSAT) - copy content
+      // CASE 2: Word exists in another exam (CSAT) - copy content
       if (!result.isNew && result.existingWordId && result.existingExam !== examCategory) {
-        stats.duplicates++;
-        console.log(`[Admin] Found duplicate: ${result.word} from ${result.existingExam}`);
+        stats.debugLogs.push(
+          `[${result.word}] CASE 2: Found in ${result.existingExam} (${result.existingWordId}), copying...`
+        );
 
-        if (reuseContent && !dryRun) {
-          // Copy content from existing word
-          console.log(`[Admin] Copying content for: ${result.word}`);
-          const copyResult = await copyWordContent(
-            result.existingWordId,
-            examCategory,
-            targetLevel
-          );
-
-          if (copyResult.success) {
-            stats.copied++;
-            console.log(`[Admin] Successfully copied: ${result.word}`);
-            if (stats.examples.length < 10) {
-              stats.examples.push({
-                word: result.word,
-                action: 'copied',
-                from: result.existingExam || undefined,
-              });
-            }
-          } else if (copyResult.error?.includes('already exists')) {
-            stats.skipped++;
-            console.log(`[Admin] Skipped (already exists): ${result.word}`);
-            if (stats.examples.length < 10) {
-              stats.examples.push({
-                word: result.word,
-                action: 'skipped',
-                message: 'Already exists in target exam',
-              });
-            }
-          } else {
-            stats.errors++;
-            console.error(`[Admin] Copy error for ${result.word}: ${copyResult.error}`);
-            if (stats.examples.length < 10) {
-              stats.examples.push({
-                word: result.word,
-                action: 'error',
-                message: copyResult.error,
-              });
-            }
-          }
-        } else if (reuseContent && dryRun) {
-          // Dry run - would copy
+        if (dryRun) {
           stats.copied++;
-          if (stats.examples.length < 10) {
-            stats.examples.push({
-              word: result.word,
-              action: 'copied',
-              from: result.existingExam || undefined,
-              message: '[DRY RUN] Would copy',
-            });
-          }
+          continue;
+        }
+
+        const copyResult = await copyWordContent(
+          result.existingWordId,
+          examCategory as any,
+          targetLevel
+        );
+
+        if (copyResult.success) {
+          stats.debugLogs.push(`[${result.word}] Copy SUCCESS: ${copyResult.newWordId}`);
+          stats.copied++;
+        } else if (copyResult.error?.includes('already exists')) {
+          stats.debugLogs.push(`[${result.word}] Copy SKIPPED: already exists in target`);
+          stats.skipped++;
+        } else {
+          stats.debugLogs.push(`[${result.word}] Copy FAILED: ${copyResult.error}`);
+          stats.errorDetails.push(`${result.word}: ${copyResult.error}`);
+          stats.errors++;
         }
         continue;
       }
 
-      // Case 3: New word - needs AI generation
-      stats.newWords++;
+      // CASE 3: New word - create as DRAFT (needs AI generation)
+      stats.debugLogs.push(`[${result.word}] CASE 3: New word, creating DRAFT`);
 
-      if (!dryRun) {
-        // Create word as DRAFT
-        try {
-          const existing = await prisma.word.findFirst({
-            where: {
-              word: { equals: result.word, mode: 'insensitive' },
-              examCategory,
-            },
-          });
+      if (dryRun) {
+        stats.created++;
+        continue;
+      }
 
-          if (existing) {
-            stats.skipped++;
-            stats.newWords--;
-            continue;
-          }
+      try {
+        // Check if already exists
+        const existing = await prisma.word.findFirst({
+          where: {
+            word: { equals: result.word, mode: 'insensitive' },
+            examCategory: examCategory as any,
+          },
+        });
 
-          await prisma.word.create({
-            data: {
-              word: result.word,
-              definition: '',
-              partOfSpeech: 'NOUN',
-              examCategory,
-              level: targetLevel,
-              status: 'DRAFT',
-            },
-          });
-
-          if (stats.examples.length < 10) {
-            stats.examples.push({
-              word: result.word,
-              action: 'new',
-              message: 'Created as DRAFT - needs AI content',
-            });
-          }
-        } catch (error: any) {
-          if (error.code === 'P2002') {
-            stats.skipped++;
-            stats.newWords--;
-          } else {
-            stats.errors++;
-            if (stats.examples.length < 10) {
-              stats.examples.push({
-                word: result.word,
-                action: 'error',
-                message: error.message,
-              });
-            }
-          }
+        if (existing) {
+          stats.debugLogs.push(`[${result.word}] Already exists in ${examCategory}`);
+          stats.skipped++;
+          continue;
         }
-      } else {
-        // Dry run
-        if (stats.examples.length < 10) {
-          stats.examples.push({
+
+        await prisma.word.create({
+          data: {
             word: result.word,
-            action: 'new',
-            message: '[DRY RUN] Would create as DRAFT',
-          });
+            definition: '',
+            partOfSpeech: 'NOUN',
+            examCategory: examCategory as any,
+            level: targetLevel,
+            status: 'DRAFT',
+          },
+        });
+
+        stats.debugLogs.push(`[${result.word}] Created as DRAFT`);
+        stats.created++;
+      } catch (error: any) {
+        if (error.code === 'P2002') {
+          stats.skipped++;
+        } else {
+          stats.errorDetails.push(`${result.word}: ${error.message}`);
+          stats.errors++;
         }
       }
     }
-
-    console.log(`[Admin] Seed complete: duplicates=${stats.duplicates}, copied=${stats.copied}, newWords=${stats.newWords}, skipped=${stats.skipped}`);
-
-    // Calculate cost savings
-    const COST_PER_WORD = 0.03;
-    const estimatedSavings = stats.copied * COST_PER_WORD;
-    const estimatedCost = stats.newWords * COST_PER_WORD;
 
     res.json({
       success: true,
-      mode: dryRun ? 'dry_run' : 'executed',
+      dryRun,
       examCategory,
-      level: level || 'all',
-      stats: {
-        ...stats,
-        totalInFile: totalWords,
-        processed: wordList.length,
-        offset: offsetNum,
-        nextOffset,
-        remaining,
-        estimatedSavings: Number(estimatedSavings.toFixed(2)),
-        estimatedCost: Number(estimatedCost.toFixed(2)),
-        savingsPercentage: stats.total > 0
-          ? Math.round((stats.duplicates / stats.total) * 100)
-          : 0,
+      level: level || 'custom',
+      pagination: {
+        offset,
+        limit,
+        processed: paginatedWords.length,
+        totalInLevel: wordList.length,
+        hasMore,
+        nextOffset: hasMore ? offset + limit : null,
       },
-      message: dryRun
-        ? `테스트 모드: ${stats.duplicates}개 재사용 가능, ${stats.newWords}개 신규 (offset: ${offsetNum}, 남은 수: ${remaining})`
-        : `완료: ${stats.copied}개 복사됨, ${stats.newWords}개 생성됨 (offset: ${offsetNum}, 남은 수: ${remaining})`,
+      stats: {
+        total: stats.total,
+        copied: stats.copied,
+        created: stats.created,
+        skipped: stats.skipped,
+        errors: stats.errors,
+        errorDetails: stats.errorDetails,
+      },
+      debugLogs: stats.debugLogs,
     });
   } catch (error) {
     next(error);
   }
 };
 
-// ============================================
-// Delete Exam Words (시험별 단어 삭제 - 테스트 데이터 정리용)
-// ============================================
-
+/**
+ * Delete exam words (for cleanup/re-seeding)
+ * DELETE /admin/delete-exam-words
+ */
 export const deleteExamWordsHandler = async (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { examCategory, level, dryRun = true } = req.body;
 
-    // Validate exam category
-    const validCategories: ExamCategory[] = ['TOEFL', 'TOEIC', 'TEPS', 'SAT'];  // CSAT는 삭제 불가
-    if (!validCategories.includes(examCategory)) {
+    if (!examCategory) {
       return res.status(400).json({
         success: false,
-        error: `Invalid examCategory. Must be one of: ${validCategories.join(', ')} (CSAT cannot be deleted)`,
+        message: 'examCategory is required',
       });
     }
 
-    // Count words to delete
-    const whereClause: any = { examCategory };
-    if (level) {
-      whereClause.level = level;
+    const validExams = ['TOEFL', 'TOEIC', 'TEPS', 'SAT'];
+    if (!validExams.includes(examCategory)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid exam category. Must be one of: ${validExams.join(', ')}`,
+      });
     }
 
+    // Build where clause
+    const whereClause: any = {
+      examCategory: examCategory as any,
+    };
+
+    if (level) {
+      whereClause.level = level.toUpperCase();
+    }
+
+    // Count words to delete
     const count = await prisma.word.count({ where: whereClause });
 
     if (dryRun) {
       return res.json({
         success: true,
-        mode: 'dry_run',
+        dryRun: true,
         examCategory,
         level: level || 'all',
-        count,
-        message: `테스트 모드: ${examCategory}${level ? ` ${level}` : ''} 단어 ${count}개 삭제 예정`,
+        wouldDelete: count,
+        message: `Would delete ${count} words. Set dryRun=false to execute.`,
       });
     }
 
-    // Delete words (cascade will delete related content)
-    const deleteResult = await prisma.word.deleteMany({ where: whereClause });
+    // Delete related content first (cascade)
+    const words = await prisma.word.findMany({
+      where: whereClause,
+      select: { id: true },
+    });
+    const wordIds = words.map((w) => w.id);
 
-    console.log(`[Admin] Deleted ${deleteResult.count} ${examCategory} words${level ? ` (level: ${level})` : ''}`);
+    // Delete relations
+    await prisma.etymology.deleteMany({ where: { wordId: { in: wordIds } } });
+    await prisma.mnemonic.deleteMany({ where: { wordId: { in: wordIds } } });
+    await prisma.example.deleteMany({ where: { wordId: { in: wordIds } } });
+    await prisma.collocation.deleteMany({ where: { wordId: { in: wordIds } } });
+    await prisma.wordVisual.deleteMany({ where: { wordId: { in: wordIds } } });
+    await prisma.synonym.deleteMany({ where: { wordId: { in: wordIds } } });
+    await prisma.antonym.deleteMany({ where: { wordId: { in: wordIds } } });
+
+    // Delete words
+    const deleted = await prisma.word.deleteMany({ where: whereClause });
 
     res.json({
       success: true,
-      mode: 'executed',
+      dryRun: false,
       examCategory,
       level: level || 'all',
-      deleted: deleteResult.count,
-      message: `완료: ${examCategory}${level ? ` ${level}` : ''} 단어 ${deleteResult.count}개 삭제됨`,
+      deleted: deleted.count,
     });
   } catch (error) {
     next(error);

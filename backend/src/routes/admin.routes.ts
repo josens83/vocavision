@@ -25,20 +25,10 @@ import {
   removeWordsFromCollection,
   // Audit Log
   getWordAuditLogs,
-  // Pronunciation conversion
-  convertPronunciations,
-  // Pronunciation regeneration with AI
-  regeneratePronunciationsHandler,
-  // Exam words seeding
+  // Exam Word Seeding
   seedExamWordsHandler,
-  // Exam words deletion
   deleteExamWordsHandler,
 } from '../controllers/admin.controller';
-import {
-  getWordVisuals,
-  updateWordVisuals,
-  deleteWordVisual,
-} from '../controllers/visual.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -133,43 +123,6 @@ router.patch('/words/:wordId', updateAdminWord);
  *       - bearerAuth: []
  */
 router.put('/words/:wordId/content', updateWordContent);
-
-// ============================================
-// Word Visuals (3-Image System) Routes
-// ============================================
-
-/**
- * @swagger
- * /admin/words/{wordId}/visuals:
- *   get:
- *     summary: Get word visuals (3-image system)
- *     tags: [Admin - Visuals]
- *     security:
- *       - bearerAuth: []
- */
-router.get('/words/:wordId/visuals', getWordVisuals);
-
-/**
- * @swagger
- * /admin/words/{wordId}/visuals:
- *   put:
- *     summary: Update word visuals (upsert)
- *     tags: [Admin - Visuals]
- *     security:
- *       - bearerAuth: []
- */
-router.put('/words/:wordId/visuals', updateWordVisuals);
-
-/**
- * @swagger
- * /admin/words/{wordId}/visuals/{type}:
- *   delete:
- *     summary: Delete specific visual type
- *     tags: [Admin - Visuals]
- *     security:
- *       - bearerAuth: []
- */
-router.delete('/words/:wordId/visuals/:type', deleteWordVisual);
 
 /**
  * @swagger
@@ -323,131 +276,53 @@ router.delete('/collections/:collectionId/words', removeWordsFromCollection);
 router.get('/words/:wordId/audit-logs', getWordAuditLogs);
 
 // ============================================
-// Pronunciation Conversion (한국어 발음 강세 변환)
-// ============================================
-
-/**
- * @swagger
- * /admin/convert-pronunciation:
- *   post:
- *     summary: Convert Korean pronunciation format (add stress markers)
- *     tags: [Admin - Utilities]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               dryRun:
- *                 type: boolean
- *                 default: true
- *                 description: If true, only shows preview without changing DB
- *               limit:
- *                 type: integer
- *                 description: Maximum number of words to process
- */
-router.post('/convert-pronunciation', convertPronunciations);
-
-/**
- * @swagger
- * /admin/regenerate-pronunciation:
- *   post:
- *     summary: Regenerate Korean pronunciation with AI (accurate syllables + stress)
- *     tags: [Admin - Utilities]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               dryRun:
- *                 type: boolean
- *                 default: true
- *                 description: If true, only shows preview without changing DB
- *               limit:
- *                 type: integer
- *                 description: Maximum number of words to process
- *               batchSize:
- *                 type: integer
- *                 default: 20
- *                 description: Number of words per API call
- */
-router.post('/regenerate-pronunciation', regeneratePronunciationsHandler);
-
-// ============================================
-// Exam Words Seeding (시험별 단어 시드)
+// Exam Word Seeding Routes
 // ============================================
 
 /**
  * @swagger
  * /admin/seed-exam-words:
  *   post:
- *     summary: Seed words for an exam category with duplicate checking
- *     description: |
- *       Add words to TOEFL/TOEIC/TEPS/SAT with smart duplicate detection.
- *       Words that exist in CSAT will have their content copied (free!).
- *       New words are created as DRAFT and need AI content generation.
- *     tags: [Admin - Exam Seeding]
+ *     summary: Seed exam words with deduplication (TEPS/TOEFL/TOEIC/SAT)
+ *     tags: [Admin - Seeding]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - examCategory
- *               - words
  *             properties:
  *               examCategory:
  *                 type: string
- *                 enum: [TOEFL, TOEIC, TEPS, SAT]
- *                 description: Target exam category
+ *                 enum: [TEPS, TOEFL, TOEIC, SAT]
+ *               level:
+ *                 type: string
+ *                 description: L1, L2, L3 (loads from JSON file)
  *               words:
  *                 type: array
- *                 items:
- *                   oneOf:
- *                     - type: string
- *                     - type: object
- *                       properties:
- *                         word:
- *                           type: string
- *                         level:
- *                           type: string
- *                           enum: [L1, L2, L3]
- *                 description: Array of words (strings or {word, level} objects)
+ *                 description: Optional custom word list
  *               dryRun:
  *                 type: boolean
- *                 default: true
- *                 description: If true, only shows preview without changing DB
- *               reuseContent:
- *                 type: boolean
- *                 default: true
- *                 description: If true, copies content from existing words
- *     responses:
- *       200:
- *         description: Seeding result with statistics
+ *                 default: false
+ *               limit:
+ *                 type: integer
+ *                 default: 50
+ *               offset:
+ *                 type: integer
+ *                 default: 0
  */
 router.post('/seed-exam-words', seedExamWordsHandler);
 
 /**
  * @swagger
  * /admin/delete-exam-words:
- *   post:
- *     summary: Delete exam words (for cleanup/testing)
- *     description: |
- *       Delete words from TOEFL/TOEIC/TEPS/SAT (CSAT is protected).
- *       Used to clean up test data before re-seeding.
- *     tags: [Admin - Exam Seeding]
+ *   delete:
+ *     summary: Delete exam words (for cleanup/re-seeding)
+ *     tags: [Admin - Seeding]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -457,15 +332,14 @@ router.post('/seed-exam-words', seedExamWordsHandler);
  *             properties:
  *               examCategory:
  *                 type: string
- *                 enum: [TOEFL, TOEIC, TEPS, SAT]
+ *                 enum: [TEPS, TOEFL, TOEIC, SAT]
  *               level:
  *                 type: string
- *                 enum: [L1, L2, L3]
- *                 description: Optional - delete only specific level
+ *                 description: L1, L2, L3 (optional, deletes all if not specified)
  *               dryRun:
  *                 type: boolean
  *                 default: true
  */
-router.post('/delete-exam-words', deleteExamWordsHandler);
+router.delete('/delete-exam-words', deleteExamWordsHandler);
 
 export default router;
