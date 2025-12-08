@@ -509,7 +509,7 @@ router.get('/generate-content', async (req: Request, res: Response) => {
     }
 
     if (examCategory) {
-      whereClause.examCategory = examCategory;
+      whereClause.examCategory = examCategory as any;
     }
 
     const wordsToGenerate = await prisma.word.findMany({
@@ -912,7 +912,7 @@ async function runContinuousGeneration(
         whereClause.level = level;
       }
       if (examCategory) {
-        whereClause.examCategory = examCategory;
+        whereClause.examCategory = examCategory as any;
       }
 
       // Find words to generate
@@ -993,7 +993,7 @@ router.get('/publish-ai-words', async (req: Request, res: Response) => {
     };
 
     if (examCategory) {
-      whereClause.examCategory = examCategory;
+      whereClause.examCategory = examCategory as any;
     }
 
     // Count before update
