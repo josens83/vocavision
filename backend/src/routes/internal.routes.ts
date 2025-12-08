@@ -933,7 +933,7 @@ async function runContinuousGeneration(
       const job = await prisma.contentGenerationJob.create({
         data: {
           inputWords: wordsToGenerate.map(w => w.id),
-          examCategory: examCategory || 'CSAT',
+          examCategory: (examCategory || 'CSAT') as any,
           cefrLevel: 'B1',
           status: 'pending',
           progress: 0,
