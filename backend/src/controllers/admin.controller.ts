@@ -1467,31 +1467,35 @@ export const seedExamWordsHandler = async (
     const words = wordList.map((w) => w.word);
     const duplicateResults = await checkDuplicates(words, examCategory);
 
+    console.log(`[Admin] Processing ${duplicateResults.length} words for ${examCategory}`);
+
     for (const result of duplicateResults) {
       const wordData = wordList.find(
         (w) => w.word.toLowerCase() === result.word.toLowerCase()
       );
       const targetLevel = wordData?.level || 'L1';
 
-      if (!result.isNew && result.existingWordId) {
-        // Word exists in another exam - can reuse
-        stats.duplicates++;
-
-        if (result.existingExam === examCategory) {
-          // Already in target exam
-          stats.skipped++;
-          if (stats.examples.length < 10) {
-            stats.examples.push({
-              word: result.word,
-              action: 'skipped',
-              message: `Already exists in ${examCategory}`,
-            });
-          }
-          continue;
+      // Case 1: Word already exists in target exam (TEPS) - skip
+      if (!result.isNew && result.existingExam === examCategory) {
+        stats.skipped++;
+        if (stats.examples.length < 10) {
+          stats.examples.push({
+            word: result.word,
+            action: 'skipped',
+            message: `Already exists in ${examCategory}`,
+          });
         }
+        continue;
+      }
+
+      // Case 2: Word exists in another exam (CSAT) - copy content
+      if (!result.isNew && result.existingWordId && result.existingExam !== examCategory) {
+        stats.duplicates++;
+        console.log(`[Admin] Found duplicate: ${result.word} from ${result.existingExam}`);
 
         if (reuseContent && !dryRun) {
           // Copy content from existing word
+          console.log(`[Admin] Copying content for: ${result.word}`);
           const copyResult = await copyWordContent(
             result.existingWordId,
             examCategory,
@@ -1500,6 +1504,7 @@ export const seedExamWordsHandler = async (
 
           if (copyResult.success) {
             stats.copied++;
+            console.log(`[Admin] Successfully copied: ${result.word}`);
             if (stats.examples.length < 10) {
               stats.examples.push({
                 word: result.word,
@@ -1509,6 +1514,7 @@ export const seedExamWordsHandler = async (
             }
           } else if (copyResult.error?.includes('already exists')) {
             stats.skipped++;
+            console.log(`[Admin] Skipped (already exists): ${result.word}`);
             if (stats.examples.length < 10) {
               stats.examples.push({
                 word: result.word,
@@ -1518,6 +1524,7 @@ export const seedExamWordsHandler = async (
             }
           } else {
             stats.errors++;
+            console.error(`[Admin] Copy error for ${result.word}: ${copyResult.error}`);
             if (stats.examples.length < 10) {
               stats.examples.push({
                 word: result.word,
@@ -1538,71 +1545,74 @@ export const seedExamWordsHandler = async (
             });
           }
         }
-      } else {
-        // New word - needs AI generation
-        stats.newWords++;
+        continue;
+      }
 
-        if (!dryRun) {
-          // Create word as DRAFT
-          try {
-            const existing = await prisma.word.findFirst({
-              where: {
-                word: { equals: result.word, mode: 'insensitive' },
-                examCategory,
-              },
-            });
+      // Case 3: New word - needs AI generation
+      stats.newWords++;
 
-            if (existing) {
-              stats.skipped++;
-              stats.newWords--;
-              continue;
-            }
+      if (!dryRun) {
+        // Create word as DRAFT
+        try {
+          const existing = await prisma.word.findFirst({
+            where: {
+              word: { equals: result.word, mode: 'insensitive' },
+              examCategory,
+            },
+          });
 
-            await prisma.word.create({
-              data: {
-                word: result.word,
-                definition: '',
-                partOfSpeech: 'NOUN',
-                examCategory,
-                level: targetLevel,
-                status: 'DRAFT',
-              },
-            });
-
-            if (stats.examples.length < 10) {
-              stats.examples.push({
-                word: result.word,
-                action: 'new',
-                message: 'Created as DRAFT - needs AI content',
-              });
-            }
-          } catch (error: any) {
-            if (error.code === 'P2002') {
-              stats.skipped++;
-              stats.newWords--;
-            } else {
-              stats.errors++;
-              if (stats.examples.length < 10) {
-                stats.examples.push({
-                  word: result.word,
-                  action: 'error',
-                  message: error.message,
-                });
-              }
-            }
+          if (existing) {
+            stats.skipped++;
+            stats.newWords--;
+            continue;
           }
-        } else {
-          // Dry run
+
+          await prisma.word.create({
+            data: {
+              word: result.word,
+              definition: '',
+              partOfSpeech: 'NOUN',
+              examCategory,
+              level: targetLevel,
+              status: 'DRAFT',
+            },
+          });
+
           if (stats.examples.length < 10) {
             stats.examples.push({
               word: result.word,
               action: 'new',
-              message: '[DRY RUN] Would create as DRAFT',
+              message: 'Created as DRAFT - needs AI content',
             });
           }
+        } catch (error: any) {
+          if (error.code === 'P2002') {
+            stats.skipped++;
+            stats.newWords--;
+          } else {
+            stats.errors++;
+            if (stats.examples.length < 10) {
+              stats.examples.push({
+                word: result.word,
+                action: 'error',
+                message: error.message,
+              });
+            }
+          }
+        }
+      } else {
+        // Dry run
+        if (stats.examples.length < 10) {
+          stats.examples.push({
+            word: result.word,
+            action: 'new',
+            message: '[DRY RUN] Would create as DRAFT',
+          });
         }
       }
     }
+
+    console.log(`[Admin] Seed complete: duplicates=${stats.duplicates}, copied=${stats.copied}, newWords=${stats.newWords}, skipped=${stats.skipped}`);
 
     // Calculate cost savings
     const COST_PER_WORD = 0.03;
