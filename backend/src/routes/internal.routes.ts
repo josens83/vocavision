@@ -496,6 +496,7 @@ router.get('/generate-content', async (req: Request, res: Response) => {
 
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const level = req.query.level as string; // L1, L2, L3
+    const examCategory = req.query.examCategory as string; // CSAT, TEPS, TOEFL, etc.
 
     // Find words that need content generation
     const whereClause: any = {
@@ -505,6 +506,10 @@ router.get('/generate-content', async (req: Request, res: Response) => {
 
     if (level && ['L1', 'L2', 'L3'].includes(level)) {
       whereClause.level = level;
+    }
+
+    if (examCategory) {
+      whereClause.examCategory = examCategory;
     }
 
     const wordsToGenerate = await prisma.word.findMany({
@@ -737,6 +742,7 @@ const activeContinuousSessions: Map<string, {
   startedAt: Date;
   lastBatchAt: Date | null;
   level?: string;
+  examCategory?: string;
   batchSize: number;
   maxBatches: number;
 }> = new Map();
@@ -758,6 +764,7 @@ router.get('/generate-continuous', async (req: Request, res: Response) => {
     const batchSize = Math.min(parseInt(req.query.batchSize as string) || 50, 100);
     const maxBatches = Math.min(parseInt(req.query.maxBatches as string) || 20, 100);
     const level = req.query.level as string;
+    const examCategory = req.query.examCategory as string; // CSAT, TEPS, TOEFL, etc.
 
     // Check if there's already a continuous session running
     const existingSession = Array.from(activeContinuousSessions.entries())
@@ -783,14 +790,15 @@ router.get('/generate-continuous', async (req: Request, res: Response) => {
       startedAt: new Date(),
       lastBatchAt: null,
       level,
+      examCategory,
       batchSize,
       maxBatches,
     });
 
     // Start the continuous generation process
-    runContinuousGeneration(sessionId, batchSize, maxBatches, level);
+    runContinuousGeneration(sessionId, batchSize, maxBatches, level, examCategory);
 
-    logger.info(`[Internal/Continuous] Started session ${sessionId}: batchSize=${batchSize}, maxBatches=${maxBatches}, level=${level || 'all'}`);
+    logger.info(`[Internal/Continuous] Started session ${sessionId}: batchSize=${batchSize}, maxBatches=${maxBatches}, level=${level || 'all'}, examCategory=${examCategory || 'all'}`);
 
     res.json({
       message: 'Continuous generation started',
@@ -887,7 +895,8 @@ async function runContinuousGeneration(
   sessionId: string,
   batchSize: number,
   maxBatches: number,
-  level?: string
+  level?: string,
+  examCategory?: string
 ): Promise<void> {
   const session = activeContinuousSessions.get(sessionId);
   if (!session) return;
@@ -901,6 +910,9 @@ async function runContinuousGeneration(
       };
       if (level && ['L1', 'L2', 'L3'].includes(level)) {
         whereClause.level = level;
+      }
+      if (examCategory) {
+        whereClause.examCategory = examCategory;
       }
 
       // Find words to generate
@@ -921,7 +933,7 @@ async function runContinuousGeneration(
       const job = await prisma.contentGenerationJob.create({
         data: {
           inputWords: wordsToGenerate.map(w => w.id),
-          examCategory: 'CSAT',
+          examCategory: examCategory || 'CSAT',
           cefrLevel: 'B1',
           status: 'pending',
           progress: 0,
