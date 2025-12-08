@@ -1347,9 +1347,40 @@ interface WordEntry {
 
 interface SeedExamWordsRequest {
   examCategory: ExamCategory;
-  words: string[] | WordEntry[];
+  words?: string[] | WordEntry[];
+  level?: string;  // L1, L2, L3 - if provided without words, loads from file
   dryRun?: boolean;
   reuseContent?: boolean;
+}
+
+// Word list files for each exam
+import * as fs from 'fs';
+import * as path from 'path';
+
+function loadWordsFromFile(examCategory: string, level?: string): WordEntry[] {
+  const fileName = `${examCategory.toLowerCase()}-words.json`;
+  const filePath = path.join(__dirname, '../../data', fileName);
+
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Word list file not found: ${fileName}`);
+  }
+
+  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+  if (level && data.levels && data.levels[level]) {
+    // Return words for specific level
+    return data.levels[level].words.map((w: string) => ({ word: w, level }));
+  } else if (data.levels) {
+    // Return all words from all levels
+    const allWords: WordEntry[] = [];
+    for (const [lvl, levelData] of Object.entries(data.levels)) {
+      const words = (levelData as any).words || [];
+      allWords.push(...words.map((w: string) => ({ word: w, level: lvl })));
+    }
+    return allWords;
+  }
+
+  return [];
 }
 
 export const seedExamWordsHandler = async (
@@ -1361,6 +1392,7 @@ export const seedExamWordsHandler = async (
     const {
       examCategory,
       words: inputWords,
+      level,
       dryRun = true,
       reuseContent = true,
     } = req.body as SeedExamWordsRequest;
@@ -1374,17 +1406,32 @@ export const seedExamWordsHandler = async (
       });
     }
 
-    if (!inputWords || !Array.isArray(inputWords) || inputWords.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'words array is required and must not be empty',
-      });
-    }
+    // Load words from file if not provided
+    let wordList: WordEntry[];
 
-    // Normalize input - support both string[] and WordEntry[]
-    const wordList: WordEntry[] = inputWords.map((w) =>
-      typeof w === 'string' ? { word: w, level: 'L1' } : w
-    );
+    if (!inputWords || !Array.isArray(inputWords) || inputWords.length === 0) {
+      // Try to load from file
+      try {
+        wordList = loadWordsFromFile(examCategory, level);
+        if (wordList.length === 0) {
+          return res.status(400).json({
+            success: false,
+            error: `No words found for ${examCategory}${level ? ` level ${level}` : ''}. Either provide 'words' array or ensure the word list file exists.`,
+          });
+        }
+        console.log(`[Admin] Loaded ${wordList.length} words from file for ${examCategory}${level ? ` ${level}` : ''}`);
+      } catch (error: any) {
+        return res.status(400).json({
+          success: false,
+          error: error.message || 'Failed to load words from file',
+        });
+      }
+    } else {
+      // Normalize input - support both string[] and WordEntry[]
+      wordList = inputWords.map((w) =>
+        typeof w === 'string' ? { word: w, level: level || 'L1' } : w
+      );
+    }
 
     console.log(`[Admin] Seed Exam Words: exam=${examCategory}, count=${wordList.length}, dryRun=${dryRun}, reuseContent=${reuseContent}`);
 
