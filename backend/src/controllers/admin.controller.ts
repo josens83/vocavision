@@ -1351,6 +1351,8 @@ interface SeedExamWordsRequest {
   level?: string;  // L1, L2, L3 - if provided without words, loads from file
   dryRun?: boolean;
   reuseContent?: boolean;
+  limit?: number;   // Batch size (default 50)
+  offset?: number;  // Starting offset (default 0)
 }
 
 // Word list files for each exam
@@ -1395,7 +1397,12 @@ export const seedExamWordsHandler = async (
       level,
       dryRun = true,
       reuseContent = true,
+      limit = 50,
+      offset = 0,
     } = req.body as SeedExamWordsRequest;
+
+    const limitNum = parseInt(String(limit), 10) || 50;
+    const offsetNum = parseInt(String(offset), 10) || 0;
 
     // Validate exam category
     const validCategories: ExamCategory[] = ['CSAT', 'TOEFL', 'TOEIC', 'TEPS', 'SAT'];
@@ -1407,19 +1414,19 @@ export const seedExamWordsHandler = async (
     }
 
     // Load words from file if not provided
-    let wordList: WordEntry[];
+    let allWords: WordEntry[];
 
     if (!inputWords || !Array.isArray(inputWords) || inputWords.length === 0) {
       // Try to load from file
       try {
-        wordList = loadWordsFromFile(examCategory, level);
-        if (wordList.length === 0) {
+        allWords = loadWordsFromFile(examCategory, level);
+        if (allWords.length === 0) {
           return res.status(400).json({
             success: false,
             error: `No words found for ${examCategory}${level ? ` level ${level}` : ''}. Either provide 'words' array or ensure the word list file exists.`,
           });
         }
-        console.log(`[Admin] Loaded ${wordList.length} words from file for ${examCategory}${level ? ` ${level}` : ''}`);
+        console.log(`[Admin] Loaded ${allWords.length} words from file for ${examCategory}${level ? ` ${level}` : ''}`);
       } catch (error: any) {
         return res.status(400).json({
           success: false,
@@ -1428,12 +1435,18 @@ export const seedExamWordsHandler = async (
       }
     } else {
       // Normalize input - support both string[] and WordEntry[]
-      wordList = inputWords.map((w) =>
+      allWords = inputWords.map((w) =>
         typeof w === 'string' ? { word: w, level: level || 'L1' } : w
       );
     }
 
-    console.log(`[Admin] Seed Exam Words: exam=${examCategory}, count=${wordList.length}, dryRun=${dryRun}, reuseContent=${reuseContent}`);
+    // Apply limit/offset for batch processing
+    const totalWords = allWords.length;
+    const wordList = allWords.slice(offsetNum, offsetNum + limitNum);
+    const nextOffset = offsetNum + limitNum < totalWords ? offsetNum + limitNum : null;
+    const remaining = Math.max(0, totalWords - offsetNum - limitNum);
+
+    console.log(`[Admin] Seed Exam Words: exam=${examCategory}, total=${totalWords}, processing=${wordList.length}, offset=${offsetNum}, dryRun=${dryRun}`);
 
     const stats = {
       total: wordList.length,
@@ -1600,8 +1613,14 @@ export const seedExamWordsHandler = async (
       success: true,
       mode: dryRun ? 'dry_run' : 'executed',
       examCategory,
+      level: level || 'all',
       stats: {
         ...stats,
+        totalInFile: totalWords,
+        processed: wordList.length,
+        offset: offsetNum,
+        nextOffset,
+        remaining,
         estimatedSavings: Number(estimatedSavings.toFixed(2)),
         estimatedCost: Number(estimatedCost.toFixed(2)),
         savingsPercentage: stats.total > 0
@@ -1609,8 +1628,8 @@ export const seedExamWordsHandler = async (
           : 0,
       },
       message: dryRun
-        ? `테스트 모드: ${stats.duplicates}개 재사용 가능, ${stats.newWords}개 신규 (예상 절감: $${estimatedSavings.toFixed(2)})`
-        : `완료: ${stats.copied}개 복사됨, ${stats.newWords}개 생성됨 (DRAFT 상태)`,
+        ? `테스트 모드: ${stats.duplicates}개 재사용 가능, ${stats.newWords}개 신규 (offset: ${offsetNum}, 남은 수: ${remaining})`
+        : `완료: ${stats.copied}개 복사됨, ${stats.newWords}개 생성됨 (offset: ${offsetNum}, 남은 수: ${remaining})`,
     });
   } catch (error) {
     next(error);
