@@ -31,6 +31,8 @@ import {
   regeneratePronunciationsHandler,
   // Exam words seeding
   seedExamWordsHandler,
+  // Exam words deletion
+  deleteExamWordsHandler,
 } from '../controllers/admin.controller';
 import {
   getWordVisuals,
@@ -432,5 +434,38 @@ router.post('/regenerate-pronunciation', regeneratePronunciationsHandler);
  *         description: Seeding result with statistics
  */
 router.post('/seed-exam-words', seedExamWordsHandler);
+
+/**
+ * @swagger
+ * /admin/delete-exam-words:
+ *   post:
+ *     summary: Delete exam words (for cleanup/testing)
+ *     description: |
+ *       Delete words from TOEFL/TOEIC/TEPS/SAT (CSAT is protected).
+ *       Used to clean up test data before re-seeding.
+ *     tags: [Admin - Exam Seeding]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - examCategory
+ *             properties:
+ *               examCategory:
+ *                 type: string
+ *                 enum: [TOEFL, TOEIC, TEPS, SAT]
+ *               level:
+ *                 type: string
+ *                 enum: [L1, L2, L3]
+ *                 description: Optional - delete only specific level
+ *               dryRun:
+ *                 type: boolean
+ *                 default: true
+ */
+router.post('/delete-exam-words', deleteExamWordsHandler);
 
 export default router;

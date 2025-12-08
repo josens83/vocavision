@@ -1635,3 +1635,61 @@ export const seedExamWordsHandler = async (
     next(error);
   }
 };
+
+// ============================================
+// Delete Exam Words (시험별 단어 삭제 - 테스트 데이터 정리용)
+// ============================================
+
+export const deleteExamWordsHandler = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { examCategory, level, dryRun = true } = req.body;
+
+    // Validate exam category
+    const validCategories: ExamCategory[] = ['TOEFL', 'TOEIC', 'TEPS', 'SAT'];  // CSAT는 삭제 불가
+    if (!validCategories.includes(examCategory)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid examCategory. Must be one of: ${validCategories.join(', ')} (CSAT cannot be deleted)`,
+      });
+    }
+
+    // Count words to delete
+    const whereClause: any = { examCategory };
+    if (level) {
+      whereClause.level = level;
+    }
+
+    const count = await prisma.word.count({ where: whereClause });
+
+    if (dryRun) {
+      return res.json({
+        success: true,
+        mode: 'dry_run',
+        examCategory,
+        level: level || 'all',
+        count,
+        message: `테스트 모드: ${examCategory}${level ? ` ${level}` : ''} 단어 ${count}개 삭제 예정`,
+      });
+    }
+
+    // Delete words (cascade will delete related content)
+    const deleteResult = await prisma.word.deleteMany({ where: whereClause });
+
+    console.log(`[Admin] Deleted ${deleteResult.count} ${examCategory} words${level ? ` (level: ${level})` : ''}`);
+
+    res.json({
+      success: true,
+      mode: 'executed',
+      examCategory,
+      level: level || 'all',
+      deleted: deleteResult.count,
+      message: `완료: ${examCategory}${level ? ` ${level}` : ''} 단어 ${deleteResult.count}개 삭제됨`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

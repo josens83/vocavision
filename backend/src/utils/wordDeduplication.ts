@@ -35,6 +35,7 @@ const COST_PER_WORD = 0.03;
 
 /**
  * 단어 목록에서 중복 체크
+ * targetExam을 제외한 다른 시험에서 같은 단어가 있는지 확인
  */
 export async function checkDuplicates(
   words: string[],
@@ -45,12 +46,15 @@ export async function checkDuplicates(
   // 소문자로 정규화
   const normalizedWords = words.map((w) => w.toLowerCase().trim());
 
-  // 기존 단어들 조회 (모든 시험)
+  // 기존 단어들 조회 (targetExam 제외 - CSAT 등 다른 시험에서만 찾기)
   const existingWords = await prisma.word.findMany({
     where: {
       word: {
         in: normalizedWords,
         mode: 'insensitive',
+      },
+      examCategory: {
+        not: targetExam as ExamCategory,  // 타겟 시험 제외
       },
     },
     select: {
@@ -59,21 +63,57 @@ export async function checkDuplicates(
       examCategory: true,
       level: true,
     },
+    orderBy: {
+      examCategory: 'asc',  // CSAT가 먼저 오도록 정렬
+    },
   });
 
-  // 맵으로 변환 (소문자 키)
+  // 맵으로 변환 (소문자 키) - 같은 단어가 여러 시험에 있으면 첫 번째 (CSAT)를 사용
   type ExistingWord = {
     id: string;
     word: string;
     examCategory: string | null;
     level: string | null;
   };
-  const existingMap = new Map<string, ExistingWord>(
-    existingWords.map((w) => [w.word.toLowerCase(), w as ExistingWord])
-  );
+  const existingMap = new Map<string, ExistingWord>();
+  for (const w of existingWords) {
+    const key = w.word.toLowerCase();
+    if (!existingMap.has(key)) {
+      existingMap.set(key, w as ExistingWord);
+    }
+  }
+
+  // targetExam에 이미 있는 단어들도 확인 (스킵용)
+  const existingInTarget = await prisma.word.findMany({
+    where: {
+      word: {
+        in: normalizedWords,
+        mode: 'insensitive',
+      },
+      examCategory: targetExam as ExamCategory,
+    },
+    select: {
+      word: true,
+    },
+  });
+  const targetSet = new Set(existingInTarget.map((w) => w.word.toLowerCase()));
 
   for (const word of words) {
     const lowerWord = word.toLowerCase().trim();
+
+    // 이미 타겟 시험에 있으면 스킵 표시
+    if (targetSet.has(lowerWord)) {
+      results.push({
+        word,
+        existingWordId: null,
+        existingExam: targetExam,  // 타겟 시험에 이미 있음
+        existingLevel: null,
+        isNew: false,
+      });
+      continue;
+    }
+
+    // 다른 시험(CSAT 등)에 있으면 복사 가능
     const existing = existingMap.get(lowerWord);
 
     results.push({
