@@ -1173,6 +1173,14 @@ export const seedExamWordsHandler = async (
   next: NextFunction
 ) => {
   try {
+    const body = req.body as {
+      examCategory?: string;
+      level?: string;
+      words?: Array<{ word: string; level?: string }>;
+      dryRun?: boolean;
+      limit?: number;
+      offset?: number;
+    };
     const {
       examCategory = 'TEPS',
       level,
@@ -1180,7 +1188,7 @@ export const seedExamWordsHandler = async (
       dryRun = false,
       limit = 50,
       offset = 0,
-    } = req.body;
+    } = body;
 
     // Validate exam category
     const validExams = ['TOEFL', 'TOEIC', 'TEPS', 'SAT'];
@@ -1379,7 +1387,12 @@ export const deleteExamWordsHandler = async (
   next: NextFunction
 ) => {
   try {
-    const { examCategory, level, dryRun = true } = req.body;
+    const body = req.body as {
+      examCategory?: string;
+      level?: string;
+      dryRun?: boolean;
+    };
+    const { examCategory, level, dryRun = true } = body;
 
     if (!examCategory) {
       return res.status(400).json({
