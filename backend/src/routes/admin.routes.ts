@@ -312,7 +312,7 @@ router.get('/words/:wordId/audit-logs', getWordAuditLogs);
  *                 type: integer
  *                 default: 0
  */
-router.post('/seed-exam-words', seedExamWordsHandler);
+router.post('/seed-exam-words', seedExamWordsHandler as any);
 
 /**
  * @swagger
@@ -340,6 +340,6 @@ router.post('/seed-exam-words', seedExamWordsHandler);
  *                 type: boolean
  *                 default: true
  */
-router.delete('/delete-exam-words', deleteExamWordsHandler);
+router.delete('/delete-exam-words', deleteExamWordsHandler as any);
 
 export default router;

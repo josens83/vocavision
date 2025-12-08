@@ -1193,36 +1193,42 @@ export const seedExamWordsHandler = async (
     // Validate exam category
     const validExams = ['TOEFL', 'TOEIC', 'TEPS', 'SAT'];
     if (!validExams.includes(examCategory)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: `Invalid exam category. Must be one of: ${validExams.join(', ')}`,
       });
+      return;
     }
 
     // Load words from JSON file if not provided
     let wordList: { word: string; level: string }[] = [];
 
     if (providedWords && Array.isArray(providedWords)) {
-      wordList = providedWords;
+      wordList = providedWords.map((w) => ({
+        word: w.word,
+        level: w.level || level || 'L1',
+      }));
     } else if (level) {
       // Load from JSON file
       const dataPath = path.join(__dirname, '../../data', `${examCategory.toLowerCase()}-words.json`);
 
       if (!fs.existsSync(dataPath)) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: `Word list file not found: ${dataPath}`,
         });
+        return;
       }
 
       const fileData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
       const levelKey = level.toUpperCase();
 
       if (!fileData[levelKey]) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: `Level ${level} not found in word list. Available: ${Object.keys(fileData).join(', ')}`,
         });
+        return;
       }
 
       wordList = fileData[levelKey].map((word: string) => ({
@@ -1230,10 +1236,11 @@ export const seedExamWordsHandler = async (
         level: levelKey,
       }));
     } else {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Either "words" array or "level" parameter is required',
       });
+      return;
     }
 
     // Apply limit and offset
@@ -1395,18 +1402,20 @@ export const deleteExamWordsHandler = async (
     const { examCategory, level, dryRun = true } = body;
 
     if (!examCategory) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'examCategory is required',
       });
+      return;
     }
 
     const validExams = ['TOEFL', 'TOEIC', 'TEPS', 'SAT'];
     if (!validExams.includes(examCategory)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: `Invalid exam category. Must be one of: ${validExams.join(', ')}`,
       });
+      return;
     }
 
     // Build where clause
@@ -1422,7 +1431,7 @@ export const deleteExamWordsHandler = async (
     const count = await prisma.word.count({ where: whereClause });
 
     if (dryRun) {
-      return res.json({
+      res.json({
         success: true,
         dryRun: true,
         examCategory,
@@ -1430,6 +1439,7 @@ export const deleteExamWordsHandler = async (
         wouldDelete: count,
         message: `Would delete ${count} words. Set dryRun=false to execute.`,
       });
+      return;
     }
 
     // Delete related content first (cascade)
