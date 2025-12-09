@@ -634,8 +634,8 @@ export const bulkUpdateStatus = async (
       return res.status(400).json({ message: 'Word IDs array is required' });
     }
 
-    if (!['DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status' });
+    if (!['DRAFT', 'PENDING_REVIEW', 'APPROVED', 'PUBLISHED', 'ARCHIVED'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status. Valid values: DRAFT, PENDING_REVIEW, APPROVED, PUBLISHED, ARCHIVED' });
     }
 
     const result = await prisma.word.updateMany({
