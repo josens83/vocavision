@@ -85,6 +85,21 @@ interface WordData {
   }>;
 }
 
+// Block types for interactive learning
+type BlockType = 'text' | 'image' | 'video' | 'audio' | 'diagram' | 'example' | 'quiz' | 'exercise' | 'tip' | 'warning' | 'success';
+
+interface ContentBlock {
+  id: string;
+  type: BlockType;
+  content: any;
+  metadata?: {
+    title?: string;
+    description?: string;
+    hint?: string;
+    required?: boolean;
+  };
+}
+
 /**
  * Generate interactive learning steps from word data
  */
@@ -92,10 +107,10 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   const steps = [];
 
   // Step 1: Introduction
-  const introBlocks = [
+  const introBlocks: ContentBlock[] = [
     {
       id: 'intro-text',
-      type: 'text' as const,
+      type: 'text',
       content: {
         text: `Let's learn the word "${word.word}". This ${word.partOfSpeech.toLowerCase()} means: ${word.definition}`,
       },
@@ -109,7 +124,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (word.definitionKo) {
     introBlocks.push({
       id: 'intro-korean',
-      type: 'text' as const,
+      type: 'text',
       content: {
         text: `한국어 뜻: ${word.definitionKo}`,
       },
@@ -123,7 +138,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (word.audioUrlUs || word.audioUrlUk) {
     introBlocks.push({
       id: 'intro-pronunciation',
-      type: 'audio' as const,
+      type: 'audio',
       content: {
         url: word.audioUrlUs || word.audioUrlUk,
       },
@@ -134,7 +149,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   } else if (word.pronunciation || word.phonetic) {
     introBlocks.push({
       id: 'intro-pronunciation-text',
-      type: 'text' as const,
+      type: 'text',
       content: {
         text: `Pronunciation: ${word.pronunciation || word.phonetic}`,
       },
@@ -148,7 +163,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (word.tips) {
     introBlocks.push({
       id: 'intro-tip',
-      type: 'tip' as const,
+      type: 'tip',
       content: {
         text: word.tips,
       },
@@ -158,7 +173,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   steps.push({
     id: 'step-introduction',
     stepNumber: 1,
-    type: 'introduction' as const,
+    type: 'introduction',
     title: 'Introduction',
     description: `Learn the basic meaning and pronunciation of "${word.word}"`,
     estimatedTime: 2,
@@ -166,7 +181,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   });
 
   // Step 2: Visualization
-  const visualBlocks = [];
+  const visualBlocks: ContentBlock[] = [];
 
   // Add visuals from WordVisual model (CONCEPT, MNEMONIC, RHYME)
   const conceptVisual = visuals.find((v) => v.type === 'CONCEPT');
@@ -176,7 +191,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (conceptVisual?.imageUrl) {
     visualBlocks.push({
       id: 'visual-concept',
-      type: 'image' as const,
+      type: 'image',
       content: {
         url: conceptVisual.imageUrl,
         alt: conceptVisual.labelEn || `Concept image for ${word.word}`,
@@ -191,7 +206,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (mnemonicVisual?.imageUrl) {
     visualBlocks.push({
       id: 'visual-mnemonic',
-      type: 'image' as const,
+      type: 'image',
       content: {
         url: mnemonicVisual.imageUrl,
         alt: mnemonicVisual.labelEn || `Mnemonic image for ${word.word}`,
@@ -206,7 +221,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (rhymeVisual?.imageUrl) {
     visualBlocks.push({
       id: 'visual-rhyme',
-      type: 'image' as const,
+      type: 'image',
       content: {
         url: rhymeVisual.imageUrl,
         alt: rhymeVisual.labelEn || `Rhyme image for ${word.word}`,
@@ -223,7 +238,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
     word.images.forEach((img, idx) => {
       visualBlocks.push({
         id: `visual-legacy-${idx}`,
-        type: 'image' as const,
+        type: 'image',
         content: {
           url: img.imageUrl,
           alt: img.description || `Image ${idx + 1} for ${word.word}`,
@@ -238,7 +253,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
     const mnemonic = word.mnemonics[0];
     visualBlocks.push({
       id: 'visual-mnemonic-text',
-      type: 'tip' as const,
+      type: 'tip',
       content: {
         text: `${mnemonic.title}: ${mnemonic.content}${mnemonic.koreanHint ? `\n\n한국어 힌트: ${mnemonic.koreanHint}` : ''}`,
       },
@@ -252,7 +267,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (word.etymology) {
     visualBlocks.push({
       id: 'visual-etymology',
-      type: 'text' as const,
+      type: 'text',
       content: {
         text: `Origin: ${word.etymology.origin}${word.etymology.rootWord ? `\nRoot: ${word.etymology.rootWord} (${word.etymology.rootMeaning || ''})` : ''}${word.etymology.evolution ? `\nEvolution: ${word.etymology.evolution}` : ''}`,
       },
@@ -271,7 +286,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
 
     visualBlocks.push({
       id: 'visual-morphology',
-      type: 'text' as const,
+      type: 'text',
       content: {
         text: parts.join(' | ') + (word.morphologyNote ? `\n${word.morphologyNote}` : ''),
       },
@@ -285,7 +300,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (visualBlocks.length === 0) {
     visualBlocks.push({
       id: 'visual-placeholder',
-      type: 'text' as const,
+      type: 'text',
       content: {
         text: `Visualize the word "${word.word}" in your mind. Think of a scene or image that represents its meaning: "${word.definition}"`,
       },
@@ -298,7 +313,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   steps.push({
     id: 'step-visualization',
     stepNumber: 2,
-    type: 'visualization' as const,
+    type: 'visualization',
     title: 'Visual Learning',
     description: 'Connect the word with visual memory aids',
     estimatedTime: 3,
@@ -306,13 +321,13 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   });
 
   // Step 3: Context (Examples)
-  const contextBlocks = [];
+  const contextBlocks: ContentBlock[] = [];
 
   if (word.examples && word.examples.length > 0) {
     word.examples.slice(0, 5).forEach((example, idx) => {
       contextBlocks.push({
         id: `context-example-${idx}`,
-        type: 'example' as const,
+        type: 'example',
         content: {
           sentence: example.sentence,
           translation: example.translation,
@@ -331,7 +346,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
 
     contextBlocks.push({
       id: 'context-collocations',
-      type: 'text' as const,
+      type: 'text',
       content: {
         text: collocText,
       },
@@ -345,7 +360,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (word.synonymList && word.synonymList.length > 0) {
     contextBlocks.push({
       id: 'context-synonyms',
-      type: 'text' as const,
+      type: 'text',
       content: {
         text: `Similar words: ${word.synonymList.slice(0, 5).join(', ')}`,
       },
@@ -358,7 +373,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (word.antonymList && word.antonymList.length > 0) {
     contextBlocks.push({
       id: 'context-antonyms',
-      type: 'text' as const,
+      type: 'text',
       content: {
         text: `Opposite words: ${word.antonymList.slice(0, 5).join(', ')}`,
       },
@@ -372,7 +387,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (contextBlocks.length === 0) {
     contextBlocks.push({
       id: 'context-create',
-      type: 'exercise' as const,
+      type: 'exercise',
       content: {
         prompt: `Create your own sentence using "${word.word}":`,
         sampleAnswer: `The word "${word.word}" can be used to describe ${word.definition.toLowerCase()}.`,
@@ -383,7 +398,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   steps.push({
     id: 'step-context',
     stepNumber: 3,
-    type: 'context' as const,
+    type: 'context',
     title: 'Usage in Context',
     description: 'See how the word is used in real sentences',
     estimatedTime: 3,
@@ -391,12 +406,12 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   });
 
   // Step 4: Practice
-  const practiceBlocks = [];
+  const practiceBlocks: ContentBlock[] = [];
 
   // Quiz: Definition matching
   practiceBlocks.push({
     id: 'practice-quiz-1',
-    type: 'quiz' as const,
+    type: 'quiz',
     content: {
       question: `What does "${word.word}" mean?`,
       options: generateQuizOptions(word.definition),
@@ -408,7 +423,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   // Exercise: Create a sentence
   practiceBlocks.push({
     id: 'practice-exercise-1',
-    type: 'exercise' as const,
+    type: 'exercise',
     content: {
       prompt: `Write a sentence using "${word.word}":`,
       sampleAnswer:
@@ -422,7 +437,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   if (word.rhymingWords && word.rhymingWords.length > 0) {
     practiceBlocks.push({
       id: 'practice-rhyme',
-      type: 'tip' as const,
+      type: 'tip',
       content: {
         text: `Rhyming words: ${word.rhymingWords.slice(0, 5).join(', ')}\n\nTry creating a rhyme or phrase to remember!`,
       },
@@ -435,7 +450,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   steps.push({
     id: 'step-practice',
     stepNumber: 4,
-    type: 'practice' as const,
+    type: 'practice',
     title: 'Practice',
     description: 'Test your understanding with exercises',
     estimatedTime: 4,
@@ -443,17 +458,17 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   });
 
   // Step 5: Mastery
-  const masteryBlocks = [
+  const masteryBlocks: ContentBlock[] = [
     {
       id: 'mastery-summary',
-      type: 'success' as const,
+      type: 'success',
       content: {
         text: `You've learned "${word.word}" (${word.partOfSpeech})\n\nMeaning: ${word.definition}${word.definitionKo ? `\n한국어: ${word.definitionKo}` : ''}`,
       },
     },
     {
       id: 'mastery-quiz',
-      type: 'quiz' as const,
+      type: 'quiz',
       content: {
         question: `Final check: Which of the following best describes "${word.word}"?`,
         options: generateFinalQuizOptions(word),
@@ -466,7 +481,7 @@ function generateLearningSteps(word: WordData, visuals: WordVisual[]) {
   steps.push({
     id: 'step-mastery',
     stepNumber: 5,
-    type: 'mastery' as const,
+    type: 'mastery',
     title: 'Mastery Check',
     description: 'Confirm your understanding and complete the lesson',
     estimatedTime: 2,
