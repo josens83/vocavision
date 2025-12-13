@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { wordsAPI } from '@/lib/api';
@@ -20,21 +20,62 @@ interface Word {
   level?: string;
 }
 
+// Wrap with Suspense for useSearchParams
 export default function WordsPage() {
+  return (
+    <Suspense fallback={<WordsPageLoading />}>
+      <WordsPageContent />
+    </Suspense>
+  );
+}
+
+function WordsPageLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-4">
+          <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
+        </div>
+      </header>
+      <main className="container mx-auto px-4 py-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <SkeletonWordCard key={i} />
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function WordsPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
+
+  // Get initial search from URL parameter
+  const initialSearch = searchParams.get('search') || '';
 
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [examCategory, setExamCategory] = useState('');
   const [level, setLevel] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
+  // Initial load with URL search param
   useEffect(() => {
-    // Allow guest access - no login required
     loadWords();
+    setInitialLoadDone(true);
+  }, []);
+
+  // Reload when filters change (after initial load)
+  useEffect(() => {
+    if (initialLoadDone) {
+      loadWords();
+    }
   }, [page, examCategory, level]);
 
   const loadWords = async () => {
