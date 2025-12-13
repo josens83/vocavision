@@ -250,15 +250,19 @@ export default function WordVisualsEditor({
   };
 
   // Generate all 3 images at once with auto prompts and captions
+  // IMPORTANT: Accumulates all results and updates state once at the end to avoid race conditions
   const handleBatchGenerate = async () => {
     setBatchGenerating(true);
     setBatchProgress({ current: 0, total: 3, message: '준비 중...' });
     setError(null);
 
-    const typesToGenerate = VISUAL_TYPES.filter((type) => {
-      const visual = getVisual(type);
-      return !visual.imageUrl; // Only generate for empty slots
+    // Get initial state snapshot - we'll accumulate changes into this
+    const initialVisuals: Record<VisualType, WordVisualInput> = {} as Record<VisualType, WordVisualInput>;
+    VISUAL_TYPES.forEach((type) => {
+      initialVisuals[type] = getVisual(type);
     });
+
+    const typesToGenerate = VISUAL_TYPES.filter((type) => !initialVisuals[type].imageUrl);
 
     if (typesToGenerate.length === 0) {
       setError('모든 이미지가 이미 설정되어 있습니다. 삭제 후 다시 시도하세요.');
@@ -267,10 +271,13 @@ export default function WordVisualsEditor({
       return;
     }
 
+    // Accumulate all results here
+    const accumulatedResults: Record<VisualType, Partial<WordVisualInput>> = {} as Record<VisualType, Partial<WordVisualInput>>;
+
     for (let i = 0; i < typesToGenerate.length; i++) {
       const type = typesToGenerate[i];
       const config = VISUAL_TYPE_CONFIG[type];
-      const visual = getVisual(type);
+      const existingVisual = initialVisuals[type];
 
       // Step 1: Generate prompt and captions
       setBatchProgress({
@@ -281,19 +288,20 @@ export default function WordVisualsEditor({
 
       const { prompt, captionKo, captionEn } = generatePromptData(type);
 
-      // Update visual with prompt and captions
-      const newPrompt = visual.promptEn || prompt;
-      const newCaptionKo = visual.captionKo || captionKo;
-      const newCaptionEn = visual.captionEn || captionEn;
+      // Use existing values if set, otherwise use generated ones
+      const newPrompt = existingVisual.promptEn || prompt;
+      const newCaptionKo = existingVisual.captionKo || captionKo;
+      const newCaptionEn = existingVisual.captionEn || captionEn;
 
-      updateVisual(type, {
+      // Store prompt/caption results
+      accumulatedResults[type] = {
         promptEn: newPrompt,
         captionKo: newCaptionKo,
-        captionEn: newCaptionEn
-      });
+        captionEn: newCaptionEn,
+      };
 
       // Small delay to show prompt generation
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 300));
 
       // Step 2: Generate AI image
       setBatchProgress({
@@ -317,12 +325,11 @@ export default function WordVisualsEditor({
         const result = await response.json();
 
         if (result.success) {
-          updateVisual(type, {
+          // Add image URL to accumulated results
+          accumulatedResults[type] = {
+            ...accumulatedResults[type],
             imageUrl: result.data.imageUrl,
-            promptEn: newPrompt,
-            captionKo: newCaptionKo,
-            captionEn: newCaptionEn
-          });
+          };
         } else {
           console.error(`Failed to generate ${type}:`, result.error);
         }
@@ -335,6 +342,15 @@ export default function WordVisualsEditor({
         await new Promise((r) => setTimeout(r, 2000));
       }
     }
+
+    // Apply all accumulated results at once to avoid race conditions
+    const finalVisuals: WordVisualInput[] = VISUAL_TYPES.map((type) => {
+      const base = initialVisuals[type];
+      const updates = accumulatedResults[type] || {};
+      return { ...base, ...updates };
+    });
+
+    onChange(finalVisuals);
 
     setBatchProgress({ current: typesToGenerate.length, total: typesToGenerate.length, message: '완료!' });
     await new Promise((r) => setTimeout(r, 1000));
