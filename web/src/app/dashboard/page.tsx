@@ -66,6 +66,7 @@ export default function DashboardPage() {
   const [selectedLevel, setSelectedLevel] = useState('L1');
   const [loading, setLoading] = useState(true);
   const [showLevelTestBanner, setShowLevelTestBanner] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Get current month calendar data
   const today = new Date();
@@ -111,6 +112,13 @@ export default function DashboardPage() {
     localStorage.setItem('selectedLevel', level);
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/words?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   const selectedExam = activeExam || 'CSAT';
   const exam = examInfo[selectedExam];
   const level = levelInfo[selectedLevel];
@@ -146,7 +154,7 @@ export default function DashboardPage() {
     >
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Hero Section - Skillflo 스타일 */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
             오늘도 영어 실력을 키워볼까요?
           </h1>
@@ -154,6 +162,35 @@ export default function DashboardPage() {
             매일 조금씩, 꾸준히 학습하면 실력이 쑥쑥 늘어요.
           </p>
         </div>
+
+        {/* 단어 검색 */}
+        <form onSubmit={handleSearch} className="mb-6">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="단어 검색..."
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 pl-10 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition"
+              />
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <button
+              type="submit"
+              className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-xl font-medium transition"
+            >
+              검색
+            </button>
+          </div>
+        </form>
 
         {/* 레벨 테스트 배너 - 첫 방문 사용자에게 표시 */}
         {showLevelTestBanner && (

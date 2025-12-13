@@ -7,6 +7,14 @@ import { progressAPI, wordsAPI } from '@/lib/api';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
 
+interface WordVisual {
+  type: 'CONCEPT' | 'MNEMONIC' | 'RHYME';
+  imageUrl?: string | null;
+  captionEn?: string;
+  captionKo?: string;
+  labelKo?: string;
+}
+
 interface Word {
   id: string;
   word: string;
@@ -22,6 +30,7 @@ interface Word {
   rhymes?: any[];
   etymology?: any;
   collocations?: any[];
+  visuals?: WordVisual[];
 }
 
 interface Review {
@@ -114,13 +123,14 @@ function LearnPageContent() {
 
   useEffect(() => {
     if (!hasHydrated) return;
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
 
+    // Guest users can also learn - don't redirect to login
     loadReviews();
-    startSession();
+
+    // Only start session for logged-in users
+    if (user) {
+      startSession();
+    }
   }, [user, hasHydrated, router, examParam, levelParam]);
 
   const startSession = async () => {
@@ -148,16 +158,27 @@ function LearnPageContent() {
           (word.definitionKo && word.definitionKo.trim() !== '')
         );
         setReviews(wordsWithContent.slice(0, 20).map((word: Word) => ({ word })));
-      } else {
-        // Default: Get due reviews or random words
-        const data = await progressAPI.getDueReviews();
+      } else if (user) {
+        // Logged-in users: Get due reviews or random words
+        try {
+          const data = await progressAPI.getDueReviews();
 
-        if (data.count === 0) {
+          if (data.count === 0) {
+            const randomWords = await wordsAPI.getRandomWords(10);
+            setReviews(randomWords.words.map((word: Word) => ({ word })));
+          } else {
+            setReviews(data.reviews);
+          }
+        } catch (error) {
+          // Fallback to random words if progress API fails
+          console.error('Failed to load due reviews:', error);
           const randomWords = await wordsAPI.getRandomWords(10);
           setReviews(randomWords.words.map((word: Word) => ({ word })));
-        } else {
-          setReviews(data.reviews);
         }
+      } else {
+        // Guest users: Load random words directly
+        const randomWords = await wordsAPI.getRandomWords(10);
+        setReviews(randomWords.words.map((word: Word) => ({ word })));
       }
     } catch (error) {
       console.error('Failed to load reviews:', error);
@@ -178,13 +199,15 @@ function LearnPageContent() {
 
     if (!currentWord) return;
 
-    // Fire and forget - don't wait for API response
-    progressAPI.submitReview({
-      wordId: currentWord.id,
-      rating,
-      learningMethod: 'FLASHCARD',
-      sessionId: sessionId || undefined,
-    }).catch(error => console.error('Failed to submit review:', error));
+    // Only submit progress for logged-in users
+    if (user) {
+      progressAPI.submitReview({
+        wordId: currentWord.id,
+        rating,
+        learningMethod: 'FLASHCARD',
+        sessionId: sessionId || undefined,
+      }).catch(error => console.error('Failed to submit review:', error));
+    }
 
     // Immediately advance to next word
     incrementWord(correct);
@@ -192,7 +215,7 @@ function LearnPageContent() {
     // Check if we've finished all words
     if (currentWordIndex + 1 >= reviews.length) {
       setShowResult(true);
-      if (sessionId) {
+      if (user && sessionId) {
         progressAPI.endSession({
           sessionId,
           wordsStudied: wordsStudied + 1,
@@ -206,7 +229,9 @@ function LearnPageContent() {
     resetSession();
     setShowResult(false);
     loadReviews();
-    startSession();
+    if (user) {
+      startSession();
+    }
   };
 
   if (!hasHydrated || loading) {
