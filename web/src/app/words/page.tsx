@@ -27,18 +27,15 @@ export default function WordsPage() {
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [difficulty, setDifficulty] = useState('');
+  const [examCategory, setExamCategory] = useState('');
+  const [level, setLevel] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
-
+    // Allow guest access - no login required
     loadWords();
-  }, [user, page, difficulty]);
+  }, [page, examCategory, level]);
 
   const loadWords = async () => {
     setLoading(true);
@@ -46,7 +43,8 @@ export default function WordsPage() {
       const data = await wordsAPI.getWords({
         page,
         limit: 20,
-        difficulty: difficulty || undefined,
+        examCategory: examCategory || undefined,
+        level: level || undefined,
         search: search || undefined,
       });
       setWords(data.words);
@@ -129,72 +127,63 @@ export default function WordsPage() {
             </div>
           </form>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                setDifficulty('');
-                setPage(1);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                difficulty === ''
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              전체
-            </button>
-            <button
-              onClick={() => {
-                setDifficulty('BEGINNER');
-                setPage(1);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                difficulty === 'BEGINNER'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-green-100 text-green-700 hover:bg-green-200'
-              }`}
-            >
-              초급
-            </button>
-            <button
-              onClick={() => {
-                setDifficulty('INTERMEDIATE');
-                setPage(1);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                difficulty === 'INTERMEDIATE'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-              }`}
-            >
-              중급
-            </button>
-            <button
-              onClick={() => {
-                setDifficulty('ADVANCED');
-                setPage(1);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                difficulty === 'ADVANCED'
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-              }`}
-            >
-              고급
-            </button>
-            <button
-              onClick={() => {
-                setDifficulty('EXPERT');
-                setPage(1);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                difficulty === 'EXPERT'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-red-100 text-red-700 hover:bg-red-200'
-              }`}
-            >
-              전문가
-            </button>
+          {/* 시험 필터 */}
+          <div className="space-y-3">
+            <div>
+              <span className="text-sm text-gray-500 mr-3">시험</span>
+              <div className="inline-flex gap-2 flex-wrap">
+                {[
+                  { value: '', label: '전체', color: 'gray' },
+                  { value: 'CSAT', label: '수능', color: 'blue' },
+                  { value: 'TEPS', label: 'TEPS', color: 'purple' },
+                  { value: 'TOEFL', label: 'TOEFL', color: 'orange' },
+                  { value: 'TOEIC', label: 'TOEIC', color: 'green' },
+                ].map(({ value, label, color }) => (
+                  <button
+                    key={value}
+                    onClick={() => {
+                      setExamCategory(value);
+                      setPage(1);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                      examCategory === value
+                        ? `bg-${color}-600 text-white`
+                        : `bg-${color}-100 text-${color}-700 hover:bg-${color}-200`
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 레벨 필터 */}
+            <div>
+              <span className="text-sm text-gray-500 mr-3">레벨</span>
+              <div className="inline-flex gap-2 flex-wrap">
+                {[
+                  { value: '', label: '전체' },
+                  { value: 'L1', label: '초급' },
+                  { value: 'L2', label: '중급' },
+                  { value: 'L3', label: '고급' },
+                ].map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => {
+                      setLevel(value);
+                      setPage(1);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                      level === value
+                        ? 'bg-pink-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -207,10 +196,11 @@ export default function WordsPage() {
           </div>
         ) : words.length === 0 ? (
           <EmptySearchResults
-            query={search || difficulty}
+            query={search || examCategory || level}
             onClear={() => {
               setSearch('');
-              setDifficulty('');
+              setExamCategory('');
+              setLevel('');
               setPage(1);
               loadWords();
             }}
