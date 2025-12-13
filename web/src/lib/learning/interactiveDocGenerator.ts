@@ -7,13 +7,42 @@
  * @module lib/learning/interactiveDocGenerator
  */
 
-import type {
-  InteractiveWordDocData,
-  LearningStep,
-  ContentBlock,
-  StepType,
-  BlockType,
-} from '@/components/learning/InteractiveWordDoc';
+// Type definitions (previously imported from InteractiveWordDoc component)
+export type StepType = 'introduction' | 'visualization' | 'context' | 'practice' | 'mastery';
+export type BlockType = 'text' | 'image' | 'audio' | 'video' | 'quiz' | 'exercise' | 'tip' | 'warning' | 'success' | 'example' | 'diagram';
+
+export interface ContentBlock {
+  id: string;
+  type: BlockType | string;
+  content: Record<string, any>;
+  metadata?: {
+    title?: string;
+    description?: string;
+  };
+}
+
+export interface LearningStep {
+  id: string;
+  stepNumber: number;
+  type: StepType | string;
+  title: string;
+  description: string;
+  estimatedTime: number;
+  blocks: ContentBlock[];
+  completionCriteria?: {
+    minTimeSpent?: number;
+    requiredInteractions?: number;
+    quizScore?: number;
+  };
+}
+
+export interface InteractiveWordDocData {
+  wordId: string;
+  word: string;
+  definition: string;
+  steps: LearningStep[];
+  totalEstimatedTime: number;
+}
 
 /**
  * Word data interface
