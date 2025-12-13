@@ -12,9 +12,12 @@ interface Word {
   id: string;
   word: string;
   definition: string;
+  definitionKo?: string;
   pronunciation?: string;
   difficulty: string;
   partOfSpeech: string;
+  examCategory?: string;
+  level?: string;
 }
 
 export default function WordsPage() {
@@ -249,6 +252,31 @@ export default function WordsPage() {
   );
 }
 
+// Exam display names
+const examDisplayNames: Record<string, string> = {
+  CSAT: '수능',
+  SAT: 'SAT',
+  TOEFL: 'TOEFL',
+  TOEIC: 'TOEIC',
+  TEPS: 'TEPS',
+};
+
+// Level display names
+const levelDisplayNames: Record<string, string> = {
+  L1: '초급',
+  L2: '중급',
+  L3: '고급',
+};
+
+// Exam colors for badges
+const examBadgeColors: Record<string, string> = {
+  CSAT: 'bg-blue-100 text-blue-600',
+  SAT: 'bg-emerald-100 text-emerald-600',
+  TOEFL: 'bg-orange-100 text-orange-600',
+  TOEIC: 'bg-green-100 text-green-600',
+  TEPS: 'bg-purple-100 text-purple-600',
+};
+
 function WordCard({
   word,
   difficultyColors,
@@ -258,6 +286,10 @@ function WordCard({
   difficultyColors: any;
   difficultyLabels: any;
 }) {
+  const examName = word.examCategory ? examDisplayNames[word.examCategory] || word.examCategory : null;
+  const levelName = word.level ? levelDisplayNames[word.level] || word.level : null;
+  const badgeColor = word.examCategory ? examBadgeColors[word.examCategory] || 'bg-gray-100 text-gray-600' : '';
+
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer">
       <div className="flex justify-between items-start mb-4">
@@ -267,15 +299,24 @@ function WordCard({
             <p className="text-sm text-gray-500">{word.pronunciation}</p>
           )}
         </div>
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            difficultyColors[word.difficulty]
-          }`}
-        >
-          {difficultyLabels[word.difficulty]}
-        </span>
+        {/* Exam + Level Badge */}
+        <div className="flex flex-col gap-1 items-end">
+          {examName && levelName ? (
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeColor}`}>
+              {examName} {levelName}
+            </span>
+          ) : (
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                difficultyColors[word.difficulty]
+              }`}
+            >
+              {difficultyLabels[word.difficulty]}
+            </span>
+          )}
+        </div>
       </div>
-      <p className="text-gray-700 mb-3">{word.definition}</p>
+      <p className="text-gray-700 mb-3">{word.definitionKo || word.definition}</p>
       <div className="flex items-center justify-between">
         <span className="text-sm text-gray-500">{word.partOfSpeech}</span>
         <Link
