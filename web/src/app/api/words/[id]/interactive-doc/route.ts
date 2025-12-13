@@ -83,6 +83,7 @@ interface WordData {
     similarity: number;
     example?: string;
   }>;
+  visuals?: WordVisual[];
 }
 
 // Block types for interactive learning
@@ -568,8 +569,8 @@ export async function GET(
     const wordResult = await wordResponse.json();
     const word: WordData = wordResult.word;
 
-    // Visuals are included in the with-visuals response
-    let visuals: WordVisual[] = wordResult.visuals || [];
+    // Visuals are included in the word object from with-visuals response
+    let visuals: WordVisual[] = word.visuals || [];
 
     // Generate learning steps
     const steps = generateLearningSteps(word, visuals);
