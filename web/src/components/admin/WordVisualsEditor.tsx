@@ -42,15 +42,16 @@ import {
 } from './types/admin.types';
 
 // Prompt templates for AI image generation
+// CRITICAL: Strong emphasis on NO TEXT to prevent AI text rendering issues
 const PROMPT_TEMPLATES = {
   CONCEPT: (word: string, definitionEn: string) =>
-    `A 1:1 square flat illustration showing the concept of "${word}" which means "${definitionEn}". Style: flat vector illustration, bright educational colors, minimal design, no text in image. High quality, detailed.`,
+    `A 1:1 square flat vector illustration showing the concept: "${definitionEn}". Style: clean flat design, bright educational colors, minimal, high quality. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
 
   MNEMONIC: (word: string, mnemonic: string, koreanHint?: string) =>
-    `A 1:1 square cartoon illustration visualizing this memory tip for the word "${word}": ${mnemonic}${koreanHint ? ` (Korean association: ${koreanHint})` : ''}. Style: cute cartoon, memorable, colorful, exaggerated expressions. No text in image.`,
+    `A 1:1 square cartoon illustration visualizing this memory scene: ${mnemonic}. Style: cute cartoon, memorable, colorful, exaggerated expressions, whimsical. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
 
-  RHYME: (word: string, rhymingWords: string[]) =>
-    `A 1:1 square humorous illustration connecting "${word}" with rhyming words: ${rhymingWords.slice(0, 3).join(', ')}. Style: funny cartoon, playful, educational, bright colors. Visual puns welcome. No text in image.`,
+  RHYME: (word: string, rhymingWords: string[], definitionEn?: string) =>
+    `A 1:1 square humorous cartoon illustration showing a funny scene that represents "${definitionEn || word}". Style: playful cartoon, bright colors, fun expressions, dynamic composition. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
 };
 
 interface WordVisualsEditorProps {
@@ -139,9 +140,15 @@ export default function WordVisualsEditor({
     }
   };
 
-  // Auto-generate prompt based on visual type and word data
-  const handleAutoGeneratePrompt = (type: VisualType) => {
+  // Generate prompt for a type (returns prompt and caption data)
+  // Captions are designed to be descriptive and explain what the image represents
+  const generatePromptData = (type: VisualType): { prompt: string; captionKo: string; captionEn: string } => {
     let prompt = '';
+    let captionKo = '';
+    let captionEn = '';
+
+    const rhymes = wordData?.rhymingWords || [];
+    const rhymeStr = rhymes.slice(0, 3).join(', ');
 
     switch (type) {
       case 'CONCEPT':
@@ -149,6 +156,9 @@ export default function WordVisualsEditor({
           word,
           wordData?.definitionEn || 'a concept or idea'
         );
+        // Caption: Clear definition
+        captionKo = wordData?.definitionKo || `${word}의 의미`;
+        captionEn = wordData?.definitionEn || `The meaning of ${word}`;
         break;
       case 'MNEMONIC':
         prompt = PROMPT_TEMPLATES.MNEMONIC(
@@ -156,33 +166,48 @@ export default function WordVisualsEditor({
           wordData?.mnemonic || `a memorable scene for ${word}`,
           wordData?.mnemonicKorean
         );
+        // Caption: Include the mnemonic/Korean hint for context
+        if (wordData?.mnemonicKorean) {
+          captionKo = wordData.mnemonicKorean;
+        } else if (wordData?.mnemonic) {
+          captionKo = `연상: ${wordData.mnemonic.substring(0, 60)}${wordData.mnemonic.length > 60 ? '...' : ''}`;
+        } else {
+          captionKo = `${word} 연상 기억법`;
+        }
+        captionEn = wordData?.mnemonic || `Memory tip for ${word}`;
         break;
       case 'RHYME':
         prompt = PROMPT_TEMPLATES.RHYME(
           word,
-          wordData?.rhymingWords || ['similar', 'sounding', 'words']
+          rhymes,
+          wordData?.definitionEn
         );
+        // Caption: Include rhyming words AND meaning for context
+        if (rhymes.length > 0) {
+          captionKo = `${word}는 ${rhymeStr}와 라임! (${wordData?.definitionKo || '의미'})`;
+          captionEn = `${word} rhymes with ${rhymeStr}`;
+        } else {
+          captionKo = wordData?.definitionKo || `${word}의 발음 연상`;
+          captionEn = `Sound association for ${word}`;
+        }
         break;
     }
 
-    updateVisual(type, { promptEn: prompt });
+    return { prompt, captionKo, captionEn };
+  };
 
-    // Also auto-generate captions if not set
-    if (!getVisual(type).captionKo) {
-      let captionKo = '';
-      switch (type) {
-        case 'CONCEPT':
-          captionKo = wordData?.definitionKo || `${word}의 의미`;
-          break;
-        case 'MNEMONIC':
-          captionKo = wordData?.mnemonicKorean || `${word} 연상법`;
-          break;
-        case 'RHYME':
-          captionKo = `${word}와 비슷한 발음`;
-          break;
-      }
-      updateVisual(type, { promptEn: prompt, captionKo });
-    }
+  // Auto-generate prompt based on visual type and word data
+  // Uses generatePromptData for consistent prompt/caption generation
+  const handleAutoGeneratePrompt = (type: VisualType) => {
+    const { prompt, captionKo, captionEn } = generatePromptData(type);
+    const visual = getVisual(type);
+
+    // Update prompt always, and captions only if not already set
+    updateVisual(type, {
+      promptEn: prompt,
+      captionKo: visual.captionKo || captionKo,
+      captionEn: visual.captionEn || captionEn,
+    });
   };
 
   // Generate AI image for a specific type
@@ -222,43 +247,6 @@ export default function WordVisualsEditor({
     } finally {
       setGenerating(null);
     }
-  };
-
-  // Generate prompt for a type (returns prompt and caption data)
-  const generatePromptData = (type: VisualType): { prompt: string; captionKo: string; captionEn: string } => {
-    let prompt = '';
-    let captionKo = '';
-    let captionEn = '';
-
-    switch (type) {
-      case 'CONCEPT':
-        prompt = PROMPT_TEMPLATES.CONCEPT(
-          word,
-          wordData?.definitionEn || 'a concept or idea'
-        );
-        captionKo = wordData?.definitionKo || `${word}의 의미`;
-        captionEn = wordData?.definitionEn || `The meaning of ${word}`;
-        break;
-      case 'MNEMONIC':
-        prompt = PROMPT_TEMPLATES.MNEMONIC(
-          word,
-          wordData?.mnemonic || `a memorable scene for ${word}`,
-          wordData?.mnemonicKorean
-        );
-        captionKo = wordData?.mnemonicKorean || `${word} 연상법`;
-        captionEn = wordData?.mnemonic || `Memory tip for ${word}`;
-        break;
-      case 'RHYME':
-        prompt = PROMPT_TEMPLATES.RHYME(
-          word,
-          wordData?.rhymingWords || ['similar', 'sounding', 'words']
-        );
-        captionKo = `${word}와 비슷한 발음: ${(wordData?.rhymingWords || []).slice(0, 3).join(', ')}`;
-        captionEn = `Rhymes with: ${(wordData?.rhymingWords || []).slice(0, 3).join(', ')}`;
-        break;
-    }
-
-    return { prompt, captionKo, captionEn };
   };
 
   // Generate all 3 images at once with auto prompts and captions

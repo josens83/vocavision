@@ -15,31 +15,33 @@ const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '';
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
 
 // Visual type configurations for prompt templates
+// Strong negative prompts to prevent text rendering issues
 const VISUAL_CONFIGS = {
   CONCEPT: {
     style: 'flat illustration, educational, clean design',
-    negativePrompt: 'text, words, letters, watermark, signature, blurry',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle',
   },
   MNEMONIC: {
     style: 'cartoon illustration, cute, memorable, colorful',
-    negativePrompt: 'realistic, photograph, text, words, letters, watermark',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle',
   },
   RHYME: {
     style: 'playful cartoon, humorous, bright colors',
-    negativePrompt: 'realistic, photograph, text, words, letters, watermark',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle',
   },
 };
 
 // Prompt templates (not exported - Next.js API routes only allow HTTP method exports)
+// CRITICAL: Strong emphasis on NO TEXT to prevent AI text rendering issues
 const PROMPT_TEMPLATES = {
   CONCEPT: (word: string, definitionEn: string) =>
-    `A 1:1 square flat illustration showing the concept of "${word}" which means "${definitionEn}". Style: flat vector illustration, bright educational colors, minimal design, no text in image. High quality, detailed.`,
+    `A 1:1 square flat vector illustration showing the concept: "${definitionEn}". Style: clean flat design, bright educational colors, minimal, high quality. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
 
   MNEMONIC: (word: string, mnemonic: string, koreanHint?: string) =>
-    `A 1:1 square cartoon illustration visualizing this memory tip for the word "${word}": ${mnemonic}${koreanHint ? ` (Korean association: ${koreanHint})` : ''}. Style: cute cartoon, memorable, colorful, exaggerated expressions. No text in image.`,
+    `A 1:1 square cartoon illustration visualizing this memory scene: ${mnemonic}. Style: cute cartoon, memorable, colorful, exaggerated expressions, whimsical. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
 
-  RHYME: (word: string, rhymingWords: string[]) =>
-    `A 1:1 square humorous illustration connecting "${word}" with rhyming words: ${rhymingWords.join(', ')}. Style: funny cartoon, playful, educational, bright colors. Visual puns welcome. No text in image.`,
+  RHYME: (word: string, rhymingWords: string[], definitionEn?: string) =>
+    `A 1:1 square humorous cartoon illustration showing a funny scene that represents "${definitionEn || word}". Style: playful cartoon, bright colors, fun expressions, dynamic composition. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
 };
 
 // Caption templates (not exported - Next.js API routes only allow HTTP method exports)
