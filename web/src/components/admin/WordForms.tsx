@@ -1811,6 +1811,13 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                     onChange={handleVisualsChange}
                     onImageDelete={handleImageDelete}
                     cloudinaryCloudName={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
+                    wordData={{
+                      definitionEn: content?.definitions?.[0]?.definitionEn,
+                      definitionKo: content?.definitions?.[0]?.definitionKo,
+                      mnemonic: content?.mnemonic,
+                      mnemonicKorean: content?.mnemonicKorean,
+                      rhymingWords: content?.rhymingWords,
+                    }}
                   />
                 )}
               </Card>
