@@ -68,13 +68,9 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
   const [activeTab, setActiveTab] = useState<'overview' | 'examples' | 'mnemonics' | 'etymology'>('overview');
 
   useEffect(() => {
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
-
+    // Allow guest access - no login required for viewing words
     loadWord();
-  }, [user, params.id]);
+  }, [params.id]);
 
   const loadWord = async () => {
     try {
