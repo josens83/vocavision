@@ -108,7 +108,8 @@ export const getDueReviews = async (
               take: 1,
               orderBy: { rating: 'desc' }
             },
-            etymology: true
+            etymology: true,
+            visuals: { orderBy: { order: 'asc' } },  // 3-이미지 시각화
           }
         }
       },
