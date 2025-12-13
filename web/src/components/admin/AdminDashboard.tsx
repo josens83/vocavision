@@ -17,8 +17,9 @@ import {
   ReviewModal,
   WordDetailView,
 } from './WordForms';
+import { BatchImageGenerationModal } from './BatchImageGenerationModal';
 import { VocaWord, VocaContentFull } from './types/admin.types';
-import { useWordDetail, useDashboardStats, useBatchGeneration } from './hooks/useAdminApi';
+import { useWordDetail, useDashboardStats } from './hooks/useAdminApi';
 
 // ---------------------------------------------
 // Sidebar Navigation
@@ -224,6 +225,8 @@ export const AdminDashboard: React.FC = () => {
   const [showBatchUpload, setShowBatchUpload] = useState(false);
   const [showAIGeneration, setShowAIGeneration] = useState(false);
   const [showReview, setShowReview] = useState(false);
+  const [showBatchImageGeneration, setShowBatchImageGeneration] = useState(false);
+  const [batchImageWordIds, setBatchImageWordIds] = useState<string[]>([]);
 
   // Selected word for modals/detail view
   const [selectedWord, setSelectedWord] = useState<VocaWord | null>(null);
@@ -234,9 +237,6 @@ export const AdminDashboard: React.FC = () => {
 
   // Dashboard stats for pending review count (shared with DashboardStatsView)
   const { stats, loading: statsLoading, error: statsError, fetchStats } = useDashboardStats();
-
-  // Batch generation
-  const { startBatchGeneration, error: batchError } = useBatchGeneration();
 
   // Fetch stats on mount
   useEffect(() => {
@@ -283,19 +283,16 @@ export const AdminDashboard: React.FC = () => {
     }
   }, [detailWord]);
 
-  const handleBatchGenerate = useCallback(async (wordIds: string[]) => {
-    try {
-      const success = await startBatchGeneration(wordIds);
-      if (success) {
-        alert(`${wordIds.length}개 단어에 대한 AI 생성이 시작되었습니다. 백그라운드에서 처리됩니다.`);
-        triggerRefresh();
-      } else {
-        alert(`AI 생성 실패: ${batchError || '알 수 없는 오류가 발생했습니다.'}`);
-      }
-    } catch (err) {
-      alert(`AI 생성 오류: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
-    }
-  }, [startBatchGeneration, triggerRefresh, batchError]);
+  const handleBatchGenerate = useCallback((wordIds: string[]) => {
+    // Open batch image generation modal with selected word IDs
+    setBatchImageWordIds(wordIds);
+    setShowBatchImageGeneration(true);
+  }, []);
+
+  const handleBatchImageGenerationComplete = useCallback(() => {
+    triggerRefresh();
+    fetchStats();
+  }, [triggerRefresh, fetchStats]);
 
   const handleCloseDetail = useCallback(() => {
     clearWord();
@@ -465,6 +462,16 @@ export const AdminDashboard: React.FC = () => {
         }}
         word={selectedWord}
         onSuccess={handleFormSuccess}
+      />
+
+      <BatchImageGenerationModal
+        isOpen={showBatchImageGeneration}
+        onClose={() => {
+          setShowBatchImageGeneration(false);
+          setBatchImageWordIds([]);
+        }}
+        wordIds={batchImageWordIds}
+        onComplete={handleBatchImageGenerationComplete}
       />
 
       {/* Word Detail Slide Panel */}
