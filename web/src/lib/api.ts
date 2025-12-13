@@ -64,9 +64,12 @@ api.interceptors.response.use(
     const config = error.config as ExtendedAxiosRequestConfig;
 
     // Handle 401 separately (no retry for auth errors)
+    // Don't auto-redirect - let components handle auth state
     if (error.response?.status === 401) {
+      // Clear both localStorage token and zustand persist storage
       localStorage.removeItem('authToken');
-      window.location.href = '/auth/login';
+      localStorage.removeItem('auth-storage');
+      // Don't force redirect - components should check auth state and redirect if needed
       return Promise.reject(error);
     }
 

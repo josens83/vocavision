@@ -18,24 +18,26 @@ import { progressAPI } from '@/lib/api';
  * n8n-style interactive documentation for learning words.
  * Provides step-by-step guided learning experience.
  *
+ * PUBLIC ACCESS: No login required (like /words/[id] detail page)
+ *
  * Route: /words/[id]/learn
  */
 export default function InteractiveWordLearnPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
   const [docData, setDocData] = useState<InteractiveWordDocData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
+    // Wait for auth store to hydrate
+    if (!hasHydrated) return;
 
+    // Allow guest access - no login required
     loadInteractiveDoc();
-  }, [user, params.id]);
+  }, [hasHydrated, params.id]);
 
   const loadInteractiveDoc = async () => {
     try {
@@ -61,21 +63,23 @@ export default function InteractiveWordLearnPage({ params }: { params: { id: str
   const handleComplete = async (wordId: string, totalTimeSpent: number) => {
     console.log('Completed word learning:', { wordId, totalTimeSpent });
 
-    try {
-      // Mark word as reviewed
-      await progressAPI.submitReview({
-        wordId,
-        rating: 5, // Perfect score for completing interactive doc
-        learningMethod: 'INTERACTIVE_DOC',
-      });
-
-      // Show success message
-      setTimeout(() => {
-        router.push(`/words/${wordId}`);
-      }, 3000);
-    } catch (err) {
-      console.error('Failed to save completion:', err);
+    // Only save progress for logged-in users
+    if (user) {
+      try {
+        await progressAPI.submitReview({
+          wordId,
+          rating: 5, // Perfect score for completing interactive doc
+          learningMethod: 'INTERACTIVE_DOC',
+        });
+      } catch (err) {
+        console.error('Failed to save completion:', err);
+      }
     }
+
+    // Navigate back to word detail after delay
+    setTimeout(() => {
+      router.push(`/words/${wordId}`);
+    }, 3000);
   };
 
   const handleStepComplete = async (stepId: string, progress: any) => {
@@ -101,7 +105,7 @@ export default function InteractiveWordLearnPage({ params }: { params: { id: str
     }
   };
 
-  if (loading) {
+  if (!hasHydrated || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
