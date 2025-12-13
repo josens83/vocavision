@@ -353,7 +353,7 @@ router.delete('/delete-exam-words', deleteExamWordsHandler as any);
 
 /**
  * @swagger
- * /admin/words/{wordId}/visuals:
+ * /admin/words/{id}/visuals:
  *   get:
  *     summary: Get word visuals (Concept/Mnemonic/Rhyme images)
  *     tags: [Admin - Visuals]
@@ -361,16 +361,16 @@ router.delete('/delete-exam-words', deleteExamWordsHandler as any);
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: wordId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
  */
-router.get('/words/:wordId/visuals', adminAuth, getWordVisuals as any);
+router.get('/words/:id/visuals', adminAuth, getWordVisuals as any);
 
 /**
  * @swagger
- * /admin/words/{wordId}/visuals:
+ * /admin/words/{id}/visuals:
  *   put:
  *     summary: Update word visuals
  *     tags: [Admin - Visuals]
@@ -378,16 +378,16 @@ router.get('/words/:wordId/visuals', adminAuth, getWordVisuals as any);
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: wordId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
  */
-router.put('/words/:wordId/visuals', adminAuth, updateWordVisuals as any);
+router.put('/words/:id/visuals', adminAuth, updateWordVisuals as any);
 
 /**
  * @swagger
- * /admin/words/{wordId}/visuals/{type}:
+ * /admin/words/{id}/visuals/{type}:
  *   delete:
  *     summary: Delete specific visual type
  *     tags: [Admin - Visuals]
@@ -395,7 +395,7 @@ router.put('/words/:wordId/visuals', adminAuth, updateWordVisuals as any);
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: wordId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -406,6 +406,6 @@ router.put('/words/:wordId/visuals', adminAuth, updateWordVisuals as any);
  *           type: string
  *           enum: [CONCEPT, MNEMONIC, RHYME]
  */
-router.delete('/words/:wordId/visuals/:type', adminAuth, deleteWordVisual as any);
+router.delete('/words/:id/visuals/:type', adminAuth, deleteWordVisual as any);
 
 export default router;
