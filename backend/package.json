@@ -17,6 +17,7 @@
     "seed:csat-l1": "tsx prisma/seed-csat-l1.ts",
     "seed:csat-l2": "tsx prisma/seed-csat-l2.ts",
     "seed:csat-l3": "tsx prisma/seed-csat-l3.ts",
+    "generate-images": "tsx src/scripts/generateImages.ts",
     "test": "jest",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
