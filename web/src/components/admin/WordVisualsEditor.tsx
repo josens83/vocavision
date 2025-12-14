@@ -38,10 +38,18 @@ import {
 interface WordVisualsEditorProps {
   wordId?: string;
   word: string; // Display word for context
-  visuals: WordVisual[];
+  visuals: WordVisualInput[] | WordVisual[];
   onChange: (visuals: WordVisualInput[]) => void;
   cloudinaryCloudName?: string;
   onJsonImport?: (template: VisualTemplate) => void;
+  onImageDelete?: (visual: WordVisualInput) => void;
+  wordData?: {
+    definitionEn?: string;
+    definitionKo?: string;
+    mnemonic?: string;
+    mnemonicKorean?: string;
+    rhymingWords?: string[];
+  };
 }
 
 const VISUAL_TYPES: VisualType[] = ['CONCEPT', 'MNEMONIC', 'RHYME'];
@@ -52,6 +60,8 @@ export default function WordVisualsEditor({
   onChange,
   cloudinaryCloudName,
   onJsonImport,
+  onImageDelete,
+  wordData,
 }: WordVisualsEditorProps) {
   const [uploading, setUploading] = useState<VisualType | null>(null);
   const [error, setError] = useState<string | null>(null);
