@@ -44,7 +44,8 @@ export const BatchImageGenerationModal: React.FC<BatchImageGenerationModalProps>
   const [jobStatus, setJobStatus] = useState<BatchJobStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
-  const pollInterval = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+  const isPollingRef = useRef(false);
 
   // Start batch generation
   const startBatchGeneration = useCallback(async () => {
@@ -78,51 +79,75 @@ export const BatchImageGenerationModal: React.FC<BatchImageGenerationModalProps>
     }
   }, [wordIds]);
 
-  // Poll job status
-  const pollStatus = useCallback(async () => {
+  // Poll job status with setTimeout chaining (not setInterval)
+  useEffect(() => {
     if (!jobId) return;
 
-    try {
-      const response = await fetch(`/api/admin/batch-generate-images?jobId=${jobId}`);
-      const result = await response.json();
+    isMountedRef.current = true;
+    isPollingRef.current = true;
 
-      if (result.success) {
-        setJobStatus(result.data);
+    const poll = async () => {
+      // Stop if unmounted or polling stopped
+      if (!isMountedRef.current || !isPollingRef.current) return;
 
-        // Stop polling if completed or failed
-        if (result.data.status === 'completed' || result.data.status === 'failed') {
-          if (pollInterval.current) {
-            clearInterval(pollInterval.current);
-            pollInterval.current = null;
+      try {
+        const response = await fetch(`/api/admin/batch-generate-images?jobId=${jobId}`);
+
+        // Handle rate limiting
+        if (response.status === 429) {
+          console.warn('Rate limited, waiting 10 seconds...');
+          if (isMountedRef.current && isPollingRef.current) {
+            setTimeout(poll, 10000); // Wait 10 seconds on rate limit
+          }
+          return;
+        }
+
+        const result = await response.json();
+
+        if (!isMountedRef.current) return;
+
+        if (result.success) {
+          setJobStatus(result.data);
+
+          // Continue polling if not completed
+          if (result.data.status !== 'completed' && result.data.status !== 'failed') {
+            if (isMountedRef.current && isPollingRef.current) {
+              setTimeout(poll, 3000); // Poll every 3 seconds
+            }
+          } else {
+            isPollingRef.current = false;
+          }
+        } else {
+          // Error response - retry after delay
+          if (isMountedRef.current && isPollingRef.current) {
+            setTimeout(poll, 5000);
           }
         }
-      }
-    } catch (err) {
-      console.error('Failed to poll job status:', err);
-    }
-  }, [jobId]);
-
-  // Start polling when job ID is set
-  useEffect(() => {
-    if (jobId && !pollInterval.current) {
-      pollStatus(); // Initial poll
-      pollInterval.current = setInterval(pollStatus, 2000);
-    }
-
-    return () => {
-      if (pollInterval.current) {
-        clearInterval(pollInterval.current);
-        pollInterval.current = null;
+      } catch (err) {
+        console.error('Failed to poll job status:', err);
+        // Retry on error with longer delay
+        if (isMountedRef.current && isPollingRef.current) {
+          setTimeout(poll, 5000);
+        }
       }
     };
-  }, [jobId, pollStatus]);
+
+    // Start polling after a small delay
+    const initialTimeout = setTimeout(poll, 500);
+
+    return () => {
+      isMountedRef.current = false;
+      isPollingRef.current = false;
+      clearTimeout(initialTimeout);
+    };
+  }, [jobId]); // Only depend on jobId
 
   // Auto-start when modal opens
   useEffect(() => {
     if (isOpen && wordIds.length > 0 && !jobId && !starting) {
       startBatchGeneration();
     }
-  }, [isOpen, wordIds, jobId, starting, startBatchGeneration]);
+  }, [isOpen, wordIds.length, jobId, starting, startBatchGeneration]);
 
   // Handle close
   const handleClose = () => {
