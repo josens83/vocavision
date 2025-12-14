@@ -1093,6 +1093,9 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
   const [visualsChanged, setVisualsChanged] = useState(false);
   const [visualsSaveSuccess, setVisualsSaveSuccess] = useState(false);
 
+  // Image Generation State
+  const [generatingType, setGeneratingType] = useState<'CONCEPT' | 'MNEMONIC' | 'RHYME' | 'ALL' | null>(null);
+
   // Content Editing (연상법/예문 직접 편집 - 분리)
   const { updateContent, saving: contentSaving, error: contentError } = useContentUpdate();
   const [editingMnemonic, setEditingMnemonic] = useState(false);
@@ -1159,6 +1162,132 @@ export const WordDetailView: React.FC<WordDetailViewProps> = ({
       setVisualsChanged(false);
       setVisualsSaveSuccess(true);
       setTimeout(() => setVisualsSaveSuccess(false), 3000);
+    }
+  };
+
+  // Generate prompt for a single type (프롬프트만 생성)
+  const handleGeneratePrompt = async (type: 'CONCEPT' | 'MNEMONIC' | 'RHYME') => {
+    try {
+      setGeneratingType(type);
+      const response = await fetch(`/api/admin/generate-smart-content`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wordId: word.id,
+          types: [`${type}_PROMPT`],
+          wordData: {
+            word: word.word,
+            definitionEn: content?.definitions?.[0]?.definitionEn,
+            definitionKo: content?.definitions?.[0]?.definitionKo,
+            mnemonic: content?.mnemonic,
+            mnemonicKorean: content?.mnemonicKorean,
+            rhymingWords: content?.rhymingWords,
+          },
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success && result.results) {
+        // Find the generated prompt
+        const promptResult = result.results.find((r: { type: string; content: string }) => r.type === `${type}_PROMPT`);
+        if (promptResult?.content) {
+          // Update local visuals with generated prompt
+          const updatedVisuals = localVisuals.map((v) =>
+            v.type === type ? { ...v, promptEn: promptResult.content } : v
+          );
+          // If no visual for this type exists, create one
+          if (!updatedVisuals.find(v => v.type === type)) {
+            updatedVisuals.push({
+              type,
+              promptEn: promptResult.content,
+            });
+          }
+          setLocalVisuals(updatedVisuals);
+          setVisualsChanged(true);
+        }
+      }
+    } catch (error) {
+      console.error('Prompt generation failed:', error);
+    } finally {
+      setGeneratingType(null);
+    }
+  };
+
+  // Generate single image (개별 이미지 생성)
+  const handleGenerateSingleImage = async (type: 'CONCEPT' | 'MNEMONIC' | 'RHYME') => {
+    setGeneratingType(type);
+
+    try {
+      const response = await fetch(`/api/admin/generate-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wordId: word.id,
+          visualType: type,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // Refresh visuals
+        await fetchVisuals(word.id);
+        onContentUpdated?.();
+      } else {
+        console.error('Image generation failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Image generation failed:', error);
+    } finally {
+      setGeneratingType(null);
+    }
+  };
+
+  // Generate all 3 images (3종 이미지 모두 생성)
+  const handleGenerateAllImages = async () => {
+    setGeneratingType('ALL');
+
+    try {
+      const response = await fetch(`/api/admin/batch-generate-images`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wordIds: [word.id],
+          options: {
+            types: ['CONCEPT', 'MNEMONIC', 'RHYME'],
+          },
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success && result.data?.jobId) {
+        // Poll for completion
+        const jobId = result.data.jobId;
+        let attempts = 0;
+        const maxAttempts = 30; // 30 * 5s = 150s max
+
+        const pollInterval = setInterval(async () => {
+          attempts++;
+          try {
+            const statusRes = await fetch(`/api/admin/batch-generate-images?jobId=${jobId}`);
+            const statusData = await statusRes.json();
+
+            if (statusData.data?.status === 'completed' || statusData.data?.status === 'failed' || attempts >= maxAttempts) {
+              clearInterval(pollInterval);
+              await fetchVisuals(word.id);
+              onContentUpdated?.();
+              setGeneratingType(null);
+            }
+          } catch {
+            clearInterval(pollInterval);
+            setGeneratingType(null);
+          }
+        }, 5000);
+      } else {
+        setGeneratingType(null);
+      }
+    } catch (error) {
+      console.error('Batch generation failed:', error);
+      setGeneratingType(null);
     }
   };
 
@@ -1818,6 +1947,10 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                       mnemonicKorean: content?.mnemonicKorean,
                       rhymingWords: content?.rhymingWords,
                     }}
+                    onGenerateAllImages={handleGenerateAllImages}
+                    onGenerateSingleImage={handleGenerateSingleImage}
+                    onGeneratePrompt={handleGeneratePrompt}
+                    generatingType={generatingType}
                   />
                 )}
               </Card>
@@ -2010,6 +2143,10 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                     onChange={handleVisualsChange}
                     onImageDelete={handleImageDelete}
                     cloudinaryCloudName={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
+                    onGenerateAllImages={handleGenerateAllImages}
+                    onGenerateSingleImage={handleGenerateSingleImage}
+                    onGeneratePrompt={handleGeneratePrompt}
+                    generatingType={generatingType}
                   />
                 )}
               </Card>
