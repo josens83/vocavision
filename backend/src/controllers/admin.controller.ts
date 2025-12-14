@@ -969,12 +969,13 @@ async function processImageGenerationJob(jobId: string, wordIds: string[], types
                 captionKo = mnemonicKorean || `${word.word} 연상법`;
                 captionEn = mnemonic?.substring(0, 50) || `Memory tip for ${word.word}`;
                 break;
-              case 'RHYME':
+              case 'RHYME': {
                 prompt = generateRhymePrompt(definitionEn || word.word, word.word);
-                const rhymes = rhymingWords?.slice(0, 3).join(', ') || '';
+                const rhymes = (rhymingWords || []).slice(0, 3).join(', ');
                 captionKo = rhymes ? `${word.word}는 ${rhymes}와 라임!` : definitionKo || '';
                 captionEn = rhymes ? `${word.word} rhymes with ${rhymes}` : definitionEn || '';
                 break;
+            }
             }
 
             // Generate and upload image
@@ -1536,6 +1537,32 @@ export const getWordAuditLogs = async (
     });
 
     res.json({ logs });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================
+// Word Visuals API
+// ============================================
+
+/**
+ * Get visuals for a specific word
+ */
+export const getWordVisuals = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { wordId } = req.params;
+
+    const visuals = await prisma.wordVisual.findMany({
+      where: { wordId },
+      orderBy: { type: 'asc' },
+    });
+
+    res.json({ visuals });
   } catch (error) {
     next(error);
   }

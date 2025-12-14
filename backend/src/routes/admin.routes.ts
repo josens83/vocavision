@@ -29,6 +29,8 @@ import {
   removeWordsFromCollection,
   // Audit Log
   getWordAuditLogs,
+  // Word Visuals
+  getWordVisuals,
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -341,5 +343,22 @@ router.delete('/collections/:collectionId/words', removeWordsFromCollection);
  *           default: 5
  */
 router.get('/words/:wordId/audit-logs', getWordAuditLogs);
+
+/**
+ * @swagger
+ * /admin/words/{wordId}/visuals:
+ *   get:
+ *     summary: Get visuals for a word
+ *     tags: [Admin - Visuals]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: wordId
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.get('/words/:wordId/visuals', getWordVisuals);
 
 export default router;
