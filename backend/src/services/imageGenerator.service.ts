@@ -198,7 +198,13 @@ export async function generateAndUploadImage(
 // ---------------------------------------------
 
 export function generateConceptPrompt(definitionEn: string, word: string): string {
-  return `A 1:1 square flat vector illustration showing the concept: "${definitionEn || word}". Style: clean flat design, bright educational colors, minimal, high quality. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`;
+  // Include emotional context for better representation
+  return `A 1:1 square flat vector illustration visually representing the concept of "${word}" which means "${definitionEn || word}".
+Show the EMOTION and FEELING of this concept through visual metaphor, not just literal objects.
+If it's a negative emotion (fear, hate, disgust, anxiety), show that darkness or tension visually.
+If it's a positive emotion (love, joy, hope), show warmth and brightness.
+Style: clean flat design, educational, expressive colors that match the emotional tone.
+CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`;
 }
 
 export function generateMnemonicPrompt(mnemonic: string, word: string): string {

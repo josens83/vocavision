@@ -15,7 +15,7 @@ import {
   VisualType,
   checkImageServiceConfig,
 } from '../services/imageGenerator.service';
-import { generateRhymeCaptions } from '../services/smartCaption.service';
+import { generateRhymeCaptions, translateMnemonicToEnglish } from '../services/smartCaption.service';
 
 // ============================================
 // Dashboard Stats
@@ -972,11 +972,22 @@ async function processImageGenerationJob(jobId: string, wordIds: string[], types
                   mnemonicLength: mnemonic?.length || 0,
                   mnemonicPreview: mnemonic?.substring(0, 100),
                   hasMnemonicKorean: !!mnemonicKorean,
+                  mnemonicKoreanPreview: mnemonicKorean?.substring(0, 100),
                 });
                 prompt = generateMnemonicPrompt(mnemonic || word.word, word.word);
                 logger.info('[ImageJob] MNEMONIC prompt:', prompt.substring(0, 200));
-                captionKo = mnemonicKorean || `${word.word} 연상법`;
-                captionEn = mnemonic?.substring(0, 50) || `Memory tip for ${word.word}`;
+
+                // Caption format: Korean = mnemonic itself, English = translation
+                captionKo = mnemonicKorean || mnemonic || `${word.word} 연상법`;
+
+                // Translate Korean mnemonic to English via Claude API
+                if (mnemonicKorean) {
+                  captionEn = await translateMnemonicToEnglish(word.word, mnemonicKorean);
+                } else {
+                  captionEn = `Memory tip for ${word.word}`;
+                }
+
+                logger.info('[ImageJob] MNEMONIC captions:', { captionKo, captionEn });
                 break;
               }
               case 'RHYME': {

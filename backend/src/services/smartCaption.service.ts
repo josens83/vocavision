@@ -187,3 +187,57 @@ ${mnemonicKorean ? `연상법 (한국어): ${mnemonicKorean}` : ''}
     return defaultResult;
   }
 }
+
+/**
+ * Translate Korean mnemonic to English
+ * For MNEMONIC image captions: captionKo = Korean mnemonic, captionEn = English translation
+ */
+export async function translateMnemonicToEnglish(
+  word: string,
+  mnemonicKorean: string
+): Promise<string> {
+  const defaultTranslation = `Memory tip for ${word}`;
+
+  const anthropic = getAnthropicClient();
+
+  if (!anthropic || !mnemonicKorean) {
+    return defaultTranslation;
+  }
+
+  try {
+    const prompt = `다음은 영어 단어 "${word}"를 암기하기 위한 한국어 연상법입니다.
+이 연상법을 자연스러운 영어로 번역해주세요.
+
+한국어 연상법: "${mnemonicKorean}"
+
+규칙:
+1. 직역이 아닌 의미 전달에 집중
+2. 한국어 발음 유희가 있다면 영어로 설명하거나 비슷한 표현 사용
+3. 1-2문장으로 간결하게
+4. 학습자가 이해할 수 있도록 명확하게
+
+예시:
+- "왜인(wane)지 모르게 체중이 빠지네" → "Why am I losing weight?"
+- "외국인을 지네처럼 보는 감정" → "Seeing foreigners as centipedes, not as humans"
+- "지네야 포비야 = 외국인 무서워" → "Xeno-phobia: fear of foreigners"
+
+영어 번역만 출력하세요 (따옴표 없이):`;
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 100,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const content = message.content[0];
+    if (content.type === 'text') {
+      const translation = content.text.trim().replace(/^["']|["']$/g, '');
+      logger.info('[SmartCaption] Translated mnemonic for', word, ':', translation);
+      return translation;
+    }
+    return defaultTranslation;
+  } catch (error) {
+    logger.error('[SmartCaption] Translation error for', word, ':', error);
+    return defaultTranslation;
+  }
+}
