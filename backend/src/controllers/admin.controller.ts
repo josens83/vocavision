@@ -901,9 +901,15 @@ async function processImageGenerationJob(jobId: string, wordIds: string[], types
       logger.info(`[ImageJob] Processing word ${i + 1}/${wordIds.length}:`, wordId);
 
       try {
-        // Fetch word data
+        // Fetch word data with mnemonics relation
         const word = await prisma.word.findUnique({
           where: { id: wordId },
+          include: {
+            mnemonics: {
+              take: 1,
+              orderBy: { rating: 'desc' },
+            },
+          },
         });
 
         if (!word) {
@@ -921,20 +927,13 @@ async function processImageGenerationJob(jobId: string, wordIds: string[], types
         logger.info('[ImageJob] Processing word:', word.word);
         jobResult.currentWord = word.word;
 
-        // Get word content - parse JSON if it's a string
-        let content: any = null;
-        if (word.content) {
-          try {
-            content = typeof word.content === 'string' ? JSON.parse(word.content) : word.content;
-          } catch {
-            content = null;
-          }
-        }
-        const definitionEn = content?.definitions?.[0]?.definitionEn || word.definition;
-        const definitionKo = content?.definitions?.[0]?.definitionKo || word.definitionKo;
-        const mnemonic = content?.mnemonic;
-        const mnemonicKorean = content?.mnemonicKorean;
-        const rhymingWords = content?.rhymingWords || word.rhymingWords;
+        // Get word data from actual fields
+        const definitionEn = word.definition;
+        const definitionKo = word.definitionKo;
+        const firstMnemonic = word.mnemonics?.[0];
+        const mnemonic = firstMnemonic?.content;
+        const mnemonicKorean = firstMnemonic?.koreanHint;
+        const rhymingWords = word.rhymingWords;
 
         // Generate images for each type
         const generatedVisuals: Array<{
