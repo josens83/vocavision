@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         wordIds,
         types: options?.types || ['CONCEPT', 'MNEMONIC', 'RHYME'],
+        skipExisting: options?.skipExisting ?? true,  // Default to true (skip existing images)
       }),
     });
 

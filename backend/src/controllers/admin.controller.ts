@@ -856,8 +856,13 @@ export const getBatchJobs = async (
  * Background job processor for image generation
  * This runs asynchronously in Railway's long-running server
  */
-async function processImageGenerationJob(jobId: string, wordIds: string[], types: VisualType[]) {
-  logger.info('[ImageJob] ========== STARTING JOB ==========', { jobId, wordCount: wordIds.length });
+async function processImageGenerationJob(
+  jobId: string,
+  wordIds: string[],
+  types: VisualType[],
+  skipExisting: boolean = true
+) {
+  logger.info('[ImageJob] ========== STARTING JOB ==========', { jobId, wordCount: wordIds.length, skipExisting });
 
   try {
     // Check configuration
@@ -933,6 +938,45 @@ async function processImageGenerationJob(jobId: string, wordIds: string[], types
         logger.info('[ImageJob] Processing word:', word.word);
         jobResult.currentWord = word.word;
 
+        // Check for existing visuals if skipExisting is true
+        let typesToGenerate = types;
+        if (skipExisting) {
+          const existingVisuals = await prisma.wordVisual.findMany({
+            where: { wordId },
+            select: { type: true },
+          });
+          const existingTypes = new Set(existingVisuals.map((v) => v.type));
+
+          typesToGenerate = types.filter((t) => !existingTypes.has(t));
+
+          logger.info('[ImageJob] Skip check for', word.word, ':', {
+            existingTypes: Array.from(existingTypes),
+            typesToGenerate,
+          });
+
+          if (typesToGenerate.length === 0) {
+            logger.info('[ImageJob] Skipping word (all images exist):', word.word);
+            jobResult.results.push({
+              wordId: word.id,
+              word: word.word,
+              success: true,
+              imagesGenerated: 0,
+              skipped: true,
+              message: '기존 이미지 있음 - 스킵',
+            } as any);
+
+            jobResult.processedWords = i + 1;
+            await prisma.contentGenerationJob.update({
+              where: { id: jobId },
+              data: {
+                progress: Math.round(((i + 1) / wordIds.length) * 100),
+                result: jobResult,
+              },
+            });
+            continue;
+          }
+        }
+
         // Get word data from actual fields
         const definitionEn = word.definition;
         const definitionKo = word.definitionKo;
@@ -950,7 +994,7 @@ async function processImageGenerationJob(jobId: string, wordIds: string[], types
           promptEn: string;
         }> = [];
 
-        for (const type of types) {
+        for (const type of typesToGenerate) {
           logger.info('[ImageJob] Generating type:', type, 'for', word.word);
           jobResult.currentType = type;
 
@@ -1183,9 +1227,13 @@ export const createImageGenJob = async (
   next: NextFunction
 ) => {
   try {
-    const { wordIds, types = ['CONCEPT', 'MNEMONIC', 'RHYME'] } = req.body;
+    const {
+      wordIds,
+      types = ['CONCEPT', 'MNEMONIC', 'RHYME'],
+      skipExisting = true  // Skip words that already have images
+    } = req.body;
 
-    logger.info('[ImageJob] Creating job for', wordIds?.length, 'words');
+    logger.info('[ImageJob] Creating job for', wordIds?.length, 'words', { skipExisting });
 
     if (!wordIds || !Array.isArray(wordIds) || wordIds.length === 0) {
       return res.status(400).json({ message: 'wordIds array is required' });
@@ -1221,6 +1269,7 @@ export const createImageGenJob = async (
           currentWord: null,
           currentType: null,
           results: [],
+          skipExisting,
         },
       },
     });
@@ -1231,7 +1280,7 @@ export const createImageGenJob = async (
     const estimatedMinutes = Math.ceil((wordIds.length * types.length * 10) / 60);
 
     // Start background processing (Railway server stays alive!)
-    processImageGenerationJob(job.id, wordIds, types).catch((err) => {
+    processImageGenerationJob(job.id, wordIds, types, skipExisting).catch((err) => {
       logger.error('[ImageJob] Background processing error:', err);
     });
 
