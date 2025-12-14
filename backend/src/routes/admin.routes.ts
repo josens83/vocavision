@@ -29,15 +29,7 @@ import {
   removeWordsFromCollection,
   // Audit Log
   getWordAuditLogs,
-  // Exam Word Seeding
-  seedExamWordsHandler,
-  deleteExamWordsHandler,
 } from '../controllers/admin.controller';
-import {
-  getWordVisuals,
-  updateWordVisuals,
-  deleteWordVisual,
-} from '../controllers/word.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -178,7 +170,7 @@ router.post('/words/bulk-status', bulkUpdateStatus);
 router.get('/jobs', getBatchJobs);
 
 // ============================================
-// Image Generation Job Routes
+// Image Generation Jobs Routes
 // ============================================
 
 /**
@@ -230,7 +222,7 @@ router.get('/image-jobs/:jobId', getImageGenJob);
  * @swagger
  * /admin/image-jobs/{jobId}:
  *   patch:
- *     summary: Update image generation job progress
+ *     summary: Update image generation job
  *     tags: [Admin - Image Generation]
  *     security:
  *       - bearerAuth: []
@@ -349,133 +341,5 @@ router.delete('/collections/:collectionId/words', removeWordsFromCollection);
  *           default: 5
  */
 router.get('/words/:wordId/audit-logs', getWordAuditLogs);
-
-// ============================================
-// Exam Word Seeding Routes
-// ============================================
-
-/**
- * @swagger
- * /admin/seed-exam-words:
- *   post:
- *     summary: Seed exam words with deduplication (TEPS/TOEFL/TOEIC/SAT)
- *     tags: [Admin - Seeding]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               examCategory:
- *                 type: string
- *                 enum: [TEPS, TOEFL, TOEIC, SAT]
- *               level:
- *                 type: string
- *                 description: L1, L2, L3 (loads from JSON file)
- *               words:
- *                 type: array
- *                 description: Optional custom word list
- *               dryRun:
- *                 type: boolean
- *                 default: false
- *               limit:
- *                 type: integer
- *                 default: 50
- *               offset:
- *                 type: integer
- *                 default: 0
- */
-router.post('/seed-exam-words', seedExamWordsHandler as any);
-
-/**
- * @swagger
- * /admin/delete-exam-words:
- *   delete:
- *     summary: Delete exam words (for cleanup/re-seeding)
- *     tags: [Admin - Seeding]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - examCategory
- *             properties:
- *               examCategory:
- *                 type: string
- *                 enum: [TEPS, TOEFL, TOEIC, SAT]
- *               level:
- *                 type: string
- *                 description: L1, L2, L3 (optional, deletes all if not specified)
- *               dryRun:
- *                 type: boolean
- *                 default: true
- */
-router.delete('/delete-exam-words', deleteExamWordsHandler as any);
-
-// ============================================
-// Word Visuals Routes
-// ============================================
-
-/**
- * @swagger
- * /admin/words/{id}/visuals:
- *   get:
- *     summary: Get word visuals (Concept/Mnemonic/Rhyme images)
- *     tags: [Admin - Visuals]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- */
-router.get('/words/:id/visuals', adminAuth, getWordVisuals as any);
-
-/**
- * @swagger
- * /admin/words/{id}/visuals:
- *   put:
- *     summary: Update word visuals
- *     tags: [Admin - Visuals]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- */
-router.put('/words/:id/visuals', adminAuth, updateWordVisuals as any);
-
-/**
- * @swagger
- * /admin/words/{id}/visuals/{type}:
- *   delete:
- *     summary: Delete specific visual type
- *     tags: [Admin - Visuals]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *       - in: path
- *         name: type
- *         required: true
- *         schema:
- *           type: string
- *           enum: [CONCEPT, MNEMONIC, RHYME]
- */
-router.delete('/words/:id/visuals/:type', adminAuth, deleteWordVisual as any);
 
 export default router;

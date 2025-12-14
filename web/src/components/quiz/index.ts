@@ -13,4 +13,5 @@ export {
   type QuizResultData,
 } from './MultipleChoiceQuiz';
 
-// Legacy exports removed - QuizChoice component deprecated
+// Legacy exports for backwards compatibility
+export { QuizChoice, QuizQuestion, QuizContainer, QuizFeedback, useQuiz, QuizDemo } from './QuizChoice';

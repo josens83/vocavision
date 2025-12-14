@@ -260,25 +260,16 @@ export default function WordVisualPanel({
       </div>
 
       {/* 캡션 */}
-      {currentVisual && (currentVisual.captionKo || currentVisual.captionEn) && (
+      {currentVisual && getCaption(currentVisual) && (
         <div className="p-4 border-t border-gray-100">
           <span
             className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full border mb-2 ${TAB_CONFIG[activeTab].lightColor}`}
           >
             {getTabLabel(activeTab)}
           </span>
-          {/* 한국어 캡션 */}
-          {currentVisual.captionKo && (
-            <p className="text-sm text-gray-700 leading-relaxed">
-              {currentVisual.captionKo}
-            </p>
-          )}
-          {/* 영어 캡션 (항상 표시) */}
-          {currentVisual.captionEn && (
-            <p className="text-xs text-gray-500 italic mt-1">
-              {currentVisual.captionEn}
-            </p>
-          )}
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+            {getCaption(currentVisual)}
+          </p>
         </div>
       )}
 

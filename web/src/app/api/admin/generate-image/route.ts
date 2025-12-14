@@ -14,16 +14,6 @@ const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '';
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
 
-// Debug: Log configuration on module load
-console.log('[GenerateImage] Module loaded with config:', {
-  hasStabilityKey: !!STABILITY_API_KEY,
-  stabilityKeyLength: STABILITY_API_KEY.length,
-  hasCloudinaryName: !!CLOUDINARY_CLOUD_NAME,
-  cloudinaryName: CLOUDINARY_CLOUD_NAME,
-  hasCloudinaryKey: !!CLOUDINARY_API_KEY,
-  hasCloudinarySecret: !!CLOUDINARY_API_SECRET,
-});
-
 // Visual type configurations for prompt templates
 // Strong negative prompts to prevent text rendering issues
 const VISUAL_CONFIGS = {
@@ -92,16 +82,9 @@ async function generateWithStabilityAI(
   prompt: string,
   visualType: keyof typeof VISUAL_CONFIGS
 ): Promise<{ base64: string; seed: number } | null> {
-  console.log('[Stability] Starting image generation...');
-  console.log('[Stability] Visual type:', visualType);
-  console.log('[Stability] Prompt length:', prompt.length);
-
   const config = VISUAL_CONFIGS[visualType];
   const engineId = 'stable-diffusion-xl-1024-v1-0';
   const url = `${STABILITY_API_URL}/${engineId}/text-to-image`;
-
-  console.log('[Stability] URL:', url);
-  console.log('[Stability] API Key length:', STABILITY_API_KEY.length);
 
   const requestBody = {
     text_prompts: [
@@ -116,8 +99,6 @@ async function generateWithStabilityAI(
     sampler: 'K_DPM_2_ANCESTRAL',
   };
 
-  console.log('[Stability] Sending request...');
-
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -128,31 +109,20 @@ async function generateWithStabilityAI(
     body: JSON.stringify(requestBody),
   });
 
-  console.log('[Stability] Response status:', response.status);
-
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error('[Stability] Error response:', errorText);
-    try {
-      const error = JSON.parse(errorText);
-      throw new Error(`Stability AI error: ${error.message || response.statusText}`);
-    } catch {
-      throw new Error(`Stability AI error: ${response.status} ${response.statusText} - ${errorText}`);
-    }
+    const error = await response.json();
+    throw new Error(`Stability AI error: ${error.message || response.statusText}`);
   }
 
   const data: StabilityResponse = await response.json();
-  console.log('[Stability] Got artifacts:', data.artifacts?.length || 0);
 
   if (data.artifacts && data.artifacts.length > 0) {
-    console.log('[Stability] Image generated successfully, base64 length:', data.artifacts[0].base64.length);
     return {
       base64: data.artifacts[0].base64,
       seed: data.artifacts[0].seed,
     };
   }
 
-  console.error('[Stability] No artifacts in response');
   return null;
 }
 
@@ -164,18 +134,10 @@ async function uploadToCloudinary(
   word: string,
   visualType: string
 ): Promise<{ url: string; publicId: string }> {
-  console.log('[Cloudinary] Starting upload...');
-  console.log('[Cloudinary] Word:', word);
-  console.log('[Cloudinary] Visual type:', visualType);
-  console.log('[Cloudinary] Base64 length:', base64Data.length);
-
   const crypto = await import('crypto');
   const timestamp = Math.floor(Date.now() / 1000);
   const folder = 'vocavision/visuals';
   const publicId = `${word.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${visualType.toLowerCase()}-${Date.now()}`;
-
-  console.log('[Cloudinary] Public ID:', publicId);
-  console.log('[Cloudinary] Cloud name:', CLOUDINARY_CLOUD_NAME);
 
   // Generate signature
   const signatureString = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
@@ -190,8 +152,6 @@ async function uploadToCloudinary(
   formData.append('folder', folder);
   formData.append('public_id', publicId);
 
-  console.log('[Cloudinary] Sending upload request...');
-
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
     {
@@ -200,23 +160,12 @@ async function uploadToCloudinary(
     }
   );
 
-  console.log('[Cloudinary] Response status:', response.status);
-
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error('[Cloudinary] Error response:', errorText);
-    try {
-      const error = JSON.parse(errorText);
-      throw new Error(`Cloudinary upload error: ${error.error?.message || response.statusText}`);
-    } catch {
-      throw new Error(`Cloudinary upload error: ${response.status} - ${errorText}`);
-    }
+    const error = await response.json();
+    throw new Error(`Cloudinary upload error: ${error.error?.message || response.statusText}`);
   }
 
   const result = await response.json();
-  console.log('[Cloudinary] Upload successful!');
-  console.log('[Cloudinary] URL:', result.secure_url);
-
   return {
     url: result.secure_url,
     publicId: result.public_id,

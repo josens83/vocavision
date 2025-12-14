@@ -6,6 +6,15 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
+import logger from '../utils/logger';
+import {
+  generateAndUploadImage,
+  generateConceptPrompt,
+  generateMnemonicPrompt,
+  generateRhymePrompt,
+  VisualType,
+  checkImageServiceConfig,
+} from '../services/imageGenerator.service';
 
 // ============================================
 // Dashboard Stats
@@ -634,8 +643,8 @@ export const bulkUpdateStatus = async (
       return res.status(400).json({ message: 'Word IDs array is required' });
     }
 
-    if (!['DRAFT', 'PENDING_REVIEW', 'APPROVED', 'PUBLISHED', 'ARCHIVED'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status. Valid values: DRAFT, PENDING_REVIEW, APPROVED, PUBLISHED, ARCHIVED' });
+    if (!['DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
     }
 
     const result = await prisma.word.updateMany({
@@ -838,6 +847,245 @@ export const getBatchJobs = async (
 // ============================================
 
 /**
+ * Background job processor for image generation
+ * This runs asynchronously in Railway's long-running server
+ */
+async function processImageGenerationJob(jobId: string, wordIds: string[], types: VisualType[]) {
+  logger.info('[ImageJob] ========== STARTING JOB ==========', { jobId, wordCount: wordIds.length });
+
+  try {
+    // Check configuration
+    const config = checkImageServiceConfig();
+    if (!config.stabilityConfigured || !config.cloudinaryConfigured) {
+      logger.error('[ImageJob] Service not configured:', config);
+      await prisma.contentGenerationJob.update({
+        where: { id: jobId },
+        data: {
+          status: 'failed',
+          errorMessage: 'Image service not configured',
+          completedAt: new Date(),
+        },
+      });
+      return;
+    }
+
+    // Initialize job result tracking
+    const jobResult = {
+      totalWords: wordIds.length,
+      processedWords: 0,
+      currentWord: null as string | null,
+      currentType: null as string | null,
+      results: [] as Array<{
+        wordId: string;
+        word: string;
+        success: boolean;
+        imagesGenerated: number;
+        error?: string;
+      }>,
+    };
+
+    // Update job to processing
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'processing',
+        startedAt: new Date(),
+        progress: 0,
+        result: jobResult,
+      },
+    });
+
+    // Process each word
+    for (let i = 0; i < wordIds.length; i++) {
+      const wordId = wordIds[i];
+      logger.info(`[ImageJob] Processing word ${i + 1}/${wordIds.length}:`, wordId);
+
+      try {
+        // Fetch word data
+        const word = await prisma.word.findUnique({
+          where: { id: wordId },
+          include: { content: true },
+        });
+
+        if (!word) {
+          logger.error('[ImageJob] Word not found:', wordId);
+          jobResult.results.push({
+            wordId,
+            word: 'Unknown',
+            success: false,
+            imagesGenerated: 0,
+            error: 'Word not found',
+          });
+          continue;
+        }
+
+        logger.info('[ImageJob] Processing word:', word.word);
+        jobResult.currentWord = word.word;
+
+        // Get word content
+        const content = word.content as any;
+        const definitionEn = content?.definitions?.[0]?.definitionEn || word.definition;
+        const definitionKo = content?.definitions?.[0]?.definitionKo || word.definitionKo;
+        const mnemonic = content?.mnemonic;
+        const mnemonicKorean = content?.mnemonicKorean;
+        const rhymingWords = content?.rhymingWords || word.rhymingWords;
+
+        // Generate images for each type
+        const generatedVisuals: Array<{
+          type: string;
+          imageUrl: string;
+          captionKo: string;
+          captionEn: string;
+          promptEn: string;
+        }> = [];
+
+        for (const type of types) {
+          logger.info('[ImageJob] Generating type:', type, 'for', word.word);
+          jobResult.currentType = type;
+
+          await prisma.contentGenerationJob.update({
+            where: { id: jobId },
+            data: { result: jobResult },
+          });
+
+          try {
+            let prompt: string;
+            let captionKo: string;
+            let captionEn: string;
+
+            switch (type) {
+              case 'CONCEPT':
+                prompt = generateConceptPrompt(definitionEn, word.word);
+                captionKo = definitionKo || `${word.word}의 의미`;
+                captionEn = definitionEn || `The meaning of ${word.word}`;
+                break;
+              case 'MNEMONIC':
+                prompt = generateMnemonicPrompt(mnemonic || word.word, word.word);
+                captionKo = mnemonicKorean || `${word.word} 연상법`;
+                captionEn = mnemonic?.substring(0, 50) || `Memory tip for ${word.word}`;
+                break;
+              case 'RHYME':
+                prompt = generateRhymePrompt(definitionEn || word.word, word.word);
+                const rhymes = rhymingWords?.slice(0, 3).join(', ') || '';
+                captionKo = rhymes ? `${word.word}는 ${rhymes}와 라임!` : definitionKo || '';
+                captionEn = rhymes ? `${word.word} rhymes with ${rhymes}` : definitionEn || '';
+                break;
+            }
+
+            // Generate and upload image
+            const result = await generateAndUploadImage(prompt, type, word.word);
+
+            if (result) {
+              generatedVisuals.push({
+                type,
+                imageUrl: result.imageUrl,
+                captionKo,
+                captionEn,
+                promptEn: prompt,
+              });
+              logger.info('[ImageJob] Generated:', type, 'for', word.word);
+            }
+
+            // Rate limit delay (2 seconds between images)
+            await new Promise((r) => setTimeout(r, 2000));
+          } catch (error) {
+            logger.error('[ImageJob] Error generating', type, 'for', word.word, ':', error);
+          }
+        }
+
+        // Save visuals to database
+        if (generatedVisuals.length > 0) {
+          // Check if WordVisual model exists and save
+          try {
+            for (const visual of generatedVisuals) {
+              await prisma.wordVisual.upsert({
+                where: {
+                  wordId_type: {
+                    wordId: word.id,
+                    type: visual.type as any,
+                  },
+                },
+                update: {
+                  imageUrl: visual.imageUrl,
+                  captionKo: visual.captionKo,
+                  captionEn: visual.captionEn,
+                  promptEn: visual.promptEn,
+                },
+                create: {
+                  wordId: word.id,
+                  type: visual.type as any,
+                  imageUrl: visual.imageUrl,
+                  captionKo: visual.captionKo,
+                  captionEn: visual.captionEn,
+                  promptEn: visual.promptEn,
+                },
+              });
+            }
+            logger.info('[ImageJob] Saved', generatedVisuals.length, 'visuals for', word.word);
+          } catch (saveError) {
+            logger.error('[ImageJob] Error saving visuals:', saveError);
+          }
+        }
+
+        jobResult.results.push({
+          wordId: word.id,
+          word: word.word,
+          success: generatedVisuals.length > 0,
+          imagesGenerated: generatedVisuals.length,
+        });
+      } catch (wordError) {
+        logger.error('[ImageJob] Error processing word:', wordId, wordError);
+        jobResult.results.push({
+          wordId,
+          word: 'Unknown',
+          success: false,
+          imagesGenerated: 0,
+          error: wordError instanceof Error ? wordError.message : 'Unknown error',
+        });
+      }
+
+      // Update progress
+      jobResult.processedWords++;
+      const progress = Math.round((jobResult.processedWords / jobResult.totalWords) * 100);
+      await prisma.contentGenerationJob.update({
+        where: { id: jobId },
+        data: { progress, result: jobResult },
+      });
+    }
+
+    // Mark job as completed
+    jobResult.currentWord = null;
+    jobResult.currentType = null;
+
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'completed',
+        progress: 100,
+        completedAt: new Date(),
+        result: jobResult,
+      },
+    });
+
+    logger.info('[ImageJob] ========== JOB COMPLETED ==========', {
+      jobId,
+      totalProcessed: jobResult.processedWords,
+      successful: jobResult.results.filter((r) => r.success).length,
+    });
+  } catch (error) {
+    logger.error('[ImageJob] Fatal error:', error);
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        completedAt: new Date(),
+      },
+    });
+  }
+}
+
+/**
  * Create a new image generation job
  */
 export const createImageGenJob = async (
@@ -848,12 +1096,26 @@ export const createImageGenJob = async (
   try {
     const { wordIds, types = ['CONCEPT', 'MNEMONIC', 'RHYME'] } = req.body;
 
+    logger.info('[ImageJob] Creating job for', wordIds?.length, 'words');
+
     if (!wordIds || !Array.isArray(wordIds) || wordIds.length === 0) {
       return res.status(400).json({ message: 'wordIds array is required' });
     }
 
     if (wordIds.length > 50) {
       return res.status(400).json({ message: 'Maximum 50 words per batch' });
+    }
+
+    // Check configuration
+    const config = checkImageServiceConfig();
+    logger.info('[ImageJob] Service config:', config);
+
+    if (!config.stabilityConfigured) {
+      return res.status(500).json({ message: 'Stability AI not configured. Set STABILITY_API_KEY.' });
+    }
+
+    if (!config.cloudinaryConfigured) {
+      return res.status(500).json({ message: 'Cloudinary not configured. Set CLOUDINARY_* variables.' });
     }
 
     // Create job in database
@@ -874,8 +1136,15 @@ export const createImageGenJob = async (
       },
     });
 
+    logger.info('[ImageJob] Job created:', job.id);
+
     // Estimate time (roughly 10 seconds per image, 3 images per word)
     const estimatedMinutes = Math.ceil((wordIds.length * types.length * 10) / 60);
+
+    // Start background processing (Railway server stays alive!)
+    processImageGenerationJob(job.id, wordIds, types).catch((err) => {
+      logger.error('[ImageJob] Background processing error:', err);
+    });
 
     res.json({
       success: true,
@@ -887,6 +1156,7 @@ export const createImageGenJob = async (
       },
     });
   } catch (error) {
+    logger.error('[ImageJob] Error creating job:', error);
     next(error);
   }
 };
@@ -904,10 +1174,7 @@ export const getImageGenJob = async (
 
     const job = await prisma.contentGenerationJob.findFirst({
       where: {
-        OR: [
-          { id: jobId },
-          { batchId: jobId },
-        ],
+        OR: [{ id: jobId }, { batchId: jobId }],
       },
     });
 
@@ -915,19 +1182,7 @@ export const getImageGenJob = async (
       return res.status(404).json({ success: false, error: 'Job not found' });
     }
 
-    const result = job.result as {
-      totalWords?: number;
-      processedWords?: number;
-      currentWord?: string;
-      currentType?: string;
-      results?: Array<{
-        wordId: string;
-        word: string;
-        success: boolean;
-        imagesGenerated: number;
-        error?: string;
-      }>;
-    } | null;
+    const result = job.result as any;
 
     res.json({
       success: true,
@@ -952,7 +1207,7 @@ export const getImageGenJob = async (
 };
 
 /**
- * Update image generation job progress
+ * Update image generation job (for external updates if needed)
  */
 export const updateImageGenJob = async (
   req: AuthRequest,
@@ -961,14 +1216,11 @@ export const updateImageGenJob = async (
 ) => {
   try {
     const { jobId } = req.params;
-    const { status, progress, currentWord, currentType, result: resultUpdate, error } = req.body;
+    const { status, progress, result: resultUpdate, error } = req.body;
 
     const job = await prisma.contentGenerationJob.findFirst({
       where: {
-        OR: [
-          { id: jobId },
-          { batchId: jobId },
-        ],
+        OR: [{ id: jobId }, { batchId: jobId }],
       },
     });
 
@@ -976,13 +1228,7 @@ export const updateImageGenJob = async (
       return res.status(404).json({ success: false, error: 'Job not found' });
     }
 
-    const currentResult = job.result as Record<string, unknown> | null;
-    const updatedResult = {
-      ...currentResult,
-      ...resultUpdate,
-    };
-
-    const updateData: Record<string, unknown> = {};
+    const updateData: any = {};
 
     if (status !== undefined) {
       updateData.status = status;
@@ -994,17 +1240,9 @@ export const updateImageGenJob = async (
       }
     }
 
-    if (progress !== undefined) {
-      updateData.progress = progress;
-    }
-
-    if (resultUpdate !== undefined) {
-      updateData.result = updatedResult;
-    }
-
-    if (error !== undefined) {
-      updateData.errorMessage = error;
-    }
+    if (progress !== undefined) updateData.progress = progress;
+    if (resultUpdate !== undefined) updateData.result = { ...(job.result as any), ...resultUpdate };
+    if (error !== undefined) updateData.errorMessage = error;
 
     const updated = await prisma.contentGenerationJob.update({
       where: { id: job.id },
@@ -1322,352 +1560,5 @@ export const createAuditLog = async (
     });
   } catch (error) {
     console.error('Failed to create audit log:', error);
-  }
-};
-
-// ============================================
-// Exam Word Seeding (TEPS/TOEFL/TOEIC/SAT)
-// ============================================
-
-import {
-  checkDuplicates,
-  copyWordContent,
-  DeduplicationResult,
-} from '../utils/wordDeduplication';
-import * as fs from 'fs';
-import * as path from 'path';
-
-interface SeedStats {
-  total: number;
-  copied: number;
-  created: number;
-  skipped: number;
-  errors: number;
-  errorDetails: string[];
-  debugLogs: string[];
-}
-
-/**
- * Seed exam words with deduplication
- * POST /admin/seed-exam-words
- */
-export const seedExamWordsHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const body = req.body as {
-      examCategory?: string;
-      level?: string;
-      words?: Array<{ word: string; level?: string }>;
-      dryRun?: boolean;
-      limit?: number;
-      offset?: number;
-    };
-    const {
-      examCategory = 'TEPS',
-      level,
-      words: providedWords,
-      dryRun = false,
-      limit = 50,
-      offset = 0,
-    } = body;
-
-    // Validate exam category
-    const validExams = ['TOEFL', 'TOEIC', 'TEPS', 'SAT'];
-    if (!validExams.includes(examCategory)) {
-      res.status(400).json({
-        success: false,
-        message: `Invalid exam category. Must be one of: ${validExams.join(', ')}`,
-      });
-      return;
-    }
-
-    // Load words from JSON file if not provided
-    let wordList: { word: string; level: string }[] = [];
-
-    if (providedWords && Array.isArray(providedWords)) {
-      wordList = providedWords.map((w) => ({
-        word: w.word,
-        level: w.level || level || 'L1',
-      }));
-    } else if (level) {
-      // Load from JSON file
-      const dataPath = path.join(__dirname, '../../data', `${examCategory.toLowerCase()}-words.json`);
-
-      if (!fs.existsSync(dataPath)) {
-        res.status(400).json({
-          success: false,
-          message: `Word list file not found: ${dataPath}`,
-        });
-        return;
-      }
-
-      const fileData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-      const levelKey = level.toUpperCase();
-
-      // Handle nested structure: { levels: { L1: { words: [...] } } } or flat: { L1: [...] }
-      const levelsData = fileData.levels || fileData;
-      const levelData = levelsData[levelKey];
-
-      if (!levelData) {
-        res.status(400).json({
-          success: false,
-          message: `Level ${level} not found in word list. Available: ${Object.keys(levelsData).join(', ')}`,
-        });
-        return;
-      }
-
-      // Handle { words: [...] } or direct array
-      const wordsArray = Array.isArray(levelData) ? levelData : levelData.words;
-
-      if (!wordsArray || !Array.isArray(wordsArray)) {
-        res.status(400).json({
-          success: false,
-          message: `Invalid word list format for level ${level}`,
-        });
-        return;
-      }
-
-      wordList = wordsArray.map((word: string) => ({
-        word,
-        level: levelKey,
-      }));
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Either "words" array or "level" parameter is required',
-      });
-      return;
-    }
-
-    // Apply limit and offset
-    const paginatedWords = wordList.slice(offset, offset + limit);
-    const hasMore = offset + limit < wordList.length;
-
-    const stats: SeedStats = {
-      total: paginatedWords.length,
-      copied: 0,
-      created: 0,
-      skipped: 0,
-      errors: 0,
-      errorDetails: [],
-      debugLogs: [],
-    };
-
-    // Check duplicates (finds CSAT words, excludes target exam)
-    const wordsToCheck = paginatedWords.map((w) => w.word);
-    const duplicateResults = await checkDuplicates(wordsToCheck, examCategory);
-
-    stats.debugLogs.push(`checkDuplicates returned ${duplicateResults.length} results`);
-
-    for (let i = 0; i < duplicateResults.length; i++) {
-      const result = duplicateResults[i];
-      const wordData = paginatedWords[i];
-      const targetLevel = wordData.level || 'L1';
-
-      stats.debugLogs.push(
-        `[${result.word}] isNew=${result.isNew}, existingExam=${result.existingExam}, existingWordId=${result.existingWordId}`
-      );
-
-      // CASE 1: Word already exists in target exam (TEPS) - skip
-      if (!result.isNew && result.existingExam === examCategory) {
-        stats.debugLogs.push(`[${result.word}] CASE 1: Already in ${examCategory}, skipping`);
-        stats.skipped++;
-        continue;
-      }
-
-      // CASE 2: Word exists in another exam (CSAT) - copy content
-      if (!result.isNew && result.existingWordId && result.existingExam !== examCategory) {
-        stats.debugLogs.push(
-          `[${result.word}] CASE 2: Found in ${result.existingExam} (${result.existingWordId}), copying...`
-        );
-
-        if (dryRun) {
-          stats.copied++;
-          continue;
-        }
-
-        const copyResult = await copyWordContent(
-          result.existingWordId,
-          examCategory as any,
-          targetLevel
-        );
-
-        if (copyResult.success) {
-          stats.debugLogs.push(`[${result.word}] Copy SUCCESS: ${copyResult.newWordId}`);
-          stats.copied++;
-        } else if (copyResult.error?.includes('already exists')) {
-          stats.debugLogs.push(`[${result.word}] Copy SKIPPED: already exists in target`);
-          stats.skipped++;
-        } else {
-          stats.debugLogs.push(`[${result.word}] Copy FAILED: ${copyResult.error}`);
-          stats.errorDetails.push(`${result.word}: ${copyResult.error}`);
-          stats.errors++;
-        }
-        continue;
-      }
-
-      // CASE 3: New word - create as DRAFT (needs AI generation)
-      stats.debugLogs.push(`[${result.word}] CASE 3: New word, creating DRAFT`);
-
-      if (dryRun) {
-        stats.created++;
-        continue;
-      }
-
-      try {
-        // Check if already exists
-        const existing = await prisma.word.findFirst({
-          where: {
-            word: { equals: result.word, mode: 'insensitive' },
-            examCategory: examCategory as any,
-          },
-        });
-
-        if (existing) {
-          stats.debugLogs.push(`[${result.word}] Already exists in ${examCategory}`);
-          stats.skipped++;
-          continue;
-        }
-
-        await prisma.word.create({
-          data: {
-            word: result.word,
-            definition: '',
-            partOfSpeech: 'NOUN',
-            examCategory: examCategory as any,
-            level: targetLevel,
-            status: 'DRAFT',
-          },
-        });
-
-        stats.debugLogs.push(`[${result.word}] Created as DRAFT`);
-        stats.created++;
-      } catch (error: any) {
-        if (error.code === 'P2002') {
-          stats.skipped++;
-        } else {
-          stats.errorDetails.push(`${result.word}: ${error.message}`);
-          stats.errors++;
-        }
-      }
-    }
-
-    res.json({
-      success: true,
-      dryRun,
-      examCategory,
-      level: level || 'custom',
-      pagination: {
-        offset,
-        limit,
-        processed: paginatedWords.length,
-        totalInLevel: wordList.length,
-        hasMore,
-        nextOffset: hasMore ? offset + limit : null,
-      },
-      stats: {
-        total: stats.total,
-        copied: stats.copied,
-        created: stats.created,
-        skipped: stats.skipped,
-        errors: stats.errors,
-        errorDetails: stats.errorDetails,
-      },
-      debugLogs: stats.debugLogs,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Delete exam words (for cleanup/re-seeding)
- * DELETE /admin/delete-exam-words
- */
-export const deleteExamWordsHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const body = req.body as {
-      examCategory?: string;
-      level?: string;
-      dryRun?: boolean;
-    };
-    const { examCategory, level, dryRun = true } = body;
-
-    if (!examCategory) {
-      res.status(400).json({
-        success: false,
-        message: 'examCategory is required',
-      });
-      return;
-    }
-
-    const validExams = ['TOEFL', 'TOEIC', 'TEPS', 'SAT'];
-    if (!validExams.includes(examCategory)) {
-      res.status(400).json({
-        success: false,
-        message: `Invalid exam category. Must be one of: ${validExams.join(', ')}`,
-      });
-      return;
-    }
-
-    // Build where clause
-    const whereClause: any = {
-      examCategory: examCategory as any,
-    };
-
-    if (level) {
-      whereClause.level = level.toUpperCase();
-    }
-
-    // Count words to delete
-    const count = await prisma.word.count({ where: whereClause });
-
-    if (dryRun) {
-      res.json({
-        success: true,
-        dryRun: true,
-        examCategory,
-        level: level || 'all',
-        wouldDelete: count,
-        message: `Would delete ${count} words. Set dryRun=false to execute.`,
-      });
-      return;
-    }
-
-    // Delete related content first (cascade)
-    const words = await prisma.word.findMany({
-      where: whereClause,
-      select: { id: true },
-    });
-    const wordIds = words.map((w) => w.id);
-
-    // Delete relations
-    await prisma.etymology.deleteMany({ where: { wordId: { in: wordIds } } });
-    await prisma.mnemonic.deleteMany({ where: { wordId: { in: wordIds } } });
-    await prisma.example.deleteMany({ where: { wordId: { in: wordIds } } });
-    await prisma.collocation.deleteMany({ where: { wordId: { in: wordIds } } });
-    await prisma.wordVisual.deleteMany({ where: { wordId: { in: wordIds } } });
-    await prisma.synonym.deleteMany({ where: { wordId: { in: wordIds } } });
-    await prisma.antonym.deleteMany({ where: { wordId: { in: wordIds } } });
-
-    // Delete words
-    const deleted = await prisma.word.deleteMany({ where: whereClause });
-
-    res.json({
-      success: true,
-      dryRun: false,
-      examCategory,
-      level: level || 'all',
-      deleted: deleted.count,
-    });
-  } catch (error) {
-    next(error);
   }
 };

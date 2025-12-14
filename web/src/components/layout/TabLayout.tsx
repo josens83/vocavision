@@ -23,7 +23,7 @@ export default function TabLayout({
       {showHeader && (
         <header className="bg-white shadow-sm sticky top-0 z-40">
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-            <Link href="/" className="text-xl font-bold text-blue-600">
+            <Link href="/dashboard" className="text-xl font-bold text-blue-600">
               {headerTitle || 'VocaVision'}
             </Link>
             {headerRight || (
