@@ -6,6 +6,15 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
+import logger from '../utils/logger';
+import {
+  generateAndUploadImage,
+  generateConceptPrompt,
+  generateMnemonicPrompt,
+  generateRhymePrompt,
+  VisualType,
+  checkImageServiceConfig,
+} from '../services/imageGenerator.service';
 
 // ============================================
 // Dashboard Stats
@@ -828,6 +837,419 @@ export const getBatchJobs = async (
     });
 
     res.json({ jobs });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ============================================
+// Image Generation Jobs
+// ============================================
+
+/**
+ * Background job processor for image generation
+ * This runs asynchronously in Railway's long-running server
+ */
+async function processImageGenerationJob(jobId: string, wordIds: string[], types: VisualType[]) {
+  logger.info('[ImageJob] ========== STARTING JOB ==========', { jobId, wordCount: wordIds.length });
+
+  try {
+    // Check configuration
+    const config = checkImageServiceConfig();
+    if (!config.stabilityConfigured || !config.cloudinaryConfigured) {
+      logger.error('[ImageJob] Service not configured:', config);
+      await prisma.contentGenerationJob.update({
+        where: { id: jobId },
+        data: {
+          status: 'failed',
+          errorMessage: 'Image service not configured',
+          completedAt: new Date(),
+        },
+      });
+      return;
+    }
+
+    // Initialize job result tracking
+    const jobResult = {
+      totalWords: wordIds.length,
+      processedWords: 0,
+      currentWord: null as string | null,
+      currentType: null as string | null,
+      results: [] as Array<{
+        wordId: string;
+        word: string;
+        success: boolean;
+        imagesGenerated: number;
+        error?: string;
+      }>,
+    };
+
+    // Update job to processing
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'processing',
+        startedAt: new Date(),
+        progress: 0,
+        result: jobResult,
+      },
+    });
+
+    // Process each word
+    for (let i = 0; i < wordIds.length; i++) {
+      const wordId = wordIds[i];
+      logger.info(`[ImageJob] Processing word ${i + 1}/${wordIds.length}:`, wordId);
+
+      try {
+        // Fetch word data
+        const word = await prisma.word.findUnique({
+          where: { id: wordId },
+          include: { content: true },
+        });
+
+        if (!word) {
+          logger.error('[ImageJob] Word not found:', wordId);
+          jobResult.results.push({
+            wordId,
+            word: 'Unknown',
+            success: false,
+            imagesGenerated: 0,
+            error: 'Word not found',
+          });
+          continue;
+        }
+
+        logger.info('[ImageJob] Processing word:', word.word);
+        jobResult.currentWord = word.word;
+
+        // Get word content
+        const content = word.content as any;
+        const definitionEn = content?.definitions?.[0]?.definitionEn || word.definition;
+        const definitionKo = content?.definitions?.[0]?.definitionKo || word.definitionKo;
+        const mnemonic = content?.mnemonic;
+        const mnemonicKorean = content?.mnemonicKorean;
+        const rhymingWords = content?.rhymingWords || word.rhymingWords;
+
+        // Generate images for each type
+        const generatedVisuals: Array<{
+          type: string;
+          imageUrl: string;
+          captionKo: string;
+          captionEn: string;
+          promptEn: string;
+        }> = [];
+
+        for (const type of types) {
+          logger.info('[ImageJob] Generating type:', type, 'for', word.word);
+          jobResult.currentType = type;
+
+          await prisma.contentGenerationJob.update({
+            where: { id: jobId },
+            data: { result: jobResult },
+          });
+
+          try {
+            let prompt: string;
+            let captionKo: string;
+            let captionEn: string;
+
+            switch (type) {
+              case 'CONCEPT':
+                prompt = generateConceptPrompt(definitionEn, word.word);
+                captionKo = definitionKo || `${word.word}의 의미`;
+                captionEn = definitionEn || `The meaning of ${word.word}`;
+                break;
+              case 'MNEMONIC':
+                prompt = generateMnemonicPrompt(mnemonic || word.word, word.word);
+                captionKo = mnemonicKorean || `${word.word} 연상법`;
+                captionEn = mnemonic?.substring(0, 50) || `Memory tip for ${word.word}`;
+                break;
+              case 'RHYME':
+                prompt = generateRhymePrompt(definitionEn || word.word, word.word);
+                const rhymes = rhymingWords?.slice(0, 3).join(', ') || '';
+                captionKo = rhymes ? `${word.word}는 ${rhymes}와 라임!` : definitionKo || '';
+                captionEn = rhymes ? `${word.word} rhymes with ${rhymes}` : definitionEn || '';
+                break;
+            }
+
+            // Generate and upload image
+            const result = await generateAndUploadImage(prompt, type, word.word);
+
+            if (result) {
+              generatedVisuals.push({
+                type,
+                imageUrl: result.imageUrl,
+                captionKo,
+                captionEn,
+                promptEn: prompt,
+              });
+              logger.info('[ImageJob] Generated:', type, 'for', word.word);
+            }
+
+            // Rate limit delay (2 seconds between images)
+            await new Promise((r) => setTimeout(r, 2000));
+          } catch (error) {
+            logger.error('[ImageJob] Error generating', type, 'for', word.word, ':', error);
+          }
+        }
+
+        // Save visuals to database
+        if (generatedVisuals.length > 0) {
+          // Check if WordVisual model exists and save
+          try {
+            for (const visual of generatedVisuals) {
+              await prisma.wordVisual.upsert({
+                where: {
+                  wordId_type: {
+                    wordId: word.id,
+                    type: visual.type as any,
+                  },
+                },
+                update: {
+                  imageUrl: visual.imageUrl,
+                  captionKo: visual.captionKo,
+                  captionEn: visual.captionEn,
+                  promptEn: visual.promptEn,
+                },
+                create: {
+                  wordId: word.id,
+                  type: visual.type as any,
+                  imageUrl: visual.imageUrl,
+                  captionKo: visual.captionKo,
+                  captionEn: visual.captionEn,
+                  promptEn: visual.promptEn,
+                },
+              });
+            }
+            logger.info('[ImageJob] Saved', generatedVisuals.length, 'visuals for', word.word);
+          } catch (saveError) {
+            logger.error('[ImageJob] Error saving visuals:', saveError);
+          }
+        }
+
+        jobResult.results.push({
+          wordId: word.id,
+          word: word.word,
+          success: generatedVisuals.length > 0,
+          imagesGenerated: generatedVisuals.length,
+        });
+      } catch (wordError) {
+        logger.error('[ImageJob] Error processing word:', wordId, wordError);
+        jobResult.results.push({
+          wordId,
+          word: 'Unknown',
+          success: false,
+          imagesGenerated: 0,
+          error: wordError instanceof Error ? wordError.message : 'Unknown error',
+        });
+      }
+
+      // Update progress
+      jobResult.processedWords++;
+      const progress = Math.round((jobResult.processedWords / jobResult.totalWords) * 100);
+      await prisma.contentGenerationJob.update({
+        where: { id: jobId },
+        data: { progress, result: jobResult },
+      });
+    }
+
+    // Mark job as completed
+    jobResult.currentWord = null;
+    jobResult.currentType = null;
+
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'completed',
+        progress: 100,
+        completedAt: new Date(),
+        result: jobResult,
+      },
+    });
+
+    logger.info('[ImageJob] ========== JOB COMPLETED ==========', {
+      jobId,
+      totalProcessed: jobResult.processedWords,
+      successful: jobResult.results.filter((r) => r.success).length,
+    });
+  } catch (error) {
+    logger.error('[ImageJob] Fatal error:', error);
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        completedAt: new Date(),
+      },
+    });
+  }
+}
+
+/**
+ * Create a new image generation job
+ */
+export const createImageGenJob = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { wordIds, types = ['CONCEPT', 'MNEMONIC', 'RHYME'] } = req.body;
+
+    logger.info('[ImageJob] Creating job for', wordIds?.length, 'words');
+
+    if (!wordIds || !Array.isArray(wordIds) || wordIds.length === 0) {
+      return res.status(400).json({ message: 'wordIds array is required' });
+    }
+
+    if (wordIds.length > 50) {
+      return res.status(400).json({ message: 'Maximum 50 words per batch' });
+    }
+
+    // Check configuration
+    const config = checkImageServiceConfig();
+    logger.info('[ImageJob] Service config:', config);
+
+    if (!config.stabilityConfigured) {
+      return res.status(500).json({ message: 'Stability AI not configured. Set STABILITY_API_KEY.' });
+    }
+
+    if (!config.cloudinaryConfigured) {
+      return res.status(500).json({ message: 'Cloudinary not configured. Set CLOUDINARY_* variables.' });
+    }
+
+    // Create job in database
+    const job = await prisma.contentGenerationJob.create({
+      data: {
+        batchId: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        inputWords: wordIds,
+        generateFields: types,
+        status: 'pending',
+        progress: 0,
+        result: {
+          totalWords: wordIds.length,
+          processedWords: 0,
+          currentWord: null,
+          currentType: null,
+          results: [],
+        },
+      },
+    });
+
+    logger.info('[ImageJob] Job created:', job.id);
+
+    // Estimate time (roughly 10 seconds per image, 3 images per word)
+    const estimatedMinutes = Math.ceil((wordIds.length * types.length * 10) / 60);
+
+    // Start background processing (Railway server stays alive!)
+    processImageGenerationJob(job.id, wordIds, types).catch((err) => {
+      logger.error('[ImageJob] Background processing error:', err);
+    });
+
+    res.json({
+      success: true,
+      data: {
+        jobId: job.id,
+        batchId: job.batchId,
+        totalWords: wordIds.length,
+        estimatedTime: `약 ${estimatedMinutes}분`,
+      },
+    });
+  } catch (error) {
+    logger.error('[ImageJob] Error creating job:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get image generation job status
+ */
+export const getImageGenJob = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { jobId } = req.params;
+
+    const job = await prisma.contentGenerationJob.findFirst({
+      where: {
+        OR: [{ id: jobId }, { batchId: jobId }],
+      },
+    });
+
+    if (!job) {
+      return res.status(404).json({ success: false, error: 'Job not found' });
+    }
+
+    const result = job.result as any;
+
+    res.json({
+      success: true,
+      data: {
+        id: job.id,
+        batchId: job.batchId,
+        status: job.status,
+        progress: job.progress,
+        totalWords: result?.totalWords || job.inputWords.length,
+        processedWords: result?.processedWords || 0,
+        currentWord: result?.currentWord,
+        currentType: result?.currentType,
+        results: result?.results || [],
+        error: job.errorMessage,
+        startedAt: job.startedAt,
+        completedAt: job.completedAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update image generation job (for external updates if needed)
+ */
+export const updateImageGenJob = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { jobId } = req.params;
+    const { status, progress, result: resultUpdate, error } = req.body;
+
+    const job = await prisma.contentGenerationJob.findFirst({
+      where: {
+        OR: [{ id: jobId }, { batchId: jobId }],
+      },
+    });
+
+    if (!job) {
+      return res.status(404).json({ success: false, error: 'Job not found' });
+    }
+
+    const updateData: any = {};
+
+    if (status !== undefined) {
+      updateData.status = status;
+      if (status === 'processing' && !job.startedAt) {
+        updateData.startedAt = new Date();
+      }
+      if (status === 'completed' || status === 'failed') {
+        updateData.completedAt = new Date();
+      }
+    }
+
+    if (progress !== undefined) updateData.progress = progress;
+    if (resultUpdate !== undefined) updateData.result = { ...(job.result as any), ...resultUpdate };
+    if (error !== undefined) updateData.errorMessage = error;
+
+    const updated = await prisma.contentGenerationJob.update({
+      where: { id: job.id },
+      data: updateData,
+    });
+
+    res.json({ success: true, data: updated });
   } catch (error) {
     next(error);
   }

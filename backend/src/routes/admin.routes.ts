@@ -15,6 +15,10 @@ import {
   batchCreateWords,
   bulkUpdateStatus,
   getBatchJobs,
+  // Image Generation Jobs
+  createImageGenJob,
+  getImageGenJob,
+  updateImageGenJob,
   // Collection management
   getAdminCollections,
   getAdminCollectionById,
@@ -164,6 +168,72 @@ router.post('/words/bulk-status', bulkUpdateStatus);
  *       - bearerAuth: []
  */
 router.get('/jobs', getBatchJobs);
+
+// ============================================
+// Image Generation Jobs Routes
+// ============================================
+
+/**
+ * @swagger
+ * /admin/image-jobs:
+ *   post:
+ *     summary: Create a new image generation job
+ *     tags: [Admin - Image Generation]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - wordIds
+ *             properties:
+ *               wordIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               types:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [CONCEPT, MNEMONIC, RHYME]
+ */
+router.post('/image-jobs', createImageGenJob);
+
+/**
+ * @swagger
+ * /admin/image-jobs/{jobId}:
+ *   get:
+ *     summary: Get image generation job status
+ *     tags: [Admin - Image Generation]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: jobId
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.get('/image-jobs/:jobId', getImageGenJob);
+
+/**
+ * @swagger
+ * /admin/image-jobs/{jobId}:
+ *   patch:
+ *     summary: Update image generation job
+ *     tags: [Admin - Image Generation]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: jobId
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.patch('/image-jobs/:jobId', updateImageGenJob);
 
 // ============================================
 // Collection (단어장) Routes
