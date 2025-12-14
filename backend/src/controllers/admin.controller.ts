@@ -15,7 +15,12 @@ import {
   VisualType,
   checkImageServiceConfig,
 } from '../services/imageGenerator.service';
-import { generateRhymeCaptions, translateMnemonicToEnglish } from '../services/smartCaption.service';
+import {
+  generateRhymeCaptions,
+  translateMnemonicToEnglish,
+  extractMnemonicScene,
+  generateRhymeScene,
+} from '../services/smartCaption.service';
 
 // ============================================
 // Dashboard Stats
@@ -974,26 +979,43 @@ async function processImageGenerationJob(jobId: string, wordIds: string[], types
                   hasMnemonicKorean: !!mnemonicKorean,
                   mnemonicKoreanPreview: mnemonicKorean?.substring(0, 100),
                 });
-                prompt = generateMnemonicPrompt(mnemonic || word.word, word.word);
-                logger.info('[ImageJob] MNEMONIC prompt:', prompt.substring(0, 200));
 
-                // Caption format: Korean = mnemonic itself, English = translation
-                captionKo = mnemonicKorean || mnemonic || `${word.word} 연상법`;
+                // Use Claude API to extract concrete scene from mnemonic
+                if (mnemonic && process.env.ANTHROPIC_API_KEY) {
+                  try {
+                    const sceneData = await extractMnemonicScene(
+                      word.word,
+                      definitionEn || '',
+                      mnemonic,
+                      mnemonicKorean || ''
+                    );
 
-                // Translate Korean mnemonic to English via Claude API
-                if (mnemonicKorean) {
-                  captionEn = await translateMnemonicToEnglish(word.word, mnemonicKorean);
+                    prompt = sceneData.prompt;
+                    captionKo = sceneData.captionKo;
+                    captionEn = sceneData.captionEn;
+
+                    logger.info('[ImageJob] MNEMONIC scene extracted:', {
+                      captionKo,
+                      promptPreview: prompt.substring(0, 150),
+                    });
+                  } catch (error) {
+                    logger.error('[ImageJob] MNEMONIC scene extraction failed:', error);
+                    // Fallback to basic prompt
+                    prompt = generateMnemonicPrompt(mnemonic, word.word);
+                    captionKo = mnemonicKorean || mnemonic || `${word.word} 연상법`;
+                    captionEn = await translateMnemonicToEnglish(word.word, captionKo);
+                  }
                 } else {
+                  // No mnemonic or no API key - use basic prompt
+                  prompt = generateMnemonicPrompt(mnemonic || word.word, word.word);
+                  captionKo = mnemonicKorean || mnemonic || `${word.word} 연상법`;
                   captionEn = `Memory tip for ${word.word}`;
                 }
 
-                logger.info('[ImageJob] MNEMONIC captions:', { captionKo, captionEn });
+                logger.info('[ImageJob] MNEMONIC final:', { captionKo, captionEn });
                 break;
               }
               case 'RHYME': {
-                prompt = generateRhymePrompt(definitionEn || word.word, word.word);
-
-                // Use Claude API for creative captions
                 const rhymes = rhymingWords || [];
                 logger.info('[ImageJob] RHYME data:', {
                   word: word.word,
@@ -1001,15 +1023,40 @@ async function processImageGenerationJob(jobId: string, wordIds: string[], types
                   rhymingWords: rhymes.slice(0, 5),
                 });
 
-                const captions = await generateRhymeCaptions(
-                  word.word,
-                  definitionEn || '',
-                  rhymes
-                );
-                captionKo = captions.captionKo;
-                captionEn = captions.captionEn;
+                // Use Claude API to generate scene + captions together
+                if (rhymes.length > 0 && process.env.ANTHROPIC_API_KEY) {
+                  try {
+                    const sceneData = await generateRhymeScene(
+                      word.word,
+                      definitionEn || '',
+                      rhymes
+                    );
 
-                logger.info('[ImageJob] RHYME captions:', { captionKo, captionEn });
+                    prompt = sceneData.prompt;
+                    captionKo = sceneData.captionKo;
+                    captionEn = sceneData.captionEn;
+
+                    logger.info('[ImageJob] RHYME scene generated:', {
+                      captionKo,
+                      captionEn,
+                      promptPreview: prompt.substring(0, 150),
+                    });
+                  } catch (error) {
+                    logger.error('[ImageJob] RHYME scene generation failed:', error);
+                    // Fallback to basic prompt + captions
+                    prompt = generateRhymePrompt(definitionEn || word.word, word.word);
+                    const captions = await generateRhymeCaptions(word.word, definitionEn || '', rhymes);
+                    captionKo = captions.captionKo;
+                    captionEn = captions.captionEn;
+                  }
+                } else {
+                  // No rhymes or no API key - use basic prompt
+                  prompt = generateRhymePrompt(definitionEn || word.word, word.word);
+                  captionKo = definitionKo || '';
+                  captionEn = definitionEn || '';
+                }
+
+                logger.info('[ImageJob] RHYME final:', { captionKo, captionEn });
                 break;
               }
             }

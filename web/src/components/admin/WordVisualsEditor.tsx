@@ -50,6 +50,11 @@ interface WordVisualsEditorProps {
     mnemonicKorean?: string;
     rhymingWords?: string[];
   };
+  // AI Generation callbacks
+  onGenerateAllImages?: () => void;
+  onGenerateSingleImage?: (type: VisualType) => void;
+  onGeneratePrompt?: (type: VisualType) => void;
+  generatingType?: VisualType | 'ALL' | null;
 }
 
 const VISUAL_TYPES: VisualType[] = ['CONCEPT', 'MNEMONIC', 'RHYME'];
@@ -62,6 +67,10 @@ export default function WordVisualsEditor({
   onJsonImport,
   onImageDelete,
   wordData,
+  onGenerateAllImages,
+  onGenerateSingleImage,
+  onGeneratePrompt,
+  generatingType,
 }: WordVisualsEditorProps) {
   const [uploading, setUploading] = useState<VisualType | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -253,13 +262,37 @@ export default function WordVisualsEditor({
           <span className="text-sm text-gray-500">"{word}"</span>
         </div>
 
-        <button
-          onClick={() => setShowJsonImport(!showJsonImport)}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-        >
-          <FileJson className="w-4 h-4" />
-          JSON 가져오기
-        </button>
+        <div className="flex items-center gap-2">
+          {/* 3종 이미지 모두 AI 생성 버튼 */}
+          {onGenerateAllImages && (
+            <button
+              onClick={onGenerateAllImages}
+              disabled={generatingType !== null && generatingType !== undefined}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-purple-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generatingType === 'ALL' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  생성 중...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  3종 이미지 모두 AI 생성
+                </>
+              )}
+            </button>
+          )}
+
+          {/* JSON 가져오기 버튼 */}
+          <button
+            onClick={() => setShowJsonImport(!showJsonImport)}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          >
+            <FileJson className="w-4 h-4" />
+            JSON 가져오기
+          </button>
+        </div>
       </div>
 
       {/* Error Message */}
@@ -455,6 +488,44 @@ export default function WordVisualsEditor({
                     )}
                   </div>
                 </div>
+
+                {/* AI Generation Buttons */}
+                {(onGeneratePrompt || onGenerateSingleImage) && (
+                  <div className="flex gap-2 mt-4 pt-3 border-t border-gray-200">
+                    {/* 프롬프트 생성 버튼 */}
+                    {onGeneratePrompt && (
+                      <button
+                        onClick={() => onGeneratePrompt(type)}
+                        disabled={generatingType !== null && generatingType !== undefined}
+                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        프롬프트 생성
+                      </button>
+                    )}
+
+                    {/* AI 생성 버튼 */}
+                    {onGenerateSingleImage && (
+                      <button
+                        onClick={() => onGenerateSingleImage(type)}
+                        disabled={generatingType !== null && generatingType !== undefined}
+                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm text-white bg-pink-500 rounded-lg hover:bg-pink-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {generatingType === type ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            생성 중...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3 h-3" />
+                            AI 생성
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           );

@@ -241,3 +241,222 @@ export async function translateMnemonicToEnglish(
     return defaultTranslation;
   }
 }
+
+export interface MnemonicSceneResult {
+  scene: string;
+  prompt: string;
+  captionKo: string;
+  captionEn: string;
+}
+
+export interface RhymeSceneResult {
+  scene: string;
+  prompt: string;
+  captionKo: string;
+  captionEn: string;
+}
+
+/**
+ * Extract a concrete, memorable scene from mnemonic text
+ * Transforms abstract mnemonic tips into visual scenes for image generation
+ */
+export async function extractMnemonicScene(
+  word: string,
+  definition: string,
+  mnemonic: string,
+  mnemonicKorean: string
+): Promise<MnemonicSceneResult> {
+  const defaultResult: MnemonicSceneResult = {
+    scene: mnemonic,
+    prompt: `A cartoon illustration of ${mnemonic}`,
+    captionKo: mnemonicKorean,
+    captionEn: `Memory tip: ${mnemonic}`,
+  };
+
+  const anthropic = getAnthropicClient();
+
+  if (!anthropic || !mnemonic) {
+    return defaultResult;
+  }
+
+  try {
+    const prompt = `당신은 영어 단어 암기를 위한 이미지 장면을 설계하는 전문가입니다.
+
+## 단어 정보
+- 단어: ${word}
+- 의미: ${definition}
+- 연상법 (영어): ${mnemonic}
+- 연상법 (한국어): ${mnemonicKorean}
+
+## 작업
+한국어 연상법을 기반으로 **구체적이고 기억에 남는 장면**을 설계해주세요.
+
+## 규칙
+1. 한국어 발음 유사성을 시각적 요소로 변환
+2. 과장되고 유머러스한 장면 (한국 학생이 웃을 수 있도록)
+3. 단어의 의미와 연결되어야 함
+4. 구체적인 인물, 동작, 배경 포함
+
+## 예시
+
+### 예시 1: warily (조심스럽게)
+- 연상법: "웨어(where) + 릴리(lily) = 어디에 백합이?"
+- 장면: "숲속에서 조심스럽게 두리번거리며 백합꽃을 찾는 탐험가. 발밑을 조심하며 천천히 걷고, 눈을 크게 뜨고 주변을 살핀다."
+- 캡션: "어디(where)에 백합(lily)이 있을까? 조심조심!"
+
+### 예시 2: ephemeral (일시적인, 덧없는)
+- 연상법: "이 페이지 머리털처럼 빠지고 사라진다"
+- 장면: "책 페이지에서 머리카락들이 후두둑 빠져나와 공중으로 흩날리며 사라지는 장면. 당황한 표정의 사람이 빠지는 머리카락을 잡으려 한다."
+- 캡션: "이 페이지의 머리털처럼 순식간에 사라진다!"
+
+### 예시 3: xenophobia (외국인 혐오)
+- 연상법: "지네(xeno)야 포비아(phobia) = 외국인을 지네처럼 무서워한다"
+- 장면: "외국인을 보자마자 마치 지네를 본 것처럼 기겁하며 뒤로 물러나는 사람. 외국인은 평범하게 서있고, 반응하는 사람만 과장되게 무서워한다."
+- 캡션: "지네야! 포비아! 외국인이 무서워!"
+
+## 출력 형식 (JSON)
+{
+  "scene": "구체적인 장면 설명 (영어, 50-100 단어)",
+  "captionKo": "한국어 캡션 (연상법 강조, 자연스럽게)",
+  "captionEn": "영어 캡션 (연상법 해석)"
+}
+
+JSON만 출력하세요:`;
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 500,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const content = message.content[0];
+    if (content.type === 'text') {
+      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+
+        // Format the prompt for Stability AI
+        const finalPrompt = `A 1:1 square cartoon illustration. ${parsed.scene}. Style: cute cartoon, bright colors, humorous, exaggerated expressions, memorable for Korean students. CRITICAL: NO text, NO letters, NO words in the image.`;
+
+        logger.info('[SmartCaption] Extracted mnemonic scene for', word, ':', {
+          captionKo: parsed.captionKo,
+        });
+
+        return {
+          scene: parsed.scene,
+          prompt: finalPrompt,
+          captionKo: parsed.captionKo || defaultResult.captionKo,
+          captionEn: parsed.captionEn || defaultResult.captionEn,
+        };
+      }
+    }
+    return defaultResult;
+  } catch (error) {
+    logger.error('[SmartCaption] extractMnemonicScene error:', error);
+    return defaultResult;
+  }
+}
+
+/**
+ * Generate a creative scene and captions using rhyming words
+ * Creates meaningful sentences that incorporate both the word and its rhymes
+ */
+export async function generateRhymeScene(
+  word: string,
+  definition: string,
+  rhymingWords: string[]
+): Promise<RhymeSceneResult> {
+  const defaultResult: RhymeSceneResult = {
+    scene: `${word} with ${rhymingWords.slice(0, 3).join(', ')}`,
+    prompt: `A cartoon illustration showing ${word}`,
+    captionKo: `${word}는 ${rhymingWords.slice(0, 3).join(', ')}와 라임!`,
+    captionEn: `${word} rhymes with ${rhymingWords.slice(0, 3).join(', ')}`,
+  };
+
+  const anthropic = getAnthropicClient();
+
+  if (!anthropic || rhymingWords.length === 0) {
+    return defaultResult;
+  }
+
+  try {
+    const prompt = `당신은 영어 단어의 발음(라임)을 활용한 창의적인 장면과 문장을 만드는 전문가입니다.
+
+## 단어 정보
+- 단어: ${word}
+- 의미: ${definition}
+- 라임 단어들: ${rhymingWords.slice(0, 5).join(', ')}
+
+## 작업
+1. 라임 단어 중 1-2개를 선택하여 **의미 있는 문장** 생성
+2. 그 문장을 **시각화할 장면** 설계
+
+## 규칙
+1. 원래 단어(${word})의 의미와 연결되어야 함
+2. 라임 단어를 자연스럽게 포함
+3. 한국어 캡션은 운율이 있으면 더 좋음
+4. 구체적인 장면 (인물, 동작, 배경)
+
+## 예시
+
+### 예시 1: warily (조심스럽게) + merrily (즐겁게)
+- 문장: "Walk warily, then run merrily!"
+- 장면: "처음엔 조심조심 걷던 사람이 안전한 곳에 도착하자 즐겁게 뛰어다니는 장면. 표정이 긴장에서 환한 웃음으로 변한다."
+- 캡션 KO: "조심조심 걷다가, 즐겁게 뛰어!"
+- 캡션 EN: "Walk warily, then run merrily!"
+
+### 예시 2: zap (전기 충격) + gap (틈)
+- 문장: "One zap can close the gap!"
+- 장면: "번개 같은 전기가 두 물체 사이의 틈을 연결하는 장면. 틈이 전기로 이어지며 스파크가 튄다."
+- 캡션 KO: "한 번의 잽으로 격차가 끝난다!"
+- 캡션 EN: "One zap can close the gap!"
+
+### 예시 3: ephemeral (일시적인) + general (일반적인)
+- 문장: "Even general power is ephemeral."
+- 장면: "장군의 훈장이 바람에 날아가 사라지는 장면. 권위의 상징이 덧없이 흩어진다."
+- 캡션 KO: "장군의 권위도 덧없이 사라진다."
+- 캡션 EN: "Even a general's glory is ephemeral."
+
+## 출력 형식 (JSON)
+{
+  "selectedRhymes": ["선택한 라임 단어 1-2개"],
+  "scene": "구체적인 장면 설명 (영어, 50-80 단어)",
+  "captionKo": "한국어 캡션 (운율 있게)",
+  "captionEn": "영어 캡션 (라임 단어 포함)"
+}
+
+JSON만 출력하세요:`;
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 400,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const content = message.content[0];
+    if (content.type === 'text') {
+      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+
+        const finalPrompt = `A 1:1 square humorous cartoon illustration. ${parsed.scene}. Style: playful cartoon, bright colors, dynamic action, memorable. CRITICAL: NO text, NO letters, NO words in the image.`;
+
+        logger.info('[SmartCaption] Generated rhyme scene for', word, ':', {
+          selectedRhymes: parsed.selectedRhymes,
+          captionKo: parsed.captionKo,
+        });
+
+        return {
+          scene: parsed.scene,
+          prompt: finalPrompt,
+          captionKo: parsed.captionKo || defaultResult.captionKo,
+          captionEn: parsed.captionEn || defaultResult.captionEn,
+        };
+      }
+    }
+    return defaultResult;
+  } catch (error) {
+    logger.error('[SmartCaption] generateRhymeScene error:', error);
+    return defaultResult;
+  }
+}
