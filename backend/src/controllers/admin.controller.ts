@@ -904,7 +904,6 @@ async function processImageGenerationJob(jobId: string, wordIds: string[], types
         // Fetch word data
         const word = await prisma.word.findUnique({
           where: { id: wordId },
-          include: { content: true },
         });
 
         if (!word) {
@@ -922,8 +921,15 @@ async function processImageGenerationJob(jobId: string, wordIds: string[], types
         logger.info('[ImageJob] Processing word:', word.word);
         jobResult.currentWord = word.word;
 
-        // Get word content
-        const content = word.content as any;
+        // Get word content - parse JSON if it's a string
+        let content: any = null;
+        if (word.content) {
+          try {
+            content = typeof word.content === 'string' ? JSON.parse(word.content) : word.content;
+          } catch {
+            content = null;
+          }
+        }
         const definitionEn = content?.definitions?.[0]?.definitionEn || word.definition;
         const definitionKo = content?.definitions?.[0]?.definitionKo || word.definitionKo;
         const mnemonic = content?.mnemonic;

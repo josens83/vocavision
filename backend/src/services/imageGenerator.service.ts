@@ -89,7 +89,7 @@ export async function generateImageWithStabilityAI(
     throw new Error(`Stability AI error: ${response.status} - ${errorText}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as { artifacts?: Array<{ base64: string; seed: number }> };
 
   if (data.artifacts && data.artifacts.length > 0) {
     logger.info('[Stability] Image generated successfully');
@@ -154,7 +154,7 @@ export async function uploadToCloudinary(
     throw new Error(`Cloudinary upload error: ${response.status} - ${errorText}`);
   }
 
-  const result = await response.json();
+  const result = await response.json() as { secure_url: string; public_id: string };
   logger.info('[Cloudinary] Upload successful:', result.secure_url);
 
   return {
