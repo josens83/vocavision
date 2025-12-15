@@ -17,15 +17,15 @@ const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
 const VISUAL_CONFIGS = {
   CONCEPT: {
     style: 'flat illustration, educational, clean design',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle, logo, brand, inscription, script, calligraphy, printed text, speech bubble, dialogue, caption box, banner with text, sign with text, book cover, newspaper, magazine, poster with text',
   },
   MNEMONIC: {
     style: 'cartoon illustration, cute, memorable, colorful',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle, logo, brand, inscription, script, calligraphy, printed text, speech bubble, dialogue, caption box, banner with text, sign with text, book cover, newspaper, magazine, poster with text',
   },
   RHYME: {
     style: 'playful cartoon, humorous, bright colors',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle, logo, brand, inscription, script, calligraphy, printed text, speech bubble, dialogue, caption box, banner with text, sign with text, book cover, newspaper, magazine, poster with text',
   },
 };
 
@@ -59,9 +59,9 @@ export async function generateImageWithStabilityAI(
   const requestBody = {
     text_prompts: [
       { text: prompt, weight: 1 },
-      { text: config.negativePrompt, weight: -1 },
+      { text: config.negativePrompt, weight: -1.5 },
     ],
-    cfg_scale: 7,
+    cfg_scale: 8,
     height: 1024,
     width: 1024,
     steps: 30,
