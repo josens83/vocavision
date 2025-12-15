@@ -14,7 +14,7 @@ export function useUserStats(exam: string = 'CSAT') {
       // API에서 통계 가져오기 시도
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/user/stats?exam=${exam}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/user/stats?exam=${exam}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
