@@ -42,6 +42,18 @@ interface WordVisualsEditorProps {
   onChange: (visuals: WordVisualInput[]) => void;
   cloudinaryCloudName?: string;
   onJsonImport?: (template: VisualTemplate) => void;
+  onImageDelete?: (type: string, updatedVisuals: WordVisualInput[]) => void | Promise<void>;
+  onGenerateAllImages?: () => void;
+  onGenerateSingleImage?: (type: VisualType) => void;
+  onGeneratePrompt?: (type: VisualType) => void;
+  generatingType?: VisualType | 'ALL' | null;
+  wordData?: {
+    definitionEn?: string;
+    definitionKo?: string;
+    mnemonic?: string;
+    mnemonicKorean?: string;
+    rhymingWords?: string[];
+  };
 }
 
 const VISUAL_TYPES: VisualType[] = ['CONCEPT', 'MNEMONIC', 'RHYME'];
@@ -52,6 +64,12 @@ export default function WordVisualsEditor({
   onChange,
   cloudinaryCloudName,
   onJsonImport,
+  onImageDelete: _onImageDelete,
+  onGenerateAllImages: _onGenerateAllImages,
+  onGenerateSingleImage: _onGenerateSingleImage,
+  onGeneratePrompt: _onGeneratePrompt,
+  generatingType: _generatingType,
+  wordData: _wordData,
 }: WordVisualsEditorProps) {
   const [uploading, setUploading] = useState<VisualType | null>(null);
   const [error, setError] = useState<string | null>(null);
