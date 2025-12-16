@@ -19,7 +19,7 @@ export interface HeroSlide {
 }
 
 interface HeroCarouselProps {
-  slides: HeroSlide[];
+  slides?: HeroSlide[];
   autoPlayInterval?: number;
   showDots?: boolean;
   showArrows?: boolean;
