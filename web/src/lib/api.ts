@@ -192,6 +192,24 @@ export const wordsAPI = {
     const response = await api.get(`/words/${id}/with-visuals`);
     return response.data;
   },
+
+  // 배치 단어 조회 (최대 50개)
+  getWordsBatch: async (ids: string[]) => {
+    if (ids.length === 0) return { data: [], total: 0, requested: 0 };
+    const response = await api.get('/words/batch', {
+      params: { ids: ids.join(',') },
+    });
+    return response.data;
+  },
+
+  // 배치 단어 상세 조회 (시각화 포함, 최대 20개)
+  getWordsBatchWithVisuals: async (ids: string[]) => {
+    if (ids.length === 0) return { data: [], total: 0, requested: 0 };
+    const response = await api.get('/words/batch-with-visuals', {
+      params: { ids: ids.join(',') },
+    });
+    return response.data;
+  },
 };
 
 // Learning Records API - 학습 기록 저장/조회

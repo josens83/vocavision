@@ -222,6 +222,8 @@ export const getWordCountsByExam = async (
       return acc;
     }, {} as Record<string, number>);
 
+    // Set cache headers for counts (10 minutes - data changes infrequently)
+    res.set('Cache-Control', 'public, max-age=600, s-maxage=1200');
     res.json({ counts: result });
   } catch (error) {
     next(error);
@@ -467,7 +469,129 @@ export const getPublicWords = async (
       orderBy: { frequency: 'asc' } // Most common words first
     });
 
+    // Set cache headers for public data (5 minutes)
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
     res.json({ data: words });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Batch endpoint to fetch multiple words by IDs
+ * Optimized for frontend batch loading
+ * GET /words/batch?ids=id1,id2,id3
+ */
+export const getWordsBatch = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { ids } = req.query;
+
+    if (!ids || typeof ids !== 'string') {
+      res.status(400).json({ error: 'ids query parameter is required' });
+      return;
+    }
+
+    const idArray = ids.split(',').filter(Boolean).slice(0, 50); // Max 50 words per batch
+
+    if (idArray.length === 0) {
+      res.json({ data: [], total: 0 });
+      return;
+    }
+
+    const words = await prisma.word.findMany({
+      where: {
+        id: { in: idArray },
+        status: 'PUBLISHED',
+      },
+      select: {
+        id: true,
+        word: true,
+        definition: true,
+        definitionKo: true,
+        pronunciation: true,
+        phonetic: true,
+        partOfSpeech: true,
+        difficulty: true,
+        examCategory: true,
+        level: true,
+        frequency: true,
+        tips: true,
+      },
+    });
+
+    // Maintain order of requested IDs
+    const wordMap = new Map(words.map(w => [w.id, w]));
+    const orderedWords = idArray
+      .map(id => wordMap.get(id))
+      .filter((w): w is NonNullable<typeof w> => w !== undefined);
+
+    // Set cache headers (5 minutes for public batch data)
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
+    res.json({
+      data: orderedWords,
+      total: orderedWords.length,
+      requested: idArray.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Batch endpoint to fetch words with full details including visuals
+ * GET /words/batch-with-visuals?ids=id1,id2,id3
+ */
+export const getWordsBatchWithVisuals = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { ids } = req.query;
+
+    if (!ids || typeof ids !== 'string') {
+      res.status(400).json({ error: 'ids query parameter is required' });
+      return;
+    }
+
+    const idArray = ids.split(',').filter(Boolean).slice(0, 20); // Max 20 for detailed data
+
+    if (idArray.length === 0) {
+      res.json({ data: [], total: 0 });
+      return;
+    }
+
+    const words = await prisma.word.findMany({
+      where: {
+        id: { in: idArray },
+        status: 'PUBLISHED',
+      },
+      include: {
+        examples: { take: 3 },
+        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+        etymology: true,
+        collocations: { take: 5, orderBy: { frequency: 'desc' } },
+        visuals: { orderBy: { order: 'asc' } },
+      },
+    });
+
+    // Maintain order of requested IDs
+    const wordMap = new Map(words.map(w => [w.id, w]));
+    const orderedWords = idArray
+      .map(id => wordMap.get(id))
+      .filter((w): w is NonNullable<typeof w> => w !== undefined);
+
+    // Set cache headers (3 minutes for detailed data)
+    res.set('Cache-Control', 'public, max-age=180, s-maxage=300');
+    res.json({
+      data: orderedWords,
+      total: orderedWords.length,
+      requested: idArray.length,
+    });
   } catch (error) {
     next(error);
   }
@@ -495,6 +619,8 @@ export const getWordVisuals = async (
       orderBy: { order: 'asc' },
     });
 
+    // Set cache headers (5 minutes for word visuals)
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
     res.json({ visuals });
   } catch (error) {
     next(error);
@@ -739,6 +865,8 @@ export const getWordWithVisuals = async (
       throw new AppError('Word not found', 404);
     }
 
+    // Set cache headers (5 minutes for word detail with visuals)
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
     res.json({ word });
   } catch (error) {
     next(error);

@@ -13,6 +13,8 @@ import {
   deleteWordVisual,
   importWordVisualsFromTemplate,
   getWordWithVisuals,
+  getWordsBatch,
+  getWordsBatchWithVisuals,
 } from '../controllers/word.controller';
 import { authenticateToken, requireAdmin, optionalAuth } from '../middleware/auth.middleware';
 
@@ -42,6 +44,72 @@ const router = Router();
  *         description: 단어 목록
  */
 router.get('/public', getPublicWords);
+
+/**
+ * @swagger
+ * /words/batch:
+ *   get:
+ *     summary: 여러 단어 일괄 조회 (인증 불필요)
+ *     tags: [Words]
+ *     parameters:
+ *       - in: query
+ *         name: ids
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 쉼표로 구분된 단어 ID 목록 (최대 50개)
+ *         example: "id1,id2,id3"
+ *     responses:
+ *       200:
+ *         description: 단어 목록
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Word'
+ *                 total:
+ *                   type: integer
+ *                 requested:
+ *                   type: integer
+ */
+router.get('/batch', getWordsBatch);
+
+/**
+ * @swagger
+ * /words/batch-with-visuals:
+ *   get:
+ *     summary: 여러 단어 상세 일괄 조회 (시각화 포함, 인증 불필요)
+ *     tags: [Words]
+ *     parameters:
+ *       - in: query
+ *         name: ids
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 쉼표로 구분된 단어 ID 목록 (최대 20개)
+ *         example: "id1,id2,id3"
+ *     responses:
+ *       200:
+ *         description: 상세 단어 목록 (시각화 포함)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Word'
+ *                 total:
+ *                   type: integer
+ *                 requested:
+ *                   type: integer
+ */
+router.get('/batch-with-visuals', getWordsBatchWithVisuals);
 
 /**
  * @swagger
