@@ -7,3 +7,5 @@ export { ConfirmProvider, useConfirm } from './ConfirmModal';
 export * from './Skeleton';
 export * from './EmptyState';
 export * from './FormInput';
+export * from './TabFilter';
+export * from './SectionHeader';
