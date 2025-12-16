@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PLATFORM_STATS } from "@/constants/stats";
 
 interface ExamIcon {
   id: string;
@@ -21,7 +22,7 @@ const examIcons: ExamIcon[] = [
     href: "/courses/csat",
     color: "text-blue-600",
     bgColor: "bg-blue-100",
-    wordCount: 3300,
+    wordCount: PLATFORM_STATS.totalWords,
     isAvailable: true,
   },
   {

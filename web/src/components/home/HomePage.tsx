@@ -141,6 +141,7 @@ export default function HomePage() {
       <PopularWordsSection
         bestWords={sampleBestWords}
         newWords={sampleNewWords}
+        isSampleData={!isLoggedIn}
       />
 
       {/* 시험별 학습 섹션 */}

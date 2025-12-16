@@ -30,6 +30,8 @@ interface PopularWordsSectionProps {
   bestWords?: Word[];
   newWords?: Word[];
   isLoading?: boolean;
+  /** 비로그인 사용자용 샘플 데이터 표시 여부 */
+  isSampleData?: boolean;
 }
 
 // 레벨별 스타일
@@ -43,6 +45,7 @@ export default function PopularWordsSection({
   bestWords = [],
   newWords = [],
   isLoading = false,
+  isSampleData = false,
 }: PopularWordsSectionProps) {
   const [activeTab, setActiveTab] = useState<TabType>("best");
 
@@ -54,11 +57,20 @@ export default function PopularWordsSection({
         {/* 헤더 */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-display-sm font-display font-bold text-slate-900 mb-2">
-              오늘의 <span className="text-gradient">추천 단어</span>
-            </h2>
+            <div className="flex items-center gap-3 mb-2">
+              <h2 className="text-display-sm font-display font-bold text-slate-900">
+                오늘의 <span className="text-gradient">추천 단어</span>
+              </h2>
+              {isSampleData && (
+                <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                  예시
+                </span>
+              )}
+            </div>
             <p className="text-slate-600">
-              학습자들이 많이 찾는 단어와 새로 추가된 단어를 확인해보세요.
+              {isSampleData
+                ? "로그인하면 나만의 추천 단어를 확인할 수 있어요!"
+                : "학습자들이 많이 찾는 단어와 새로 추가된 단어를 확인해보세요."}
             </p>
           </div>
 
