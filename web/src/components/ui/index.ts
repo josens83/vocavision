@@ -9,3 +9,5 @@ export * from './EmptyState';
 export * from './FormInput';
 export * from './TabFilter';
 export * from './SectionHeader';
+export * from './LearningStatusTabs';
+export * from './ProgressIndicator';

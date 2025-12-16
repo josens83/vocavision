@@ -4,6 +4,7 @@ import { useState } from "react";
 import Hero from "./Hero";
 import DDayBanner from "./DDayBanner";
 import ExamIconGrid from "./ExamIconGrid";
+import HeroCarousel from "./HeroCarousel";
 import { CategoryGrid, StudyTypeCard, ExamCategoryCard, examCategories } from "./CategoryCard";
 import { LevelFilter, SectionHeader } from "@/components/ui";
 import { StreakCalendar, ContinueLearning } from "@/components/dashboard";
@@ -85,6 +86,13 @@ export default function HomePage() {
 
       {/* D-Day 카운트다운 배너 */}
       <DDayBanner />
+
+      {/* Hero Carousel - 프로모션/공지 슬라이드 */}
+      <section className="py-8 px-6">
+        <div className="max-w-7xl mx-auto">
+          <HeroCarousel />
+        </div>
+      </section>
 
       {/* 시험별 빠른 선택 (Fast Campus 스타일 아이콘 그리드) */}
       <section className="py-12 px-6 bg-slate-50">
