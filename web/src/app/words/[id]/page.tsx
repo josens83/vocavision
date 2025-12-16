@@ -313,11 +313,11 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
           <section className="grid sm:grid-cols-2 gap-4">
             {mnemonicVisual?.imageUrl && (
               <div className="card overflow-hidden group">
-                <div className="relative h-48">
+                <div className="relative aspect-[4/3] bg-slate-100">
                   <img
                     src={mnemonicVisual.imageUrl}
                     alt={`${word.word} mnemonic`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute top-3 left-3">
                     <span className="px-2 py-1 bg-green-500 text-white text-xs font-bold rounded">
@@ -326,8 +326,8 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
                   </div>
                 </div>
                 <div className="p-4">
-                  {mnemonicVisual.labelKo && (
-                    <p className="font-semibold text-slate-900 mb-1">{mnemonicVisual.labelKo}</p>
+                  {mnemonicVisual.captionEn && (
+                    <p className="font-medium text-slate-900 mb-1">{mnemonicVisual.captionEn}</p>
                   )}
                   {mnemonicVisual.captionKo && (
                     <p className="text-sm text-slate-600">{mnemonicVisual.captionKo}</p>
@@ -338,11 +338,11 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
 
             {rhymeVisual?.imageUrl && (
               <div className="card overflow-hidden group">
-                <div className="relative h-48">
+                <div className="relative aspect-[4/3] bg-slate-100">
                   <img
                     src={rhymeVisual.imageUrl}
                     alt={`${word.word} rhyme`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute top-3 left-3">
                     <span className="px-2 py-1 bg-purple-500 text-white text-xs font-bold rounded">
@@ -351,8 +351,8 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
                   </div>
                 </div>
                 <div className="p-4">
-                  {rhymeVisual.labelKo && (
-                    <p className="font-semibold text-slate-900 mb-1">{rhymeVisual.labelKo}</p>
+                  {rhymeVisual.captionEn && (
+                    <p className="font-medium text-slate-900 mb-1">{rhymeVisual.captionEn}</p>
                   )}
                   {rhymeVisual.captionKo && (
                     <p className="text-sm text-slate-600">{rhymeVisual.captionKo}</p>
