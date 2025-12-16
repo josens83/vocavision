@@ -6,23 +6,26 @@
  */
 export const PLATFORM_STATS = {
   // 수능 단어 수
-  totalWords: 3335,
+  totalWords: 3104,
 
   // 레벨별 단어 수
   levels: {
-    L1: 1363, // 기초
-    L2: 1035, // 중급
-    L3: 937, // 고급 (이미지 생성 중)
+    L1: 1000, // 기초
+    L2: 1051, // 중급
+    L3: 1053, // 고급
   },
 
   // 시험 카테고리 (현재 수능만 활성화)
   exams: {
-    CSAT: { name: '수능', words: 3335, active: true },
+    CSAT: { name: '수능', words: 3104, active: true },
     TOEFL: { name: 'TOEFL', words: 0, active: false },
     TOEIC: { name: 'TOEIC', words: 0, active: false },
     TEPS: { name: 'TEPS', words: 0, active: false },
     SAT: { name: 'SAT', words: 0, active: false },
   },
+
+  // 학습 모드 수
+  learningModes: 9,
 } as const;
 
 /**
