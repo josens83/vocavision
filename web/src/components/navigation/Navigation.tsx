@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, ReactNode, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
 
@@ -115,6 +116,145 @@ function NavLink({ item }: { item: NavItem }) {
   );
 }
 
+// 검색 모달 컴포넌트
+interface SearchModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function SearchModal({ isOpen, onClose }: SearchModalProps) {
+  const [query, setQuery] = useState("");
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isOpen) {
+      inputRef.current?.focus();
+      const stored = localStorage.getItem("recentSearches");
+      if (stored) setRecentSearches(JSON.parse(stored).slice(0, 5));
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (isOpen) window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  const handleSearch = (searchQuery: string) => {
+    if (!searchQuery.trim()) return;
+    const searches = [searchQuery, ...recentSearches.filter(s => s !== searchQuery)].slice(0, 5);
+    localStorage.setItem("recentSearches", JSON.stringify(searches));
+    router.push(`/words?search=${encodeURIComponent(searchQuery)}`);
+    onClose();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSearch(query);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
+      <div className="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50 px-4">
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div className="p-4 border-b border-slate-100">
+            <div className="relative">
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="단어 또는 뜻을 검색하세요..."
+                className="w-full pl-12 pr-4 py-3 bg-slate-50 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+              />
+              {query && (
+                <button onClick={() => setQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="p-4 max-h-80 overflow-y-auto">
+            {recentSearches.length > 0 && (
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-slate-500">최근 검색</span>
+                  <button onClick={() => { setRecentSearches([]); localStorage.removeItem("recentSearches"); }} className="text-xs text-slate-400 hover:text-slate-600">
+                    전체 삭제
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {recentSearches.map((search, i) => (
+                    <button key={i} onClick={() => handleSearch(search)} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-full text-sm text-slate-700 transition-colors">
+                      {search}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <span className="text-xs font-medium text-slate-500 mb-2 block">빠른 바로가기</span>
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/words?level=L1" onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                  <span className="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center text-sm font-bold">L1</span>
+                  <div><div className="text-sm font-medium text-slate-900">기초 단어</div><div className="text-xs text-slate-500">{PLATFORM_STATS.levels.L1.toLocaleString()}개</div></div>
+                </Link>
+                <Link href="/words?level=L2" onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                  <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">L2</span>
+                  <div><div className="text-sm font-medium text-slate-900">중급 단어</div><div className="text-xs text-slate-500">{PLATFORM_STATS.levels.L2.toLocaleString()}개</div></div>
+                </Link>
+                <Link href="/words?level=L3" onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                  <span className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-bold">L3</span>
+                  <div><div className="text-sm font-medium text-slate-900">고급 단어</div><div className="text-xs text-slate-500">{PLATFORM_STATS.levels.L3.toLocaleString()}개</div></div>
+                </Link>
+                <Link href="/learn?exam=CSAT" onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                  <span className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">🎴</span>
+                  <div><div className="text-sm font-medium text-slate-900">플래시카드</div><div className="text-xs text-slate-500">학습 시작</div></div>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>Enter로 검색</span>
+            <span>ESC로 닫기</span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// 헤더 스트릭 표시 컴포넌트
+interface HeaderStreakProps {
+  streak: number;
+}
+
+function HeaderStreak({ streak }: HeaderStreakProps) {
+  if (streak <= 0) return null;
+
+  return (
+    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-orange-100 to-red-100 rounded-full">
+      <span className="text-lg">🔥</span>
+      <span className="text-sm font-bold text-orange-600">{streak}</span>
+    </div>
+  );
+}
+
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
@@ -185,15 +325,31 @@ function MobileMenu({ isOpen, onClose, items }: MobileMenuProps) {
 export default function Navigation() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const { user, logout, _hasHydrated } = useAuthStore();
   const isAuthenticated = !!user;
 
+  // Mock streak - 실제로는 user 객체에서 가져와야 함
+  const userStreak = (user as any)?.streak || 0;
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Cmd/Ctrl + K 단축키
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const handleLogout = () => {
@@ -224,10 +380,21 @@ export default function Navigation() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
-            <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors hidden sm:block">
-              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <div className="flex items-center gap-2">
+            {/* 검색 버튼 */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-slate-500"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span className="text-sm">검색</span>
+              <kbd className="hidden md:inline-block px-1.5 py-0.5 text-xs bg-white rounded border border-slate-200 text-slate-400">⌘K</kbd>
             </button>
+
+            {/* 로그인 시 스트릭 표시 */}
+            {isAuthenticated && <HeaderStreak streak={userStreak} />}
 
             {/* 로그인/유저 정보 */}
             {!_hasHydrated ? (
@@ -274,6 +441,7 @@ export default function Navigation() {
       </div>
 
       <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} items={navigationItems} />
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
 }
