@@ -1,6 +1,8 @@
 "use client";
 
 import Hero from "./Hero";
+import DDayBanner from "./DDayBanner";
+import ExamIconGrid from "./ExamIconGrid";
 import { CategoryGrid, StudyTypeCard, ExamCategoryCard, examCategories } from "./CategoryCard";
 import { PLATFORM_STATS } from "@/constants/stats";
 
@@ -22,6 +24,16 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       <Hero />
+
+      {/* D-Day 카운트다운 배너 */}
+      <DDayBanner />
+
+      {/* 시험별 빠른 선택 (Fast Campus 스타일 아이콘 그리드) */}
+      <section className="py-12 px-6 bg-slate-50">
+        <div className="max-w-7xl mx-auto">
+          <ExamIconGrid />
+        </div>
+      </section>
 
       {/* 시험별 학습 섹션 */}
       <section className="py-20 px-6">
