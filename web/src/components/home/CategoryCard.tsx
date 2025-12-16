@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ReactNode } from "react";
+import { PLATFORM_STATS } from "@/constants/stats";
 
 export type Level = "beginner" | "intermediate" | "advanced" | "expert";
 
@@ -147,10 +148,9 @@ export function CategoryGrid({ children, columns = 4 }: CategoryGridProps) {
 }
 
 export const vocaVisionCategories: CategoryCardProps[] = [
-  { title: "기초 필수 단어", description: "일상 생활에서 자주 사용되는 기본 어휘를 학습합니다.", level: "beginner", wordCount: 13, href: "/words?level=beginner", progress: 45 },
-  { title: "중급 확장 어휘", description: "비즈니스와 학술 상황에서 필요한 중급 수준의 단어입니다.", level: "intermediate", wordCount: 35, href: "/words?level=intermediate", progress: 28 },
-  { title: "고급 전문 용어", description: "전문 분야와 학술 논문에서 사용되는 고급 어휘입니다.", level: "advanced", wordCount: 35, href: "/words?level=advanced", progress: 12 },
-  { title: "전문가 심화 단어", description: "원어민 수준의 표현과 관용어를 마스터합니다.", level: "expert", wordCount: 18, href: "/words?level=expert", isNew: true },
+  { title: "L1 기초", description: "수능 필수 기본 어휘를 학습합니다.", level: "beginner", wordCount: PLATFORM_STATS.levels.L1, href: "/learn?exam=CSAT&level=L1" },
+  { title: "L2 중급", description: "실력 향상을 위한 중급 수준의 단어입니다.", level: "intermediate", wordCount: PLATFORM_STATS.levels.L2, href: "/learn?exam=CSAT&level=L2" },
+  { title: "L3 고급", description: "1등급 목표 고급 어휘입니다.", level: "advanced", wordCount: PLATFORM_STATS.levels.L3, href: "/learn?exam=CSAT&level=L3" },
 ];
 
 // 시험 기반 카테고리 (새로 추가)
@@ -290,13 +290,12 @@ export const examCategories: ExamCategoryCardProps[] = [
   {
     title: "수능",
     fullName: "대학수학능력시험",
-    description: "수능 영어 1~2등급 목표 필수 어휘",
+    description: "수능 영어 1~2등급 목표 필수 어휘 (L1 기초 ~ L3 고급)",
     examType: "csat",
-    wordCount: 429,
-    href: "/courses/csat",
+    wordCount: PLATFORM_STATS.totalWords,
+    href: "/learn?exam=CSAT",
     icon: "📝",
     isActive: true,
-    progress: 15,
   },
   {
     title: "SAT",
