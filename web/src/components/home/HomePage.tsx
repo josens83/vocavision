@@ -164,61 +164,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* 푸터 */}
-      <footer className="py-12 px-6 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
-            <div className="col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
-                  <span className="text-white font-display font-bold text-xl">V</span>
-                </div>
-                <span className="font-display font-bold text-xl">VocaVision</span>
-              </div>
-              <p className="text-slate-400 text-sm max-w-xs">AI 기반 영어 어휘 학습 플랫폼. 과학적인 간격 반복 학습으로 효율적인 단어 암기를 도와드립니다.</p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">학습</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="/words" className="hover:text-white transition-colors">단어장</a></li>
-                <li><a href="/flashcards" className="hover:text-white transition-colors">플래시카드</a></li>
-                <li><a href="/quiz" className="hover:text-white transition-colors">퀴즈</a></li>
-                <li><a href="/review" className="hover:text-white transition-colors">복습</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">시험별 학습</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="/courses/csat" className="hover:text-white transition-colors">수능 (CSAT)</a></li>
-                <li><a href="/courses/sat" className="hover:text-white transition-colors">SAT</a></li>
-                <li><a href="/courses/toefl" className="hover:text-white transition-colors">TOEFL</a></li>
-                <li><a href="/courses/toeic" className="hover:text-white transition-colors">TOEIC</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">정보</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="/about" className="hover:text-white transition-colors">소개</a></li>
-                <li><a href="/stats" className="hover:text-white transition-colors">통계</a></li>
-                <li><a href="/achievements" className="hover:text-white transition-colors">업적</a></li>
-                <li><a href="/settings" className="hover:text-white transition-colors">설정</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-            <p>© 2024 VocaVision. All rights reserved.</p>
-            <div className="flex gap-6">
-              <a href="/privacy" className="hover:text-white transition-colors">개인정보처리방침</a>
-              <a href="/terms" className="hover:text-white transition-colors">이용약관</a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
