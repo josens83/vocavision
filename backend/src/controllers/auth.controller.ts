@@ -9,6 +9,25 @@ const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
 const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET;
 const KAKAO_REDIRECT_URI = process.env.KAKAO_REDIRECT_URI;
 
+// 카카오 API 응답 타입 정의
+interface KakaoTokenResponse {
+  access_token: string;
+  token_type: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
+interface KakaoUserResponse {
+  id: number;
+  properties?: {
+    nickname?: string;
+    profile_image?: string;
+  };
+  kakao_account?: {
+    email?: string;
+  };
+}
+
 export const register = async (
   req: Request,
   res: Response,
@@ -116,7 +135,7 @@ export const login = async (
     }
 
     // Verify password
-    const isValidPassword = await comparePassword(password, user.password);
+    const isValidPassword = await comparePassword(password, user.password || '');
 
     if (!isValidPassword) {
       throw new AppError('Invalid credentials', 401);
@@ -226,7 +245,7 @@ export const kakaoLogin = async (
       throw new AppError('카카오 토큰 발급 실패', 400);
     }
 
-    const tokenData = await tokenResponse.json();
+    const tokenData = (await tokenResponse.json()) as KakaoTokenResponse;
     const { access_token } = tokenData;
 
     // 2. 카카오 사용자 정보 조회
@@ -241,7 +260,7 @@ export const kakaoLogin = async (
       throw new AppError('카카오 사용자 정보 조회 실패', 400);
     }
 
-    const kakaoUser = await userResponse.json();
+    const kakaoUser = (await userResponse.json()) as KakaoUserResponse;
     const kakaoId = String(kakaoUser.id);
     const nickname = kakaoUser.properties?.nickname || '사용자';
     const profileImage = kakaoUser.properties?.profile_image || null;

@@ -1,12 +1,14 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { loginWithKakao } from '@/lib/auth/kakao';
 import { useAuthStore } from '@/lib/store';
 
-export default function KakaoCallbackPage() {
+// 실제 콜백 처리 컴포넌트
+function KakaoCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -84,5 +86,23 @@ export default function KakaoCallbackPage() {
         <p className="text-slate-500">잠시만 기다려주세요</p>
       </div>
     </div>
+  );
+}
+
+// 메인 페이지 - Suspense로 감싸기
+export default function KakaoCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+          <div className="text-center p-8">
+            <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-6" />
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">로딩 중...</h1>
+          </div>
+        </div>
+      }
+    >
+      <KakaoCallbackContent />
+    </Suspense>
   );
 }

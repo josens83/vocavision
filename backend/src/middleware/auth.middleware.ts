@@ -77,7 +77,7 @@ export const requireAdmin = async (
         select: { email: true }
       });
 
-      if (user && ADMIN_EMAILS.includes(user.email)) {
+      if (user && user.email && ADMIN_EMAILS.includes(user.email)) {
         console.log('[Auth] Admin bypass for:', user.email);
         req.userRole = 'ADMIN';
         return next();

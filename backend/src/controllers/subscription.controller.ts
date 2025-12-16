@@ -30,7 +30,7 @@ export const createCheckoutSession = async (
       : process.env.STRIPE_PRICE_ID_MONTHLY;
 
     const session = await stripe.checkout.sessions.create({
-      customer_email: user.email,
+      customer_email: user.email || undefined,
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
