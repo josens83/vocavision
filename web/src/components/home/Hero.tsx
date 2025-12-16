@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { PLATFORM_STATS } from "@/constants/stats";
 
 const Icons = {
   Play: () => (
@@ -32,10 +33,11 @@ const Icons = {
   ),
 };
 
+// Use constants from stats.ts
 const stats = [
-  { label: "총 단어", value: "101", suffix: "개" },
-  { label: "학습 컬렉션", value: "4", suffix: "개" },
-  { label: "업적 시스템", value: "9", suffix: "종류" },
+  { label: "수능 단어", value: PLATFORM_STATS.totalWords.toLocaleString(), suffix: "개" },
+  { label: "난이도 레벨", value: "3", suffix: "단계" },
+  { label: "AI 이미지", value: "3", suffix: "종류/단어" },
 ];
 
 const features = [

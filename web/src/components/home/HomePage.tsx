@@ -2,12 +2,13 @@
 
 import Hero from "./Hero";
 import { CategoryGrid, StudyTypeCard, ExamCategoryCard, examCategories } from "./CategoryCard";
+import { PLATFORM_STATS } from "@/constants/stats";
 
 const studyTypes = [
-  { title: "플래시카드", description: "카드 뒤집기로 단어 암기", type: "flashcard" as const, href: "/flashcards", count: 24, countLabel: "복습 대기" },
-  { title: "퀴즈 도전", description: "4지선다 문제 풀기", type: "quiz" as const, href: "/quiz", count: 10, countLabel: "오늘의 문제" },
-  { title: "복습하기", description: "잊어버린 단어 다시 학습", type: "review" as const, href: "/review", count: 8, countLabel: "복습 필요" },
-  { title: "단어장", description: "전체 단어 목록 보기", type: "vocabulary" as const, href: "/words", count: 101, countLabel: "총 단어" },
+  { title: "플래시카드", description: "카드 뒤집기로 단어 암기", type: "flashcard" as const, href: "/learn?exam=CSAT", countLabel: "SM-2 학습" },
+  { title: "퀴즈 도전", description: "4지선다 문제 풀기", type: "quiz" as const, href: "/quiz?exam=CSAT", countLabel: "객관식 퀴즈" },
+  { title: "복습하기", description: "잊어버린 단어 다시 학습", type: "review" as const, href: "/review?exam=CSAT", countLabel: "복습 필요" },
+  { title: "단어장", description: "전체 단어 목록 보기", type: "vocabulary" as const, href: "/words?exam=CSAT", count: PLATFORM_STATS.totalWords, countLabel: "총 단어" },
 ];
 
 const recentActivity = [
