@@ -3,15 +3,13 @@
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
-import { wordsAPI, progressAPI } from '@/lib/api';
+import { wordsAPI, progressAPI, pronunciationAPI } from '@/lib/api';
+import { LEVEL_INFO } from '@/constants/stats';
 
-// Benchmarking: Enhanced word detail page with community mnemonics
-// Phase 2-3: Memrise-style community engagement
-
+// Types
 interface WordVisual {
   type: 'CONCEPT' | 'MNEMONIC' | 'RHYME';
   imageUrl?: string | null;
@@ -33,41 +31,107 @@ interface Word {
   difficulty: string;
   level?: string;
   examCategory?: string;
-  // Morphology
   prefix?: string;
   root?: string;
   suffix?: string;
   morphologyNote?: string;
-  // Related words
   synonymList?: string[];
   antonymList?: string[];
   rhymingWords?: string[];
   relatedWords?: string[];
-  // Related data
-  examples?: any[];
-  images?: any[];
-  videos?: any[];
-  rhymes?: any[];
-  mnemonics?: any[];
-  etymology?: any;
-  synonyms?: any[];
-  antonyms?: any[];
-  collocations?: any[];
-  // New visuals system
+  examples?: Array<{
+    id: string;
+    sentence: string;
+    translation?: string;
+    isFunny?: boolean;
+  }>;
+  images?: Array<{ imageUrl: string; description?: string }>;
+  rhymes?: Array<{ rhymingWord: string; example?: string }>;
+  mnemonics?: Array<{
+    id: string;
+    title?: string;
+    content: string;
+    koreanHint?: string;
+    rating?: number;
+    ratingCount?: number;
+    source?: string;
+  }>;
+  etymology?: {
+    origin?: string;
+    rootWords?: string[];
+    evolution?: string;
+    relatedWords?: string[];
+  };
+  collocations?: Array<{
+    collocation: string;
+    example?: string;
+    translation?: string;
+  }>;
   visuals?: WordVisual[];
+  // Extended content fields
+  mnemonic?: string;
+  mnemonicKorean?: string;
 }
 
-export default function WordDetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
-  const user = useAuthStore((state) => state.user);
+// Icons
+const Icons = {
+  Speaker: () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+    </svg>
+  ),
+  Star: () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+    </svg>
+  ),
+  StarFilled: () => (
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+    </svg>
+  ),
+  ArrowLeft: () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+    </svg>
+  ),
+  Book: () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+    </svg>
+  ),
+  Plus: () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+    </svg>
+  ),
+  Play: () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+};
 
+// Level badge styles
+const levelStyles: Record<string, { bg: string; text: string; label: string }> = {
+  L1: { bg: 'bg-green-100', text: 'text-green-700', label: '기초' },
+  L2: { bg: 'bg-blue-100', text: 'text-blue-700', label: '중급' },
+  L3: { bg: 'bg-purple-100', text: 'text-purple-700', label: '고급' },
+  BEGINNER: { bg: 'bg-green-100', text: 'text-green-700', label: '기초' },
+  INTERMEDIATE: { bg: 'bg-blue-100', text: 'text-blue-700', label: '중급' },
+  ADVANCED: { bg: 'bg-purple-100', text: 'text-purple-700', label: '고급' },
+  EXPERT: { bg: 'bg-red-100', text: 'text-red-700', label: '전문가' },
+};
+
+export default function WordDetailPage({ params }: { params: { id: string } }) {
+  const user = useAuthStore((state) => state.user);
   const [word, setWord] = useState<Word | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookmarked, setBookmarked] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'examples' | 'mnemonics' | 'etymology'>('overview');
+  const [playingAudio, setPlayingAudio] = useState(false);
 
   useEffect(() => {
-    // Allow guest access - no login required for viewing words
     loadWord();
   }, [params.id]);
 
@@ -82,37 +146,56 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
     }
   };
 
+  const handlePlayPronunciation = useCallback(async () => {
+    if (!word || playingAudio) return;
+    setPlayingAudio(true);
+    try {
+      await pronunciationAPI.playPronunciation(word.word);
+    } catch (error) {
+      console.error('Failed to play pronunciation:', error);
+    } finally {
+      setTimeout(() => setPlayingAudio(false), 1000);
+    }
+  }, [word, playingAudio]);
+
   const handleAddToLearning = async () => {
     if (!word) return;
-
     try {
       await progressAPI.submitReview({
         wordId: word.id,
-        rating: 1, // Start as "new"
+        rating: 1,
         learningMethod: 'FLASHCARD',
       });
-
       alert('단어가 학습 목록에 추가되었습니다!');
     } catch (error) {
       console.error('Failed to add word:', error);
     }
   };
 
+  // Get visual by type
+  const getVisual = (type: 'CONCEPT' | 'MNEMONIC' | 'RHYME'): WordVisual | undefined => {
+    return word?.visuals?.find(v => v.type === type);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">로딩 중...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-600">단어 정보를 불러오는 중...</p>
+        </div>
       </div>
     );
   }
 
   if (!word) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <div className="text-xl mb-4">단어를 찾을 수 없습니다</div>
-          <Link href="/words" className="text-blue-600 hover:underline">
+          <div className="text-6xl mb-4">😢</div>
+          <h2 className="text-2xl font-display font-bold text-slate-900 mb-2">단어를 찾을 수 없습니다</h2>
+          <p className="text-slate-600 mb-6">요청하신 단어가 존재하지 않습니다.</p>
+          <Link href="/words" className="btn btn-primary">
             단어 목록으로 돌아가기
           </Link>
         </div>
@@ -120,444 +203,460 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
     );
   }
 
-  const difficultyColors = {
-    BEGINNER: 'bg-green-100 text-green-700',
-    INTERMEDIATE: 'bg-blue-100 text-blue-700',
-    ADVANCED: 'bg-orange-100 text-orange-700',
-    EXPERT: 'bg-red-100 text-red-700',
-  };
-
-  const difficultyLabels = {
-    BEGINNER: '초급',
-    INTERMEDIATE: '중급',
-    ADVANCED: '고급',
-    EXPERT: '전문가',
-  };
+  const level = word.level || word.difficulty;
+  const levelStyle = levelStyles[level] || levelStyles.L1;
+  const conceptVisual = getVisual('CONCEPT');
+  const mnemonicVisual = getVisual('MNEMONIC');
+  const rhymeVisual = getVisual('RHYME');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/words" className="text-gray-600 hover:text-gray-900">
-              ← 뒤로
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/words" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
+              <Icons.ArrowLeft />
+              <span className="hidden sm:inline">단어 목록</span>
             </Link>
-            <h1 className="text-2xl font-bold text-blue-600">단어 상세</h1>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setBookmarked(!bookmarked)}
+                className={`p-2 rounded-lg transition-all ${bookmarked ? 'text-yellow-500 bg-yellow-50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
+              >
+                {bookmarked ? <Icons.StarFilled /> : <Icons.Star />}
+              </button>
+              <button onClick={handleAddToLearning} className="btn btn-primary text-sm">
+                <Icons.Plus />
+                <span className="hidden sm:inline">학습 추가</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-5xl">
-        {/* Word Header */}
-        <div className="bg-white rounded-2xl p-8 mb-6 shadow-sm">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h2 className="text-5xl font-bold text-gray-900 mb-3">{word.word}</h2>
-              {word.pronunciation && (
-                <p className="text-2xl text-gray-500 mb-2">{word.pronunciation}</p>
-              )}
-              <div className="flex gap-3 items-center">
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${difficultyColors[word.difficulty as keyof typeof difficultyColors]}`}>
-                  {difficultyLabels[word.difficulty as keyof typeof difficultyLabels]}
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+
+        {/* ========== 섹션 1: 단어 & 이미지 ========== */}
+        <section className="card overflow-hidden">
+          <div className="grid md:grid-cols-2 gap-0">
+            {/* Word Info */}
+            <div className="p-6 sm:p-8 flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-4">
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${levelStyle.bg} ${levelStyle.text}`}>
+                  {levelStyle.label}
                 </span>
-                <span className="text-gray-600">{word.partOfSpeech}</span>
+                {word.partOfSpeech && (
+                  <span className="text-sm text-slate-500">{word.partOfSpeech}</span>
+                )}
+                {word.examCategory && (
+                  <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full">
+                    {word.examCategory}
+                  </span>
+                )}
               </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setBookmarked(!bookmarked)}
-                className={`p-3 rounded-lg transition ${
-                  bookmarked ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {bookmarked ? '⭐' : '☆'}
-              </button>
+
+              <h1 className="text-4xl sm:text-5xl font-display font-bold text-slate-900 mb-3">
+                {word.word}
+              </h1>
+
+              {word.pronunciation && (
+                <p className="text-xl text-slate-500 mb-4">{word.pronunciation}</p>
+              )}
+
+              <p className="text-lg text-slate-700 mb-2">{word.definition}</p>
+              {word.definitionKo && (
+                <p className="text-lg text-slate-600">{word.definitionKo}</p>
+              )}
+
               <Link
                 href={`/words/${word.id}/learn`}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition font-semibold flex items-center gap-2"
+                className="mt-6 inline-flex items-center gap-2 text-brand-primary font-medium hover:underline"
               >
-                🎓 Interactive Learning
+                <Icons.Play />
+                인터랙티브 학습 시작
               </Link>
-              <button
-                onClick={handleAddToLearning}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
-              >
-                학습 목록에 추가
-              </button>
             </div>
-          </div>
 
-          <div className="text-2xl text-gray-800 mb-4">
-            {word.definition}
-          </div>
-          {word.definitionKo && (
-            <div className="text-lg text-gray-600 mb-6">
-              {word.definitionKo}
-            </div>
-          )}
-
-          {/* Pronunciation Section */}
-          {(word.ipaUs || word.ipaUk) && (
-            <div className="bg-blue-50 rounded-xl p-4 mb-4">
-              <h3 className="text-sm font-semibold text-blue-800 mb-2">📢 발음</h3>
-              <div className="flex gap-6">
-                {word.ipaUs && (
-                  <div>
-                    <span className="text-xs text-blue-600">🇺🇸 US</span>
-                    <p className="text-lg font-mono text-blue-900">{word.ipaUs}</p>
+            {/* Concept Image */}
+            <div className="relative h-64 md:h-auto bg-gradient-to-br from-blue-50 to-blue-100">
+              {conceptVisual?.imageUrl ? (
+                <div className="relative h-full">
+                  <img
+                    src={conceptVisual.imageUrl}
+                    alt={`${word.word} concept`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <span className="inline-block px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded mb-2">
+                      💡 개념
+                    </span>
+                    {conceptVisual.captionKo && (
+                      <p className="text-white text-sm">{conceptVisual.captionKo}</p>
+                    )}
                   </div>
-                )}
-                {word.ipaUk && (
-                  <div>
-                    <span className="text-xs text-blue-600">🇬🇧 UK</span>
-                    <p className="text-lg font-mono text-blue-900">{word.ipaUk}</p>
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center text-slate-400">
+                    <Icons.Book />
+                    <p className="mt-2 text-sm">이미지 준비 중</p>
                   </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Morphology Section */}
-          {(word.prefix || word.root || word.suffix) && (
-            <div className="bg-purple-50 rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-purple-800 mb-3">🔍 형태 분석</h3>
-              <div className="flex flex-wrap gap-2 items-center">
-                {word.prefix && (
-                  <span className="bg-purple-200 text-purple-900 px-3 py-1 rounded-lg text-sm font-medium">
-                    {word.prefix}- <span className="text-purple-600 text-xs">(접두사)</span>
-                  </span>
-                )}
-                {word.root && (
-                  <span className="bg-purple-300 text-purple-900 px-3 py-1 rounded-lg text-sm font-bold">
-                    {word.root} <span className="text-purple-600 text-xs">(어근)</span>
-                  </span>
-                )}
-                {word.suffix && (
-                  <span className="bg-purple-200 text-purple-900 px-3 py-1 rounded-lg text-sm font-medium">
-                    -{word.suffix} <span className="text-purple-600 text-xs">(접미사)</span>
-                  </span>
-                )}
-              </div>
-              {word.morphologyNote && (
-                <p className="text-sm text-purple-700 mt-3">{word.morphologyNote}</p>
+                </div>
               )}
             </div>
-          )}
-        </div>
-
-        {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="flex border-b">
-            <TabButton
-              active={activeTab === 'overview'}
-              onClick={() => setActiveTab('overview')}
-              label="개요"
-            />
-            {word.examples && word.examples.length > 0 && (
-              <TabButton
-                active={activeTab === 'examples'}
-                onClick={() => setActiveTab('examples')}
-                label={`예문 (${word.examples.length})`}
-              />
-            )}
-            {word.mnemonics && word.mnemonics.length > 0 && (
-              <TabButton
-                active={activeTab === 'mnemonics'}
-                onClick={() => setActiveTab('mnemonics')}
-                label={`연상법 (${word.mnemonics.length})`}
-              />
-            )}
-            {word.etymology && (
-              <TabButton
-                active={activeTab === 'etymology'}
-                onClick={() => setActiveTab('etymology')}
-                label="어원"
-              />
-            )}
           </div>
+        </section>
 
-          <div className="p-8">
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                {/* Visuals (3-이미지 시각화) */}
-                {word.visuals && word.visuals.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-bold mb-4">🎨 시각화 학습</h3>
-                    <div className="grid md:grid-cols-3 gap-4">
-                      {word.visuals.map((visual, i) => (
-                        visual.imageUrl && (
-                          <div key={i} className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
-                            <div className="relative">
-                              <img
-                                src={visual.imageUrl}
-                                alt={`${word.word} - ${visual.type}`}
-                                className="w-full h-48 object-cover"
-                              />
-                              <span className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold ${
-                                visual.type === 'CONCEPT' ? 'bg-blue-500 text-white' :
-                                visual.type === 'MNEMONIC' ? 'bg-purple-500 text-white' :
-                                'bg-pink-500 text-white'
-                              }`}>
-                                {visual.type === 'CONCEPT' ? '💡 개념' :
-                                 visual.type === 'MNEMONIC' ? '🧠 연상' : '🎵 라임'}
-                              </span>
-                            </div>
-                            <div className="p-3">
-                              {visual.labelKo && (
-                                <p className="font-semibold text-gray-900 mb-1">{visual.labelKo}</p>
-                              )}
-                              {visual.captionKo && (
-                                <p className="text-sm text-gray-600">{visual.captionKo}</p>
-                              )}
-                              {visual.captionEn && !visual.captionKo && (
-                                <p className="text-sm text-gray-600">{visual.captionEn}</p>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      ))}
-                    </div>
+        {/* ========== 섹션 2: 이미지 2개 (연상, 라이밍) ========== */}
+        {(mnemonicVisual?.imageUrl || rhymeVisual?.imageUrl) && (
+          <section className="grid sm:grid-cols-2 gap-4">
+            {mnemonicVisual?.imageUrl && (
+              <div className="card overflow-hidden group">
+                <div className="relative h-48">
+                  <img
+                    src={mnemonicVisual.imageUrl}
+                    alt={`${word.word} mnemonic`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="px-2 py-1 bg-green-500 text-white text-xs font-bold rounded">
+                      🧠 연상
+                    </span>
+                  </div>
+                </div>
+                <div className="p-4">
+                  {mnemonicVisual.labelKo && (
+                    <p className="font-semibold text-slate-900 mb-1">{mnemonicVisual.labelKo}</p>
+                  )}
+                  {mnemonicVisual.captionKo && (
+                    <p className="text-sm text-slate-600">{mnemonicVisual.captionKo}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {rhymeVisual?.imageUrl && (
+              <div className="card overflow-hidden group">
+                <div className="relative h-48">
+                  <img
+                    src={rhymeVisual.imageUrl}
+                    alt={`${word.word} rhyme`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="px-2 py-1 bg-purple-500 text-white text-xs font-bold rounded">
+                      🎵 라이밍
+                    </span>
+                  </div>
+                </div>
+                <div className="p-4">
+                  {rhymeVisual.labelKo && (
+                    <p className="font-semibold text-slate-900 mb-1">{rhymeVisual.labelKo}</p>
+                  )}
+                  {rhymeVisual.captionKo && (
+                    <p className="text-sm text-slate-600">{rhymeVisual.captionKo}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ========== 섹션 3: 발음 ========== */}
+        <section className="card p-6">
+          <h2 className="text-lg font-display font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-lg">📢</span>
+            발음
+          </h2>
+          <div className="flex flex-wrap items-center gap-6">
+            {word.ipaUs && (
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">🇺🇸 US</span>
+                <span className="text-xl font-mono text-blue-800">{word.ipaUs}</span>
+              </div>
+            )}
+            {word.ipaUk && (
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">🇬🇧 UK</span>
+                <span className="text-xl font-mono text-blue-800">{word.ipaUk}</span>
+              </div>
+            )}
+            <button
+              onClick={handlePlayPronunciation}
+              disabled={playingAudio}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                playingAudio
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+              }`}
+            >
+              <Icons.Speaker />
+              <span>{playingAudio ? '재생 중...' : '발음 듣기'}</span>
+            </button>
+          </div>
+        </section>
+
+        {/* ========== 섹션 4: 어원 분석 ========== */}
+        {(word.etymology || word.prefix || word.root || word.suffix) && (
+          <section className="card p-6">
+            <h2 className="text-lg font-display font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-lg">🔍</span>
+              어원 분석
+            </h2>
+
+            {/* Morphology */}
+            {(word.prefix || word.root || word.suffix) && (
+              <div className="mb-4">
+                <div className="flex flex-wrap gap-2 items-center">
+                  {word.prefix && (
+                    <span className="bg-purple-100 text-purple-800 px-3 py-1.5 rounded-lg text-sm font-medium">
+                      <span className="font-bold">{word.prefix}-</span>
+                      <span className="text-purple-600 text-xs ml-1">(접두사)</span>
+                    </span>
+                  )}
+                  {word.root && (
+                    <span className="bg-purple-200 text-purple-900 px-3 py-1.5 rounded-lg text-sm font-bold">
+                      {word.root}
+                      <span className="text-purple-600 text-xs font-normal ml-1">(어근)</span>
+                    </span>
+                  )}
+                  {word.suffix && (
+                    <span className="bg-purple-100 text-purple-800 px-3 py-1.5 rounded-lg text-sm font-medium">
+                      <span className="font-bold">-{word.suffix}</span>
+                      <span className="text-purple-600 text-xs ml-1">(접미사)</span>
+                    </span>
+                  )}
+                </div>
+                {word.morphologyNote && (
+                  <p className="text-sm text-purple-700 mt-3">{word.morphologyNote}</p>
+                )}
+              </div>
+            )}
+
+            {/* Etymology */}
+            {word.etymology && (
+              <div className="space-y-4">
+                {word.etymology.origin && (
+                  <div className="bg-indigo-50 rounded-xl p-4">
+                    <h4 className="text-sm font-semibold text-indigo-900 mb-1">기원</h4>
+                    <p className="text-indigo-800">{word.etymology.origin}</p>
                   </div>
                 )}
 
-                {/* Legacy Images */}
-                {word.images && word.images.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-bold mb-4">📸 이미지 학습</h3>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {word.images.map((img: any, i: number) => (
-                        <div key={i} className="bg-gray-50 rounded-lg overflow-hidden">
-                          <img src={img.imageUrl} alt={word.word} className="w-full h-64 object-cover" />
-                          {img.description && (
-                            <p className="p-4 text-sm text-gray-600">{img.description}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                {word.etymology.rootWords && word.etymology.rootWords.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {word.etymology.rootWords.map((root, i) => (
+                      <span key={i} className="bg-purple-50 text-purple-800 px-3 py-1 rounded-full text-sm border border-purple-200">
+                        {root}
+                      </span>
+                    ))}
                   </div>
                 )}
 
-                {/* Rhymes */}
-                {word.rhymes && word.rhymes.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-bold mb-4">🎵 라이밍</h3>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      {word.rhymes.map((rhyme: any, i: number) => (
-                        <div key={i} className="bg-purple-50 p-4 rounded-lg">
-                          <div className="font-semibold text-purple-900">{rhyme.rhymingWord}</div>
-                          {rhyme.example && (
-                            <div className="text-sm text-purple-700 mt-1">{rhyme.example}</div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                {word.etymology.evolution && (
+                  <p className="text-slate-600 text-sm">{word.etymology.evolution}</p>
                 )}
+              </div>
+            )}
+          </section>
+        )}
 
-                {/* Collocations */}
-                {word.collocations && word.collocations.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-bold mb-4">🔗 연어 (Collocations)</h3>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      {word.collocations.map((col: any, i: number) => (
-                        <div key={i} className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                          <div className="font-semibold text-amber-900 mb-1">{col.collocation}</div>
-                          {col.example && (
-                            <p className="text-sm text-amber-700 italic">"{col.example}"</p>
-                          )}
-                          {col.translation && (
-                            <p className="text-xs text-amber-600 mt-1">{col.translation}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+        {/* ========== 섹션 5: 창의적 암기법 ========== */}
+        {(word.mnemonic || word.mnemonicKorean || (word.mnemonics && word.mnemonics.length > 0)) && (
+          <section className="card p-6">
+            <h2 className="text-lg font-display font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center text-lg">💡</span>
+              창의적 암기법
+            </h2>
 
-                {/* Synonyms & Antonyms */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  {word.synonyms && word.synonyms.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-bold mb-3">동의어</h3>
-                      <div className="space-y-2">
-                        {word.synonyms.map((syn: any, i: number) => (
-                          <div key={i} className="bg-green-50 p-3 rounded-lg">
-                            <div className="font-semibold text-green-900">{syn.synonym}</div>
-                            {syn.nuance && (
-                              <div className="text-sm text-green-700">{syn.nuance}</div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+            <div className="space-y-4">
+              {/* Main mnemonic from word data */}
+              {(word.mnemonic || word.mnemonicKorean) && (
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-5 border-l-4 border-yellow-400">
+                  {word.mnemonic && (
+                    <p className="text-lg text-slate-800 mb-2">{word.mnemonic}</p>
+                  )}
+                  {word.mnemonicKorean && (
+                    <p className="text-yellow-800 font-medium">💡 {word.mnemonicKorean}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Community mnemonics */}
+              {word.mnemonics && word.mnemonics.map((mnemonic, i) => (
+                <div key={mnemonic.id || i} className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                  {mnemonic.title && (
+                    <h4 className="font-semibold text-slate-900 mb-2">{mnemonic.title}</h4>
+                  )}
+                  <p className="text-slate-700 whitespace-pre-wrap">{mnemonic.content}</p>
+                  {mnemonic.koreanHint && (
+                    <div className="mt-3 bg-blue-50 p-3 rounded-lg">
+                      <p className="text-blue-800 text-sm">💡 {mnemonic.koreanHint}</p>
                     </div>
                   )}
-
-                  {word.antonyms && word.antonyms.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-bold mb-3">반의어</h3>
-                      <div className="space-y-2">
-                        {word.antonyms.map((ant: any, i: number) => (
-                          <div key={i} className="bg-red-50 p-3 rounded-lg">
-                            <div className="font-semibold text-red-900">{ant.antonym}</div>
-                            {ant.explanation && (
-                              <div className="text-sm text-red-700">{ant.explanation}</div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                  {mnemonic.rating !== undefined && (
+                    <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
+                      <Icons.Star />
+                      <span>{mnemonic.rating.toFixed(1)} ({mnemonic.ratingCount}명 평가)</span>
                     </div>
                   )}
                 </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-                {/* Related Word Lists */}
-                {(word.synonymList?.length || word.antonymList?.length || word.rhymingWords?.length || word.relatedWords?.length) && (
-                  <div className="bg-gray-50 rounded-xl p-6">
-                    <h3 className="text-lg font-bold mb-4">📚 관련 단어</h3>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {word.synonymList && word.synonymList.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-600 mb-2">유의어</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {word.synonymList.map((s: string, i: number) => (
-                              <span key={i} className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">{s}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {word.antonymList && word.antonymList.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-600 mb-2">반의어</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {word.antonymList.map((a: string, i: number) => (
-                              <span key={i} className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">{a}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {word.rhymingWords && word.rhymingWords.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-600 mb-2">라이밍</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {word.rhymingWords.map((r: string, i: number) => (
-                              <span key={i} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">{r}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {word.relatedWords && word.relatedWords.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-600 mb-2">관련어</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {word.relatedWords.map((r: string, i: number) => (
-                              <span key={i} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{r}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+        {/* ========== 섹션 6: Rhyme ========== */}
+        {((word.rhymingWords && word.rhymingWords.length > 0) || (word.rhymes && word.rhymes.length > 0)) && (
+          <section className="card p-6">
+            <h2 className="text-lg font-display font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-lg">🎵</span>
+              라이밍 (Rhyme)
+            </h2>
+
+            {/* Rhyming word chips */}
+            {word.rhymingWords && word.rhymingWords.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {word.rhymingWords.map((rhyme, i) => (
+                  <span key={i} className="bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-pink-200 transition-colors cursor-default">
+                    {rhyme}
+                  </span>
+                ))}
               </div>
             )}
 
-            {activeTab === 'examples' && word.examples && (
-              <div className="space-y-4">
-                {word.examples.map((example: any, i: number) => (
-                  <div key={i} className="bg-gray-50 p-6 rounded-xl">
-                    <p className="text-lg italic text-gray-800 mb-2">"{example.sentence}"</p>
-                    {example.translation && (
-                      <p className="text-gray-600">{example.translation}</p>
+            {/* Rhyme examples */}
+            {word.rhymes && word.rhymes.length > 0 && (
+              <div className="grid sm:grid-cols-2 gap-3">
+                {word.rhymes.map((rhyme, i) => (
+                  <div key={i} className="bg-pink-50 p-4 rounded-lg border border-pink-100">
+                    <div className="font-semibold text-pink-800">{rhyme.rhymingWord}</div>
+                    {rhyme.example && (
+                      <p className="text-sm text-pink-600 mt-1">{rhyme.example}</p>
                     )}
                   </div>
                 ))}
               </div>
             )}
+          </section>
+        )}
 
-            {activeTab === 'mnemonics' && (
-              <div className="space-y-6">
-                {/* Official Mnemonics */}
-                {word.mnemonics && word.mnemonics.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-gray-900">📘 공식 암기법</h3>
-                    {word.mnemonics.map((mnemonic: any, i: number) => (
-                      <div key={i} className="border-l-4 border-yellow-400 bg-yellow-50 p-6 rounded-r-xl">
-                        <h4 className="text-xl font-bold mb-3">{mnemonic.title}</h4>
-                        <p className="text-lg text-gray-800 mb-4 whitespace-pre-wrap">{mnemonic.content}</p>
-                        {mnemonic.koreanHint && (
-                          <div className="bg-blue-50 p-4 rounded-lg">
-                            <p className="text-blue-900">💡 {mnemonic.koreanHint}</p>
-                          </div>
-                        )}
-                        <div className="mt-4 flex items-center gap-4 text-sm text-gray-600">
-                          <span>⭐ {mnemonic.rating.toFixed(1)} ({mnemonic.ratingCount}명 평가)</span>
-                          <span className="capitalize">{mnemonic.source.replace('_', ' ').toLowerCase()}</span>
-                        </div>
-                      </div>
+        {/* ========== 섹션 7: Collocation ========== */}
+        {word.collocations && word.collocations.length > 0 && (
+          <section className="card p-6">
+            <h2 className="text-lg font-display font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-lg">🔗</span>
+              연어 (Collocation)
+            </h2>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              {word.collocations.map((col, i) => (
+                <div key={i} className="bg-amber-50 p-4 rounded-lg border border-amber-200 hover:border-amber-300 transition-colors">
+                  <div className="font-semibold text-amber-900 mb-1">{col.collocation}</div>
+                  {col.example && (
+                    <p className="text-sm text-amber-700 italic">"{col.example}"</p>
+                  )}
+                  {col.translation && (
+                    <p className="text-xs text-amber-600 mt-1">{col.translation}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ========== 섹션 8: 재미있는 예문 ========== */}
+        {word.examples && word.examples.length > 0 && (
+          <section className="card p-6">
+            <h2 className="text-lg font-display font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center text-lg">📝</span>
+              예문
+            </h2>
+
+            <div className="space-y-4">
+              {word.examples.map((example, i) => (
+                <div key={example.id || i} className={`p-5 rounded-xl ${example.isFunny ? 'bg-gradient-to-r from-green-50 to-teal-50 border border-green-200' : 'bg-slate-50'}`}>
+                  {example.isFunny && (
+                    <span className="inline-block text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full mb-2">
+                      😄 재미있는 예문
+                    </span>
+                  )}
+                  <p className="text-lg text-slate-800 italic mb-2">"{example.sentence}"</p>
+                  {example.translation && (
+                    <p className="text-slate-600">{example.translation}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ========== 추가 정보: 관련 단어 ========== */}
+        {((word.synonymList && word.synonymList.length > 0) ||
+          (word.antonymList && word.antonymList.length > 0) ||
+          (word.relatedWords && word.relatedWords.length > 0)) && (
+          <section className="card p-6">
+            <h2 className="text-lg font-display font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-lg">📚</span>
+              관련 단어
+            </h2>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {word.synonymList && word.synonymList.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-600 mb-2">동의어</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {word.synonymList.map((s, i) => (
+                      <span key={i} className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm hover:bg-green-200 transition-colors cursor-default">{s}</span>
                     ))}
                   </div>
-                )}
-
-              </div>
-            )}
-
-            {activeTab === 'etymology' && word.etymology && (
-              <div className="space-y-6">
-                <div className="bg-indigo-50 p-6 rounded-xl">
-                  <h4 className="font-semibold text-indigo-900 mb-2">기원</h4>
-                  <p className="text-lg text-indigo-800">{word.etymology.origin}</p>
                 </div>
+              )}
 
-                {word.etymology.rootWords && word.etymology.rootWords.length > 0 && (
-                  <div className="bg-purple-50 p-6 rounded-xl">
-                    <h4 className="font-semibold text-purple-900 mb-3">어근</h4>
-                    <ul className="space-y-2">
-                      {word.etymology.rootWords.map((root: string, i: number) => (
-                        <li key={i} className="text-purple-800">• {root}</li>
-                      ))}
-                    </ul>
+              {word.antonymList && word.antonymList.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-600 mb-2">반의어</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {word.antonymList.map((a, i) => (
+                      <span key={i} className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm hover:bg-red-200 transition-colors cursor-default">{a}</span>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
 
-                {word.etymology.evolution && (
-                  <div className="bg-blue-50 p-6 rounded-xl">
-                    <h4 className="font-semibold text-blue-900 mb-2">발전 과정</h4>
-                    <p className="text-blue-800">{word.etymology.evolution}</p>
+              {word.relatedWords && word.relatedWords.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-600 mb-2">관련어</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {word.relatedWords.map((r, i) => (
+                      <span key={i} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm hover:bg-blue-200 transition-colors cursor-default">{r}</span>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
-                {word.etymology.relatedWords && word.etymology.relatedWords.length > 0 && (
-                  <div className="bg-green-50 p-6 rounded-xl">
-                    <h4 className="font-semibold text-green-900 mb-3">관련 단어</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {word.etymology.relatedWords.map((related: string, i: number) => (
-                        <span key={i} className="bg-green-200 text-green-900 px-3 py-1 rounded-full text-sm font-medium">
-                          {related}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+        {/* CTA */}
+        <section className="card p-6 bg-gradient-to-r from-brand-primary to-brand-primary/80 text-white">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-display font-bold mb-1">이 단어를 완벽히 외우셨나요?</h3>
+              <p className="text-white/80">플래시카드와 퀴즈로 더 깊이 학습해보세요.</p>
+            </div>
+            <div className="flex gap-3">
+              <Link href={`/words/${word.id}/learn`} className="btn bg-white text-brand-primary hover:bg-white/90">
+                플래시카드 학습
+              </Link>
+              <Link href={`/quiz?wordId=${word.id}`} className="btn border border-white/30 text-white hover:bg-white/10">
+                퀴즈 풀기
+              </Link>
+            </div>
           </div>
-        </div>
+        </section>
       </main>
     </div>
-  );
-}
-
-function TabButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex-1 py-4 px-6 font-medium transition ${
-        active
-          ? 'bg-white border-b-2 border-blue-600 text-blue-600'
-          : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-      }`}
-    >
-      {label}
-    </button>
   );
 }

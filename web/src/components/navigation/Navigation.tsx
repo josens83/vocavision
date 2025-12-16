@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, ReactNode } from "react";
+import { PLATFORM_STATS } from "@/constants/stats";
 
 export interface NavItem {
   label: string;
@@ -17,24 +18,24 @@ export interface NavSubItem {
   count?: number;
   badge?: string;
   description?: string;
+  disabled?: boolean;
 }
 
 export const navigationItems: NavItem[] = [
   {
-    label: "시험별 학습",
-    color: "text-level-intermediate",
+    label: "수능 학습",
+    color: "text-blue-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
     children: [
-      { label: "수능 (CSAT)", href: "/courses/csat", description: "수능 필수 어휘", badge: "학습 가능" },
-      { label: "SAT", href: "/courses/sat", description: "미국 대학입학시험" },
-      { label: "TOEFL", href: "/courses/toefl", description: "학술 영어 능력시험" },
-      { label: "TOEIC", href: "/courses/toeic", description: "국제 의사소통 영어" },
-      { label: "TEPS", href: "/courses/teps", description: "서울대 영어 능력시험" },
+      { label: "L1 기초", href: "/learn?exam=CSAT&level=L1", count: PLATFORM_STATS.levels.L1, description: "수능 기본 필수 어휘" },
+      { label: "L2 중급", href: "/learn?exam=CSAT&level=L2", count: PLATFORM_STATS.levels.L2, description: "실력 향상 어휘" },
+      { label: "L3 고급", href: "/learn?exam=CSAT&level=L3", count: PLATFORM_STATS.levels.L3, description: "1등급 목표 어휘" },
+      { label: "전체 단어", href: "/words?exam=CSAT", count: PLATFORM_STATS.totalWords, description: "수능 어휘 전체 보기" },
     ],
   },
   {
     label: "플래시카드",
-    href: "/flashcards",
+    href: "/learn?exam=CSAT",
     color: "text-study-flashcard-dark",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>,
   },
@@ -43,15 +44,14 @@ export const navigationItems: NavItem[] = [
     color: "text-study-quiz-dark",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
     children: [
-      { label: "객관식 퀴즈", href: "/quiz/multiple", description: "4지선다형 문제" },
-      { label: "빈칸 채우기", href: "/quiz/fill", description: "문장 완성 문제" },
-      { label: "매칭 게임", href: "/quiz/match", description: "단어-뜻 연결" },
-      { label: "타임 어택", href: "/quiz/timed", badge: "🔥", description: "시간 제한 모드" },
+      { label: "영어→한글", href: "/quiz?exam=CSAT&mode=eng-to-kor", description: "영단어 뜻 맞추기", badge: "추천" },
+      { label: "한글→영어", href: "/quiz?exam=CSAT&mode=kor-to-eng", description: "한글 뜻 보고 영단어 맞추기" },
+      { label: "레벨 테스트", href: "/quiz/level-test", description: "나의 실력 진단하기" },
     ],
   },
   {
     label: "복습",
-    href: "/review",
+    href: "/review?exam=CSAT",
     color: "text-study-review-dark",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>,
   },
