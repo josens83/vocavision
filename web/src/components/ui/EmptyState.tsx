@@ -55,14 +55,14 @@ export function EmptyState({
             action.href ? (
               <Link
                 href={action.href}
-                className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-xl font-bold transition shadow-lg shadow-pink-500/25"
+                className="bg-brand-primary hover:bg-brand-primary/90 text-white px-6 py-3 rounded-xl font-bold transition-all duration-200 shadow-lg shadow-brand-primary/25 hover:-translate-y-0.5 active:scale-95"
               >
                 {action.label}
               </Link>
             ) : (
               <button
                 onClick={action.onClick}
-                className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-xl font-bold transition shadow-lg shadow-pink-500/25"
+                className="bg-brand-primary hover:bg-brand-primary/90 text-white px-6 py-3 rounded-xl font-bold transition-all duration-200 shadow-lg shadow-brand-primary/25 hover:-translate-y-0.5 active:scale-95"
               >
                 {action.label}
               </button>
@@ -72,14 +72,14 @@ export function EmptyState({
             secondaryAction.href ? (
               <Link
                 href={secondaryAction.href}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium transition"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
               >
                 {secondaryAction.label}
               </Link>
             ) : (
               <button
                 onClick={secondaryAction.onClick}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium transition"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
               >
                 {secondaryAction.label}
               </button>
@@ -270,7 +270,7 @@ export function CelebrateCompletion({
         {total}문제 중 {score}문제 정답
       </p>
 
-      <div className="text-4xl font-bold text-pink-500 mb-6">
+      <div className="text-4xl font-bold text-brand-primary mb-6">
         {percentage}%
       </div>
 
@@ -278,7 +278,7 @@ export function CelebrateCompletion({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-xl font-bold transition"
+            className="bg-brand-primary hover:bg-brand-primary/90 text-white px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
           >
             다시 도전
           </button>
@@ -286,7 +286,7 @@ export function CelebrateCompletion({
         {onHome && (
           <button
             onClick={onHome}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium transition"
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
           >
             홈으로
           </button>
