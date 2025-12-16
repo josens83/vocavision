@@ -60,17 +60,22 @@ export const getDashboardStats = async (
     let hasMnemonic = 0;
     let hasExamples = 0;
     let hasMedia = 0;
+    let hasWordVisuals = 0;
 
     try {
-      [hasEtymology, hasMnemonic, hasExamples, hasMedia] = await Promise.all([
+      [hasEtymology, hasMnemonic, hasExamples, hasMedia, hasWordVisuals] = await Promise.all([
         prisma.etymology.count(),
         prisma.mnemonic.count(),
         prisma.example.count(),
         prisma.wordImage.count(),
+        prisma.wordVisual.count({ where: { imageUrl: { not: null } } }),
       ]);
     } catch {
       // Models might not exist or have data - that's okay
     }
+
+    // Total media = WordImage + WordVisual with images
+    const totalMedia = hasMedia + hasWordVisuals;
 
     // Convert category counts to Record
     const byExamCategory: Record<string, number> = {};
@@ -98,7 +103,7 @@ export const getDashboardStats = async (
         hasEtymology,
         hasMnemonic,
         hasExamples,
-        hasMedia,
+        hasMedia: totalMedia, // WordImage + WordVisual combined
       },
     };
 
