@@ -14,7 +14,7 @@ export function getKakaoLoginUrl(): string {
     client_id: KAKAO_CLIENT_ID,
     redirect_uri: KAKAO_REDIRECT_URI,
     response_type: 'code',
-    scope: 'profile_nickname profile_image',
+    scope: 'profile_nickname',
   });
 
   return `${KAKAO_AUTH_URL}?${params.toString()}`;
