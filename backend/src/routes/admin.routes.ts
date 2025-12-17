@@ -41,6 +41,31 @@ import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 const router = Router();
 
 /**
+ * Auth middleware that allows any authenticated user OR secret key
+ * (Less restrictive than adminAuth - for image generation management)
+ */
+const authOrSecretKey = async (req: Request, res: Response, next: NextFunction) => {
+  const secretKey = (req.query.key as string) || req.headers['x-admin-key'];
+
+  // Check for internal secret key (query param or header)
+  if (secretKey && secretKey === process.env.INTERNAL_SECRET_KEY) {
+    return next();
+  }
+
+  // Fall back to JWT authentication (any authenticated user)
+  authenticateToken(req as any, res, next);
+};
+
+// ============================================
+// Image Generation Management Routes (auth only, no admin required)
+// These routes are registered BEFORE adminAuth middleware
+// ============================================
+
+router.get('/image-generation/status', authOrSecretKey, getImageGenerationStatus);
+router.post('/image-generation/batch', authOrSecretKey, startImageBatchGeneration);
+router.get('/image-generation/job/:jobId', authOrSecretKey, getImageGenerationJobStatus);
+
+/**
  * Admin authentication middleware
  * Allows either:
  * 1. JWT Bearer token with admin role
@@ -62,7 +87,7 @@ const adminAuth = async (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-// All admin routes require either secret key or JWT admin auth
+// All remaining admin routes require either secret key or JWT admin auth
 router.use(adminAuth);
 
 /**
@@ -364,72 +389,5 @@ router.get('/words/:wordId/audit-logs', getWordAuditLogs);
  *           type: string
  */
 router.get('/words/:wordId/visuals', getWordVisuals);
-
-// ============================================
-// Image Generation Management Routes
-// ============================================
-
-/**
- * @swagger
- * /admin/image-generation/status:
- *   get:
- *     summary: Get image generation status by level
- *     tags: [Admin - Image Generation]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: examType
- *         schema:
- *           type: string
- *           default: CSAT
- */
-router.get('/image-generation/status', getImageGenerationStatus);
-
-/**
- * @swagger
- * /admin/image-generation/batch:
- *   post:
- *     summary: Start batch image generation
- *     tags: [Admin - Image Generation]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - level
- *             properties:
- *               examType:
- *                 type: string
- *                 default: CSAT
- *               level:
- *                 type: string
- *                 enum: [L1, L2, L3]
- *               limit:
- *                 type: integer
- *                 default: 100
- *                 maximum: 1100
- */
-router.post('/image-generation/batch', startImageBatchGeneration);
-
-/**
- * @swagger
- * /admin/image-generation/job/{jobId}:
- *   get:
- *     summary: Get image generation job status
- *     tags: [Admin - Image Generation]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: jobId
- *         required: true
- *         schema:
- *           type: string
- */
-router.get('/image-generation/job/:jobId', getImageGenerationJobStatus);
 
 export default router;
