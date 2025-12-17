@@ -7,6 +7,7 @@
 
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store';
 import {
   QuizModeSelector,
   MultipleChoiceQuiz,
@@ -20,6 +21,7 @@ type QuizStep = 'mode-select' | 'quiz' | 'result';
 function QuizPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
 
   const exam = searchParams.get('exam') || 'CSAT';
   const level = searchParams.get('level') || 'L1';
@@ -74,6 +76,21 @@ function QuizPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Demo Mode Banner for Guests */}
+      {!user && (
+        <div className="bg-amber-50 border-b border-amber-200 sticky top-0 z-20">
+          <div className="container mx-auto px-4 py-2">
+            <div className="flex items-center justify-center gap-2 text-sm">
+              <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded font-bold text-xs">체험</span>
+              <span className="text-amber-800">퀴즈 결과가 저장되지 않습니다.</span>
+              <a href="/auth/login" className="text-amber-900 font-medium underline hover:text-amber-700">
+                로그인하고 기록 저장하기
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {step === 'mode-select' && (
         <QuizModeSelector
           exam={exam}
