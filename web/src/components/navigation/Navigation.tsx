@@ -5,6 +5,7 @@ import { useState, useEffect, ReactNode, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
+import { useAuthRequired } from "@/components/ui/AuthRequiredModal";
 
 export interface NavItem {
   label: string;
@@ -12,6 +13,8 @@ export interface NavItem {
   color?: string;
   icon?: ReactNode;
   children?: NavSubItem[];
+  /** 로그인 필요 여부 */
+  requiresAuth?: boolean;
 }
 
 export interface NavSubItem {
@@ -21,6 +24,8 @@ export interface NavSubItem {
   badge?: string;
   description?: string;
   disabled?: boolean;
+  /** 로그인 필요 여부 */
+  requiresAuth?: boolean;
 }
 
 export const navigationItems: NavItem[] = [
@@ -56,12 +61,14 @@ export const navigationItems: NavItem[] = [
     href: "/review?exam=CSAT",
     color: "text-study-review-dark",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>,
+    requiresAuth: true,
   },
   {
     label: "통계",
     href: "/stats",
     color: "text-level-advanced",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+    requiresAuth: true,
   },
   {
     label: "요금제",
@@ -107,7 +114,31 @@ function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave }: NavDropdownPr
   );
 }
 
-function NavLink({ item }: { item: NavItem }) {
+interface NavLinkProps {
+  item: NavItem;
+  isAuthenticated: boolean;
+  onAuthRequired?: (label: string) => void;
+}
+
+function NavLink({ item, isAuthenticated, onAuthRequired }: NavLinkProps) {
+  const showLock = item.requiresAuth && !isAuthenticated;
+
+  // Guest가 로그인 필요 항목 클릭 시
+  if (showLock) {
+    return (
+      <button
+        onClick={() => onAuthRequired?.(item.label)}
+        className={`nav-link flex items-center gap-2 ${item.color || ""} opacity-75 hover:opacity-100`}
+      >
+        {item.icon}
+        <span>{item.label}</span>
+        <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </button>
+    );
+  }
+
   return (
     <Link href={item.href || "#"} className={`nav-link flex items-center gap-2 ${item.color || ""}`}>
       {item.icon}
@@ -259,15 +290,24 @@ interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   items: NavItem[];
+  isAuthenticated: boolean;
+  onAuthRequired?: (label: string) => void;
 }
 
-function MobileMenu({ isOpen, onClose, items }: MobileMenuProps) {
+function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired }: MobileMenuProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
+
+  const handleItemClick = (item: NavItem) => {
+    if (item.requiresAuth && !isAuthenticated) {
+      onClose();
+      onAuthRequired?.(item.label);
+    }
+  };
 
   return (
     <>
@@ -281,37 +321,52 @@ function MobileMenu({ isOpen, onClose, items }: MobileMenuProps) {
         </div>
 
         <nav className="p-4 overflow-y-auto h-[calc(100%-80px)]">
-          {items.map((item) => (
-            <div key={item.label} className="mb-2">
-              {item.children ? (
-                <>
-                  <button onClick={() => setExpandedItem(expandedItem === item.label ? null : item.label)} className={`w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors ${item.color || "text-slate-700"}`}>
-                    <span className="flex items-center gap-3">{item.icon}<span className="font-medium">{item.label}</span></span>
-                    <svg className={`w-5 h-5 transition-transform ${expandedItem === item.label ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          {items.map((item) => {
+            const showLock = item.requiresAuth && !isAuthenticated;
+
+            return (
+              <div key={item.label} className="mb-2">
+                {item.children ? (
+                  <>
+                    <button onClick={() => setExpandedItem(expandedItem === item.label ? null : item.label)} className={`w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors ${item.color || "text-slate-700"}`}>
+                      <span className="flex items-center gap-3">{item.icon}<span className="font-medium">{item.label}</span></span>
+                      <svg className={`w-5 h-5 transition-transform ${expandedItem === item.label ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <div className={`overflow-hidden transition-all duration-300 ${expandedItem === item.label ? "max-h-96" : "max-h-0"}`}>
+                      <div className="pl-12 py-2 space-y-1">
+                        {item.children.map((child) => (
+                          <Link key={child.href} href={child.href} onClick={onClose} className="flex items-center justify-between p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50">
+                            <div>
+                              <span className="text-sm font-medium">{child.label}</span>
+                              {child.badge && <span className="ml-2 px-1.5 py-0.5 text-xs font-bold bg-study-flashcard text-slate-900 rounded">{child.badge}</span>}
+                            </div>
+                            {child.count !== undefined && <span className="text-xs text-slate-400">{child.count}</span>}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : showLock ? (
+                  <button
+                    onClick={() => handleItemClick(item)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors ${item.color || "text-slate-700"} opacity-75`}
+                  >
+                    {item.icon}
+                    <span className="font-medium">{item.label}</span>
+                    <svg className="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   </button>
-                  <div className={`overflow-hidden transition-all duration-300 ${expandedItem === item.label ? "max-h-96" : "max-h-0"}`}>
-                    <div className="pl-12 py-2 space-y-1">
-                      {item.children.map((child) => (
-                        <Link key={child.href} href={child.href} onClick={onClose} className="flex items-center justify-between p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50">
-                          <div>
-                            <span className="text-sm font-medium">{child.label}</span>
-                            {child.badge && <span className="ml-2 px-1.5 py-0.5 text-xs font-bold bg-study-flashcard text-slate-900 rounded">{child.badge}</span>}
-                          </div>
-                          {child.count !== undefined && <span className="text-xs text-slate-400">{child.count}</span>}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <Link href={item.href || "#"} onClick={onClose} className={`flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors ${item.color || "text-slate-700"}`}>
-                  {item.icon}<span className="font-medium">{item.label}</span>
-                </Link>
-              )}
-            </div>
-          ))}
+                ) : (
+                  <Link href={item.href || "#"} onClick={onClose} className={`flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors ${item.color || "text-slate-700"}`}>
+                    {item.icon}<span className="font-medium">{item.label}</span>
+                  </Link>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-surface-border bg-white">
@@ -329,10 +384,24 @@ export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const { user, logout, _hasHydrated } = useAuthStore();
+  const { showAuthRequired } = useAuthRequired();
   const isAuthenticated = !!user;
 
   // Mock streak - 실제로는 user 객체에서 가져와야 함
   const userStreak = (user as any)?.streak || 0;
+
+  // Guest가 로그인 필요 메뉴 클릭 시
+  const handleAuthRequired = (label: string) => {
+    showAuthRequired({
+      title: `${label} 기능`,
+      message: `${label} 기능을 이용하려면 로그인이 필요합니다.`,
+      features: [
+        '학습 진행 상황 저장',
+        '개인화된 복습 일정',
+        '상세 학습 통계',
+      ],
+    });
+  };
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -375,7 +444,12 @@ export default function Navigation() {
               item.children ? (
                 <NavDropdown key={item.label} item={item} isOpen={openDropdown === item.label} onMouseEnter={() => setOpenDropdown(item.label)} onMouseLeave={() => setOpenDropdown(null)} />
               ) : (
-                <NavLink key={item.label} item={item} />
+                <NavLink
+                  key={item.label}
+                  item={item}
+                  isAuthenticated={isAuthenticated}
+                  onAuthRequired={handleAuthRequired}
+                />
               )
             ))}
           </nav>
@@ -440,7 +514,13 @@ export default function Navigation() {
         </div>
       </div>
 
-      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} items={navigationItems} />
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        items={navigationItems}
+        isAuthenticated={isAuthenticated}
+        onAuthRequired={handleAuthRequired}
+      />
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
