@@ -31,6 +31,10 @@ import {
   getWordAuditLogs,
   // Word Visuals
   getWordVisuals,
+  // Image Generation Management
+  getImageGenerationStatus,
+  startImageBatchGeneration,
+  getImageGenerationJobStatus,
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -360,5 +364,72 @@ router.get('/words/:wordId/audit-logs', getWordAuditLogs);
  *           type: string
  */
 router.get('/words/:wordId/visuals', getWordVisuals);
+
+// ============================================
+// Image Generation Management Routes
+// ============================================
+
+/**
+ * @swagger
+ * /admin/image-generation/status:
+ *   get:
+ *     summary: Get image generation status by level
+ *     tags: [Admin - Image Generation]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: examType
+ *         schema:
+ *           type: string
+ *           default: CSAT
+ */
+router.get('/image-generation/status', getImageGenerationStatus);
+
+/**
+ * @swagger
+ * /admin/image-generation/batch:
+ *   post:
+ *     summary: Start batch image generation
+ *     tags: [Admin - Image Generation]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - level
+ *             properties:
+ *               examType:
+ *                 type: string
+ *                 default: CSAT
+ *               level:
+ *                 type: string
+ *                 enum: [L1, L2, L3]
+ *               limit:
+ *                 type: integer
+ *                 default: 100
+ *                 maximum: 1100
+ */
+router.post('/image-generation/batch', startImageBatchGeneration);
+
+/**
+ * @swagger
+ * /admin/image-generation/job/{jobId}:
+ *   get:
+ *     summary: Get image generation job status
+ *     tags: [Admin - Image Generation]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: jobId
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.get('/image-generation/job/:jobId', getImageGenerationJobStatus);
 
 export default router;
