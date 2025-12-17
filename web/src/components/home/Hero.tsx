@@ -43,7 +43,7 @@ const stats = [
 
 const features = [
   { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기" },
-  { icon: Icons.Brain, title: "AI 기반 퀴즈", description: "오답 기반 난이도 조절 시스템" },
+  { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템" },
   { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공" },
 ];
 
@@ -68,7 +68,7 @@ export default function Hero() {
           <div className={`space-y-8 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
               <Icons.Sparkles />
-              <span className="text-sm font-medium text-slate-600">AI 기반 영어 학습 플랫폼</span>
+              <span className="text-sm font-medium text-slate-600">스마트 영어 학습 플랫폼</span>
             </div>
 
             <h1 className="font-display">
@@ -78,7 +78,7 @@ export default function Hero() {
 
             <p className="text-xl text-slate-600 max-w-xl leading-relaxed">
               과학적으로 검증된 <strong className="text-slate-800">간격 반복 학습</strong>과
-              <strong className="text-slate-800"> AI 기반 적응형 퀴즈</strong>로 효율적인 어휘력 향상을 경험하세요.
+              <strong className="text-slate-800">적응형 퀴즈</strong>로 효율적인 어휘력 향상을 경험하세요.
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">

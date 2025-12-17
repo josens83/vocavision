@@ -436,7 +436,7 @@ export default function PricingPage() {
               지금 바로 영어 단어 학습을 시작하세요!
             </h2>
             <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-              3,300개 이상의 수능 필수 단어와 AI 기반 학습 시스템으로
+              3,300개 이상의 수능 필수 단어와 스마트 학습 시스템으로
               <br />
               더 효율적인 영어 공부를 경험해보세요.
             </p>

@@ -17,8 +17,8 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
-              AI 기반 영어 단어 학습 플랫폼<br />
-              과학적으로 검증된 간격 반복 학습과 AI 기반 적응형 퀴즈로<br />
+              스마트 영어 단어 학습 플랫폼<br />
+              과학적으로 검증된 간격 반복 학습과 적응형 퀴즈로<br />
               효율적인 어휘력 향상을 경험하세요.
             </p>
           </div>
