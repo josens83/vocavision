@@ -110,7 +110,7 @@ export default function PredictiveAnalytics({ data }: PredictiveAnalyticsProps) 
       >
         <h3 className="text-2xl font-bold text-gray-900 mb-4">📅 다가오는 복습</h3>
         <p className="text-gray-600 text-sm mb-6">
-          SM-2 알고리즘 기반으로 예측된 복습 일정입니다
+          학습 데이터 기반으로 예측된 복습 일정입니다
         </p>
 
         <div className="space-y-3">

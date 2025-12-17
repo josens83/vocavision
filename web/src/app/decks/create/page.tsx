@@ -258,7 +258,7 @@ export default function CreateDeckPage() {
               <li>• 덱을 만든 후 단어를 추가하여 학습을 시작하세요</li>
               <li>• 태그를 활용하면 나중에 덱을 쉽게 찾을 수 있습니다</li>
               <li>• 공개 덱은 커뮤니티와 공유되어 다른 학습자들에게 도움이 됩니다</li>
-              <li>• Anki의 SM-2 알고리즘으로 효율적인 복습을 제공합니다</li>
+              <li>• 간격 반복 학습으로 효율적인 복습을 제공합니다</li>
             </ul>
           </motion.div>
         </motion.div>

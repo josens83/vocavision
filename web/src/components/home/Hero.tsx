@@ -42,8 +42,8 @@ const stats = [
 ];
 
 const features = [
-  { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "SM-2 알고리즘 기반 간격 반복 학습" },
-  { icon: Icons.Brain, title: "AI 기반 퀴즈", description: "난이도 적응형 문제 출제 시스템" },
+  { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기" },
+  { icon: Icons.Brain, title: "AI 기반 퀴즈", description: "오답 기반 난이도 조절 시스템" },
   { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공" },
 ];
 

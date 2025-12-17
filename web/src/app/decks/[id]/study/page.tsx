@@ -313,7 +313,7 @@ export default function DeckStudyPage() {
               </div>
 
               <p className="text-center text-xs text-gray-500 mt-4">
-                복습 간격은 SM-2 알고리즘을 기반으로 자동 조정됩니다
+                복습 간격은 학습 데이터를 기반으로 자동 조정됩니다
               </p>
             </div>
 

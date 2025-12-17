@@ -16,8 +16,8 @@ import { progressAPI } from "@/lib/api";
 
 // 비로그인용 학습 방법 (숫자 없이 설명만, 힌트 메시지 표시)
 const guestStudyTypes = [
-  { title: "플래시카드", description: "SM-2 알고리즘 기반 간격 반복 학습", type: "flashcard" as const, href: "/learn?exam=CSAT", guestHint: "로그인 후 확인" },
-  { title: "퀴즈 도전", description: "4지선다 문제 풀기", type: "quiz" as const, href: "/quiz?exam=CSAT", guestHint: "로그인 후 확인" },
+  { title: "플래시카드", description: "간격 반복으로 효율적 암기", type: "flashcard" as const, href: "/learn?exam=CSAT", guestHint: "로그인 후 확인" },
+  { title: "퀴즈 도전", description: "오답 기반 난이도 조절", type: "quiz" as const, href: "/quiz?exam=CSAT", guestHint: "로그인 후 확인" },
   { title: "복습하기", description: "잊어버린 단어 다시 학습", type: "review" as const, href: "/review?exam=CSAT", guestHint: "로그인 후 확인" },
   { title: "단어장", description: "전체 단어 목록 보기", type: "vocabulary" as const, href: "/words?exam=CSAT", count: PLATFORM_STATS.totalWords, countLabel: "총 단어" },
 ];

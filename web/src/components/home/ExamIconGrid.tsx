@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { PLATFORM_STATS } from "@/constants/stats";
+import { useToast } from "@/components/ui/Toast";
 
 interface ExamIcon {
   id: string;
@@ -67,7 +68,7 @@ const examIcons: ExamIcon[] = [
   },
 ];
 
-function ExamIconCard({ exam }: { exam: ExamIcon }) {
+function ExamIconCard({ exam, onComingSoonClick }: { exam: ExamIcon; onComingSoonClick?: (name: string) => void }) {
   const content = (
     <div className="flex flex-col items-center group">
       {/* 원형 아이콘 */}
@@ -78,7 +79,7 @@ function ExamIconCard({ exam }: { exam: ExamIcon }) {
           flex items-center justify-center
           transition-all duration-300
           group-hover:scale-110 group-hover:shadow-lg
-          ${!exam.isAvailable ? "opacity-50" : ""}
+          ${!exam.isAvailable ? "opacity-60 grayscale-[30%]" : ""}
         `}
       >
         <span className="text-xl md:text-2xl font-bold">{exam.name.charAt(0)}</span>
@@ -86,7 +87,7 @@ function ExamIconCard({ exam }: { exam: ExamIcon }) {
 
       {/* 시험명 */}
       <div className="mt-3 text-center">
-        <p className={`font-semibold ${exam.color} ${!exam.isAvailable ? "opacity-50" : ""}`}>
+        <p className={`font-semibold ${exam.color} ${!exam.isAvailable ? "opacity-60" : ""}`}>
           {exam.name}
         </p>
         <p className="text-xs text-slate-500 mt-0.5">{exam.nameKo}</p>
@@ -99,8 +100,8 @@ function ExamIconCard({ exam }: { exam: ExamIcon }) {
             {exam.wordCount.toLocaleString()}단어
           </span>
         ) : (
-          <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-500 rounded-full">
-            준비중
+          <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full flex items-center gap-1">
+            <span>🛠️</span> 출시 예정
           </span>
         )}
       </div>
@@ -116,13 +117,25 @@ function ExamIconCard({ exam }: { exam: ExamIcon }) {
   }
 
   return (
-    <div className="block p-4 rounded-2xl cursor-not-allowed">
+    <button
+      onClick={() => onComingSoonClick?.(exam.nameKo)}
+      className="block p-4 rounded-2xl hover:bg-white/50 transition-colors cursor-pointer"
+    >
       {content}
-    </div>
+    </button>
   );
 }
 
 export default function ExamIconGrid() {
+  const { info } = useToast();
+
+  const handleComingSoonClick = (examName: string) => {
+    info(
+      `${examName} 단어장 출시 예정`,
+      "현재 준비 중입니다. 곧 만나보실 수 있어요!"
+    );
+  };
+
   return (
     <div className="text-center">
       {/* 섹션 헤더 */}
@@ -138,7 +151,11 @@ export default function ExamIconGrid() {
       {/* 아이콘 그리드 */}
       <div className="flex flex-wrap justify-center gap-2 md:gap-4 max-w-2xl mx-auto">
         {examIcons.map((exam) => (
-          <ExamIconCard key={exam.id} exam={exam} />
+          <ExamIconCard
+            key={exam.id}
+            exam={exam}
+            onComingSoonClick={handleComingSoonClick}
+          />
         ))}
       </div>
 
