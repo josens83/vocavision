@@ -86,7 +86,10 @@ export function Footer() {
             <div className="text-center md:text-left">
               <p>&copy; 2025 유니패스. All rights reserved.</p>
               <p className="mt-1">
-                사업자등록번호: 719-02-03518 | 대표: 김도헌
+                상호명: 유니패스 | 대표자명: 김도헌
+              </p>
+              <p className="mt-1">
+                사업자등록번호: 719-02-03518
               </p>
               <p className="mt-1">
                 주소: 경기도 화성시 동탄대로시범길 19, 1401동 701호
