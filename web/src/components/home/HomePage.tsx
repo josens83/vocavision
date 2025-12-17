@@ -179,7 +179,7 @@ export default function HomePage() {
               <div key={type.title} className="opacity-0 animate-fade-in" style={{ animationDelay: `${index * 0.1}s`, animationFillMode: "forwards" }}>
                 <StudyTypeCard
                   {...type}
-                  onAuthRequired={type.requiresAuth ? () => showAuthRequired({
+                  onAuthRequired={'requiresAuth' in type && type.requiresAuth ? () => showAuthRequired({
                     title: '복습 기능은 로그인이 필요해요',
                     message: '학습 기록을 기반으로 복습 추천을 받으려면 로그인해 주세요.',
                     returnTo: '/review',
