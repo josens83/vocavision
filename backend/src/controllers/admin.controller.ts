@@ -1738,3 +1738,331 @@ export const createAuditLog = async (
     console.error('Failed to create audit log:', error);
   }
 };
+
+// ============================================
+// Image Generation Management API
+// ============================================
+
+// In-memory job tracking for image generation batches
+const imageGenJobs: Map<string, {
+  id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  totalWords: number;
+  processedWords: number;
+  currentWord?: string;
+  successCount: number;
+  errorCount: number;
+  startedAt: string;
+  errors: Array<{ word: string; error: string }>;
+}> = new Map();
+
+/**
+ * Get image generation status by level
+ * GET /admin/image-generation/status
+ */
+export const getImageGenerationStatus = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const examType = (req.query.examType as string) || 'CSAT';
+
+    // Get words by level with image counts
+    const levels = ['L1', 'L2', 'L3'];
+    const levelStats = await Promise.all(
+      levels.map(async (level) => {
+        // Count total words for this level
+        const totalWords = await prisma.word.count({
+          where: {
+            examCategory: examType as any,
+            level,
+            status: { in: ['PUBLISHED', 'PENDING_REVIEW'] },
+          },
+        });
+
+        // Count words with at least one image
+        const withImages = await prisma.word.count({
+          where: {
+            examCategory: examType as any,
+            level,
+            status: { in: ['PUBLISHED', 'PENDING_REVIEW'] },
+            visuals: { some: { imageUrl: { not: null } } },
+          },
+        });
+
+        const withoutImages = totalWords - withImages;
+        const coverage = totalWords > 0 ? (withImages / totalWords) * 100 : 0;
+
+        return {
+          level,
+          totalWords,
+          withImages,
+          withoutImages,
+          coverage,
+        };
+      })
+    );
+
+    // Calculate totals
+    const totalWords = levelStats.reduce((sum, l) => sum + l.totalWords, 0);
+    const totalWithImages = levelStats.reduce((sum, l) => sum + l.withImages, 0);
+    const totalWithoutImages = levelStats.reduce((sum, l) => sum + l.withoutImages, 0);
+    const overallCoverage = totalWords > 0 ? (totalWithImages / totalWords) * 100 : 0;
+
+    res.json({
+      success: true,
+      data: {
+        examType,
+        levels: levelStats,
+        totalWords,
+        totalWithImages,
+        totalWithoutImages,
+        overallCoverage,
+      },
+    });
+  } catch (error) {
+    logger.error('[Admin/ImageGen] Status error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Start batch image generation
+ * POST /admin/image-generation/batch
+ */
+export const startImageBatchGeneration = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { examType = 'CSAT', level, limit = 100 } = req.body;
+
+    if (!level || !['L1', 'L2', 'L3'].includes(level)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid level (L1, L2, L3) is required',
+      });
+    }
+
+    const batchLimit = Math.min(Math.max(1, limit), 1100);
+
+    // Find words that need images
+    const wordsToProcess = await prisma.word.findMany({
+      where: {
+        examCategory: examType as any,
+        level,
+        status: { in: ['PUBLISHED', 'PENDING_REVIEW'] },
+        aiGeneratedAt: { not: null },
+        // Exclude words that already have all 3 image types
+        NOT: {
+          AND: [
+            { visuals: { some: { type: 'CONCEPT' } } },
+            { visuals: { some: { type: 'MNEMONIC' } } },
+            { visuals: { some: { type: 'RHYME' } } },
+          ],
+        },
+      },
+      select: {
+        id: true,
+        word: true,
+        definition: true,
+        definitionKo: true,
+        visuals: { select: { type: true } },
+        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+        rhymingWords: true,
+      },
+      orderBy: { frequency: 'desc' },
+      take: batchLimit,
+    });
+
+    if (wordsToProcess.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          jobId: null,
+          message: 'No words need image generation for this level',
+        },
+      });
+    }
+
+    // Create job ID
+    const jobId = `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Initialize job tracking
+    imageGenJobs.set(jobId, {
+      id: jobId,
+      status: 'pending',
+      totalWords: wordsToProcess.length,
+      processedWords: 0,
+      successCount: 0,
+      errorCount: 0,
+      startedAt: new Date().toISOString(),
+      errors: [],
+    });
+
+    // Start processing in background
+    processImageBatch(jobId, wordsToProcess);
+
+    logger.info(`[Admin/ImageGen] Started batch job ${jobId} for ${wordsToProcess.length} words`);
+
+    res.json({
+      success: true,
+      data: {
+        jobId,
+        message: `Started image generation for ${wordsToProcess.length} words`,
+        totalWords: wordsToProcess.length,
+      },
+    });
+  } catch (error) {
+    logger.error('[Admin/ImageGen] Batch start error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get image generation job status
+ * GET /admin/image-generation/job/:jobId
+ */
+export const getImageGenerationJobStatus = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { jobId } = req.params;
+
+    const job = imageGenJobs.get(jobId);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        error: 'Job not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: job,
+    });
+  } catch (error) {
+    logger.error('[Admin/ImageGen] Job status error:', error);
+    next(error);
+  }
+};
+
+// Background process for image batch generation
+async function processImageBatch(
+  jobId: string,
+  words: Array<{
+    id: string;
+    word: string;
+    definition: string | null;
+    definitionKo: string | null;
+    visuals: Array<{ type: string }>;
+    mnemonics: Array<{ content: string; koreanHint: string | null }>;
+    rhymingWords: any;
+  }>
+) {
+  const job = imageGenJobs.get(jobId);
+  if (!job) return;
+
+  job.status = 'processing';
+
+  const visualTypes: VisualType[] = ['CONCEPT', 'MNEMONIC', 'RHYME'];
+
+  for (const word of words) {
+    // Check if job was cancelled (status changed externally)
+    if (job.status !== 'processing') break;
+
+    job.currentWord = word.word;
+    const existingTypes = new Set(word.visuals.map(v => v.type));
+
+    for (const visualType of visualTypes) {
+      // Skip if already has this type
+      if (existingTypes.has(visualType)) continue;
+
+      try {
+        let prompt: string;
+        let captionKo: string;
+        let captionEn: string;
+
+        if (visualType === 'CONCEPT') {
+          prompt = generateConceptPrompt(word.definition || '', word.word);
+          captionKo = word.definitionKo || word.definition || '';
+          captionEn = word.definition || '';
+        } else if (visualType === 'MNEMONIC') {
+          const mnemonic = word.mnemonics?.[0];
+          if (mnemonic?.content) {
+            const scene = await extractMnemonicScene(
+              word.word,
+              word.definition || '',
+              mnemonic.content,
+              mnemonic.koreanHint || ''
+            );
+            prompt = scene.prompt;
+            captionKo = scene.captionKo;
+            captionEn = scene.captionEn;
+          } else {
+            prompt = generateMnemonicPrompt(word.word, word.word);
+            captionKo = word.definitionKo || '';
+            captionEn = `Memory tip for ${word.word}`;
+          }
+        } else {
+          // RHYME
+          const rhymingWords = (word.rhymingWords || []) as string[];
+          if (rhymingWords.length > 0) {
+            const rhymeScene = await generateRhymeScene(
+              word.word,
+              word.definition || '',
+              rhymingWords
+            );
+            prompt = rhymeScene.prompt;
+            captionKo = rhymeScene.captionKo;
+            captionEn = rhymeScene.captionEn;
+          } else {
+            prompt = generateRhymePrompt(word.definition || '', word.word);
+            captionKo = `${word.word} 발음 연습`;
+            captionEn = `Pronunciation practice for ${word.word}`;
+          }
+        }
+
+        // Generate and upload image
+        const result = await generateAndUploadImage(prompt, visualType, word.word);
+
+        if (result) {
+          await prisma.wordVisual.create({
+            data: {
+              wordId: word.id,
+              type: visualType,
+              imageUrl: result.imageUrl,
+              promptEn: prompt,
+              captionKo,
+              captionEn,
+            },
+          });
+          job.successCount++;
+        }
+
+        // Delay between images to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        job.errors.push({ word: word.word, error: `${visualType}: ${errorMsg}` });
+        job.errorCount++;
+        logger.error(`[Admin/ImageGen] Error generating ${visualType} for "${word.word}":`, error);
+
+        // Continue despite errors
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+    }
+
+    job.processedWords++;
+  }
+
+  job.status = 'completed';
+  job.currentWord = undefined;
+  logger.info(`[Admin/ImageGen] Job ${jobId} completed. Success: ${job.successCount}, Errors: ${job.errorCount}`);
+}
