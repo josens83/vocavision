@@ -348,6 +348,8 @@ export interface StudyTypeCardProps {
   href: string;
   count?: number;
   countLabel?: string;
+  /** 비로그인 시 표시할 힌트 메시지 */
+  guestHint?: string;
 }
 
 const studyTypeStyles: Record<StudyType, { text: string; bgLight: string; icon: ReactNode }> = {
@@ -373,7 +375,7 @@ const studyTypeStyles: Record<StudyType, { text: string; bgLight: string; icon: 
   },
 };
 
-export function StudyTypeCard({ title, description, type, href, count, countLabel = "항목" }: StudyTypeCardProps) {
+export function StudyTypeCard({ title, description, type, href, count, countLabel = "항목", guestHint }: StudyTypeCardProps) {
   const styles = studyTypeStyles[type];
 
   return (
@@ -386,12 +388,16 @@ export function StudyTypeCard({ title, description, type, href, count, countLabe
           <h4 className="font-semibold text-slate-900 mb-1 group-hover:text-slate-600 transition-colors">{title}</h4>
           <p className="text-sm text-slate-500 truncate">{description}</p>
         </div>
-        {count !== undefined && (
+        {count !== undefined ? (
           <div className="text-right">
-            <div className={`text-2xl font-display font-bold ${styles.text}`}>{count}</div>
+            <div className={`text-2xl font-display font-bold ${styles.text}`}>{count.toLocaleString()}</div>
             <div className="text-xs text-slate-400">{countLabel}</div>
           </div>
-        )}
+        ) : guestHint ? (
+          <div className="text-right">
+            <div className="text-sm text-slate-400">{guestHint}</div>
+          </div>
+        ) : null}
         <svg className="w-5 h-5 text-slate-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
