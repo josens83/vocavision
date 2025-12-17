@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Check, X, Sparkles, Crown, Zap } from "lucide-react";
+import { useAuthStore } from "@/lib/store";
 
 interface PlanFeature {
   name: string;
@@ -25,9 +27,19 @@ const features: PlanFeature[] = [
 ];
 
 export default function PricingPage() {
+  const router = useRouter();
+  const { user } = useAuthStore();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
     "monthly"
   );
+
+  const handlePlanSelect = (plan: "basic" | "premium") => {
+    if (!user) {
+      router.push(`/auth/login?redirect=/checkout?plan=${plan}`);
+    } else {
+      router.push(`/checkout?plan=${plan}`);
+    }
+  };
 
   const prices = {
     monthly: {
@@ -172,7 +184,10 @@ export default function PricingPage() {
               수능 영어 완벽 대비를 원하는 분께 추천
             </p>
 
-            <button className="block w-full py-3 px-4 text-center rounded-xl font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+            <button
+              onClick={() => handlePlanSelect("basic")}
+              className="block w-full py-3 px-4 text-center rounded-xl font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+            >
               베이직 시작하기
             </button>
 
@@ -234,7 +249,10 @@ export default function PricingPage() {
               수능 + TEPS 완벽 대비를 원하는 분께 추천
             </p>
 
-            <button className="block w-full py-3 px-4 text-center rounded-xl font-medium bg-white text-indigo-700 hover:bg-gray-100 transition-colors">
+            <button
+              onClick={() => handlePlanSelect("premium")}
+              className="block w-full py-3 px-4 text-center rounded-xl font-medium bg-white text-indigo-700 hover:bg-gray-100 transition-colors"
+            >
               프리미엄 시작하기
             </button>
 
