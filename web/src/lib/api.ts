@@ -637,5 +637,32 @@ export const chatAPI = {
   },
 };
 
+// Admin Image Generation API
+export const imageGenerationAPI = {
+  // Get image generation status for all levels
+  getStatus: async (examType = 'CSAT') => {
+    const response = await api.get('/admin/image-generation/status', {
+      params: { examType },
+    });
+    return response.data;
+  },
+
+  // Start batch image generation
+  startBatch: async (data: {
+    examType: string;
+    level: string;
+    limit: number;
+  }) => {
+    const response = await api.post('/admin/image-generation/batch', data);
+    return response.data;
+  },
+
+  // Get job status
+  getJobStatus: async (jobId: string) => {
+    const response = await api.get(`/admin/image-generation/job/${jobId}`);
+    return response.data;
+  },
+};
+
 // Re-export mock mode utilities
 export { isMockMode, setMockMode } from './mock';
