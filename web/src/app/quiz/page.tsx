@@ -66,12 +66,12 @@ function QuizPageContent() {
     if (step === 'quiz') {
       setStep('mode-select');
     } else {
-      router.push('/dashboard');
+      router.push(user ? '/dashboard' : '/');
     }
   };
 
   const handleHome = () => {
-    router.push('/dashboard');
+    router.push(user ? '/dashboard' : '/');
   };
 
   return (

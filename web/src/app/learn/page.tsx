@@ -292,7 +292,7 @@ function LearnPageContent() {
           <div className="flex items-center justify-between">
             {/* Back Button */}
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push(user ? '/dashboard' : '/')}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
