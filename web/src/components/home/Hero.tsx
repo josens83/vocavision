@@ -34,9 +34,9 @@ const Icons = {
   ),
 };
 
-// Use constants from stats.ts
+// Hero 섹션 통계 (무료 플랜 기준)
 const stats = [
-  { label: "수능 단어", value: PLATFORM_STATS.totalWords.toLocaleString(), suffix: "개" },
+  { label: "수능 필수", value: "1,000", suffix: "개+" },
   { label: "난이도 레벨", value: "3", suffix: "단계" },
   { label: "AI 이미지", value: "3", suffix: "종류/단어" },
 ];
@@ -144,7 +144,7 @@ export default function Hero() {
               <div className="relative overflow-hidden card p-6 bg-gradient-to-br from-brand-primary to-brand-secondary text-white">
                 <div className="relative z-10">
                   <h4 className="text-lg font-semibold mb-2">60초 안에 체험해보세요!</h4>
-                  <p className="text-white/80 mb-4">로그인 없이 {PLATFORM_STATS.totalWords.toLocaleString()}개 단어로 학습 체험</p>
+                  <p className="text-white/80 mb-4">수능 필수 단어 1,000개 무료 체험</p>
                   <Link href="/learn?exam=CSAT" className="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors">
                     <span>바로 체험하기</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

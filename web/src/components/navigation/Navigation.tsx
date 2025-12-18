@@ -28,7 +28,39 @@ export interface NavSubItem {
   requiresAuth?: boolean;
 }
 
-export const navigationItems: NavItem[] = [
+// Guest용 네비게이션 (시험 카테고리 중심)
+export const guestNavigationItems: NavItem[] = [
+  {
+    label: "수능",
+    color: "text-blue-600",
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
+    children: [
+      { label: "L1 기초", href: "/learn?exam=CSAT&level=L1", count: PLATFORM_STATS.levels.L1, description: "수능 기본 필수 어휘" },
+      { label: "L2 중급", href: "/learn?exam=CSAT&level=L2", count: PLATFORM_STATS.levels.L2, description: "실력 향상 어휘" },
+      { label: "L3 고급", href: "/learn?exam=CSAT&level=L3", count: PLATFORM_STATS.levels.L3, description: "1등급 목표 어휘" },
+      { label: "전체 단어", href: "/words?exam=CSAT", count: PLATFORM_STATS.totalWords, description: "수능 어휘 전체 보기" },
+    ],
+  },
+  {
+    label: "TEPS",
+    href: "#",
+    color: "text-slate-400",
+  },
+  {
+    label: "TOEFL",
+    href: "#",
+    color: "text-slate-400",
+  },
+  {
+    label: "요금제",
+    href: "/pricing",
+    color: "text-purple-600",
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+  },
+];
+
+// 로그인 사용자용 네비게이션 (학습 기능 중심)
+export const authNavigationItems: NavItem[] = [
   {
     label: "수능 학습",
     color: "text-blue-600",
@@ -61,14 +93,12 @@ export const navigationItems: NavItem[] = [
     href: "/review?exam=CSAT",
     color: "text-study-review-dark",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>,
-    requiresAuth: true,
   },
   {
     label: "통계",
     href: "/stats",
     color: "text-level-advanced",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
-    requiresAuth: true,
   },
   {
     label: "요금제",
@@ -77,6 +107,9 @@ export const navigationItems: NavItem[] = [
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   },
 ];
+
+// 기본 export (하위 호환성)
+export const navigationItems = authNavigationItems;
 
 interface NavDropdownProps {
   item: NavItem;
@@ -359,6 +392,13 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired }:
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   </button>
+                ) : item.href === "#" ? (
+                  // "준비중" 항목 (모바일)
+                  <div className="flex items-center gap-3 p-3 rounded-lg text-slate-400">
+                    {item.icon}
+                    <span className="font-medium">{item.label}</span>
+                    <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full ml-auto">준비중</span>
+                  </div>
                 ) : (
                   <Link href={item.href || "#"} onClick={onClose} className={`flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors ${item.color || "text-slate-700"}`}>
                     {item.icon}<span className="font-medium">{item.label}</span>
@@ -453,9 +493,19 @@ export default function Navigation() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1">
-            {navigationItems.map((item) => (
+            {(isAuthenticated ? authNavigationItems : guestNavigationItems).map((item) => (
               item.children ? (
                 <NavDropdown key={item.label} item={item} isOpen={openDropdown === item.label} onMouseEnter={() => setOpenDropdown(item.label)} onMouseLeave={() => setOpenDropdown(null)} />
+              ) : item.href === "#" ? (
+                // "준비중" 항목 (TEPS, TOEFL 등)
+                <button
+                  key={item.label}
+                  className="nav-link flex items-center gap-1.5 text-slate-400 cursor-default"
+                  onClick={() => {}}
+                >
+                  <span>{item.label}</span>
+                  <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">준비중</span>
+                </button>
               ) : (
                 <NavLink
                   key={item.label}
@@ -628,7 +678,7 @@ export default function Navigation() {
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
-        items={navigationItems}
+        items={isAuthenticated ? authNavigationItems : guestNavigationItems}
         isAuthenticated={isAuthenticated}
         onAuthRequired={handleAuthRequired}
       />

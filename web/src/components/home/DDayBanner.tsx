@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAuthStore } from "@/lib/store";
 
 // 2026 수능일: 2026년 11월 12일 (예정)
 const CSAT_DATE = new Date("2026-11-12T00:00:00");
@@ -32,6 +33,8 @@ function calculateTimeLeft(): TimeLeft {
 export default function DDayBanner() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [mounted, setMounted] = useState(false);
+  const { user } = useAuthStore();
+  const isLoggedIn = !!user;
 
   useEffect(() => {
     setMounted(true);
@@ -109,20 +112,39 @@ export default function DDayBanner() {
             </div>
           </div>
 
-          {/* 오른쪽: CTA */}
+          {/* 오른쪽: CTA - Guest/로그인 분기 */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href="/learn?exam=CSAT"
-              className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-semibold rounded-xl transition-all hover:scale-105"
-            >
-              지금 학습 시작
-            </Link>
-            <Link
-              href="/quiz?exam=CSAT"
-              className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors border border-white/20"
-            >
-              퀴즈 도전
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/learn?exam=CSAT"
+                  className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-semibold rounded-xl transition-all hover:scale-105"
+                >
+                  지금 학습 시작
+                </Link>
+                <Link
+                  href="/quiz?exam=CSAT"
+                  className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors border border-white/20"
+                >
+                  퀴즈 도전
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/learn?exam=CSAT&level=L1"
+                  className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-semibold rounded-xl transition-all hover:scale-105"
+                >
+                  무료로 시작하기
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors border border-white/20"
+                >
+                  요금제 보기
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
