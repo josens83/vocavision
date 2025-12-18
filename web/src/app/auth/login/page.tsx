@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '@/lib/api';
@@ -10,7 +10,7 @@ import { FormInput, FormError, SubmitButton } from '@/components/ui/FormInput';
 import { getKakaoLoginUrl } from '@/lib/auth/kakao';
 import { getGoogleLoginUrl } from '@/lib/auth/google';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -246,5 +246,32 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// 로딩 컴포넌트
+function LoginLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-slate-200 rounded w-1/2 mx-auto"></div>
+            <div className="h-4 bg-slate-200 rounded w-3/4 mx-auto"></div>
+            <div className="h-12 bg-slate-200 rounded"></div>
+            <div className="h-12 bg-slate-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Suspense boundary로 감싸서 export
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginContent />
+    </Suspense>
   );
 }
