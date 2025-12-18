@@ -156,9 +156,9 @@ export default function AdminImageGenerationPage() {
       if (response.data.success && response.data.data) {
         setCurrentJob(response.data.data);
 
-        // Continue polling if not finished
+        // Continue polling if not finished (5초 간격)
         if (response.data.data.status === 'pending' || response.data.data.status === 'processing') {
-          pollingRef.current = setTimeout(() => pollJobStatus(jobId), 3000);
+          pollingRef.current = setTimeout(() => pollJobStatus(jobId), 5000);
         } else {
           // Job finished
           setIsGenerating(false);
@@ -167,11 +167,18 @@ export default function AdminImageGenerationPage() {
           loadStatus();
         }
       }
-    } catch (err) {
-      console.error('Polling error:', err);
+    } catch (err: any) {
+      // 429 Too Many Requests - wait longer before retry
+      const is429 = err?.response?.status === 429;
+      const retryDelay = is429 ? 10000 : 5000; // 429면 10초, 그 외 5초
+
+      if (!is429) {
+        console.error('Polling error:', err);
+      }
+
       // Retry on error
       if (shouldPollRef.current) {
-        pollingRef.current = setTimeout(() => pollJobStatus(jobId), 5000);
+        pollingRef.current = setTimeout(() => pollJobStatus(jobId), retryDelay);
       }
     }
   }, []);
