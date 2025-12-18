@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -12,7 +12,11 @@ import { getGoogleLoginUrl } from '@/lib/auth/google';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
+
+  // next 파라미터: 로그인 후 이동할 페이지
+  const nextUrl = searchParams.get('next') || '/dashboard';
 
   const [formData, setFormData] = useState({
     email: '',
@@ -79,7 +83,7 @@ export default function LoginPage() {
     try {
       const response = await authAPI.login(formData);
       setAuth(response.user, response.token);
-      router.push('/');
+      router.push(nextUrl);
     } catch (err: any) {
       setServerError(err.response?.data?.error || '이메일 또는 비밀번호가 올바르지 않습니다');
     } finally {
@@ -89,11 +93,19 @@ export default function LoginPage() {
 
   const handleKakaoLogin = () => {
     setKakaoLoading(true);
+    // OAuth 리다이렉트 전에 돌아올 URL 저장
+    if (nextUrl !== '/dashboard') {
+      sessionStorage.setItem('loginRedirect', nextUrl);
+    }
     window.location.href = getKakaoLoginUrl();
   };
 
   const handleGoogleLogin = () => {
     setGoogleLoading(true);
+    // OAuth 리다이렉트 전에 돌아올 URL 저장
+    if (nextUrl !== '/dashboard') {
+      sessionStorage.setItem('loginRedirect', nextUrl);
+    }
     window.location.href = getGoogleLoginUrl();
   };
 
