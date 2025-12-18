@@ -1746,7 +1746,7 @@ export const createAuditLog = async (
 // In-memory job tracking for image generation batches
 const imageGenJobs: Map<string, {
   id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
   totalWords: number;
   processedWords: number;
   currentWord?: string;
@@ -1952,6 +1952,57 @@ export const getImageGenerationJobStatus = async (
   }
 };
 
+/**
+ * Stop image generation job
+ * POST /admin/image-generation/stop/:jobId
+ */
+export const stopImageGeneration = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { jobId } = req.params;
+
+    const job = imageGenJobs.get(jobId);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        error: 'Job not found',
+      });
+    }
+
+    if (job.status !== 'processing' && job.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        error: `Job is already ${job.status}`,
+      });
+    }
+
+    // Set status to cancelled - the processing loop will check this and stop
+    job.status = 'cancelled';
+    job.currentWord = undefined;
+
+    logger.info(`[Admin/ImageGen] Job ${jobId} cancelled. Processed: ${job.processedWords}/${job.totalWords}`);
+
+    res.json({
+      success: true,
+      data: {
+        jobId,
+        message: 'Job cancelled successfully',
+        processedWords: job.processedWords,
+        totalWords: job.totalWords,
+        successCount: job.successCount,
+        errorCount: job.errorCount,
+      },
+    });
+  } catch (error) {
+    logger.error('[Admin/ImageGen] Stop job error:', error);
+    next(error);
+  }
+};
+
 // Background process for image batch generation
 async function processImageBatch(
   jobId: string,
@@ -2046,7 +2097,7 @@ async function processImageBatch(
         }
 
         // Delay between images to avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 5000));
 
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
@@ -2055,7 +2106,7 @@ async function processImageBatch(
         logger.error(`[Admin/ImageGen] Error generating ${visualType} for "${word.word}":`, error);
 
         // Continue despite errors
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 8000));
       }
     }
 

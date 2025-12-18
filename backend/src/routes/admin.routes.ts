@@ -35,6 +35,7 @@ import {
   getImageGenerationStatus,
   startImageBatchGeneration,
   getImageGenerationJobStatus,
+  stopImageGeneration,
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -64,6 +65,7 @@ const authOrSecretKey = async (req: Request, res: Response, next: NextFunction) 
 router.get('/image-generation/status', authOrSecretKey, getImageGenerationStatus);
 router.post('/image-generation/batch', authOrSecretKey, startImageBatchGeneration);
 router.get('/image-generation/job/:jobId', authOrSecretKey, getImageGenerationJobStatus);
+router.post('/image-generation/stop/:jobId', authOrSecretKey, stopImageGeneration);
 
 /**
  * Admin authentication middleware

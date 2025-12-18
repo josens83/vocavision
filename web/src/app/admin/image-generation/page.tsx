@@ -37,7 +37,7 @@ interface StatusResponse {
 
 interface BatchJobStatus {
   id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
   totalWords: number;
   processedWords: number;
   currentWord?: string;
@@ -176,11 +176,23 @@ export default function AdminImageGenerationPage() {
     }
   }, []);
 
-  const stopPolling = () => {
+  const stopPolling = async () => {
     shouldPollRef.current = false;
     if (pollingRef.current) {
       clearTimeout(pollingRef.current);
     }
+
+    // Call backend to stop the job
+    if (currentJob?.id) {
+      try {
+        await api.post(`/admin/image-generation/stop/${currentJob.id}`);
+        // Update local job status
+        setCurrentJob((prev) => prev ? { ...prev, status: 'cancelled' } : null);
+      } catch (err) {
+        console.error('Failed to stop job:', err);
+      }
+    }
+
     setIsGenerating(false);
   };
 
@@ -462,6 +474,9 @@ export default function AdminImageGenerationPage() {
               {currentJob?.status === 'failed' && (
                 <Badge color="red">실패</Badge>
               )}
+              {currentJob?.status === 'cancelled' && (
+                <Badge color="yellow">중지됨</Badge>
+              )}
             </div>
 
             {currentJob ? (
@@ -535,6 +550,14 @@ export default function AdminImageGenerationPage() {
                   <Alert type="success" title="배치 생성 완료!">
                     {currentJob.successCount}개 단어의 이미지 생성이 완료되었습니다.
                     {currentJob.errorCount > 0 && ` (${currentJob.errorCount}개 실패)`}
+                  </Alert>
+                )}
+
+                {/* Cancelled Message */}
+                {currentJob.status === 'cancelled' && (
+                  <Alert type="info" title="배치 생성 중지됨">
+                    {currentJob.processedWords}/{currentJob.totalWords}개 처리됨.
+                    성공: {currentJob.successCount}개, 실패: {currentJob.errorCount}개
                   </Alert>
                 )}
               </div>

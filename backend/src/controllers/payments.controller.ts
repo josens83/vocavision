@@ -49,7 +49,7 @@ async function callTossAPI(
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const data = await response.json();
+  const data = await response.json() as { message?: string };
 
   if (!response.ok) {
     logger.error('[Toss API] Error:', data);
@@ -184,7 +184,7 @@ export const confirmPayment = async (
       throw tossError;
     }
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('[Payments] Confirm error:', error);
     next(error);
   }
@@ -246,7 +246,7 @@ export const preparePayment = async (
       },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('[Payments] Prepare error:', error);
     next(error);
   }
@@ -275,7 +275,7 @@ export const getPaymentHistory = async (
       data: payments,
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('[Payments] History error:', error);
     next(error);
   }
@@ -324,7 +324,7 @@ export const recordPaymentFailure = async (
       message: 'Failure recorded',
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('[Payments] Record failure error:', error);
     next(error);
   }
@@ -370,7 +370,7 @@ export const issueBillingKey = async (
       },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('[Payments] Issue billing key error:', error);
     next(error);
   }
