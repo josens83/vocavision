@@ -62,7 +62,7 @@ async function confirmTossPayment(
     body: JSON.stringify(requestBody),
   });
 
-  const data = await response.json();
+  const data = await response.json() as any;
 
   if (!response.ok) {
     logger.error('[TossAPI] Error response:', {
@@ -75,6 +75,41 @@ async function confirmTossPayment(
   }
 
   logger.info(`[TossAPI] Success:`, { status: data.status, method: data.method });
+  return data;
+}
+
+/**
+ * 토스페이먼츠 API 호출 헬퍼 (빌링 등 기타 API용)
+ */
+async function callTossAPI(
+  endpoint: string,
+  method: 'GET' | 'POST' = 'POST',
+  body?: any
+): Promise<any> {
+  const secretKey = process.env.TOSS_SECRET_KEY;
+
+  if (!secretKey) {
+    throw new Error('TOSS_SECRET_KEY is not configured');
+  }
+
+  const authHeader = Buffer.from(`${secretKey}:`).toString('base64');
+
+  const response = await fetch(`${TOSS_API_BASE}${endpoint}`, {
+    method,
+    headers: {
+      'Authorization': `Basic ${authHeader}`,
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const data = await response.json() as any;
+
+  if (!response.ok) {
+    logger.error('[TossAPI] Error:', data);
+    throw new Error(data.message || 'Toss API error');
+  }
+
   return data;
 }
 
