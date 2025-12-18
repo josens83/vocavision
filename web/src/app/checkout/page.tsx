@@ -110,8 +110,11 @@ function CheckoutContent() {
       // 토스페이먼츠 결제창 호출
       const { requestPayment } = await import("@/lib/payments/toss");
 
+      // orderId 형식: vocavision_{userId}_{plan}_{billingCycle}_{timestamp}
+      const orderId = `vocavision_${user.id}_${selectedPlan}_${billingCycle}_${Date.now()}`;
+
       await requestPayment({
-        orderId: `order-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        orderId,
         orderName: `VocaVision ${plan.name} (${billingCycle === "monthly" ? "월간" : "연간"})`,
         amount: price,
         customerEmail: user.email || undefined,

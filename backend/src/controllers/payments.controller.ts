@@ -72,7 +72,6 @@ export const confirmPayment = async (
   next: NextFunction
 ) => {
   try {
-    const userId = req.userId;
     const { paymentKey, orderId, amount } = req.body;
 
     logger.info(`[Payments] Confirming payment: orderId=${orderId}, amount=${amount}`);
@@ -85,21 +84,39 @@ export const confirmPayment = async (
       });
     }
 
-    // 2. 기존 Payment 레코드 조회 (프론트엔드에서 먼저 생성했어야 함)
+    // 2. orderId에서 정보 파싱
+    // orderId 형식: vocavision_{userId}_{plan}_{billingCycle}_{timestamp}
+    const orderParts = orderId.split('_');
+    let userId: string | undefined;
+    let plan = 'basic';
+    let billingCycle = 'monthly';
+
+    if (orderParts[0] === 'vocavision' && orderParts.length >= 5) {
+      userId = orderParts[1];
+      plan = orderParts[2] || 'basic';
+      billingCycle = orderParts[3] || 'monthly';
+    } else {
+      // 이전 형식 orderId (order-xxx) 또는 인증된 사용자의 경우
+      userId = req.userId;
+    }
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User ID not found in orderId. Expected format: vocavision_{userId}_{plan}_{billingCycle}_{timestamp}',
+      });
+    }
+
+    // 3. 기존 Payment 레코드 조회 (프론트엔드에서 먼저 생성했어야 함)
     let payment = await prisma.payment.findUnique({
       where: { orderId },
     });
 
-    // Payment 레코드가 없으면 생성 (orderId에서 정보 파싱)
+    // Payment 레코드가 없으면 생성
     if (!payment) {
-      // orderId 형식: vocavision_{userId}_{plan}_{billingCycle}_{timestamp}
-      const orderParts = orderId.split('_');
-      const plan = orderParts[2] || 'basic';
-      const billingCycle = orderParts[3] || 'monthly';
-
       payment = await prisma.payment.create({
         data: {
-          userId: userId!,
+          userId,
           orderId,
           orderName: `VocaVision ${plan === 'premium' ? '프리미엄' : '베이직'} ${billingCycle === 'yearly' ? '연간' : '월간'} 구독`,
           amount,
