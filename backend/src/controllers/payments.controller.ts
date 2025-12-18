@@ -8,15 +8,15 @@ import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
 import logger from '../utils/logger';
 
-// 플랜별 가격 정보
+// 플랜별 가격 정보 (프론트엔드와 동일하게 설정)
 const PLAN_PRICES: Record<string, Record<string, number>> = {
   basic: {
     monthly: 4900,
-    yearly: 49000,
+    yearly: 47000,  // 프론트엔드와 일치
   },
   premium: {
     monthly: 9900,
-    yearly: 99000,
+    yearly: 95000,  // 프론트엔드와 일치
   },
 };
 
@@ -24,12 +24,13 @@ const PLAN_PRICES: Record<string, Record<string, number>> = {
 const TOSS_API_BASE = 'https://api.tosspayments.com/v1';
 
 /**
- * 토스페이먼츠 API 호출 헬퍼
+ * 토스페이먼츠 결제 승인 API 직접 호출
+ * 필수 파라미터만 전송 (paymentKey, orderId, amount)
  */
-async function callTossAPI(
-  endpoint: string,
-  method: 'GET' | 'POST' = 'POST',
-  body?: any
+async function confirmTossPayment(
+  paymentKey: string,
+  orderId: string,
+  amount: number
 ): Promise<any> {
   const secretKey = process.env.TOSS_SECRET_KEY;
 
@@ -40,22 +41,40 @@ async function callTossAPI(
   // Basic Auth: secretKey:
   const authHeader = Buffer.from(`${secretKey}:`).toString('base64');
 
-  const response = await fetch(`${TOSS_API_BASE}${endpoint}`, {
-    method,
+  // 요청 데이터 - 필수 파라미터만!
+  const requestBody = {
+    paymentKey,
+    orderId,
+    amount,
+  };
+
+  logger.info(`[TossAPI] Confirm request:`, {
+    url: `${TOSS_API_BASE}/payments/confirm`,
+    body: { ...requestBody, paymentKey: `${paymentKey.substring(0, 10)}...` },
+  });
+
+  const response = await fetch(`${TOSS_API_BASE}/payments/confirm`, {
+    method: 'POST',
     headers: {
       'Authorization': `Basic ${authHeader}`,
       'Content-Type': 'application/json',
     },
-    body: body ? JSON.stringify(body) : undefined,
+    body: JSON.stringify(requestBody),
   });
 
-  const data = await response.json() as { message?: string };
+  const data = await response.json();
 
   if (!response.ok) {
-    logger.error('[Toss API] Error:', data);
-    throw new Error(data.message || 'Toss API error');
+    logger.error('[TossAPI] Error response:', {
+      status: response.status,
+      data,
+    });
+    const error = new Error(data.message || 'Toss API error') as any;
+    error.response = { status: response.status, data };
+    throw error;
   }
 
+  logger.info(`[TossAPI] Success:`, { status: data.status, method: data.method });
   return data;
 }
 
@@ -140,21 +159,10 @@ export const confirmPayment = async (
     // 4. 토스페이먼츠 결제 승인 API 호출
     try {
       // amount를 반드시 숫자로 변환 (문자열로 전송 시 에러 발생)
-      const numericAmount = typeof amount === 'string' ? parseInt(amount, 10) : amount;
+      const numericAmount = typeof amount === 'string' ? parseInt(amount, 10) : Number(amount);
 
-      // 디버그 로깅
-      logger.info(`[Payments] Calling Toss confirm API with:`, {
-        paymentKey: paymentKey ? `${paymentKey.substring(0, 10)}...` : 'missing',
-        orderId,
-        amount: numericAmount,
-        amountType: typeof numericAmount,
-      });
-
-      const tossResponse = await callTossAPI('/payments/confirm', 'POST', {
-        paymentKey,
-        orderId,
-        amount: numericAmount,
-      });
+      // 직접 호출 - 필수 파라미터만 전송
+      const tossResponse = await confirmTossPayment(paymentKey, orderId, numericAmount);
 
       logger.info(`[Payments] Toss confirm success:`, tossResponse.status);
 
@@ -201,20 +209,33 @@ export const confirmPayment = async (
 
     } catch (tossError: any) {
       // 결제 승인 실패
+      logger.error('[Payments] Toss API error:', {
+        message: tossError.message,
+        response: tossError.response?.data,
+      });
+
       await prisma.payment.update({
         where: { id: payment.id },
         data: {
           status: 'FAILED',
-          failReason: tossError.message,
+          failReason: tossError.response?.data?.message || tossError.message,
         },
       });
 
-      throw tossError;
+      // 에러 응답 반환
+      return res.status(400).json({
+        success: false,
+        error: tossError.response?.data?.message || tossError.message,
+        code: tossError.response?.data?.code,
+      });
     }
 
   } catch (error: any) {
     logger.error('[Payments] Confirm error:', error);
-    next(error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+    });
   }
 };
 
