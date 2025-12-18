@@ -127,18 +127,36 @@ export async function requestBillingAuth(customerKey: string): Promise<void> {
 
 /**
  * 결제 성공 처리
- * 서버에서 결제 승인을 진행해야 합니다.
+ * 백엔드 서버에서 결제 승인을 진행합니다.
  */
 export async function confirmPayment(
   paymentKey: string,
   orderId: string,
   amount: number
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; data?: any }> {
   try {
-    const response = await fetch("/api/payments/confirm", {
+    // 백엔드 API URL
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+    // localStorage에서 accessToken 가져오기
+    let accessToken = "";
+    if (typeof window !== "undefined") {
+      const authStorage = localStorage.getItem("auth-storage");
+      if (authStorage) {
+        try {
+          const authData = JSON.parse(authStorage);
+          accessToken = authData?.state?.accessToken || "";
+        } catch {
+          // 파싱 실패 시 무시
+        }
+      }
+    }
+
+    const response = await fetch(`${API_URL}/payments/confirm`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
       },
       body: JSON.stringify({
         paymentKey,
@@ -147,14 +165,52 @@ export async function confirmPayment(
       }),
     });
 
+    const result = await response.json();
+
     if (!response.ok) {
-      const error = await response.json();
-      return { success: false, error: error.message || "결제 승인 실패" };
+      return { success: false, error: result.error || result.message || "결제 승인 실패" };
     }
 
-    return { success: true };
+    return { success: true, data: result.data };
   } catch (error) {
     console.error("결제 승인 오류:", error);
     return { success: false, error: "결제 승인 중 오류가 발생했습니다." };
+  }
+}
+
+/**
+ * 결제 실패 기록
+ */
+export async function recordPaymentFail(
+  orderId: string,
+  code: string,
+  message: string
+): Promise<void> {
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+    let accessToken = "";
+    if (typeof window !== "undefined") {
+      const authStorage = localStorage.getItem("auth-storage");
+      if (authStorage) {
+        try {
+          const authData = JSON.parse(authStorage);
+          accessToken = authData?.state?.accessToken || "";
+        } catch {
+          // 파싱 실패 시 무시
+        }
+      }
+    }
+
+    await fetch(`${API_URL}/payments/fail`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+      },
+      body: JSON.stringify({ orderId, code, message }),
+    });
+  } catch (error) {
+    console.error("결제 실패 기록 오류:", error);
   }
 }

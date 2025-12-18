@@ -930,3 +930,54 @@ model ContentAuditLog {
   @@index([performedAt])
   @@index([performedById])
 }
+
+// ============================================
+// Payments (토스페이먼츠)
+// ============================================
+
+model Payment {
+  id            String        @id @default(uuid())
+  userId        String
+
+  // 주문 정보
+  orderId       String        @unique  // 고유 주문 ID
+  orderName     String                 // 주문명 (예: "VocaVision 베이직 월간 구독")
+
+  // 금액
+  amount        Int                    // 결제 금액 (원)
+
+  // 토스페이먼츠 정보
+  paymentKey    String?       @unique  // 토스페이먼츠 결제키
+  method        String?                // 결제 수단 (카드, 간편결제 등)
+
+  // 상태
+  status        PaymentStatus @default(PENDING)
+
+  // 플랜 정보
+  plan          String                 // 'basic', 'premium'
+  billingCycle  String                 // 'monthly', 'yearly'
+
+  // 빌링키 (정기결제용)
+  billingKey    String?                // 암호화된 빌링키
+  customerKey   String?                // 고객 식별키
+
+  // 에러 정보
+  failReason    String?
+
+  // 타임스탬프
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum PaymentStatus {
+  PENDING       // 결제 대기
+  COMPLETED     // 결제 완료
+  FAILED        // 결제 실패
+  CANCELLED     // 결제 취소
+  REFUNDED      // 환불됨
+}
