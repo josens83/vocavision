@@ -35,7 +35,10 @@ function KakaoCallbackContent() {
     loginWithKakao(code)
       .then((data) => {
         setAuth(data.user, data.token);
-        router.push('/');
+        // 로그인 전 저장된 redirect URL 확인, 없으면 대시보드로
+        const savedRedirect = sessionStorage.getItem('loginRedirect');
+        sessionStorage.removeItem('loginRedirect');
+        router.push(savedRedirect || '/dashboard');
       })
       .catch((err) => {
         console.error('Kakao login error:', err);
