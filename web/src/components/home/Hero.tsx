@@ -95,12 +95,13 @@ export default function Hero() {
                 </>
               ) : (
                 <>
-                  <Link href="/learn?exam=CSAT" className="btn btn-primary group">
+                  <Link href="/learn?exam=CSAT&demo=1" className="btn btn-primary group">
                     <Icons.Play />
-                    <span>무료로 체험하기</span>
+                    <span>60초 맛보기</span>
                   </Link>
                   <Link href="/auth/login" className="btn btn-outline text-brand-primary border-brand-primary hover:bg-brand-primary/5">
-                    <span>로그인</span>
+                    <Icons.Sparkles />
+                    <span>무료 회원가입</span>
                   </Link>
                 </>
               )}
@@ -144,9 +145,9 @@ export default function Hero() {
               <div className="relative overflow-hidden card p-6 bg-gradient-to-br from-brand-primary to-brand-secondary text-white">
                 <div className="relative z-10">
                   <h4 className="text-lg font-semibold mb-2">60초 안에 체험해보세요!</h4>
-                  <p className="text-white/80 mb-4">수능 필수 단어 1,000개 무료 체험</p>
-                  <Link href="/learn?exam=CSAT" className="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
-                    <span>바로 체험하기</span>
+                  <p className="text-white/80 mb-4">회원가입 없이 샘플 단어로 빠르게 체험</p>
+                  <Link href="/learn?exam=CSAT&demo=1" className="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
+                    <span>맛보기 시작</span>
                     <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>

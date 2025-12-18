@@ -436,16 +436,24 @@ export default function PricingPage() {
               지금 바로 영어 단어 학습을 시작하세요!
             </h2>
             <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-              3,300개 이상의 수능 필수 단어와 스마트 학습 시스템으로
+              무료로 수능 L1 필수 단어 1,000개를 학습하고,
               <br />
-              더 효율적인 영어 공부를 경험해보세요.
+              업그레이드하면 전체 3,300개+ 단어를 잠금 해제하세요.
             </p>
-            <Link
-              href="/auth/login"
-              className="inline-block px-8 py-4 bg-white text-indigo-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
-            >
-              무료로 시작하기
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/auth/login"
+                className="inline-block px-8 py-4 bg-white text-indigo-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                무료로 시작하기
+              </Link>
+              <Link
+                href="/learn?exam=CSAT&demo=1"
+                className="inline-block px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors border border-white/30"
+              >
+                먼저 맛보기
+              </Link>
+            </div>
           </div>
         </div>
       </div>
