@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore, useExamCourseStore } from '@/lib/store';
-import { progressAPI, authAPI } from '@/lib/api';
+import { progressAPI } from '@/lib/api';
 import TabLayout from '@/components/layout/TabLayout';
 
 interface UserStats {
@@ -16,6 +16,19 @@ interface UserStats {
   averageAccuracy?: number;
 }
 
+interface TodayProgress {
+  newWords: { current: number; goal: number };
+  review: { current: number; goal: number };
+  quiz: { score: number; total: number };
+}
+
+interface RecentWord {
+  id: number;
+  word: string;
+  meaning: string;
+  learnedAt: string;
+}
+
 export default function MyPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
@@ -24,6 +37,12 @@ export default function MyPage() {
   const activeExam = useExamCourseStore((state) => state.activeExam);
 
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [todayProgress, setTodayProgress] = useState<TodayProgress>({
+    newWords: { current: 0, goal: 10 },
+    review: { current: 0, goal: 15 },
+    quiz: { score: 0, total: 0 },
+  });
+  const [recentWords, setRecentWords] = useState<RecentWord[]>([]);
   const [examDate, setExamDate] = useState<string>('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -46,6 +65,8 @@ export default function MyPage() {
     }
 
     loadStats();
+    loadTodayProgress();
+    loadRecentWords();
     loadExamDate();
   }, [user, hasHydrated, router]);
 
@@ -57,6 +78,30 @@ export default function MyPage() {
       console.error('Failed to load stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTodayProgress = async () => {
+    try {
+      const data = await progressAPI.getTodayProgress();
+      if (data) {
+        setTodayProgress(data);
+      }
+    } catch (error) {
+      // 오늘 진행도 API가 없으면 기본값 사용
+      console.log('Today progress not available, using defaults');
+    }
+  };
+
+  const loadRecentWords = async () => {
+    try {
+      const data = await progressAPI.getRecentWords(5);
+      if (data?.words) {
+        setRecentWords(data.words);
+      }
+    } catch (error) {
+      // 최근 단어 API가 없으면 빈 배열 사용
+      console.log('Recent words not available');
     }
   };
 
@@ -140,6 +185,123 @@ export default function MyPage() {
               <p className="text-xs text-orange-500">학습한 단어</p>
             </div>
           </div>
+        </div>
+
+        {/* Primary CTA - 학습 시작 */}
+        <Link
+          href="/learn"
+          className="block bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-2xl p-6 mb-6 shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30 transition-all duration-300 group"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold mb-1">지금 학습 시작</h2>
+              <p className="text-pink-100 text-sm">오늘의 목표를 달성해보세요!</p>
+            </div>
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </div>
+          </div>
+        </Link>
+
+        {/* Today's Progress - 오늘의 진행도 */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+          <h3 className="font-bold text-gray-900 mb-4">오늘의 진행도</h3>
+          <div className="space-y-4">
+            {/* New Words Progress */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600 flex items-center gap-2">
+                  <span className="text-lg">📚</span> 새로운 단어
+                </span>
+                <span className="text-sm font-medium text-gray-900">
+                  {todayProgress.newWords.current}/{todayProgress.newWords.goal}
+                </span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min((todayProgress.newWords.current / todayProgress.newWords.goal) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Review Progress */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600 flex items-center gap-2">
+                  <span className="text-lg">🔄</span> 복습
+                </span>
+                <span className="text-sm font-medium text-gray-900">
+                  {todayProgress.review.current}/{todayProgress.review.goal}
+                </span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min((todayProgress.review.current / todayProgress.review.goal) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Quiz Score */}
+            {todayProgress.quiz.total > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600 flex items-center gap-2">
+                    <span className="text-lg">✅</span> 퀴즈 점수
+                  </span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {todayProgress.quiz.score}/{todayProgress.quiz.total}
+                  </span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500"
+                    style={{ width: `${(todayProgress.quiz.score / todayProgress.quiz.total) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Words - 최근 학습 단어 */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-gray-900">최근 학습 단어</h3>
+            {recentWords.length > 0 && (
+              <Link href="/history" className="text-sm text-pink-600 font-medium">전체 보기 →</Link>
+            )}
+          </div>
+
+          {recentWords.length > 0 ? (
+            <div className="space-y-3">
+              {recentWords.slice(0, 5).map((word) => (
+                <div key={word.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                  <div>
+                    <p className="font-medium text-gray-900">{word.word}</p>
+                    <p className="text-sm text-gray-500">{word.meaning}</p>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {new Date(word.learnedAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <span className="text-4xl mb-3 block">📖</span>
+              <p className="text-gray-500 mb-4">아직 학습한 단어가 없어요</p>
+              <Link
+                href="/learn"
+                className="inline-block bg-pink-100 text-pink-600 px-4 py-2 rounded-xl font-medium hover:bg-pink-200 transition"
+              >
+                첫 학습 시작하기
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* D-day Setting */}
