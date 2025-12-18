@@ -32,7 +32,7 @@ export default function PromoBanner() {
   if (isPremium || !isVisible) return null;
 
   return (
-    <div className="bg-gradient-to-r from-brand-primary via-purple-600 to-brand-secondary text-white py-2 px-4 relative">
+    <div className="sticky top-0 z-50 bg-gradient-to-r from-brand-primary via-purple-600 to-brand-secondary text-white py-2 px-4 relative">
       <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 text-sm pr-8">
         <span className="animate-pulse hidden sm:inline flex-shrink-0">🎉</span>
         <p className="text-center whitespace-nowrap overflow-hidden text-ellipsis">
