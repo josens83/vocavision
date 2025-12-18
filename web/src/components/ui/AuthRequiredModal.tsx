@@ -42,7 +42,8 @@ export function AuthRequiredProvider({ children }: { children: ReactNode }) {
   const handleLogin = useCallback(() => {
     setIsOpen(false);
     const returnTo = options.returnTo || window.location.pathname;
-    router.push(`/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
+    // next 파라미터로 통일 (로그인 페이지에서 읽음)
+    router.push(`/auth/login?next=${encodeURIComponent(returnTo)}`);
   }, [options.returnTo, router]);
 
   const handleClose = useCallback(() => {

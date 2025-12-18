@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, Suspense } from 'react';
+import { useState, useCallback, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '@/lib/api';
@@ -13,10 +13,20 @@ import { getGoogleLoginUrl } from '@/lib/auth/google';
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, _hasHydrated } = useAuthStore();
   const setAuth = useAuthStore((state) => state.setAuth);
 
-  // next 파라미터: 로그인 후 이동할 페이지
-  const nextUrl = searchParams.get('next') || '/dashboard';
+  // next 또는 returnTo 파라미터 지원 (하위 호환성)
+  // 기본값은 /my (마이페이지 = 로그인 후 첫 화면)
+  const nextParam = searchParams.get('next') || searchParams.get('returnTo');
+  const nextUrl = nextParam?.startsWith('/') ? nextParam : '/my';
+
+  // 이미 로그인된 상태면 /my로 리다이렉트
+  useEffect(() => {
+    if (_hasHydrated && user) {
+      router.replace(nextUrl);
+    }
+  }, [_hasHydrated, user, nextUrl, router]);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -93,19 +103,15 @@ function LoginContent() {
 
   const handleKakaoLogin = () => {
     setKakaoLoading(true);
-    // OAuth 리다이렉트 전에 돌아올 URL 저장
-    if (nextUrl !== '/dashboard') {
-      sessionStorage.setItem('loginRedirect', nextUrl);
-    }
+    // OAuth 리다이렉트 전에 돌아올 URL 저장 (항상 저장)
+    sessionStorage.setItem('loginRedirect', nextUrl);
     window.location.href = getKakaoLoginUrl();
   };
 
   const handleGoogleLogin = () => {
     setGoogleLoading(true);
-    // OAuth 리다이렉트 전에 돌아올 URL 저장
-    if (nextUrl !== '/dashboard') {
-      sessionStorage.setItem('loginRedirect', nextUrl);
-    }
+    // OAuth 리다이렉트 전에 돌아올 URL 저장 (항상 저장)
+    sessionStorage.setItem('loginRedirect', nextUrl);
     window.location.href = getGoogleLoginUrl();
   };
 
