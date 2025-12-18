@@ -201,31 +201,23 @@ export default function HomePage() {
             viewAllHref={isLoggedIn ? "/my" : undefined}
           />
 
-          {/* 비로그인 시: 로그인 유도 UI */}
+          {/* 비로그인 시: 로그인 유도 UI (CTA 최소화) */}
           {!isLoggedIn ? (
             <div className="grid lg:grid-cols-2 gap-6">
               <div className="card p-8 text-center bg-gradient-to-br from-brand-primary/5 to-brand-primary/10">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-brand-primary/10 flex items-center justify-center">
-                  <span className="text-3xl">📚</span>
+                  <span className="text-3xl">📊</span>
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">먼저 체험해보세요</h3>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">학습 기록 관리</h3>
                 <p className="text-sm text-slate-500 mb-4">
-                  로그인 없이 플래시카드와 퀴즈를<br />바로 체험해볼 수 있어요
+                  로그인하면 학습 진행 상황을<br />저장하고 관리할 수 있어요
                 </p>
-                <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                  <Link
-                    href="/learn?exam=CSAT"
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primary/90 transition-colors"
-                  >
-                    무료 체험하기
-                  </Link>
-                  <Link
-                    href="/auth/login"
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-slate-300 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
-                  >
-                    로그인
-                  </Link>
-                </div>
+                <Link
+                  href="/auth/login"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-brand-primary text-brand-primary rounded-lg font-medium hover:bg-brand-primary/5 transition-colors"
+                >
+                  로그인하기
+                </Link>
               </div>
 
               <div className="card p-8 text-center">
@@ -293,26 +285,21 @@ export default function HomePage() {
               <div className="max-w-md mx-auto">
                 <div className="text-5xl mb-4">🎯</div>
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  지금 바로 학습을 시작하세요
+                  오늘의 학습 목표를 설정하세요
                 </h3>
                 <p className="text-slate-600 mb-6">
-                  로그인 없이 먼저 체험해보고,<br />
-                  마음에 들면 가입해서 기록을 저장하세요!
+                  매일 10개 단어씩, 꾸준히 학습하면<br />
+                  영어 실력이 눈에 띄게 향상됩니다!
                 </p>
-                <div className="flex flex-wrap justify-center gap-3">
-                  <Link
-                    href="/learn?exam=CSAT"
-                    className="px-6 py-3 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primary/90 transition-colors"
-                  >
-                    무료로 체험하기
-                  </Link>
-                  <Link
-                    href="/auth/login"
-                    className="px-6 py-3 border border-slate-300 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors"
-                  >
-                    로그인
-                  </Link>
-                </div>
+                <Link
+                  href="/learn?exam=CSAT"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-primary/90 transition-colors"
+                >
+                  지금 시작하기
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
               </div>
             </div>
           ) : (
