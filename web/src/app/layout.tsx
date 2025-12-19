@@ -5,6 +5,7 @@ import { OfflineBannerWrapper } from '@/components/errors/OfflineBannerWrapper';
 import Providers from '@/components/providers/Providers';
 import { Footer } from '@/components/Footer';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
+import StudyFAB from '@/components/ui/StudyFAB';
 
 const siteUrl = 'https://vocavision-web.vercel.app';
 const siteName = 'VocaVision';
@@ -132,6 +133,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <StudyFAB />
         </Providers>
       </body>
     </html>

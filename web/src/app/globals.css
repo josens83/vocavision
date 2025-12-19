@@ -42,6 +42,18 @@
     --accent-orange: #EA9839;
     --accent-purple: #7C3AED;
 
+    /* Exam-specific Theme Colors */
+    --color-csat: #667eea;
+    --color-csat-light: #e0e7ff;
+    --color-teps: #14b8a6;
+    --color-teps-light: #ccfbf1;
+    --color-toefl: #f43f5e;
+    --color-toefl-light: #ffe4e6;
+    --color-toeic: #f97316;
+    --color-toeic-light: #ffedd5;
+    --color-sat: #a855f7;
+    --color-sat-light: #f3e8ff;
+
     /* Neutrals */
     --gray-50: #FAFAFA;
     --gray-100: #F9F9F9;
