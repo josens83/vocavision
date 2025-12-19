@@ -12,7 +12,7 @@ export default function PrivacyPage() {
             &larr; 홈으로 돌아가기
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">개인정보처리방침</h1>
-          <p className="text-gray-500 mt-2">최종 수정일: 2025년 1월 1일</p>
+          <p className="text-gray-500 mt-2">최종 수정일: 2025년 12월 19일</p>
         </div>
 
         {/* 본문 */}
@@ -116,8 +116,20 @@ export default function PrivacyPage() {
                     <td className="border border-gray-200 px-4 py-2">결제 처리</td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-200 px-4 py-2">Google Cloud Platform</td>
-                    <td className="border border-gray-200 px-4 py-2">서버 호스팅 및 데이터 저장</td>
+                    <td className="border border-gray-200 px-4 py-2">Vercel Inc.</td>
+                    <td className="border border-gray-200 px-4 py-2">웹 프론트엔드 호스팅</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-4 py-2">Railway</td>
+                    <td className="border border-gray-200 px-4 py-2">백엔드 API 서버 호스팅</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-4 py-2">Supabase</td>
+                    <td className="border border-gray-200 px-4 py-2">데이터베이스 호스팅</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-4 py-2">Cloudinary</td>
+                    <td className="border border-gray-200 px-4 py-2">이미지 저장 및 CDN</td>
                   </tr>
                 </tbody>
               </table>
@@ -187,7 +199,7 @@ export default function PrivacyPage() {
           {/* 부칙 */}
           <section>
             <h2 className="text-xl font-bold text-gray-900 mb-4">부칙</h2>
-            <p className="text-gray-700">본 방침은 2025년 1월 1일부터 시행됩니다.</p>
+            <p className="text-gray-700">본 방침은 2025년 12월 19일부터 시행됩니다.</p>
           </section>
         </div>
 
