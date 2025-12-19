@@ -1756,11 +1756,13 @@ router.get('/archive-old-teps', async (req: Request, res: Response) => {
 });
 
 /**
- * GET /internal/seed-teps-smart?key=YOUR_SECRET&level=L1
- * 스마트 TEPS 시드:
+ * GET /internal/seed-teps-smart?key=YOUR_SECRET&level=L1&batchSize=100
+ * 스마트 TEPS 시드 (배치 처리 지원):
  * - 기존 DB 전체에서 단어 검색 (CSAT, 구 TEPS, 모든 상태)
  * - 있으면: 콘텐츠 복사해서 새 TEPS 생성
  * - 없으면: DRAFT로 생성
+ * - batchSize: 한 번에 처리할 단어 수 (기본 100, 타임아웃 방지)
+ * - 이미 존재하는 단어는 자동 스킵 → 여러 번 호출해도 안전
  */
 router.get('/seed-teps-smart', async (req: Request, res: Response) => {
   try {
@@ -1771,7 +1773,7 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
 
     const level = (req.query.level as string) || 'L1';
     const dryRun = req.query.dryRun === 'true';
-    const limit = parseInt(req.query.limit as string) || 0; // 0 = no limit
+    const batchSize = Math.min(parseInt(req.query.batchSize as string) || 100, 200); // 기본 100, 최대 200
 
     if (!['L1', 'L2', 'L3'].includes(level)) {
       return res.status(400).json({ error: 'Invalid level. Use L1, L2, or L3' });
@@ -1780,18 +1782,14 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
     // Load TEPS words
     const tepsData = loadTepsWords();
     const levelKey = level as 'L1' | 'L2' | 'L3';
-    let wordsToSeed = tepsData.levels[levelKey].words;
+    const allWords = tepsData.levels[levelKey].words;
 
-    if (limit > 0) {
-      wordsToSeed = wordsToSeed.slice(0, limit);
-    }
-
-    logger.info(`[Internal/SmartSeed] Starting TEPS ${level} smart seed: ${wordsToSeed.length} words`);
+    logger.info(`[Internal/SmartSeed] Starting TEPS ${level} smart seed: ${allWords.length} total words, batchSize=${batchSize}`);
 
     // Check which words already exist in TEPS (active, not archived)
     const existingTepsWords = await prisma.word.findMany({
       where: {
-        word: { in: wordsToSeed.map(w => w.toLowerCase()) },
+        word: { in: allWords.map(w => w.toLowerCase()) },
         examCategory: 'TEPS',
         status: { not: 'ARCHIVED' },
       },
@@ -1799,8 +1797,9 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
     });
     const existingTepsSet = new Set(existingTepsWords.map(w => w.word.toLowerCase()));
 
-    // Filter out words that already exist in new TEPS
-    const wordsToProcess = wordsToSeed.filter(w => !existingTepsSet.has(w.toLowerCase()));
+    // Filter out words that already exist in new TEPS, then take batchSize
+    const allWordsToProcess = allWords.filter(w => !existingTepsSet.has(w.toLowerCase()));
+    const wordsToProcess = allWordsToProcess.slice(0, batchSize);
 
     if (wordsToProcess.length === 0) {
       return res.json({
@@ -1843,9 +1842,10 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
 
     const result = {
       level,
-      totalWords: wordsToSeed.length,
+      totalWords: allWords.length,
       alreadyExist: existingTepsSet.size,
-      toProcess: wordsToProcess.length,
+      remaining: allWordsToProcess.length - wordsToProcess.length, // 이번 배치 이후 남은 단어
+      batchSize: wordsToProcess.length,
       copiedFromCsat: 0,
       copiedFromTepsArchive: 0,
       copiedFromOther: 0,
@@ -2082,13 +2082,16 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
 
     logger.info(`[Internal/SmartSeed] TEPS ${level} completed: copied=${totalCopied}, new=${result.createdNew}, errors=${result.errors.length}`);
 
+    const hasMore = result.remaining > 0;
+
     res.json({
       message: `TEPS ${level} smart seed ${dryRun ? '(DRY RUN) ' : ''}completed`,
       dryRun,
       summary: {
         totalWords: result.totalWords,
         alreadyExist: result.alreadyExist,
-        processed: wordsToProcess.length,
+        processedThisBatch: wordsToProcess.length,
+        remaining: result.remaining,
         copied: totalCopied,
         copiedFromCsat: result.copiedFromCsat,
         copiedFromTepsArchive: result.copiedFromTepsArchive,
@@ -2097,8 +2100,17 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
         errors: result.errors.length,
         estimatedSavings: `$${estimatedSavings.toFixed(2)}`,
       },
-      errors: result.errors.slice(0, 20), // Limit error details
-      details: dryRun ? result.details.slice(0, 50) : undefined, // Only show details in dry run
+      progress: {
+        done: result.alreadyExist + wordsToProcess.length,
+        total: result.totalWords,
+        percent: Math.round(((result.alreadyExist + wordsToProcess.length) / result.totalWords) * 100),
+      },
+      hasMore,
+      nextStep: hasMore
+        ? `남은 ${result.remaining}개 처리: 같은 URL 다시 호출`
+        : `${level} 완료! 다음 레벨 진행`,
+      errors: result.errors.slice(0, 20),
+      details: dryRun ? result.details.slice(0, 50) : undefined,
     });
   } catch (error) {
     console.error('[Internal/SmartSeed] Error:', error);
