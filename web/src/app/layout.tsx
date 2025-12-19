@@ -57,13 +57,13 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName: siteName,
     title: 'VocaVision - AI 기반 영어 단어 학습 플랫폼',
-    description: '수능, TEPS, TOEFL 영어 단어를 이미지 연상법으로 효과적으로 암기하세요.',
+    description: '수능, TEPS 필수 영단어를 AI 이미지와 함께 학습하세요.',
     images: [
       {
-        url: `${siteUrl}/og-image.png`,
+        url: `${siteUrl}/og-image.jpg`,
         width: 1200,
         height: 630,
-        alt: 'VocaVision - 영어 단어 학습',
+        alt: 'VocaVision - AI 기반 영어 단어 학습 플랫폼',
       },
     ],
   },
@@ -71,9 +71,9 @@ export const metadata: Metadata = {
   // Twitter Card
   twitter: {
     card: 'summary_large_image',
-    title: 'VocaVision - AI 기반 영어 단어 학습',
-    description: '수능, TEPS, TOEFL 영어 단어를 이미지 연상법으로 효과적으로 암기하세요.',
-    images: [`${siteUrl}/og-image.png`],
+    title: 'VocaVision - AI 기반 영어 단어 학습 플랫폼',
+    description: '수능, TEPS 필수 영단어를 AI 이미지와 함께 학습하세요.',
+    images: [`${siteUrl}/og-image.jpg`],
   },
 
   // 추가 메타
