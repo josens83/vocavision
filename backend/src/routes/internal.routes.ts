@@ -1673,4 +1673,512 @@ async function runContinuousImageGeneration(
   logger.info(`[Internal/ImageGen] Session ${sessionId} finished. Words: ${session.wordsProcessed}, Images: ${session.imagesGenerated}`);
 }
 
+// ============================================
+// TEPS Smart Seed (Archive + Content Copy)
+// ============================================
+
+// Load TEPS words from JSON file
+import * as fs from 'fs';
+import * as path from 'path';
+
+interface TepsWordsData {
+  exam: string;
+  totalWords: number;
+  levels: {
+    L1: { count: number; description: string; words: string[] };
+    L2: { count: number; description: string; words: string[] };
+    L3: { count: number; description: string; words: string[] };
+  };
+}
+
+function loadTepsWords(): TepsWordsData {
+  const dataPath = path.join(__dirname, '../../data/teps-words.json');
+  return JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+}
+
+/**
+ * GET /internal/archive-old-teps?key=YOUR_SECRET
+ * 구버전 TEPS 단어들을 ARCHIVED 상태로 변경 (콘텐츠는 보존)
+ */
+router.get('/archive-old-teps', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const dryRun = req.query.dryRun === 'true';
+
+    // Count current TEPS words
+    const currentCount = await prisma.word.count({
+      where: {
+        examCategory: 'TEPS',
+        status: { not: 'ARCHIVED' },
+      },
+    });
+
+    if (currentCount === 0) {
+      return res.json({
+        message: 'No TEPS words to archive',
+        archivedCount: 0,
+      });
+    }
+
+    if (dryRun) {
+      return res.json({
+        message: '[DRY RUN] Would archive TEPS words',
+        wouldArchive: currentCount,
+        dryRun: true,
+      });
+    }
+
+    // Archive old TEPS words by changing status
+    const result = await prisma.word.updateMany({
+      where: {
+        examCategory: 'TEPS',
+        status: { not: 'ARCHIVED' },
+      },
+      data: {
+        status: 'ARCHIVED',
+      },
+    });
+
+    logger.info(`[Internal/Archive] Archived ${result.count} old TEPS words`);
+
+    res.json({
+      message: `Successfully archived ${result.count} old TEPS words`,
+      archivedCount: result.count,
+    });
+  } catch (error) {
+    console.error('[Internal/Archive] Error:', error);
+    res.status(500).json({ error: 'Archive failed', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/seed-teps-smart?key=YOUR_SECRET&level=L1
+ * 스마트 TEPS 시드:
+ * - 기존 DB 전체에서 단어 검색 (CSAT, 구 TEPS, 모든 상태)
+ * - 있으면: 콘텐츠 복사해서 새 TEPS 생성
+ * - 없으면: DRAFT로 생성
+ */
+router.get('/seed-teps-smart', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const level = (req.query.level as string) || 'L1';
+    const dryRun = req.query.dryRun === 'true';
+    const limit = parseInt(req.query.limit as string) || 0; // 0 = no limit
+
+    if (!['L1', 'L2', 'L3'].includes(level)) {
+      return res.status(400).json({ error: 'Invalid level. Use L1, L2, or L3' });
+    }
+
+    // Load TEPS words
+    const tepsData = loadTepsWords();
+    const levelKey = level as 'L1' | 'L2' | 'L3';
+    let wordsToSeed = tepsData.levels[levelKey].words;
+
+    if (limit > 0) {
+      wordsToSeed = wordsToSeed.slice(0, limit);
+    }
+
+    logger.info(`[Internal/SmartSeed] Starting TEPS ${level} smart seed: ${wordsToSeed.length} words`);
+
+    // Check which words already exist in TEPS (active, not archived)
+    const existingTepsWords = await prisma.word.findMany({
+      where: {
+        word: { in: wordsToSeed.map(w => w.toLowerCase()) },
+        examCategory: 'TEPS',
+        status: { not: 'ARCHIVED' },
+      },
+      select: { word: true },
+    });
+    const existingTepsSet = new Set(existingTepsWords.map(w => w.word.toLowerCase()));
+
+    // Filter out words that already exist in new TEPS
+    const wordsToProcess = wordsToSeed.filter(w => !existingTepsSet.has(w.toLowerCase()));
+
+    if (wordsToProcess.length === 0) {
+      return res.json({
+        message: `All ${level} words already exist in TEPS`,
+        alreadyExist: existingTepsWords.length,
+        processed: 0,
+      });
+    }
+
+    // Find all matching words from ANY source (CSAT, archived TEPS, etc.)
+    const sourceWords = await prisma.word.findMany({
+      where: {
+        word: { in: wordsToProcess.map(w => w.toLowerCase()), mode: 'insensitive' },
+      },
+      include: {
+        etymology: true,
+        mnemonics: true,
+        examples: true,
+        collocations: true,
+        synonyms: true,
+        antonyms: true,
+        rhymes: true,
+        visuals: true,
+      },
+      orderBy: [
+        { aiGeneratedAt: 'desc' }, // Prefer words with AI content
+        { status: 'asc' }, // PUBLISHED first
+      ],
+    });
+
+    // Create a map of source words by lowercase word
+    const sourceWordMap = new Map<string, typeof sourceWords[number]>();
+    for (const word of sourceWords) {
+      const key = word.word.toLowerCase();
+      // Only add if not already in map (first one wins, which should be best quality)
+      if (!sourceWordMap.has(key)) {
+        sourceWordMap.set(key, word);
+      }
+    }
+
+    const result = {
+      level,
+      totalWords: wordsToSeed.length,
+      alreadyExist: existingTepsSet.size,
+      toProcess: wordsToProcess.length,
+      copiedFromCsat: 0,
+      copiedFromTepsArchive: 0,
+      copiedFromOther: 0,
+      createdNew: 0,
+      errors: [] as string[],
+      details: [] as { word: string; action: string; source?: string }[],
+    };
+
+    const difficultyMap: Record<string, 'BASIC' | 'INTERMEDIATE' | 'ADVANCED'> = {
+      L1: 'INTERMEDIATE',
+      L2: 'INTERMEDIATE',
+      L3: 'ADVANCED',
+    };
+
+    for (const wordText of wordsToProcess) {
+      const normalized = wordText.toLowerCase().trim();
+      const sourceWord = sourceWordMap.get(normalized);
+
+      if (dryRun) {
+        if (sourceWord) {
+          result.details.push({
+            word: normalized,
+            action: 'would_copy',
+            source: `${sourceWord.examCategory} (${sourceWord.status})`,
+          });
+          if (sourceWord.examCategory === 'CSAT') result.copiedFromCsat++;
+          else if (sourceWord.examCategory === 'TEPS') result.copiedFromTepsArchive++;
+          else result.copiedFromOther++;
+        } else {
+          result.details.push({ word: normalized, action: 'would_create_draft' });
+          result.createdNew++;
+        }
+        continue;
+      }
+
+      try {
+        if (sourceWord) {
+          // Copy content from source word
+          const newWord = await prisma.word.create({
+            data: {
+              word: normalized,
+              definition: sourceWord.definition,
+              definitionKo: sourceWord.definitionKo,
+              pronunciation: sourceWord.pronunciation,
+              phonetic: sourceWord.phonetic,
+              partOfSpeech: sourceWord.partOfSpeech,
+              difficulty: difficultyMap[level],
+              cefrLevel: sourceWord.cefrLevel,
+              examCategory: 'TEPS',
+              level,
+              frequency: sourceWord.frequency,
+              tags: sourceWord.tags,
+              tips: sourceWord.tips,
+              commonMistakes: sourceWord.commonMistakes,
+              ipaUs: sourceWord.ipaUs,
+              ipaUk: sourceWord.ipaUk,
+              audioUrlUs: sourceWord.audioUrlUs,
+              audioUrlUk: sourceWord.audioUrlUk,
+              prefix: sourceWord.prefix,
+              root: sourceWord.root,
+              suffix: sourceWord.suffix,
+              morphologyNote: sourceWord.morphologyNote,
+              synonymList: sourceWord.synonymList,
+              antonymList: sourceWord.antonymList,
+              rhymingWords: sourceWord.rhymingWords,
+              relatedWords: sourceWord.relatedWords,
+              status: sourceWord.aiGeneratedAt ? 'PENDING_REVIEW' : 'DRAFT',
+              aiModel: sourceWord.aiModel,
+              aiGeneratedAt: sourceWord.aiGeneratedAt,
+              aiPromptVersion: sourceWord.aiPromptVersion,
+            },
+          });
+
+          // Copy related content
+          if (sourceWord.etymology) {
+            await prisma.etymology.create({
+              data: {
+                wordId: newWord.id,
+                origin: sourceWord.etymology.origin,
+                language: sourceWord.etymology.language,
+                evolution: sourceWord.etymology.evolution,
+                breakdown: sourceWord.etymology.breakdown,
+              },
+            });
+          }
+
+          if (sourceWord.mnemonics.length > 0) {
+            await prisma.mnemonic.createMany({
+              data: sourceWord.mnemonics.map(m => ({
+                wordId: newWord.id,
+                title: m.title,
+                content: m.content,
+                koreanHint: m.koreanHint,
+                imageUrl: m.imageUrl,
+                whiskPrompt: m.whiskPrompt,
+                source: m.source,
+                rating: m.rating,
+              })),
+            });
+          }
+
+          if (sourceWord.examples.length > 0) {
+            await prisma.example.createMany({
+              data: sourceWord.examples.map(e => ({
+                wordId: newWord.id,
+                sentence: e.sentence,
+                translation: e.translation,
+                audioUrl: e.audioUrl,
+                source: e.source,
+                isFunny: e.isFunny,
+                isReal: e.isReal,
+                order: e.order,
+              })),
+            });
+          }
+
+          if (sourceWord.collocations.length > 0) {
+            await prisma.collocation.createMany({
+              data: sourceWord.collocations.map(c => ({
+                wordId: newWord.id,
+                phrase: c.phrase,
+                translation: c.translation,
+                type: c.type,
+                exampleEn: c.exampleEn,
+                exampleKo: c.exampleKo,
+                order: c.order,
+              })),
+            });
+          }
+
+          if (sourceWord.synonyms.length > 0) {
+            await prisma.synonym.createMany({
+              data: sourceWord.synonyms.map(s => ({
+                wordId: newWord.id,
+                synonym: s.synonym,
+              })),
+            });
+          }
+
+          if (sourceWord.antonyms.length > 0) {
+            await prisma.antonym.createMany({
+              data: sourceWord.antonyms.map(a => ({
+                wordId: newWord.id,
+                antonym: a.antonym,
+              })),
+            });
+          }
+
+          if (sourceWord.rhymes.length > 0) {
+            await prisma.rhyme.createMany({
+              data: sourceWord.rhymes.map(r => ({
+                wordId: newWord.id,
+                rhymingWord: r.rhymingWord,
+                similarity: r.similarity,
+                example: r.example,
+              })),
+            });
+          }
+
+          // Copy visuals (images)
+          if (sourceWord.visuals.length > 0) {
+            await prisma.wordVisual.createMany({
+              data: sourceWord.visuals.map(v => ({
+                wordId: newWord.id,
+                type: v.type,
+                imageUrl: v.imageUrl,
+                promptEn: v.promptEn,
+                captionKo: v.captionKo,
+                captionEn: v.captionEn,
+                labelKo: v.labelKo,
+                labelEn: v.labelEn,
+                order: v.order,
+              })),
+            });
+          }
+
+          // Create WordExamLevel mapping
+          await prisma.wordExamLevel.create({
+            data: {
+              wordId: newWord.id,
+              examCategory: 'TEPS',
+              level,
+              frequency: sourceWord.frequency,
+            },
+          });
+
+          result.details.push({
+            word: normalized,
+            action: 'copied',
+            source: `${sourceWord.examCategory} (${sourceWord.status})`,
+          });
+
+          if (sourceWord.examCategory === 'CSAT') result.copiedFromCsat++;
+          else if (sourceWord.examCategory === 'TEPS') result.copiedFromTepsArchive++;
+          else result.copiedFromOther++;
+
+        } else {
+          // Create new DRAFT word
+          const newWord = await prisma.word.create({
+            data: {
+              word: normalized,
+              definition: '',
+              partOfSpeech: 'NOUN',
+              difficulty: difficultyMap[level],
+              examCategory: 'TEPS',
+              level,
+              frequency: 100,
+              status: 'DRAFT',
+            },
+          });
+
+          // Create WordExamLevel mapping
+          await prisma.wordExamLevel.create({
+            data: {
+              wordId: newWord.id,
+              examCategory: 'TEPS',
+              level,
+              frequency: 100,
+            },
+          });
+
+          result.details.push({ word: normalized, action: 'created_draft' });
+          result.createdNew++;
+        }
+      } catch (error: any) {
+        const errorMsg = error.code === 'P2002' ? 'duplicate' : error.message;
+        result.errors.push(`${normalized}: ${errorMsg}`);
+        logger.error(`[Internal/SmartSeed] Error processing ${normalized}:`, error);
+      }
+    }
+
+    const totalCopied = result.copiedFromCsat + result.copiedFromTepsArchive + result.copiedFromOther;
+    const estimatedSavings = totalCopied * 0.03; // $0.03 per word
+
+    logger.info(`[Internal/SmartSeed] TEPS ${level} completed: copied=${totalCopied}, new=${result.createdNew}, errors=${result.errors.length}`);
+
+    res.json({
+      message: `TEPS ${level} smart seed ${dryRun ? '(DRY RUN) ' : ''}completed`,
+      dryRun,
+      summary: {
+        totalWords: result.totalWords,
+        alreadyExist: result.alreadyExist,
+        processed: wordsToProcess.length,
+        copied: totalCopied,
+        copiedFromCsat: result.copiedFromCsat,
+        copiedFromTepsArchive: result.copiedFromTepsArchive,
+        copiedFromOther: result.copiedFromOther,
+        createdNew: result.createdNew,
+        errors: result.errors.length,
+        estimatedSavings: `$${estimatedSavings.toFixed(2)}`,
+      },
+      errors: result.errors.slice(0, 20), // Limit error details
+      details: dryRun ? result.details.slice(0, 50) : undefined, // Only show details in dry run
+    });
+  } catch (error) {
+    console.error('[Internal/SmartSeed] Error:', error);
+    res.status(500).json({ error: 'Smart seed failed', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/teps-seed-status?key=YOUR_SECRET
+ * TEPS 시드 현황 확인
+ */
+router.get('/teps-seed-status', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    // Load TEPS words to compare
+    const tepsData = loadTepsWords();
+
+    // Get current TEPS stats by level
+    const tepsStats = await prisma.word.groupBy({
+      by: ['level', 'status'],
+      where: { examCategory: 'TEPS' },
+      _count: { level: true },
+    });
+
+    // Get archived count
+    const archivedCount = await prisma.word.count({
+      where: { examCategory: 'TEPS', status: 'ARCHIVED' },
+    });
+
+    // Get content stats
+    const contentStats = await prisma.word.groupBy({
+      by: ['level'],
+      where: {
+        examCategory: 'TEPS',
+        status: { not: 'ARCHIVED' },
+        aiGeneratedAt: { not: null },
+      },
+      _count: { level: true },
+    });
+
+    // Get image stats
+    const imageStats = await prisma.wordVisual.count({
+      where: {
+        word: {
+          examCategory: 'TEPS',
+          status: { not: 'ARCHIVED' },
+        },
+      },
+    });
+
+    res.json({
+      targetCounts: {
+        L1: tepsData.levels.L1.count,
+        L2: tepsData.levels.L2.count,
+        L3: tepsData.levels.L3.count,
+        total: tepsData.totalWords,
+      },
+      currentStats: {
+        byLevelAndStatus: tepsStats.map(s => ({
+          level: s.level,
+          status: s.status,
+          count: s._count.level,
+        })),
+        archived: archivedCount,
+      },
+      contentGenerated: contentStats.reduce((acc, c) => {
+        acc[c.level || 'unknown'] = c._count.level;
+        return acc;
+      }, {} as Record<string, number>),
+      imagesGenerated: imageStats,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[Internal/TepsSeedStatus] Error:', error);
+    res.status(500).json({ error: 'Status check failed' });
+  }
+});
+
 export default router;
