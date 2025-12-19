@@ -9,6 +9,7 @@ import HeroCarousel from "./HeroCarousel";
 import { CategoryGrid, StudyTypeCard, ExamCategoryCard, examCategories } from "./CategoryCard";
 import PopularWordsSection, { sampleBestWords, sampleNewWords } from "./PopularWordsSection";
 import { SectionHeader } from "@/components/ui";
+import { LazySection } from "@/components/ui/LazySection";
 import { useAuthRequired } from "@/components/ui/AuthRequiredModal";
 import { StreakCalendar, ContinueLearning } from "@/components/dashboard";
 import { PLATFORM_STATS, GUEST_SAMPLE_WORDS } from "@/constants/stats";
@@ -139,15 +140,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* BEST/NEW 인기 단어 섹션 - Phase 1 */}
-      <PopularWordsSection
-        bestWords={sampleBestWords}
-        newWords={sampleNewWords}
-        isSampleData={!isLoggedIn}
-      />
+      {/* BEST/NEW 인기 단어 섹션 - Lazy Load */}
+      <LazySection minHeight={400} fallback={<PopularWordsSkeleton />}>
+        <PopularWordsSection
+          bestWords={sampleBestWords}
+          newWords={sampleNewWords}
+          isSampleData={!isLoggedIn}
+        />
+      </LazySection>
 
-      {/* 시험별 학습 섹션 */}
-      <section className="py-16 px-6 bg-slate-50">
+      {/* 시험별 학습 섹션 - Lazy Load */}
+      <LazySection minHeight={400} className="py-16 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <SectionHeader
             title="시험별 단어 학습"
@@ -163,10 +166,10 @@ export default function HomePage() {
             ))}
           </CategoryGrid>
         </div>
-      </section>
+      </LazySection>
 
-      {/* 학습 방법 섹션 */}
-      <section className="py-16 px-6">
+      {/* 학습 방법 섹션 - Lazy Load */}
+      <LazySection minHeight={300} className="py-16 px-6">
         <div className="max-w-7xl mx-auto">
           <SectionHeader
             title="학습 방법 선택"
@@ -190,7 +193,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </LazySection>
 
       {/* 나의 학습 현황 섹션 */}
       <section className="py-16 px-6 bg-slate-50">
@@ -394,6 +397,34 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+// Skeleton for PopularWords section
+function PopularWordsSkeleton() {
+  return (
+    <div className="py-16 px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <div className="h-8 w-48 bg-slate-200 rounded animate-pulse mb-2" />
+            <div className="h-4 w-64 bg-slate-100 rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-32 bg-slate-100 rounded-xl animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse">
+              <div className="aspect-square bg-slate-100" />
+              <div className="p-3">
+                <div className="h-5 w-3/4 bg-slate-100 rounded mb-1" />
+                <div className="h-3 w-1/2 bg-slate-100 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
