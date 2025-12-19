@@ -275,7 +275,7 @@ async function processWord(
     // Generate prompts and captions based on type
     switch (type) {
       case 'CONCEPT':
-        prompt = `A 1:1 square flat vector illustration showing the concept: "${wordData.definitionEn || wordData.word}". Style: clean flat design, bright educational colors, minimal, high quality. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`;
+        prompt = `A 1:1 square cute cartoon illustration showing the meaning of "${wordData.word}" which means "${wordData.definitionEn || wordData.word}". Style: Pixar-like 3D cartoon, bright vibrant colors, friendly character design, simple clean composition, educational and memorable. The image should help language learners instantly understand and remember the word meaning. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`;
         captionKo = wordData.definitionKo || `${wordData.word}의 의미`;
         captionEn = wordData.definitionEn || `The meaning of ${wordData.word}`;
         break;

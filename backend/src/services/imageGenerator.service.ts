@@ -16,8 +16,8 @@ const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
 // Visual type configurations
 const VISUAL_CONFIGS = {
   CONCEPT: {
-    style: 'flat illustration, educational, clean design',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle',
+    style: 'cute cartoon illustration, Pixar style, bright vibrant colors, friendly, educational',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle, realistic, photograph, dark, scary',
   },
   MNEMONIC: {
     style: 'cartoon illustration, cute, memorable, colorful',
@@ -198,12 +198,10 @@ export async function generateAndUploadImage(
 // ---------------------------------------------
 
 export function generateConceptPrompt(definitionEn: string, word: string): string {
-  // Include emotional context for better representation
-  return `A 1:1 square flat vector illustration visually representing the concept of "${word}" which means "${definitionEn || word}".
-Show the EMOTION and FEELING of this concept through visual metaphor, not just literal objects.
-If it's a negative emotion (fear, hate, disgust, anxiety), show that darkness or tension visually.
-If it's a positive emotion (love, joy, hope), show warmth and brightness.
-Style: clean flat design, educational, expressive colors that match the emotional tone.
+  // Pixar/Disney cartoon style for intuitive understanding
+  return `A 1:1 square cute cartoon illustration showing the meaning of "${word}" which means "${definitionEn || word}".
+Style: Pixar-like 3D cartoon, bright vibrant colors, friendly character design, simple clean composition, educational and memorable.
+The image should help language learners instantly understand and remember the word meaning through clear visual storytelling.
 CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`;
 }
 

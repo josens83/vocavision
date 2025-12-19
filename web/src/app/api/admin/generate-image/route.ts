@@ -18,8 +18,8 @@ const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
 // Strong negative prompts to prevent text rendering issues
 const VISUAL_CONFIGS = {
   CONCEPT: {
-    style: 'flat illustration, educational, clean design',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle',
+    style: 'cute cartoon illustration, Pixar style, bright vibrant colors, friendly, educational',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle, realistic, photograph, dark, scary',
   },
   MNEMONIC: {
     style: 'cartoon illustration, cute, memorable, colorful',
@@ -35,7 +35,7 @@ const VISUAL_CONFIGS = {
 // CRITICAL: Strong emphasis on NO TEXT to prevent AI text rendering issues
 const PROMPT_TEMPLATES = {
   CONCEPT: (word: string, definitionEn: string) =>
-    `A 1:1 square flat vector illustration showing the concept: "${definitionEn}". Style: clean flat design, bright educational colors, minimal, high quality. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
+    `A 1:1 square cute cartoon illustration showing the meaning of "${word}" which means "${definitionEn}". Style: Pixar-like 3D cartoon, bright vibrant colors, friendly character design, simple clean composition, educational and memorable. The image should help language learners instantly understand and remember the word meaning. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
 
   MNEMONIC: (word: string, mnemonic: string, koreanHint?: string) =>
     `A 1:1 square cartoon illustration visualizing this memory scene: ${mnemonic}. Style: cute cartoon, memorable, colorful, exaggerated expressions, whimsical. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
