@@ -13,6 +13,7 @@ interface ExamIcon {
   bgColor: string;
   wordCount: number;
   isAvailable: boolean;
+  isPremium?: boolean;
 }
 
 const examIcons: ExamIcon[] = [
@@ -60,11 +61,12 @@ const examIcons: ExamIcon[] = [
     id: "teps",
     name: "TEPS",
     nameKo: "텝스",
-    href: "/courses/teps",
-    color: "text-rose-600",
-    bgColor: "bg-rose-100",
-    wordCount: 4000,
-    isAvailable: false,
+    href: "/learn?exam=TEPS",
+    color: "text-teal-600",
+    bgColor: "bg-teal-100",
+    wordCount: PLATFORM_STATS.exams.TEPS.words,
+    isAvailable: true,
+    isPremium: true,
   },
 ];
 
@@ -94,14 +96,21 @@ function ExamIconCard({ exam, onComingSoonClick }: { exam: ExamIcon; onComingSoo
       </div>
 
       {/* 단어 수 / 상태 배지 */}
-      <div className="mt-2">
+      <div className="mt-2 flex flex-col items-center gap-1">
         {exam.isAvailable ? (
-          <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-            {exam.wordCount.toLocaleString()}단어
-          </span>
+          <>
+            <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+              {exam.wordCount.toLocaleString()}단어
+            </span>
+            {exam.isPremium && (
+              <span className="px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-full">
+                Premium
+              </span>
+            )}
+          </>
         ) : (
-          <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full flex items-center gap-1">
-            <span>🛠️</span> 출시 예정
+          <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-500 rounded-full">
+            준비중
           </span>
         )}
       </div>
@@ -161,7 +170,7 @@ export default function ExamIconGrid() {
 
       {/* 하단 안내 */}
       <p className="mt-6 text-sm text-slate-400">
-        현재 수능(CSAT) 어휘가 학습 가능합니다. 다른 시험은 곧 추가됩니다.
+        수능(CSAT)과 TEPS 어휘가 학습 가능합니다. TOEFL, TOEIC, SAT는 곧 추가됩니다.
       </p>
     </div>
   );

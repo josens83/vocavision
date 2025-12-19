@@ -34,11 +34,11 @@ const Icons = {
   ),
 };
 
-// Hero 섹션 통계 (무료 플랜 기준 - L1 1,000개)
+// Hero 섹션 통계 (실제 데이터 기반)
 const stats = [
-  { label: "수능 필수", value: "1,000", suffix: "개+" },
-  { label: "난이도 레벨", value: "3", suffix: "단계" },
-  { label: "AI 이미지", value: "3", suffix: "종류/단어" },
+  { label: "수능 필수", value: PLATFORM_STATS.totalWords.toLocaleString(), suffix: "개" },
+  { label: "TEPS 어휘", value: PLATFORM_STATS.exams.TEPS.words.toLocaleString(), suffix: "개" },
+  { label: "학습 모드", value: String(PLATFORM_STATS.learningModes), suffix: "가지" },
 ];
 
 const features = [

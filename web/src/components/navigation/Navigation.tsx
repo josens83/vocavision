@@ -59,51 +59,56 @@ export const guestNavigationItems: NavItem[] = [
   },
 ];
 
-// 로그인 사용자용 네비게이션 (학습 기능 중심)
+// 로그인 사용자용 네비게이션 (콘텐츠 중심 - 시험별 접근)
+// "사용자는 'TOEIC 단어 공부하러 왔다'지, '플래시카드 하러 왔다'가 아님"
 export const authNavigationItems: NavItem[] = [
   {
-    label: "수능 학습",
+    label: "수능",
     color: "text-blue-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
     children: [
       { label: "L1 기초", href: "/learn?exam=CSAT&level=L1", count: PLATFORM_STATS.levels.L1, description: "수능 기본 필수 어휘" },
       { label: "L2 중급", href: "/learn?exam=CSAT&level=L2", count: PLATFORM_STATS.levels.L2, description: "실력 향상 어휘" },
       { label: "L3 고급", href: "/learn?exam=CSAT&level=L3", count: PLATFORM_STATS.levels.L3, description: "1등급 목표 어휘" },
-      { label: "전체 단어", href: "/words?exam=CSAT", count: PLATFORM_STATS.totalWords, description: "수능 어휘 전체 보기" },
+      { label: "퀴즈 풀기", href: "/quiz?exam=CSAT", description: "수능 단어 퀴즈", badge: "추천" },
+      { label: "복습하기", href: "/review?exam=CSAT", description: "틀린 단어 복습" },
+      { label: "전체 보기", href: "/words?exam=CSAT", count: PLATFORM_STATS.totalWords, description: "수능 어휘 전체" },
     ],
   },
   {
-    label: "플래시카드",
-    href: "/learn?exam=CSAT",
-    color: "text-study-flashcard-dark",
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>,
-  },
-  {
-    label: "퀴즈",
-    color: "text-study-quiz-dark",
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+    label: "TEPS",
+    color: "text-teal-600",
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>,
     children: [
-      { label: "영어→한글", href: "/quiz?exam=CSAT&mode=eng-to-kor", description: "영단어 뜻 맞추기", badge: "추천" },
-      { label: "한글→영어", href: "/quiz?exam=CSAT&mode=kor-to-eng", description: "한글 뜻 보고 영단어 맞추기" },
-      { label: "레벨 테스트", href: "/quiz/level-test", description: "나의 실력 진단하기" },
+      { label: "TEPS 단어 학습", href: "/learn?exam=TEPS", count: PLATFORM_STATS.exams.TEPS.words, description: "TEPS 필수 어휘", badge: "Premium" },
+      { label: "TEPS 퀴즈", href: "/quiz?exam=TEPS", description: "TEPS 단어 퀴즈" },
+      { label: "전체 보기", href: "/words?exam=TEPS", count: PLATFORM_STATS.exams.TEPS.words, description: "TEPS 어휘 전체" },
     ],
   },
   {
-    label: "복습",
-    href: "/review?exam=CSAT",
-    color: "text-study-review-dark",
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>,
+    label: "TOEFL",
+    href: "#",
+    color: "text-slate-400",
   },
   {
-    label: "통계",
-    href: "/stats",
-    color: "text-level-advanced",
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+    label: "TOEIC",
+    href: "#",
+    color: "text-slate-400",
+  },
+  {
+    label: "내 학습",
+    color: "text-purple-600",
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+    children: [
+      { label: "대시보드", href: "/dashboard", description: "오늘의 학습 현황" },
+      { label: "복습 노트", href: "/review", description: "틀린 단어 모아보기" },
+      { label: "학습 통계", href: "/stats", description: "상세 학습 분석" },
+    ],
   },
   {
     label: "요금제",
     href: "/pricing",
-    color: "text-purple-600",
+    color: "text-orange-500",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   },
 ];
