@@ -2313,10 +2313,9 @@ router.get('/activate-teps-words', async (req: Request, res: Response) => {
 });
 
 /**
- * GET /internal/reassign-teps-levels?key=YOUR_SECRET&priority=highest
- * 기존 TEPS 단어들의 레벨만 재배정 (콘텐츠/이미지 유지)
- * - priority=highest: 여러 레벨에 있으면 가장 높은 레벨로 (L3 > L2 > L1)
- * - priority=lowest: 여러 레벨에 있으면 가장 낮은 레벨로 (L1 > L2 > L3)
+ * GET /internal/reassign-teps-levels?key=YOUR_SECRET
+ * 균형 배분 리스트 기반 TEPS 레벨 재배정 (콘텐츠/이미지 유지)
+ * - teps-words-balanced.json 파일 사용 (L1: 853, L2: 853, L3: 883)
  */
 router.get('/reassign-teps-levels', async (req: Request, res: Response) => {
   try {
@@ -2326,15 +2325,17 @@ router.get('/reassign-teps-levels', async (req: Request, res: Response) => {
     }
 
     const dryRun = req.query.dryRun === 'true';
-    const priority = (req.query.priority as string) || 'highest'; // 'highest' or 'lowest'
 
-    // Load TEPS words
-    const tepsData = loadTepsWords();
-    const l1Words = new Set(tepsData.levels.L1.words.map(w => w.toLowerCase().trim()));
-    const l2Words = new Set(tepsData.levels.L2.words.map(w => w.toLowerCase().trim()));
-    const l3Words = new Set(tepsData.levels.L3.words.map(w => w.toLowerCase().trim()));
+    // Load balanced TEPS words
+    const balancedDataPath = path.join(__dirname, '../../data/teps-words-balanced.json');
+    const balancedData = JSON.parse(fs.readFileSync(balancedDataPath, 'utf-8'));
 
-    logger.info(`[Internal/Reassign] Starting TEPS level reassignment (priority=${priority}, dryRun=${dryRun})`);
+    const l1Words = new Set(balancedData.L1.words.map((w: string) => w.toLowerCase().trim()));
+    const l2Words = new Set(balancedData.L2.words.map((w: string) => w.toLowerCase().trim()));
+    const l3Words = new Set(balancedData.L3.words.map((w: string) => w.toLowerCase().trim()));
+
+    logger.info(`[Internal/Reassign] Starting TEPS level reassignment with balanced list (dryRun=${dryRun})`);
+    logger.info(`[Internal/Reassign] Balanced list: L1=${l1Words.size}, L2=${l2Words.size}, L3=${l3Words.size}`);
 
     // Get all active TEPS words
     const tepsWords = await prisma.word.findMany({
@@ -2359,24 +2360,12 @@ router.get('/reassign-teps-levels', async (req: Request, res: Response) => {
     for (const word of tepsWords) {
       const normalized = word.word.toLowerCase().trim();
 
-      // Determine target level based on priority
+      // Determine target level from balanced list (no priority needed - each word is in exactly one level)
       let targetLevel: string | null = null;
 
-      const inL1 = l1Words.has(normalized);
-      const inL2 = l2Words.has(normalized);
-      const inL3 = l3Words.has(normalized);
-
-      if (priority === 'highest') {
-        // L3 > L2 > L1 (assign to highest level)
-        if (inL3) targetLevel = 'L3';
-        else if (inL2) targetLevel = 'L2';
-        else if (inL1) targetLevel = 'L1';
-      } else {
-        // L1 > L2 > L3 (assign to lowest level)
-        if (inL1) targetLevel = 'L1';
-        else if (inL2) targetLevel = 'L2';
-        else if (inL3) targetLevel = 'L3';
-      }
+      if (l1Words.has(normalized)) targetLevel = 'L1';
+      else if (l2Words.has(normalized)) targetLevel = 'L2';
+      else if (l3Words.has(normalized)) targetLevel = 'L3';
 
       if (!targetLevel) {
         result.notInList++;
@@ -2427,7 +2416,11 @@ router.get('/reassign-teps-levels', async (req: Request, res: Response) => {
     res.json({
       message: `TEPS level reassignment ${dryRun ? '(DRY RUN) ' : ''}completed`,
       dryRun,
-      priority,
+      balancedList: {
+        L1: l1Words.size,
+        L2: l2Words.size,
+        L3: l3Words.size,
+      },
       summary: {
         totalWords: result.totalWords,
         updated: result.updated,
