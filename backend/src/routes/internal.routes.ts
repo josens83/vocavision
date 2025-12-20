@@ -1786,20 +1786,22 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
 
     logger.info(`[Internal/SmartSeed] Starting TEPS ${level} smart seed: ${allWords.length} total words, batchSize=${batchSize}`);
 
-    // Check which words already exist in TEPS (active, not archived)
-    // 모든 TEPS 단어를 가져와서 JavaScript에서 비교 (대소문자 무시)
+    // Check which words already exist in TEPS (INCLUDING archived ones to avoid duplicates)
+    // 모든 TEPS 단어를 가져옴 (status 무관 - unique constraint 때문에 archived도 체크)
     const existingTepsWords = await prisma.word.findMany({
       where: {
         examCategory: 'TEPS',
-        status: { not: 'ARCHIVED' },
+        // status 필터 제거 - archived 단어도 중복 방지 위해 체크
       },
       select: { word: true },
     });
-    const existingTepsSet = new Set(existingTepsWords.map(w => w.word.toLowerCase()));
+    const existingTepsSet = new Set(existingTepsWords.map(w => w.word.toLowerCase().trim()));
 
-    // Filter out words that already exist in new TEPS, then take batchSize
-    const allWordsToProcess = allWords.filter(w => !existingTepsSet.has(w.toLowerCase()));
+    // Filter out words that already exist in TEPS (including archived), then take batchSize
+    const allWordsToProcess = allWords.filter(w => !existingTepsSet.has(w.toLowerCase().trim()));
     const wordsToProcess = allWordsToProcess.slice(0, batchSize);
+
+    logger.info(`[Internal/SmartSeed] existingTepsSet.size=${existingTepsSet.size}, allWordsToProcess.length=${allWordsToProcess.length}`);
 
     if (wordsToProcess.length === 0) {
       return res.json({
