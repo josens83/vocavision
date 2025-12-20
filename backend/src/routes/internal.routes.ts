@@ -2448,6 +2448,9 @@ router.get('/reassign-teps-levels', async (req: Request, res: Response) => {
  * - CSAT(또는 다른 시험)에 같은 단어가 있고 콘텐츠가 있으면 복사
  * - 없으면 Claude API로 생성
  * - 배치 처리로 타임아웃 방지
+ *
+ * copyOnly=true일 때: API 호출 없음, 배치 크기 제한 완화 (기본 500, 최대 1000)
+ * processAll=true (copyOnly와 함께): 전체 한 번에 처리
  */
 router.get('/generate-teps-content-smart', async (req: Request, res: Response) => {
   try {
@@ -2457,9 +2460,22 @@ router.get('/generate-teps-content-smart', async (req: Request, res: Response) =
     }
 
     const level = (req.query.level as string) || 'L1';
-    const batchSize = Math.min(parseInt(req.query.batchSize as string) || 20, 50);
     const dryRun = req.query.dryRun === 'true';
     const copyOnly = req.query.copyOnly === 'true'; // Only copy, don't generate
+    const processAll = req.query.processAll === 'true'; // Process all at once (only with copyOnly)
+
+    // copyOnly=true: no API calls, can handle larger batches (default 500, max 1000)
+    // copyOnly=false: API calls, smaller batches (default 20, max 50)
+    let batchSize: number;
+    if (copyOnly) {
+      if (processAll) {
+        batchSize = 10000; // Effectively unlimited for single level
+      } else {
+        batchSize = Math.min(parseInt(req.query.batchSize as string) || 500, 1000);
+      }
+    } else {
+      batchSize = Math.min(parseInt(req.query.batchSize as string) || 20, 50);
+    }
 
     if (!['L1', 'L2', 'L3'].includes(level)) {
       return res.status(400).json({ error: 'Invalid level. Use L1, L2, or L3' });
