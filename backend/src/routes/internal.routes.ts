@@ -1787,21 +1787,41 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
     logger.info(`[Internal/SmartSeed] Starting TEPS ${level} smart seed: ${allWords.length} total words, batchSize=${batchSize}`);
 
     // Check which words already exist in TEPS (INCLUDING archived ones to avoid duplicates)
-    // 모든 TEPS 단어를 가져옴 (status 무관 - unique constraint 때문에 archived도 체크)
+    // 직접 rawQuery 사용으로 확실하게 체크
+    logger.info(`[Internal/SmartSeed] Querying existing TEPS words...`);
+
     const existingTepsWords = await prisma.word.findMany({
       where: {
         examCategory: 'TEPS',
-        // status 필터 제거 - archived 단어도 중복 방지 위해 체크
       },
       select: { word: true },
     });
-    const existingTepsSet = new Set(existingTepsWords.map(w => w.word.toLowerCase().trim()));
+
+    logger.info(`[Internal/SmartSeed] Found ${existingTepsWords.length} existing TEPS words in DB`);
+
+    // Create set with lowercase normalized words
+    const existingTepsSet = new Set<string>();
+    for (const w of existingTepsWords) {
+      if (w.word) {
+        existingTepsSet.add(w.word.toLowerCase().trim());
+      }
+    }
+
+    // Log some sample words for debugging
+    const sampleExisting = Array.from(existingTepsSet).slice(0, 5);
+    logger.info(`[Internal/SmartSeed] existingTepsSet size: ${existingTepsSet.size}, samples: ${sampleExisting.join(', ')}`);
 
     // Filter out words that already exist in TEPS (including archived), then take batchSize
-    const allWordsToProcess = allWords.filter(w => !existingTepsSet.has(w.toLowerCase().trim()));
+    const allWordsToProcess: string[] = [];
+    for (const w of allWords) {
+      const normalized = w.toLowerCase().trim();
+      if (!existingTepsSet.has(normalized)) {
+        allWordsToProcess.push(w);
+      }
+    }
     const wordsToProcess = allWordsToProcess.slice(0, batchSize);
 
-    logger.info(`[Internal/SmartSeed] existingTepsSet.size=${existingTepsSet.size}, allWordsToProcess.length=${allWordsToProcess.length}`);
+    logger.info(`[Internal/SmartSeed] After filtering: ${allWordsToProcess.length} words to process, taking ${wordsToProcess.length} for this batch`);
 
     if (wordsToProcess.length === 0) {
       return res.json({
@@ -1862,6 +1882,8 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
       L3: 'ADVANCED',
     };
 
+    let skippedDuplicates = 0;
+
     for (const wordText of wordsToProcess) {
       const normalized = wordText.toLowerCase().trim();
       const sourceWord = sourceWordMap.get(normalized);
@@ -1880,6 +1902,26 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
           result.details.push({ word: normalized, action: 'would_create_draft' });
           result.createdNew++;
         }
+        continue;
+      }
+
+      // CRITICAL: Double-check that word doesn't already exist in TEPS before creating
+      // This catches any race conditions or filtering issues
+      const existingCheck = await prisma.word.findFirst({
+        where: {
+          word: { equals: normalized, mode: 'insensitive' },
+          examCategory: 'TEPS',
+        },
+        select: { id: true, word: true },
+      });
+
+      if (existingCheck) {
+        skippedDuplicates++;
+        result.details.push({
+          word: normalized,
+          action: 'skipped_exists',
+          source: `Already exists: ${existingCheck.word}`,
+        });
         continue;
       }
 
@@ -2082,7 +2124,7 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
     const totalCopied = result.copiedFromCsat + result.copiedFromTepsArchive + result.copiedFromOther;
     const estimatedSavings = totalCopied * 0.03; // $0.03 per word
 
-    logger.info(`[Internal/SmartSeed] TEPS ${level} completed: copied=${totalCopied}, new=${result.createdNew}, errors=${result.errors.length}`);
+    logger.info(`[Internal/SmartSeed] TEPS ${level} completed: copied=${totalCopied}, new=${result.createdNew}, skipped=${skippedDuplicates}, errors=${result.errors.length}`);
 
     const hasMore = result.remaining > 0;
 
@@ -2093,6 +2135,7 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
         totalWords: result.totalWords,
         alreadyExist: result.alreadyExist,
         processedThisBatch: wordsToProcess.length,
+        skippedDuplicates, // 중복 체크로 스킵된 단어 수
         remaining: result.remaining,
         copied: totalCopied,
         copiedFromCsat: result.copiedFromCsat,
