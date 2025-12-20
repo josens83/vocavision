@@ -2754,6 +2754,381 @@ router.get('/generate-teps-content-smart', async (req: Request, res: Response) =
 });
 
 /**
+ * POST /internal/start-teps-copy-job?key=YOUR_SECRET&level=L1
+ * TEPS 콘텐츠 복사 백그라운드 Job 시작
+ * - 한 번 호출로 전체 레벨 처리
+ * - 진행 상황은 /internal/copy-job-status로 확인
+ */
+router.post('/start-teps-copy-job', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const level = (req.query.level as string) || 'all'; // L1, L2, L3, or 'all'
+    const dryRun = req.query.dryRun === 'true';
+
+    // Get all DRAFT TEPS words that need content
+    const whereClause: any = {
+      examCategory: 'TEPS',
+      status: 'DRAFT',
+      aiGeneratedAt: null,
+    };
+
+    if (level !== 'all') {
+      if (!['L1', 'L2', 'L3'].includes(level)) {
+        return res.status(400).json({ error: 'Invalid level. Use L1, L2, L3, or all' });
+      }
+      whereClause.level = level;
+    }
+
+    const draftWords = await prisma.word.findMany({
+      where: whereClause,
+      select: { id: true, word: true, level: true },
+      orderBy: [{ level: 'asc' }, { word: 'asc' }],
+    });
+
+    if (draftWords.length === 0) {
+      return res.json({
+        message: `No DRAFT words need content for ${level}`,
+        total: 0,
+      });
+    }
+
+    if (dryRun) {
+      // Group by level for summary
+      const byLevel = draftWords.reduce((acc, w) => {
+        acc[w.level] = (acc[w.level] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      return res.json({
+        message: 'DRY RUN - Job not started',
+        dryRun: true,
+        level,
+        total: draftWords.length,
+        byLevel,
+        sampleWords: draftWords.slice(0, 10).map(w => w.word),
+      });
+    }
+
+    // Create job record
+    const job = await prisma.contentGenerationJob.create({
+      data: {
+        inputWords: draftWords.map(w => w.id),
+        examCategory: 'TEPS',
+        status: 'pending',
+        progress: 0,
+        aiModel: 'copy_from_csat',
+        generateFields: ['etymology', 'mnemonic', 'examples', 'collocations'],
+      },
+    });
+
+    // Start background processing
+    processCopyJob(job.id).catch((error) => {
+      logger.error(`[Internal/CopyJob] Background job ${job.id} failed:`, error);
+    });
+
+    logger.info(`[Internal/CopyJob] Started copy job ${job.id} for ${draftWords.length} words`);
+
+    res.json({
+      message: `TEPS ${level} copy job started`,
+      jobId: job.id,
+      total: draftWords.length,
+      checkStatus: `/internal/copy-job-status?key=${key}&jobId=${job.id}`,
+    });
+  } catch (error) {
+    console.error('[Internal/CopyJob] Error:', error);
+    res.status(500).json({ error: 'Failed to start copy job', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/copy-job-status?key=YOUR_SECRET&jobId=xxx
+ * 복사 Job 진행 상황 확인
+ */
+router.get('/copy-job-status', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const jobId = req.query.jobId as string;
+    if (!jobId) {
+      // List recent jobs
+      const recentJobs = await prisma.contentGenerationJob.findMany({
+        where: { aiModel: 'copy_from_csat' },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          status: true,
+          progress: true,
+          inputWords: true,
+          createdAt: true,
+          completedAt: true,
+          errorMessage: true,
+        },
+      });
+
+      return res.json({
+        message: 'Recent copy jobs',
+        jobs: recentJobs.map(j => ({
+          id: j.id,
+          status: j.status,
+          progress: j.progress,
+          total: j.inputWords.length,
+          createdAt: j.createdAt,
+          completedAt: j.completedAt,
+          error: j.errorMessage,
+        })),
+      });
+    }
+
+    const job = await prisma.contentGenerationJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    const result = job.result as any;
+
+    res.json({
+      jobId: job.id,
+      status: job.status,
+      progress: job.progress,
+      total: job.inputWords.length,
+      processed: result?.processed || 0,
+      copied: result?.copied || 0,
+      skipped: result?.skipped || 0,
+      errors: result?.errorCount || 0,
+      createdAt: job.createdAt,
+      startedAt: job.startedAt,
+      completedAt: job.completedAt,
+      errorMessage: job.errorMessage,
+      recentErrors: result?.recentErrors?.slice(0, 5),
+    });
+  } catch (error) {
+    console.error('[Internal/CopyJobStatus] Error:', error);
+    res.status(500).json({ error: 'Failed to get job status', details: String(error) });
+  }
+});
+
+/**
+ * Background processor for copy jobs
+ * - Copies content from CSAT to TEPS
+ * - Updates progress in real-time
+ */
+async function processCopyJob(jobId: string): Promise<void> {
+  const job = await prisma.contentGenerationJob.findUnique({
+    where: { id: jobId },
+  });
+
+  if (!job) {
+    throw new Error(`Job not found: ${jobId}`);
+  }
+
+  try {
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: { status: 'processing', startedAt: new Date() },
+    });
+
+    const wordIds = job.inputWords;
+    const result = {
+      processed: 0,
+      copied: 0,
+      skipped: 0,
+      errorCount: 0,
+      recentErrors: [] as string[],
+    };
+
+    // Process in chunks to update progress regularly
+    const chunkSize = 50;
+
+    for (let i = 0; i < wordIds.length; i += chunkSize) {
+      const chunk = wordIds.slice(i, i + chunkSize);
+
+      for (const wordId of chunk) {
+        try {
+          // Get TEPS word
+          const word = await prisma.word.findUnique({
+            where: { id: wordId },
+            select: { id: true, word: true },
+          });
+
+          if (!word) {
+            result.skipped++;
+            result.processed++;
+            continue;
+          }
+
+          const normalized = word.word.toLowerCase().trim();
+
+          // Find matching CSAT word with content
+          const sourceWord = await prisma.word.findFirst({
+            where: {
+              word: { equals: normalized, mode: 'insensitive' },
+              examCategory: { not: 'TEPS' },
+              aiGeneratedAt: { not: null },
+            },
+            include: {
+              etymology: true,
+              mnemonics: true,
+              examples: true,
+              collocations: true,
+            },
+          });
+
+          if (!sourceWord) {
+            result.skipped++;
+            result.processed++;
+            continue;
+          }
+
+          // Copy content from source word
+          await prisma.word.update({
+            where: { id: word.id },
+            data: {
+              definition: sourceWord.definition,
+              definitionKo: sourceWord.definitionKo,
+              partOfSpeech: sourceWord.partOfSpeech,
+              pronunciation: sourceWord.pronunciation,
+              phonetic: sourceWord.phonetic,
+              ipaUs: sourceWord.ipaUs,
+              ipaUk: sourceWord.ipaUk,
+              tips: sourceWord.tips,
+              commonMistakes: sourceWord.commonMistakes,
+              prefix: sourceWord.prefix,
+              root: sourceWord.root,
+              suffix: sourceWord.suffix,
+              morphologyNote: sourceWord.morphologyNote,
+              synonymList: sourceWord.synonymList,
+              antonymList: sourceWord.antonymList,
+              rhymingWords: sourceWord.rhymingWords,
+              relatedWords: sourceWord.relatedWords,
+              status: 'PENDING_REVIEW',
+              aiGeneratedAt: new Date(),
+              aiModel: `copied_from_${sourceWord.examCategory}`,
+              aiPromptVersion: 'copy_v1',
+            },
+          });
+
+          // Copy related records
+          if (sourceWord.etymology) {
+            await prisma.etymology.upsert({
+              where: { wordId: word.id },
+              create: {
+                wordId: word.id,
+                origin: sourceWord.etymology.origin,
+                language: sourceWord.etymology.language,
+                rootWords: sourceWord.etymology.rootWords || [],
+                evolution: sourceWord.etymology.evolution,
+                relatedWords: sourceWord.etymology.relatedWords || [],
+                breakdown: sourceWord.etymology.breakdown,
+              },
+              update: {
+                origin: sourceWord.etymology.origin,
+                language: sourceWord.etymology.language,
+                rootWords: sourceWord.etymology.rootWords || [],
+                evolution: sourceWord.etymology.evolution,
+                relatedWords: sourceWord.etymology.relatedWords || [],
+                breakdown: sourceWord.etymology.breakdown,
+              },
+            });
+          }
+
+          // Copy mnemonics
+          for (const mnemonic of sourceWord.mnemonics) {
+            await prisma.mnemonic.create({
+              data: {
+                wordId: word.id,
+                title: mnemonic.title,
+                content: mnemonic.content,
+                koreanHint: mnemonic.koreanHint,
+                source: mnemonic.source,
+              },
+            });
+          }
+
+          // Copy examples
+          for (const example of sourceWord.examples) {
+            await prisma.example.create({
+              data: {
+                wordId: word.id,
+                sentence: example.sentence,
+                translation: example.translation,
+                source: example.source,
+              },
+            });
+          }
+
+          // Copy collocations
+          for (const collocation of sourceWord.collocations) {
+            await prisma.collocation.create({
+              data: {
+                wordId: word.id,
+                phrase: collocation.phrase,
+                translation: collocation.translation,
+                exampleEn: collocation.exampleEn,
+              },
+            });
+          }
+
+          result.copied++;
+          result.processed++;
+
+        } catch (error: any) {
+          result.errorCount++;
+          result.processed++;
+          if (result.recentErrors.length < 20) {
+            result.recentErrors.push(`${wordId}: ${error.message}`);
+          }
+          logger.error(`[CopyJob] Error processing ${wordId}:`, error);
+        }
+      }
+
+      // Update progress after each chunk
+      const progress = Math.round((result.processed / wordIds.length) * 100);
+      await prisma.contentGenerationJob.update({
+        where: { id: jobId },
+        data: { progress, result: result as any },
+      });
+
+      logger.info(`[CopyJob] ${jobId} progress: ${progress}% (${result.copied} copied, ${result.skipped} skipped)`);
+    }
+
+    // Mark as completed
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'completed',
+        progress: 100,
+        result: result as any,
+        completedAt: new Date(),
+      },
+    });
+
+    logger.info(`[CopyJob] ${jobId} completed: ${result.copied} copied, ${result.skipped} skipped, ${result.errorCount} errors`);
+
+  } catch (error) {
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        completedAt: new Date(),
+      },
+    });
+    throw error;
+  }
+}
+
+/**
  * GET /internal/teps-seed-status?key=YOUR_SECRET
  * TEPS 시드 현황 확인
  */
