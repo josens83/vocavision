@@ -2164,6 +2164,155 @@ router.get('/seed-teps-smart', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /internal/activate-teps-words?key=YOUR_SECRET&level=L1
+ * ARCHIVED 상태인 TEPS 단어들을 활성화 (DRAFT로 변경)
+ * - 새 TEPS 리스트에 있는 단어 중 ARCHIVED 상태인 것만 활성화
+ * - level 설정 및 examCategory 유지
+ */
+router.get('/activate-teps-words', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const level = (req.query.level as string) || 'L1';
+    const dryRun = req.query.dryRun === 'true';
+
+    if (!['L1', 'L2', 'L3'].includes(level)) {
+      return res.status(400).json({ error: 'Invalid level. Use L1, L2, or L3' });
+    }
+
+    // Load TEPS words for this level
+    const tepsData = loadTepsWords();
+    const levelKey = level as 'L1' | 'L2' | 'L3';
+    const targetWords = tepsData.levels[levelKey].words.map(w => w.toLowerCase().trim());
+
+    logger.info(`[Internal/Activate] Starting TEPS ${level} activation: ${targetWords.length} target words`);
+
+    // Find ARCHIVED TEPS words that are in the target list
+    const archivedWords = await prisma.word.findMany({
+      where: {
+        examCategory: 'TEPS',
+        status: 'ARCHIVED',
+        word: { in: targetWords, mode: 'insensitive' },
+      },
+      select: { id: true, word: true, aiGeneratedAt: true },
+    });
+
+    logger.info(`[Internal/Activate] Found ${archivedWords.length} ARCHIVED words to activate`);
+
+    // Find already active words (for reporting)
+    const activeWords = await prisma.word.findMany({
+      where: {
+        examCategory: 'TEPS',
+        status: { not: 'ARCHIVED' },
+        level,
+        word: { in: targetWords, mode: 'insensitive' },
+      },
+      select: { id: true, word: true },
+    });
+
+    if (dryRun) {
+      return res.json({
+        message: `[DRY RUN] Would activate ${archivedWords.length} ARCHIVED words for ${level}`,
+        dryRun: true,
+        summary: {
+          targetWords: targetWords.length,
+          archivedToActivate: archivedWords.length,
+          alreadyActive: activeWords.length,
+          withContent: archivedWords.filter(w => w.aiGeneratedAt).length,
+        },
+        sampleWords: archivedWords.slice(0, 20).map(w => w.word),
+      });
+    }
+
+    // Activate: change status from ARCHIVED to DRAFT (or PENDING_REVIEW if has content)
+    let activatedCount = 0;
+    let withContentCount = 0;
+    const errors: string[] = [];
+
+    for (const word of archivedWords) {
+      try {
+        const newStatus = word.aiGeneratedAt ? 'PENDING_REVIEW' : 'DRAFT';
+
+        await prisma.word.update({
+          where: { id: word.id },
+          data: {
+            status: newStatus,
+            level,
+          },
+        });
+
+        // Check if WordExamLevel mapping exists, create if not
+        const existingMapping = await prisma.wordExamLevel.findFirst({
+          where: {
+            wordId: word.id,
+            examCategory: 'TEPS',
+          },
+        });
+
+        if (existingMapping) {
+          // Update level
+          await prisma.wordExamLevel.update({
+            where: { id: existingMapping.id },
+            data: { level },
+          });
+        } else {
+          // Create new mapping
+          await prisma.wordExamLevel.create({
+            data: {
+              wordId: word.id,
+              examCategory: 'TEPS',
+              level,
+              frequency: 100,
+            },
+          });
+        }
+
+        activatedCount++;
+        if (word.aiGeneratedAt) withContentCount++;
+
+      } catch (error: any) {
+        errors.push(`${word.word}: ${error.message}`);
+        logger.error(`[Internal/Activate] Error activating ${word.word}:`, error);
+      }
+    }
+
+    logger.info(`[Internal/Activate] TEPS ${level} activation completed: ${activatedCount} activated, ${withContentCount} with content`);
+
+    // Get final counts
+    const finalActiveCount = await prisma.word.count({
+      where: {
+        examCategory: 'TEPS',
+        status: { not: 'ARCHIVED' },
+        level,
+      },
+    });
+
+    res.json({
+      message: `TEPS ${level} activation completed`,
+      summary: {
+        targetWords: targetWords.length,
+        archivedFound: archivedWords.length,
+        activated: activatedCount,
+        withContent: withContentCount,
+        alreadyActive: activeWords.length,
+        totalActiveNow: finalActiveCount,
+        errors: errors.length,
+      },
+      nextStep: finalActiveCount < targetWords.length
+        ? `아직 ${targetWords.length - finalActiveCount}개 부족. seed-teps-smart 호출 필요`
+        : `${level} 완료! 총 ${finalActiveCount}개 활성화됨`,
+      errors: errors.slice(0, 20),
+    });
+  } catch (error) {
+    console.error('[Internal/Activate] Error:', error);
+    res.status(500).json({ error: 'Activation failed', details: String(error) });
+  }
+});
+
+/**
  * GET /internal/teps-seed-status?key=YOUR_SECRET
  * TEPS 시드 현황 확인
  */
