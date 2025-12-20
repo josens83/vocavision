@@ -2759,7 +2759,7 @@ router.get('/generate-teps-content-smart', async (req: Request, res: Response) =
  * - 한 번 호출로 전체 레벨 처리
  * - 진행 상황은 /internal/copy-job-status로 확인
  */
-router.post('/start-teps-copy-job', async (req: Request, res: Response) => {
+router.get('/start-teps-copy-job', async (req: Request, res: Response) => {
   try {
     const key = req.query.key as string;
     if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
