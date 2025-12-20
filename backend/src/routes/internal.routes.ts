@@ -2443,6 +2443,294 @@ router.get('/reassign-teps-levels', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /internal/generate-teps-content-smart?key=YOUR_SECRET&level=L1&batchSize=20
+ * 스마트 TEPS 콘텐츠 생성:
+ * - CSAT(또는 다른 시험)에 같은 단어가 있고 콘텐츠가 있으면 복사
+ * - 없으면 Claude API로 생성
+ * - 배치 처리로 타임아웃 방지
+ */
+router.get('/generate-teps-content-smart', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const level = (req.query.level as string) || 'L1';
+    const batchSize = Math.min(parseInt(req.query.batchSize as string) || 20, 50);
+    const dryRun = req.query.dryRun === 'true';
+    const copyOnly = req.query.copyOnly === 'true'; // Only copy, don't generate
+
+    if (!['L1', 'L2', 'L3'].includes(level)) {
+      return res.status(400).json({ error: 'Invalid level. Use L1, L2, or L3' });
+    }
+
+    logger.info(`[Internal/SmartContent] Starting TEPS ${level} smart content (batchSize=${batchSize}, dryRun=${dryRun}, copyOnly=${copyOnly})`);
+
+    // Get DRAFT TEPS words that need content
+    const draftWords = await prisma.word.findMany({
+      where: {
+        examCategory: 'TEPS',
+        level,
+        status: 'DRAFT',
+        aiGeneratedAt: null,
+      },
+      select: { id: true, word: true },
+      orderBy: { word: 'asc' },
+      take: batchSize,
+    });
+
+    if (draftWords.length === 0) {
+      const remainingTotal = await prisma.word.count({
+        where: {
+          examCategory: 'TEPS',
+          status: 'DRAFT',
+          aiGeneratedAt: null,
+        },
+      });
+
+      return res.json({
+        message: `No DRAFT words in ${level} need content`,
+        level,
+        processed: 0,
+        remaining: remainingTotal,
+        hasMore: remainingTotal > 0,
+        nextLevel: level === 'L1' ? 'L2' : level === 'L2' ? 'L3' : null,
+      });
+    }
+
+    // Get remaining count for this level
+    const remainingCount = await prisma.word.count({
+      where: {
+        examCategory: 'TEPS',
+        level,
+        status: 'DRAFT',
+        aiGeneratedAt: null,
+      },
+    });
+
+    // Find matching words in CSAT (or other exams) with content
+    const wordTexts = draftWords.map(w => w.word.toLowerCase().trim());
+
+    const sourceWords = await prisma.word.findMany({
+      where: {
+        word: { in: wordTexts, mode: 'insensitive' },
+        examCategory: { not: 'TEPS' },
+        aiGeneratedAt: { not: null },
+      },
+      include: {
+        etymology: true,
+        mnemonics: true,
+        examples: true,
+        collocations: true,
+        synonyms: true,
+        antonyms: true,
+        rhymes: true,
+      },
+    });
+
+    // Create a map for quick lookup
+    const sourceMap = new Map<string, typeof sourceWords[0]>();
+    for (const sw of sourceWords) {
+      sourceMap.set(sw.word.toLowerCase().trim(), sw);
+    }
+
+    logger.info(`[Internal/SmartContent] Found ${sourceWords.length} source words with content`);
+
+    const result = {
+      processed: 0,
+      copied: 0,
+      queued: 0,
+      skipped: 0,
+      errors: [] as string[],
+      details: [] as { word: string; action: string; source?: string }[],
+    };
+
+    const wordsToGenerate: string[] = [];
+
+    for (const word of draftWords) {
+      const normalized = word.word.toLowerCase().trim();
+      const sourceWord = sourceMap.get(normalized);
+
+      if (dryRun) {
+        if (sourceWord) {
+          result.details.push({
+            word: normalized,
+            action: 'would_copy',
+            source: sourceWord.examCategory,
+          });
+          result.copied++;
+        } else if (!copyOnly) {
+          result.details.push({ word: normalized, action: 'would_generate' });
+          result.queued++;
+        } else {
+          result.details.push({ word: normalized, action: 'would_skip' });
+          result.skipped++;
+        }
+        result.processed++;
+        continue;
+      }
+
+      if (sourceWord) {
+        // Copy content from source word
+        try {
+          await prisma.word.update({
+            where: { id: word.id },
+            data: {
+              definition: sourceWord.definition,
+              pronunciation: sourceWord.pronunciation,
+              phonetic: sourceWord.phonetic,
+              ipaUs: sourceWord.ipaUs,
+              ipaUk: sourceWord.ipaUk,
+              tips: sourceWord.tips,
+              commonMistakes: sourceWord.commonMistakes,
+              prefix: sourceWord.prefix,
+              root: sourceWord.root,
+              suffix: sourceWord.suffix,
+              morphologyNote: sourceWord.morphologyNote,
+              synonymList: sourceWord.synonymList,
+              antonymList: sourceWord.antonymList,
+              rhymingWords: sourceWord.rhymingWords,
+              relatedWords: sourceWord.relatedWords,
+              status: 'PENDING_REVIEW',
+              aiGeneratedAt: new Date(),
+              aiModel: `copied_from_${sourceWord.examCategory}`,
+              aiPromptVersion: 'copy_v1',
+            },
+          });
+
+          // Copy related records
+          if (sourceWord.etymology) {
+            await prisma.etymology.upsert({
+              where: { wordId: word.id },
+              create: {
+                wordId: word.id,
+                origin: sourceWord.etymology.origin,
+                components: sourceWord.etymology.components || [],
+                story: sourceWord.etymology.story,
+              },
+              update: {
+                origin: sourceWord.etymology.origin,
+                components: sourceWord.etymology.components || [],
+                story: sourceWord.etymology.story,
+              },
+            });
+          }
+
+          // Copy mnemonics
+          for (const mnemonic of sourceWord.mnemonics) {
+            await prisma.mnemonic.create({
+              data: {
+                wordId: word.id,
+                type: mnemonic.type,
+                content: mnemonic.content,
+                hint: mnemonic.hint,
+              },
+            });
+          }
+
+          // Copy examples
+          for (const example of sourceWord.examples) {
+            await prisma.example.create({
+              data: {
+                wordId: word.id,
+                sentence: example.sentence,
+                translation: example.translation,
+                context: example.context,
+              },
+            });
+          }
+
+          // Copy collocations
+          for (const collocation of sourceWord.collocations) {
+            await prisma.collocation.create({
+              data: {
+                wordId: word.id,
+                phrase: collocation.phrase,
+                meaning: collocation.meaning,
+                example: collocation.example,
+              },
+            });
+          }
+
+          result.copied++;
+          result.details.push({
+            word: normalized,
+            action: 'copied',
+            source: sourceWord.examCategory,
+          });
+
+        } catch (error: any) {
+          result.errors.push(`${normalized}: ${error.message}`);
+          logger.error(`[Internal/SmartContent] Error copying ${normalized}:`, error);
+        }
+      } else if (!copyOnly) {
+        // Queue for generation
+        wordsToGenerate.push(word.id);
+        result.queued++;
+        result.details.push({ word: normalized, action: 'queued' });
+      } else {
+        result.skipped++;
+        result.details.push({ word: normalized, action: 'skipped' });
+      }
+
+      result.processed++;
+    }
+
+    // If there are words to generate, create a job
+    let jobId: string | null = null;
+    if (wordsToGenerate.length > 0 && !dryRun) {
+      const job = await prisma.contentGenerationJob.create({
+        data: {
+          inputWords: wordsToGenerate,
+          examCategory: 'TEPS',
+          cefrLevel: level === 'L1' ? 'B1' : level === 'L2' ? 'B2' : 'C1',
+          status: 'pending',
+          progress: 0,
+        },
+      });
+      jobId = job.id;
+
+      // Start processing in background
+      processGenerationJob(job.id).catch((error) => {
+        logger.error(`[Internal/SmartContent] Background job ${job.id} failed:`, error);
+      });
+
+      logger.info(`[Internal/SmartContent] Started generation job ${job.id} for ${wordsToGenerate.length} words`);
+    }
+
+    const hasMore = remainingCount - result.processed > 0;
+
+    logger.info(`[Internal/SmartContent] TEPS ${level} completed: copied=${result.copied}, queued=${result.queued}, skipped=${result.skipped}`);
+
+    res.json({
+      message: `TEPS ${level} smart content ${dryRun ? '(DRY RUN) ' : ''}completed`,
+      dryRun,
+      copyOnly,
+      level,
+      summary: {
+        processed: result.processed,
+        copied: result.copied,
+        queued: result.queued,
+        skipped: result.skipped,
+        errors: result.errors.length,
+      },
+      remaining: remainingCount - result.processed,
+      hasMore,
+      jobId,
+      nextStep: hasMore
+        ? `남은 ${remainingCount - result.processed}개 처리: 같은 URL 다시 호출`
+        : `${level} 완료! 다음 레벨 진행`,
+      errors: result.errors.slice(0, 20),
+      details: dryRun ? result.details : undefined,
+    });
+  } catch (error) {
+    console.error('[Internal/SmartContent] Error:', error);
+    res.status(500).json({ error: 'Smart content generation failed', details: String(error) });
+  }
+});
+
+/**
  * GET /internal/teps-seed-status?key=YOUR_SECRET
  * TEPS 시드 현황 확인
  */
