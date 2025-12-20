@@ -2799,7 +2799,8 @@ router.post('/start-teps-copy-job', async (req: Request, res: Response) => {
     if (dryRun) {
       // Group by level for summary
       const byLevel = draftWords.reduce((acc, w) => {
-        acc[w.level] = (acc[w.level] || 0) + 1;
+        const lvl = w.level || 'unknown';
+        acc[lvl] = (acc[lvl] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
