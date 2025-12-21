@@ -55,6 +55,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'https://vocavision-web.vercel.app',
+  'https://vocavision.kr',
+  'https://www.vocavision.kr',
   process.env.CORS_ORIGIN,
 ].filter(Boolean) as string[];
 

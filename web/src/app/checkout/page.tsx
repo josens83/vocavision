@@ -96,7 +96,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
   const fetchPackageInfo = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/packages/${packageSlug}`
+        `${process.env.NEXT_PUBLIC_API_URL}/packages/${packageSlug}`
       );
       if (!response.ok) throw new Error("패키지를 찾을 수 없습니다.");
       const data = await response.json();
