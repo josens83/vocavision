@@ -3130,6 +3130,221 @@ async function processCopyJob(jobId: string): Promise<void> {
 }
 
 /**
+ * GET /internal/start-teps-generate-job?key=YOUR_SECRET&level=all
+ * TEPS AI 콘텐츠 생성 백그라운드 Job 시작
+ * - DRAFT 상태인 TEPS 단어에 대해 Claude API로 콘텐츠 생성
+ * - 진행 상황은 /internal/generate-job-status로 확인
+ */
+router.get('/start-teps-generate-job', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const level = (req.query.level as string) || 'all';
+    const dryRun = req.query.dryRun === 'true';
+    const limit = parseInt(req.query.limit as string) || 0; // 0 = no limit
+
+    // Build where clause
+    const whereClause: any = {
+      examCategory: 'TEPS',
+      status: 'DRAFT',
+      aiGeneratedAt: null,
+    };
+
+    if (level !== 'all') {
+      if (!['L1', 'L2', 'L3'].includes(level)) {
+        return res.status(400).json({ error: 'Invalid level. Use L1, L2, L3, or all' });
+      }
+      whereClause.level = level;
+    }
+
+    // Get DRAFT words that need AI generation
+    const query: any = {
+      where: whereClause,
+      select: { id: true, word: true, level: true },
+      orderBy: [{ level: 'asc' }, { word: 'asc' }],
+    };
+
+    if (limit > 0) {
+      query.take = limit;
+    }
+
+    const draftWords = await prisma.word.findMany(query);
+
+    if (draftWords.length === 0) {
+      return res.json({
+        message: `No DRAFT words need AI generation for ${level}`,
+        total: 0,
+      });
+    }
+
+    if (dryRun) {
+      const byLevel = draftWords.reduce((acc, w) => {
+        const lvl = w.level || 'unknown';
+        acc[lvl] = (acc[lvl] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const estimatedCost = (draftWords.length * 0.03).toFixed(2);
+
+      return res.json({
+        message: 'DRY RUN - Job not started',
+        dryRun: true,
+        level,
+        total: draftWords.length,
+        byLevel,
+        estimatedCost: `~$${estimatedCost}`,
+        sampleWords: draftWords.slice(0, 10).map(w => w.word),
+      });
+    }
+
+    // Create job record
+    const job = await prisma.contentGenerationJob.create({
+      data: {
+        inputWords: draftWords.map(w => w.id),
+        examCategory: 'TEPS',
+        cefrLevel: level === 'L1' ? 'B1' : level === 'L2' ? 'B2' : 'C1',
+        status: 'pending',
+        progress: 0,
+        aiModel: 'claude-sonnet-4-20250514',
+        generateFields: ['definition', 'etymology', 'mnemonic', 'examples', 'collocations'],
+      },
+    });
+
+    // Start background processing using existing processGenerationJob
+    processGenerationJob(job.id).catch((error) => {
+      logger.error(`[Internal/GenerateJob] Background job ${job.id} failed:`, error);
+    });
+
+    const estimatedCost = (draftWords.length * 0.03).toFixed(2);
+    const estimatedMinutes = Math.ceil(draftWords.length * 1.5 / 60); // ~1.5 sec per word
+
+    logger.info(`[Internal/GenerateJob] Started AI generation job ${job.id} for ${draftWords.length} words`);
+
+    res.json({
+      message: `TEPS ${level} AI generation job started`,
+      jobId: job.id,
+      total: draftWords.length,
+      estimatedCost: `~$${estimatedCost}`,
+      estimatedTime: `~${estimatedMinutes} minutes`,
+      checkStatus: `/internal/generate-job-status?key=${key}&jobId=${job.id}`,
+      warning: 'This will call Claude API and incur costs!',
+    });
+  } catch (error) {
+    console.error('[Internal/GenerateJob] Error:', error);
+    res.status(500).json({ error: 'Failed to start generate job', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/generate-job-status?key=YOUR_SECRET&jobId=xxx
+ * AI 생성 Job 진행 상황 확인
+ */
+router.get('/generate-job-status', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const jobId = req.query.jobId as string;
+    if (!jobId) {
+      // List recent AI generation jobs
+      const recentJobs = await prisma.contentGenerationJob.findMany({
+        where: {
+          aiModel: { not: 'copy_from_csat' },
+          examCategory: 'TEPS',
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          status: true,
+          progress: true,
+          inputWords: true,
+          createdAt: true,
+          startedAt: true,
+          completedAt: true,
+          errorMessage: true,
+        },
+      });
+
+      return res.json({
+        message: 'Recent AI generation jobs',
+        jobs: recentJobs.map(j => ({
+          id: j.id,
+          status: j.status,
+          progress: j.progress,
+          total: j.inputWords.length,
+          createdAt: j.createdAt,
+          startedAt: j.startedAt,
+          completedAt: j.completedAt,
+          error: j.errorMessage,
+        })),
+      });
+    }
+
+    const job = await prisma.contentGenerationJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    const result = job.result as any;
+    const successCount = Array.isArray(result)
+      ? result.filter((r: any) => r.success).length
+      : 0;
+    const failCount = Array.isArray(result)
+      ? result.filter((r: any) => !r.success).length
+      : 0;
+
+    // Calculate elapsed time
+    let elapsedMinutes = 0;
+    if (job.startedAt) {
+      const endTime = job.completedAt || new Date();
+      elapsedMinutes = Math.round((endTime.getTime() - job.startedAt.getTime()) / 60000);
+    }
+
+    // Estimate remaining time
+    let estimatedRemaining = 'calculating...';
+    if (job.progress > 0 && job.progress < 100) {
+      const totalWords = job.inputWords.length;
+      const processedWords = Math.round(totalWords * job.progress / 100);
+      const remainingWords = totalWords - processedWords;
+      const avgSecsPerWord = (elapsedMinutes * 60) / processedWords;
+      const remainingMins = Math.ceil(remainingWords * avgSecsPerWord / 60);
+      estimatedRemaining = `~${remainingMins} minutes`;
+    }
+
+    res.json({
+      jobId: job.id,
+      status: job.status,
+      progress: job.progress,
+      total: job.inputWords.length,
+      success: successCount,
+      failed: failCount,
+      elapsedMinutes,
+      estimatedRemaining: job.status === 'processing' ? estimatedRemaining : undefined,
+      createdAt: job.createdAt,
+      startedAt: job.startedAt,
+      completedAt: job.completedAt,
+      errorMessage: job.errorMessage,
+      // Show recent failures
+      recentFailures: Array.isArray(result)
+        ? result.filter((r: any) => !r.success).slice(-5).map((r: any) => ({ word: r.word, error: r.error }))
+        : [],
+    });
+  } catch (error) {
+    console.error('[Internal/GenerateJobStatus] Error:', error);
+    res.status(500).json({ error: 'Failed to get job status', details: String(error) });
+  }
+});
+
+/**
  * GET /internal/teps-seed-status?key=YOUR_SECRET
  * TEPS 시드 현황 확인
  */
