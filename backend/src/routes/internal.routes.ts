@@ -3345,6 +3345,145 @@ router.get('/generate-job-status', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /internal/seed-teps-package?key=YOUR_SECRET
+ * TEPS 빈출 100 단품 상품 생성
+ */
+router.get('/seed-teps-package', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const dryRun = req.query.dryRun === 'true';
+
+    // TEPS 최다 빈출 105개 단어
+    const tepsTop100Words = [
+      'abate', 'abdicate', 'aberration', 'abhorrence', 'acquit',
+      'adherent', 'admonition', 'adulation', 'agitate', 'altruistic',
+      'ambivalent', 'amnesty', 'apathetic', 'appease', 'audacity',
+      'belligerence', 'beneficiary', 'benign', 'bereavement', 'brandish',
+      'cajole', 'circumspect', 'circumvent', 'clandestine', 'coercion',
+      'complacency', 'concession', 'confiscate', 'congenial', 'consolidate',
+      'contemplate', 'contravene', 'corroborate', 'covert', 'cumbersome',
+      'daunt', 'decadence', 'deference', 'deleterious', 'destitute',
+      'deteriorate', 'devour', 'dexterity', 'disperse', 'divulge',
+      'dormant', 'ebullience', 'elucidate', 'emancipation', 'embezzlement',
+      'emulate', 'endemic', 'enigmatic', 'envisage', 'esoteric',
+      'euphoria', 'exonerate', 'exorbitant', 'expunge', 'fabricate',
+      'fallible', 'felicitous', 'fiasco', 'fidelity', 'fluctuate',
+      'frugal', 'genocide', 'glitch', 'gregarious', 'harbinger',
+      'heinous', 'hiatus', 'hierarchy', 'ignominious', 'impetuous',
+      'incarcerate', 'inculcate', 'infatuated', 'insinuation', 'insurgency',
+      'jurisdiction', 'lethargic', 'loathe', 'lucid', 'malleable',
+      'mortify', 'nonchalant', 'nullify', 'obdurate', 'oppressive',
+      'panacea', 'perpetuate', 'plausible', 'plummet', 'precarious',
+      'predilection', 'promulgate', 'prosecute', 'ratify', 'rebuke',
+      'redundant', 'reimburse', 'reiterate', 'relinquish', 'remorse',
+      'resilient', 'reticent', 'sabotage', 'scrutiny', 'sporadic',
+      'squander', 'stringent', 'substantiate', 'tenacious', 'thwart',
+      'ubiquitous', 'undermine', 'unruly', 'vindictive', 'volatile',
+      'wade', 'walkout', 'wheedle', 'windfall', 'withstand', 'wrath', 'yield'
+    ];
+
+    // Find words in database
+    const foundWords = await prisma.word.findMany({
+      where: {
+        word: { in: tepsTop100Words, mode: 'insensitive' },
+        examCategory: 'TEPS',
+      },
+      select: { id: true, word: true },
+    });
+
+    const foundWordMap = new Map(foundWords.map(w => [w.word.toLowerCase(), w.id]));
+    const missingWords = tepsTop100Words.filter(w => !foundWordMap.has(w.toLowerCase()));
+
+    if (dryRun) {
+      return res.json({
+        message: 'DRY RUN - Package not created',
+        dryRun: true,
+        totalWords: tepsTop100Words.length,
+        foundInDB: foundWords.length,
+        missing: missingWords.length,
+        missingWords: missingWords.slice(0, 20),
+        sampleFound: foundWords.slice(0, 10).map(w => w.word),
+      });
+    }
+
+    // Check if package already exists
+    const existingPackage = await prisma.productPackage.findUnique({
+      where: { slug: 'teps-top-100' },
+    });
+
+    if (existingPackage) {
+      // Update word mappings if needed
+      const existingMappings = await prisma.productPackageWord.count({
+        where: { packageId: existingPackage.id },
+      });
+
+      return res.json({
+        message: 'Package already exists',
+        package: {
+          id: existingPackage.id,
+          name: existingPackage.name,
+          slug: existingPackage.slug,
+          price: existingPackage.price,
+          wordCount: existingMappings,
+        },
+      });
+    }
+
+    // Create package
+    const newPackage = await prisma.productPackage.create({
+      data: {
+        name: 'TEPS 최다 빈출 100',
+        slug: 'teps-top-100',
+        description: 'TEPS 시험에 가장 자주 출제되는 핵심 어휘 105개를 엄선했습니다. 고득점을 위한 필수 단어장!',
+        shortDesc: 'TEPS 고득점 필수 어휘',
+        price: 3900,
+        durationDays: 365,
+        badge: 'BEST',
+        badgeColor: '#10B981', // green
+        displayOrder: 1,
+        isActive: true,
+      },
+    });
+
+    // Create word mappings
+    const wordMappings = foundWords.map((word, index) => ({
+      packageId: newPackage.id,
+      wordId: word.id,
+      displayOrder: index,
+    }));
+
+    await prisma.productPackageWord.createMany({
+      data: wordMappings,
+    });
+
+    logger.info(`[Internal/SeedPackage] Created package ${newPackage.id} with ${wordMappings.length} words`);
+
+    res.json({
+      message: 'Package created successfully',
+      package: {
+        id: newPackage.id,
+        name: newPackage.name,
+        slug: newPackage.slug,
+        price: newPackage.price,
+      },
+      words: {
+        total: tepsTop100Words.length,
+        linked: wordMappings.length,
+        missing: missingWords.length,
+        missingWords: missingWords,
+      },
+    });
+  } catch (error) {
+    console.error('[Internal/SeedPackage] Error:', error);
+    res.status(500).json({ error: 'Failed to seed package', details: String(error) });
+  }
+});
+
+/**
  * GET /internal/teps-seed-status?key=YOUR_SECRET
  * TEPS 시드 현황 확인
  */

@@ -58,6 +58,7 @@ model User {
   notifications Notification[]
   decks         Deck[]
   leagueMemberships LeagueMembership[]
+  purchases     UserPurchase[]
 
   // Notification Preferences
   emailNotifications    Boolean @default(true)
@@ -159,6 +160,7 @@ model Word {
   collocations Collocation[]
   progress    UserProgress[]
   examLevels  WordExamLevel[]  // 다중 시험/레벨 매핑
+  productPackages ProductPackageWord[]  // 단품 상품 매핑
 
   @@unique([word, examCategory])  // 같은 단어를 여러 시험에 추가 가능
   @@index([word])
@@ -969,6 +971,9 @@ model Payment {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
+  // Relations
+  purchase      UserPurchase?
+
   @@index([userId])
   @@index([status])
   @@index([createdAt])
@@ -979,5 +984,103 @@ enum PaymentStatus {
   COMPLETED     // 결제 완료
   FAILED        // 결제 실패
   CANCELLED     // 결제 취소
+  REFUNDED      // 환불됨
+}
+
+// ============================================
+// Product Packages (단품 상품)
+// ============================================
+
+model ProductPackage {
+  id            String    @id @default(uuid())
+
+  // 상품 정보
+  name          String                 // "TEPS 최다 빈출 100"
+  slug          String    @unique      // "teps-top-100" (URL용)
+  description   String?                // 상품 설명
+  shortDesc     String?                // 카드에 표시할 짧은 설명
+
+  // 가격
+  price         Int                    // 가격 (원)
+  originalPrice Int?                   // 정가 (할인 전, 할인 표시용)
+
+  // 이용 기간
+  durationDays  Int                    // 이용 기간 (일) - 예: 365
+
+  // 표시 정보
+  badge         String?                // "BEST", "NEW", "EVENT"
+  badgeColor    String?                // 배지 색상
+  imageUrl      String?                // 상품 이미지
+  displayOrder  Int       @default(0)  // 표시 순서
+
+  // 상태
+  isActive      Boolean   @default(true)
+  isComingSoon  Boolean   @default(false)
+
+  // 타임스탬프
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  words         ProductPackageWord[]
+  purchases     UserPurchase[]
+
+  @@index([isActive])
+  @@index([displayOrder])
+}
+
+model ProductPackageWord {
+  id          String    @id @default(uuid())
+  packageId   String
+  wordId      String
+  displayOrder Int      @default(0)  // 단어 표시 순서
+
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  package     ProductPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  word        Word           @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, wordId])
+  @@index([packageId])
+  @@index([wordId])
+}
+
+model UserPurchase {
+  id            String    @id @default(uuid())
+  visibleId     String    @unique @default(cuid())  // 사용자에게 표시되는 주문번호
+
+  userId        String
+  packageId     String
+
+  // 결제 정보
+  paymentId     String?   @unique  // Payment 테이블 연결
+  amount        Int                 // 결제 금액
+
+  // 이용 기간
+  purchasedAt   DateTime  @default(now())
+  expiresAt     DateTime            // 만료일
+
+  // 상태
+  status        PurchaseStatus @default(ACTIVE)
+
+  // 타임스탬프
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package       ProductPackage @relation(fields: [packageId], references: [id])
+  payment       Payment?       @relation(fields: [paymentId], references: [id])
+
+  @@index([userId])
+  @@index([packageId])
+  @@index([expiresAt])
+  @@index([status])
+}
+
+enum PurchaseStatus {
+  ACTIVE        // 이용 중
+  EXPIRED       // 만료됨
   REFUNDED      // 환불됨
 }
