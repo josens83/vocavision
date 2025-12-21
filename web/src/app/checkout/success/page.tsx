@@ -19,6 +19,12 @@ function SuccessContent() {
   const plan = searchParams.get("plan");
   const billingCycle = searchParams.get("billingCycle");
   const userId = searchParams.get("userId");
+  // 패키지 구매용 파라미터
+  const type = searchParams.get("type");
+  const packageSlug = searchParams.get("packageSlug");
+  const packageId = searchParams.get("packageId");
+
+  const isPackagePurchase = type === "package";
 
   useEffect(() => {
     async function processPayment() {
@@ -37,6 +43,10 @@ function SuccessContent() {
             plan: plan || undefined,
             billingCycle: billingCycle || undefined,
             userId: userId || undefined,
+            // 패키지 구매용
+            type: type || undefined,
+            packageSlug: packageSlug || undefined,
+            packageId: packageId || undefined,
           }
         );
 
@@ -54,7 +64,7 @@ function SuccessContent() {
     }
 
     processPayment();
-  }, [paymentKey, orderId, amount, plan, billingCycle, userId]);
+  }, [paymentKey, orderId, amount, plan, billingCycle, userId, type, packageSlug, packageId]);
 
   return (
     <div className="max-w-md w-full mx-auto px-4">
@@ -78,14 +88,16 @@ function SuccessContent() {
               결제가 완료되었습니다!
             </h1>
             <p className="text-gray-600 mb-6">
-              VocaVision 프리미엄 서비스를 이용해주셔서 감사합니다.
+              {isPackagePurchase
+                ? "단품 구매가 완료되었습니다. 지금 바로 학습을 시작하세요!"
+                : "VocaVision 프리미엄 서비스를 이용해주셔서 감사합니다."}
             </p>
             <div className="space-y-3">
               <Link
-                href="/mypage"
+                href={isPackagePurchase ? "/" : "/mypage"}
                 className="block w-full py-3 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
               >
-                내 구독 확인하기
+                {isPackagePurchase ? "학습 시작하기" : "내 구독 확인하기"}
               </Link>
               <Link
                 href="/"

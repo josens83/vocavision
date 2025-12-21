@@ -26,9 +26,14 @@ interface PaymentRequest {
 }
 
 interface PaymentRequestWithParams extends PaymentRequest {
-  plan: string;
-  billingCycle: string;
   userId: string;
+  // 구독 결제용
+  plan?: string;
+  billingCycle?: string;
+  // 패키지 구매용
+  packageSlug?: string;
+  packageId?: string;
+  isPackagePurchase?: boolean;
 }
 
 interface TossPayments {
@@ -120,14 +125,22 @@ export async function requestPayment(request: PaymentRequest): Promise<void> {
 }
 
 /**
- * 결제 요청 (plan/billingCycle/userId 포함)
+ * 결제 요청 (구독 또는 패키지 구매)
  * successUrl에 추가 파라미터를 포함하여 백엔드에서 사용자 정보 확인 가능
  */
 export async function requestPaymentWithParams(request: PaymentRequestWithParams): Promise<void> {
   const tossPayments = await loadTossPaymentsSDK();
 
-  // successUrl에 plan, billingCycle, userId 파라미터 추가
-  const successUrlWithParams = `${SUCCESS_URL}?plan=${request.plan}&billingCycle=${request.billingCycle}&userId=${encodeURIComponent(request.userId)}`;
+  // successUrl 파라미터 구성
+  let successUrlWithParams: string;
+
+  if (request.isPackagePurchase) {
+    // 패키지 구매용 URL
+    successUrlWithParams = `${SUCCESS_URL}?type=package&packageSlug=${request.packageSlug}&packageId=${request.packageId}&userId=${encodeURIComponent(request.userId)}`;
+  } else {
+    // 구독 결제용 URL
+    successUrlWithParams = `${SUCCESS_URL}?plan=${request.plan}&billingCycle=${request.billingCycle}&userId=${encodeURIComponent(request.userId)}`;
+  }
 
   await tossPayments.requestPayment("카드", {
     amount: request.amount,
@@ -167,6 +180,10 @@ export async function confirmPayment(
     plan?: string;
     billingCycle?: string;
     userId?: string;
+    // 패키지 구매용
+    type?: string;
+    packageSlug?: string;
+    packageId?: string;
   }
 ): Promise<{ success: boolean; error?: string; data?: any }> {
   try {
@@ -200,6 +217,10 @@ export async function confirmPayment(
         ...(additionalParams?.plan && { plan: additionalParams.plan }),
         ...(additionalParams?.billingCycle && { billingCycle: additionalParams.billingCycle }),
         ...(additionalParams?.userId && { userId: additionalParams.userId }),
+        // 패키지 구매용
+        ...(additionalParams?.type && { type: additionalParams.type }),
+        ...(additionalParams?.packageSlug && { packageSlug: additionalParams.packageSlug }),
+        ...(additionalParams?.packageId && { packageId: additionalParams.packageId }),
       }),
     });
 
