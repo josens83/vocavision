@@ -3971,9 +3971,13 @@ router.post('/migrate-word-pool', async (req, res) => {
       stats,
       nextStep: 'Run /internal/merge-duplicates to actually merge duplicate words',
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Internal/MigrateWordPool] Error:', error);
-    res.status(500).json({ error: 'Migration failed' });
+    res.status(500).json({
+      error: 'Migration failed',
+      message: error?.message || 'Unknown error',
+      details: error?.meta || error?.code || null
+    });
   }
 });
 
