@@ -223,35 +223,6 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
               </div>
             </div>
 
-            {/* 포함된 단어 미리보기 */}
-            {packageInfo.previewWords && packageInfo.previewWords.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  포함된 단어 미리보기
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {packageInfo.previewWords.slice(0, 4).map((word, index) => (
-                    <div
-                      key={index}
-                      className="p-3 bg-gray-50 rounded-lg text-sm"
-                    >
-                      <div className="font-medium text-gray-900">
-                        {word.word}
-                      </div>
-                      {word.definitionKo && (
-                        <div className="text-gray-500 text-xs mt-1 truncate">
-                          {word.definitionKo}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-center text-sm text-gray-500 mt-4">
-                  외 {packageInfo.wordCount - 4}개 단어 더 포함
-                </p>
-              </div>
-            )}
-
             {/* 이용 안내 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
