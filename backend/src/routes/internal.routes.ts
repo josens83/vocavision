@@ -3484,6 +3484,127 @@ router.get('/seed-teps-package', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /internal/add-missing-package-words?key=YOUR_SECRET
+ * 단품 패키지에 필요한 누락 단어 추가
+ */
+router.get('/add-missing-package-words', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const dryRun = req.query.dryRun === 'true';
+
+    // TEPS 빈출 100 전체 리스트
+    const tepsTop100Words = [
+      'abate', 'abdicate', 'aberration', 'abhorrence', 'acquit',
+      'adherent', 'admonition', 'adulation', 'agitate', 'altruistic',
+      'ambivalent', 'amnesty', 'apathetic', 'appease', 'audacity',
+      'belligerence', 'beneficiary', 'benign', 'bereavement', 'brandish',
+      'cajole', 'circumspect', 'circumvent', 'clandestine', 'coercion',
+      'complacency', 'concession', 'confiscate', 'congenial', 'consolidate',
+      'contemplate', 'contravene', 'corroborate', 'covert', 'cumbersome',
+      'daunt', 'decadence', 'deference', 'deleterious', 'destitute',
+      'deteriorate', 'devour', 'dexterity', 'disperse', 'divulge',
+      'dormant', 'ebullience', 'elucidate', 'emancipation', 'embezzlement',
+      'emulate', 'endemic', 'enigmatic', 'envisage', 'esoteric',
+      'euphoria', 'exonerate', 'exorbitant', 'expunge', 'fabricate',
+      'fallible', 'felicitous', 'fiasco', 'fidelity', 'fluctuate',
+      'frugal', 'genocide', 'glitch', 'gregarious', 'harbinger',
+      'heinous', 'hiatus', 'hierarchy', 'ignominious', 'impetuous',
+      'incarcerate', 'inculcate', 'infatuated', 'insinuation', 'insurgency',
+      'jurisdiction', 'lethargic', 'loathe', 'lucid', 'malleable',
+      'mortify', 'nonchalant', 'nullify', 'obdurate', 'oppressive',
+      'panacea', 'perpetuate', 'plausible', 'plummet', 'precarious',
+      'predilection', 'promulgate', 'prosecute', 'ratify', 'rebuke',
+      'redundant', 'reimburse', 'reiterate', 'relinquish', 'remorse',
+      'resilient', 'reticent', 'sabotage', 'scrutiny', 'sporadic',
+      'squander', 'stringent', 'substantiate', 'tenacious', 'thwart',
+      'ubiquitous', 'undermine', 'unruly', 'vindictive', 'volatile',
+      'wade', 'walkout', 'wheedle', 'windfall', 'withstand', 'wrath', 'yield'
+    ];
+
+    // Find existing TEPS words
+    const existingWords = await prisma.word.findMany({
+      where: {
+        word: { in: tepsTop100Words, mode: 'insensitive' },
+        examCategory: 'TEPS',
+      },
+      select: { word: true },
+    });
+
+    const existingSet = new Set(existingWords.map(w => w.word.toLowerCase()));
+    const missingWords = tepsTop100Words.filter(w => !existingSet.has(w.toLowerCase()));
+
+    if (dryRun) {
+      return res.json({
+        message: 'DRY RUN - Words not added',
+        dryRun: true,
+        totalRequired: tepsTop100Words.length,
+        existing: existingWords.length,
+        missing: missingWords.length,
+        missingWords: missingWords,
+      });
+    }
+
+    if (missingWords.length === 0) {
+      return res.json({
+        message: 'No missing words to add',
+        existing: existingWords.length,
+      });
+    }
+
+    // Add missing words
+    const created: string[] = [];
+    const errors: string[] = [];
+
+    for (const word of missingWords) {
+      try {
+        await prisma.word.create({
+          data: {
+            word: word.toLowerCase(),
+            definition: '',
+            definitionKo: '',
+            partOfSpeech: 'NOUN', // Default, will be updated by AI
+            examCategory: 'TEPS',
+            cefrLevel: 'C1', // 고급 어휘
+            level: 'L1',
+            difficulty: 'ADVANCED',
+            status: 'DRAFT',
+            frequency: 100,
+          },
+        });
+        created.push(word);
+      } catch (error: any) {
+        if (error.code === 'P2002') {
+          // Already exists (unique constraint)
+          errors.push(`${word}: already exists`);
+        } else {
+          errors.push(`${word}: ${error.message}`);
+        }
+      }
+    }
+
+    logger.info(`[Internal/AddMissingWords] Added ${created.length} words, ${errors.length} errors`);
+
+    res.json({
+      message: `Added ${created.length} missing words`,
+      created: created.length,
+      createdWords: created,
+      errors: errors.length,
+      errorDetails: errors,
+      nextStep: created.length > 0
+        ? 'Run AI generation job: /internal/start-teps-generate-job?key=...&level=L1'
+        : null,
+    });
+  } catch (error) {
+    console.error('[Internal/AddMissingWords] Error:', error);
+    res.status(500).json({ error: 'Failed to add missing words', details: String(error) });
+  }
+});
+
+/**
  * GET /internal/teps-seed-status?key=YOUR_SECRET
  * TEPS 시드 현황 확인
  */
