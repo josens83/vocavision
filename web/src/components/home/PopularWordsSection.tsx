@@ -306,24 +306,25 @@ function WordCardSkeleton() {
   );
 }
 
-// 샘플 데이터 (API 연동 전 사용) - Unsplash 이미지 포함
+// 샘플 데이터 (API 연동 전 사용) - 실제 학습 데이터와 동일한 형식
+// 실제 데이터는 DB의 Word.conceptImage 또는 Word.mnemonicImage 사용
 export const sampleBestWords: Word[] = [
-  { id: "1", word: "ubiquitous", definition: "어디에나 있는", level: "L2", pronunciation: "/juːˈbɪk.wɪ.təs/", imageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=200&h=200&fit=crop" },
-  { id: "2", word: "ephemeral", definition: "일시적인", level: "L3", pronunciation: "/ɪˈfem.ər.əl/", imageUrl: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=200&h=200&fit=crop" },
-  { id: "3", word: "pragmatic", definition: "실용적인", level: "L2", pronunciation: "/præɡˈmæt.ɪk/", imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=200&h=200&fit=crop" },
-  { id: "4", word: "meticulous", definition: "꼼꼼한", level: "L2", pronunciation: "/məˈtɪk.jə.ləs/", imageUrl: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=200&h=200&fit=crop" },
-  { id: "5", word: "resilient", definition: "회복력 있는", level: "L2", pronunciation: "/rɪˈzɪl.i.ənt/", imageUrl: "https://images.unsplash.com/photo-1533450718592-29d45635f0a9?w=200&h=200&fit=crop" },
-  { id: "6", word: "ambiguous", definition: "모호한", level: "L2", pronunciation: "/æmˈbɪɡ.ju.əs/", imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" },
-  { id: "7", word: "paradigm", definition: "패러다임, 전형", level: "L3", pronunciation: "/ˈpær.ə.daɪm/", imageUrl: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=200&h=200&fit=crop" },
-  { id: "8", word: "eloquent", definition: "웅변적인", level: "L3", pronunciation: "/ˈel.ə.kwənt/", imageUrl: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=200&h=200&fit=crop" },
-  { id: "9", word: "profound", definition: "심오한", level: "L2", pronunciation: "/prəˈfaʊnd/", imageUrl: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=200&h=200&fit=crop" },
-  { id: "10", word: "inevitable", definition: "불가피한", level: "L1", pronunciation: "/ɪnˈev.ɪ.tə.bəl/", imageUrl: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=200&h=200&fit=crop" },
+  { id: "1", word: "ubiquitous", definition: "어디에나 있는", level: "L2", pronunciation: "/juːˈbɪk.wɪ.təs/" },
+  { id: "2", word: "ephemeral", definition: "일시적인", level: "L3", pronunciation: "/ɪˈfem.ər.əl/" },
+  { id: "3", word: "pragmatic", definition: "실용적인", level: "L2", pronunciation: "/præɡˈmæt.ɪk/" },
+  { id: "4", word: "meticulous", definition: "꼼꼼한", level: "L2", pronunciation: "/məˈtɪk.jə.ləs/" },
+  { id: "5", word: "resilient", definition: "회복력 있는", level: "L2", pronunciation: "/rɪˈzɪl.i.ənt/" },
+  { id: "6", word: "ambiguous", definition: "모호한", level: "L2", pronunciation: "/æmˈbɪɡ.ju.əs/" },
+  { id: "7", word: "paradigm", definition: "패러다임, 전형", level: "L3", pronunciation: "/ˈpær.ə.daɪm/" },
+  { id: "8", word: "eloquent", definition: "웅변적인", level: "L3", pronunciation: "/ˈel.ə.kwənt/" },
+  { id: "9", word: "profound", definition: "심오한", level: "L2", pronunciation: "/prəˈfaʊnd/" },
+  { id: "10", word: "inevitable", definition: "불가피한", level: "L1", pronunciation: "/ɪnˈev.ɪ.tə.bəl/" },
 ];
 
 export const sampleNewWords: Word[] = [
-  { id: "11", word: "serendipity", definition: "뜻밖의 행운", level: "L3", pronunciation: "/ˌser.ənˈdɪp.ə.ti/", imageUrl: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=200&h=200&fit=crop" },
-  { id: "12", word: "quintessential", definition: "전형적인", level: "L3", pronunciation: "/ˌkwɪn.tɪˈsen.ʃəl/", imageUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200&h=200&fit=crop" },
-  { id: "13", word: "clandestine", definition: "비밀의", level: "L3", pronunciation: "/klænˈdes.tɪn/", imageUrl: "https://images.unsplash.com/photo-1533628635777-112b2239b1c7?w=200&h=200&fit=crop" },
-  { id: "14", word: "juxtapose", definition: "병치하다", level: "L3", pronunciation: "/ˈdʒʌk.stə.pəʊz/", imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop" },
-  { id: "15", word: "vicarious", definition: "대리의", level: "L3", pronunciation: "/vɪˈkeə.ri.əs/", imageUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=200&h=200&fit=crop" },
+  { id: "11", word: "serendipity", definition: "뜻밖의 행운", level: "L3", pronunciation: "/ˌser.ənˈdɪp.ə.ti/" },
+  { id: "12", word: "quintessential", definition: "전형적인", level: "L3", pronunciation: "/ˌkwɪn.tɪˈsen.ʃəl/" },
+  { id: "13", word: "clandestine", definition: "비밀의", level: "L3", pronunciation: "/klænˈdes.tɪn/" },
+  { id: "14", word: "juxtapose", definition: "병치하다", level: "L3", pronunciation: "/ˈdʒʌk.stə.pəʊz/" },
+  { id: "15", word: "vicarious", definition: "대리의", level: "L3", pronunciation: "/vɪˈkeə.ri.əs/" },
 ];
