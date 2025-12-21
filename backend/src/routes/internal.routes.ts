@@ -4086,8 +4086,8 @@ router.get('/word-exam-level-stats', async (req, res) => {
 
     // WordExamLevel이 비어있으면 간단한 결과 반환
     if (totalExamLevels === 0) {
-      // Word 통계만 반환
-      const wordStats = await prisma.word.groupBy({
+      // Word 통계만 반환 (as any로 타입 우회)
+      const wordStats = await (prisma.word.groupBy as any)({
         by: ['examCategory', 'status'],
         _count: { id: true },
       });
@@ -4105,16 +4105,16 @@ router.get('/word-exam-level-stats', async (req, res) => {
       });
     }
 
-    // WordExamLevel 통계 (examCategory별)
-    const examLevelByCategory = await prisma.wordExamLevel.groupBy({
+    // WordExamLevel 통계 (examCategory별) - as any로 타입 우회
+    const examLevelByCategory = await (prisma.wordExamLevel.groupBy as any)({
       by: ['examCategory'],
       _count: { id: true },
     });
 
-    // WordExamLevel 통계 (status별)
+    // WordExamLevel 통계 (status별) - as any로 타입 우회
     let examLevelByStatus: any[] = [];
     try {
-      examLevelByStatus = await prisma.wordExamLevel.groupBy({
+      examLevelByStatus = await (prisma.wordExamLevel.groupBy as any)({
         by: ['status'],
         _count: { id: true },
       });
@@ -4127,8 +4127,8 @@ router.get('/word-exam-level-stats', async (req, res) => {
       SELECT COUNT(DISTINCT "wordId") as count FROM "WordExamLevel"
     `;
 
-    // Word 통계
-    const wordStats = await prisma.word.groupBy({
+    // Word 통계 - as any로 타입 우회
+    const wordStats = await (prisma.word.groupBy as any)({
       by: ['examCategory', 'status'],
       _count: { id: true },
     });
