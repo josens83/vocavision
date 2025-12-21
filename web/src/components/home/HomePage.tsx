@@ -153,25 +153,6 @@ export default function HomePage() {
         />
       </LazySection>
 
-      {/* 시험별 학습 섹션 - Lazy Load */}
-      <LazySection minHeight={400} className="py-16 px-6 bg-slate-50">
-        <div className="max-w-7xl mx-auto">
-          <SectionHeader
-            title="시험별 단어 학습"
-            subtitle="목표 시험에 맞는 필수 어휘를 체계적으로 학습하세요"
-            viewAllHref="/courses"
-          />
-
-          <CategoryGrid columns={3}>
-            {examCategories.map((category, index) => (
-              <div key={category.title} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s`, animationFillMode: "forwards" }}>
-                <ExamCategoryCard {...category} />
-              </div>
-            ))}
-          </CategoryGrid>
-        </div>
-      </LazySection>
-
       {/* 학습 방법 섹션 - Lazy Load */}
       <LazySection minHeight={300} className="py-16 px-6">
         <div className="max-w-7xl mx-auto">

@@ -19,7 +19,9 @@ function LoginContent() {
   // next, returnTo, redirect 파라미터 모두 지원 (하위 호환성)
   // 기본값은 /my (마이페이지 = 로그인 후 첫 화면)
   const nextParam = searchParams.get('next') || searchParams.get('returnTo') || searchParams.get('redirect');
-  const nextUrl = nextParam?.startsWith('/') ? nextParam : '/my';
+  // URL 인코딩된 경우 디코딩 (예: %2Fcheckout%3Fpackage%3D... → /checkout?package=...)
+  const decodedParam = nextParam ? decodeURIComponent(nextParam) : null;
+  const nextUrl = decodedParam?.startsWith('/') ? decodedParam : '/my';
 
   // 이미 로그인된 상태면 /my로 리다이렉트
   useEffect(() => {

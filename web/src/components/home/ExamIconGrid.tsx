@@ -28,14 +28,15 @@ const examIcons: ExamIcon[] = [
     isAvailable: true,
   },
   {
-    id: "sat",
-    name: "SAT",
-    nameKo: "미국 수능",
-    href: "/courses/sat",
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
-    wordCount: 4500,
-    isAvailable: false,
+    id: "teps",
+    name: "TEPS",
+    nameKo: "텝스",
+    href: "/learn?exam=TEPS",
+    color: "text-teal-600",
+    bgColor: "bg-teal-100",
+    wordCount: PLATFORM_STATS.exams.TEPS.words,
+    isAvailable: true,
+    isPremium: true,
   },
   {
     id: "toefl",
@@ -46,27 +47,6 @@ const examIcons: ExamIcon[] = [
     bgColor: "bg-emerald-100",
     wordCount: 5000,
     isAvailable: false,
-  },
-  {
-    id: "toeic",
-    name: "TOEIC",
-    nameKo: "토익",
-    href: "/courses/toeic",
-    color: "text-orange-600",
-    bgColor: "bg-orange-100",
-    wordCount: 3500,
-    isAvailable: false,
-  },
-  {
-    id: "teps",
-    name: "TEPS",
-    nameKo: "텝스",
-    href: "/learn?exam=TEPS",
-    color: "text-teal-600",
-    bgColor: "bg-teal-100",
-    wordCount: PLATFORM_STATS.exams.TEPS.words,
-    isAvailable: true,
-    isPremium: true,
   },
 ];
 
@@ -170,7 +150,7 @@ export default function ExamIconGrid() {
 
       {/* 하단 안내 */}
       <p className="mt-6 text-sm text-slate-400">
-        수능(CSAT)과 TEPS 어휘가 학습 가능합니다. TOEFL, TOEIC, SAT는 곧 추가됩니다.
+        수능(CSAT)과 TEPS 어휘가 학습 가능합니다. TOEFL은 곧 추가됩니다.
       </p>
     </div>
   );
