@@ -4080,36 +4080,76 @@ router.get('/word-exam-level-stats', async (req, res) => {
   }
 
   try {
-    // WordExamLevel 통계
-    const examLevelStats = await prisma.wordExamLevel.groupBy({
-      by: ['examCategory', 'level', 'status'],
+    // 총 개수 (기본 통계)
+    const totalWords = await prisma.word.count();
+    const totalExamLevels = await prisma.wordExamLevel.count();
+
+    // WordExamLevel이 비어있으면 간단한 결과 반환
+    if (totalExamLevels === 0) {
+      // Word 통계만 반환
+      const wordStats = await prisma.word.groupBy({
+        by: ['examCategory', 'status'],
+        _count: { id: true },
+        orderBy: [{ examCategory: 'asc' }, { status: 'asc' }],
+      });
+
+      return res.json({
+        summary: {
+          totalWords,
+          totalExamLevels: 0,
+          uniqueWordsWithExamLevel: 0,
+          wordsWithoutExamLevel: totalWords,
+        },
+        wordStats,
+        examLevelStats: [],
+        message: 'WordExamLevel 테이블이 비어있습니다. POST /internal/migrate-word-pool을 먼저 실행하세요.',
+      });
+    }
+
+    // WordExamLevel 통계 (examCategory별)
+    const examLevelByCategory = await prisma.wordExamLevel.groupBy({
+      by: ['examCategory'],
       _count: { id: true },
-      orderBy: [{ examCategory: 'asc' }, { level: 'asc' }, { status: 'asc' }],
+      orderBy: [{ examCategory: 'asc' }],
     });
+
+    // WordExamLevel 통계 (status별) - status 필드가 있는 경우
+    let examLevelByStatus: any[] = [];
+    try {
+      examLevelByStatus = await prisma.wordExamLevel.groupBy({
+        by: ['status'],
+        _count: { id: true },
+        orderBy: [{ status: 'asc' }],
+      });
+    } catch (e) {
+      // status 필드가 없을 수 있음 (마이그레이션 전)
+      console.log('[Stats] status field not available yet');
+    }
+
+    // 고유 단어 수 (효율적인 방식)
+    const uniqueWordCount = await prisma.$queryRaw<[{ count: bigint }]>`
+      SELECT COUNT(DISTINCT "wordId") as count FROM "WordExamLevel"
+    `;
 
     // Word 통계
     const wordStats = await prisma.word.groupBy({
-      by: ['examCategory', 'level', 'status'],
+      by: ['examCategory', 'status'],
       _count: { id: true },
-      orderBy: [{ examCategory: 'asc' }, { level: 'asc' }, { status: 'asc' }],
-    });
-
-    // 총 개수
-    const totalWords = await prisma.word.count();
-    const totalExamLevels = await prisma.wordExamLevel.count();
-    const uniqueWordsInExamLevel = await prisma.wordExamLevel.groupBy({
-      by: ['wordId'],
+      orderBy: [{ examCategory: 'asc' }, { status: 'asc' }],
     });
 
     res.json({
       summary: {
         totalWords,
         totalExamLevels,
-        uniqueWordsWithExamLevel: uniqueWordsInExamLevel.length,
-        wordsWithoutExamLevel: totalWords - uniqueWordsInExamLevel.length,
+        uniqueWordsWithExamLevel: Number(uniqueWordCount[0]?.count || 0),
+        wordsWithoutExamLevel: totalWords - Number(uniqueWordCount[0]?.count || 0),
       },
       wordStats,
-      examLevelStats,
+      examLevelStats: {
+        byCategory: examLevelByCategory,
+        byStatus: examLevelByStatus,
+      },
     });
   } catch (error) {
     console.error('[Internal/WordExamLevelStats] Error:', error);
