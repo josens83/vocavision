@@ -4090,7 +4090,6 @@ router.get('/word-exam-level-stats', async (req, res) => {
       const wordStats = await prisma.word.groupBy({
         by: ['examCategory', 'status'],
         _count: { id: true },
-        orderBy: [{ examCategory: 'asc' }, { status: 'asc' }],
       });
 
       return res.json({
@@ -4110,19 +4109,16 @@ router.get('/word-exam-level-stats', async (req, res) => {
     const examLevelByCategory = await prisma.wordExamLevel.groupBy({
       by: ['examCategory'],
       _count: { id: true },
-      orderBy: { examCategory: 'asc' },
     });
 
-    // WordExamLevel 통계 (status별) - status 필드가 있는 경우
+    // WordExamLevel 통계 (status별)
     let examLevelByStatus: any[] = [];
     try {
       examLevelByStatus = await prisma.wordExamLevel.groupBy({
         by: ['status'],
         _count: { id: true },
-        orderBy: { status: 'asc' },
       });
     } catch (e) {
-      // status 필드가 없을 수 있음 (마이그레이션 전)
       console.log('[Stats] status field not available yet');
     }
 
@@ -4135,7 +4131,6 @@ router.get('/word-exam-level-stats', async (req, res) => {
     const wordStats = await prisma.word.groupBy({
       by: ['examCategory', 'status'],
       _count: { id: true },
-      orderBy: [{ examCategory: 'asc' }, { status: 'asc' }],
     });
 
     res.json({
