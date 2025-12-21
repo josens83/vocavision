@@ -7,7 +7,7 @@ import { Footer } from '@/components/Footer';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import StudyFAB from '@/components/ui/StudyFAB';
 
-const siteUrl = 'https://vocavision-web.vercel.app';
+const siteUrl = 'https://vocavision.kr';
 const siteName = 'VocaVision';
 
 export const metadata: Metadata = {

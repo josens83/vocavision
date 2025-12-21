@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://vocavision-web.vercel.app';
+  const baseUrl = 'https://vocavision.kr';
 
   // 정적 페이지
   const staticPages = [

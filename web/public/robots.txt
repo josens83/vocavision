@@ -7,4 +7,4 @@ Disallow: /admin/
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://vocavision-web.vercel.app/sitemap.xml
+Sitemap: https://vocavision.kr/sitemap.xml
