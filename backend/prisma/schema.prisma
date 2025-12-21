@@ -96,6 +96,7 @@ enum SubscriptionPlan {
 model Word {
   id          String   @id @default(uuid())
   word        String
+  wordType    WordType @default(WORD)  // 단어/구문 타입
   definition  String
   definitionKo String?  // 한국어 뜻
   pronunciation String?
@@ -175,21 +176,25 @@ model Word {
 // 단어-시험-레벨 매핑 테이블 (다중 시험 지원)
 // 예: "abandon"이 CSAT-L1, TEPS-L2에 동시에 속할 수 있음
 model WordExamLevel {
-  id           String       @id @default(uuid())
+  id           String        @id @default(uuid())
   wordId       String
   examCategory ExamCategory
-  level        String       // L1, L2, L3
-  frequency    Int          @default(0)  // 시험별 빈도
+  level        String        // L1, L2, L3
+  frequency    Int           @default(0)  // 시험별 빈도
+  status       ContentStatus @default(DRAFT)  // 시험별 발행 상태
 
-  createdAt    DateTime     @default(now())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
-  word         Word         @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  word         Word          @relation(fields: [wordId], references: [id], onDelete: Cascade)
 
   @@unique([wordId, examCategory])  // 단어당 시험은 하나의 레벨만
   @@index([wordId])
   @@index([examCategory])
   @@index([level])
+  @@index([status])
   @@index([examCategory, level])
+  @@index([examCategory, status])
 }
 
 enum PartOfSpeech {
@@ -235,6 +240,15 @@ enum ExamCategory {
   TOEIC     // 토익 (비즈니스 영어)
   TOEFL     // 토플 (학술 영어)
   SAT       // SAT (미국 대입)
+}
+
+// 단어/구문 타입 (Word Pool 구분용)
+enum WordType {
+  WORD          // 단일 단어: abandon, ubiquitous
+  PHRASE        // 구문: a biting cold, break the news
+  IDIOM         // 숙어: rain cats and dogs, be all thumbs
+  PHRASAL_VERB  // 구동사: break into, carry on, give off
+  COLLOCATION   // 연어: make a decision, take a shower
 }
 
 // ============================================
