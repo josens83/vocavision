@@ -5,6 +5,7 @@ import {
   createWord,
   getRandomWords,
   getPublicWords,
+  getFeaturedWords,
   getWordCountsByExam,
   getLevelTestQuestions,
   getQuizQuestions,
@@ -44,6 +45,32 @@ const router = Router();
  *         description: 단어 목록
  */
 router.get('/public', getPublicWords);
+
+/**
+ * @swagger
+ * /words/featured:
+ *   get:
+ *     summary: 추천 단어 조회 (CONCEPT 이미지 포함)
+ *     tags: [Words]
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [best, new]
+ *           default: best
+ *         description: 추천 타입 (best=인기순, new=최신순)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: 조회할 단어 수 (최대 20)
+ *     responses:
+ *       200:
+ *         description: 추천 단어 목록
+ */
+router.get('/featured', getFeaturedWords);
 
 /**
  * @swagger

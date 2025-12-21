@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Word {
@@ -26,14 +27,6 @@ interface Word {
 
 type TabType = "best" | "new";
 
-interface PopularWordsSectionProps {
-  bestWords?: Word[];
-  newWords?: Word[];
-  isLoading?: boolean;
-  /** 비로그인 사용자용 샘플 데이터 표시 여부 */
-  isSampleData?: boolean;
-}
-
 // 레벨별 스타일
 const levelStyles: Record<string, { bg: string; text: string; label: string }> = {
   L1: { bg: "bg-green-100", text: "text-green-700", label: "기초" },
@@ -41,13 +34,59 @@ const levelStyles: Record<string, { bg: string; text: string; label: string }> =
   L3: { bg: "bg-purple-100", text: "text-purple-700", label: "고급" },
 };
 
-export default function PopularWordsSection({
-  bestWords = [],
-  newWords = [],
-  isLoading = false,
-  isSampleData = false,
-}: PopularWordsSectionProps) {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+export default function PopularWordsSection() {
   const [activeTab, setActiveTab] = useState<TabType>("best");
+  const [bestWords, setBestWords] = useState<Word[]>([]);
+  const [newWords, setNewWords] = useState<Word[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSampleData, setIsSampleData] = useState(false);
+
+  useEffect(() => {
+    fetchFeaturedWords();
+  }, []);
+
+  const fetchFeaturedWords = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch both best and new words in parallel
+      const [bestResponse, newResponse] = await Promise.all([
+        fetch(`${API_URL}/words/featured?type=best&limit=10`),
+        fetch(`${API_URL}/words/featured?type=new&limit=10`),
+      ]);
+
+      if (bestResponse.ok && newResponse.ok) {
+        const bestData = await bestResponse.json();
+        const newData = await newResponse.json();
+
+        // Only use API data if we got words with images
+        if (bestData.words?.length > 0 && bestData.words.some((w: Word) => w.imageUrl)) {
+          setBestWords(bestData.words);
+          setNewWords(newData.words?.length > 0 ? newData.words : bestData.words.slice(0, 5));
+          setIsSampleData(false);
+        } else {
+          // Fall back to sample data
+          setBestWords(sampleBestWords);
+          setNewWords(sampleNewWords);
+          setIsSampleData(true);
+        }
+      } else {
+        // Fall back to sample data
+        setBestWords(sampleBestWords);
+        setNewWords(sampleNewWords);
+        setIsSampleData(true);
+      }
+    } catch (error) {
+      console.error("Failed to fetch featured words:", error);
+      // Fall back to sample data
+      setBestWords(sampleBestWords);
+      setNewWords(sampleNewWords);
+      setIsSampleData(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const displayWords = activeTab === "best" ? bestWords : newWords;
 
@@ -231,10 +270,12 @@ function WordCard({
           {/* 이미지 영역 */}
           <div className="aspect-square bg-gradient-to-br from-slate-50 to-slate-100 relative overflow-hidden">
             {word.imageUrl ? (
-              <img
+              <Image
                 src={word.imageUrl}
                 alt={word.word}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -306,9 +347,8 @@ function WordCardSkeleton() {
   );
 }
 
-// 샘플 데이터 (API 연동 전 사용) - 실제 학습 데이터와 동일한 형식
-// 실제 데이터는 DB의 Word.conceptImage 또는 Word.mnemonicImage 사용
-export const sampleBestWords: Word[] = [
+// 샘플 데이터 (API에서 이미지가 없을 때 fallback)
+const sampleBestWords: Word[] = [
   { id: "1", word: "ubiquitous", definition: "어디에나 있는", level: "L2", pronunciation: "/juːˈbɪk.wɪ.təs/" },
   { id: "2", word: "ephemeral", definition: "일시적인", level: "L3", pronunciation: "/ɪˈfem.ər.əl/" },
   { id: "3", word: "pragmatic", definition: "실용적인", level: "L2", pronunciation: "/præɡˈmæt.ɪk/" },
@@ -321,7 +361,7 @@ export const sampleBestWords: Word[] = [
   { id: "10", word: "inevitable", definition: "불가피한", level: "L1", pronunciation: "/ɪnˈev.ɪ.tə.bəl/" },
 ];
 
-export const sampleNewWords: Word[] = [
+const sampleNewWords: Word[] = [
   { id: "11", word: "serendipity", definition: "뜻밖의 행운", level: "L3", pronunciation: "/ˌser.ənˈdɪp.ə.ti/" },
   { id: "12", word: "quintessential", definition: "전형적인", level: "L3", pronunciation: "/ˌkwɪn.tɪˈsen.ʃəl/" },
   { id: "13", word: "clandestine", definition: "비밀의", level: "L3", pronunciation: "/klænˈdes.tɪn/" },

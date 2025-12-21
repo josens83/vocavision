@@ -477,6 +477,60 @@ export const getPublicWords = async (
   }
 };
 
+// Featured words for homepage (with CONCEPT images)
+export const getFeaturedWords = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { type = 'best', limit = '10' } = req.query;
+    const limitNum = Math.min(parseInt(limit as string), 20);
+
+    // Get words that have CONCEPT visuals for better display
+    const orderBy = type === 'new'
+      ? { createdAt: 'desc' as const }
+      : { frequency: 'desc' as const }; // 'best' = most common words
+
+    const words = await prisma.word.findMany({
+      where: {
+        status: 'PUBLISHED',
+        visuals: {
+          some: {
+            type: 'CONCEPT',
+            imageUrl: { not: null },
+          },
+        },
+      },
+      include: {
+        visuals: {
+          where: { type: 'CONCEPT' },
+          take: 1,
+        },
+      },
+      orderBy,
+      take: limitNum,
+    });
+
+    // Map to simpler format for frontend
+    const result = words.map((word) => ({
+      id: word.id,
+      word: word.word,
+      definition: word.definitionKo || word.definition,
+      level: word.level || 'L1',
+      pronunciation: word.phonetic || word.pronunciation,
+      imageUrl: word.visuals[0]?.imageUrl || null,
+      createdAt: word.createdAt,
+    }));
+
+    // Set cache headers (10 minutes for featured words)
+    res.set('Cache-Control', 'public, max-age=600, s-maxage=1200');
+    res.json({ words: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 /**
  * Batch endpoint to fetch multiple words by IDs
  * Optimized for frontend batch loading
