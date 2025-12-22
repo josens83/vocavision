@@ -217,7 +217,7 @@ router.get('/counts', getWordCountsByExam);
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.get('/', authenticateToken, getWords);
+router.get('/', optionalAuth, getWords);
 
 /**
  * @swagger
@@ -451,7 +451,7 @@ router.post('/visuals/import', authenticateToken, requireAdmin, importWordVisual
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.get('/:id', authenticateToken, getWordById);
+router.get('/:id', optionalAuth, getWordById);
 
 /**
  * @swagger
