@@ -1712,6 +1712,83 @@ export const getWordVisuals = async (
   }
 };
 
+/**
+ * Update word visuals (CONCEPT, MNEMONIC, RHYME)
+ * PUT /admin/words/:wordId/visuals
+ */
+export const updateWordVisuals = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { wordId } = req.params;
+    const visualsData = req.body;
+
+    // Verify word exists
+    const word = await prisma.word.findUnique({
+      where: { id: wordId },
+    });
+
+    if (!word) {
+      return res.status(404).json({ error: 'Word not found' });
+    }
+
+    const updatedVisuals = [];
+
+    // Process each visual type
+    for (const type of ['CONCEPT', 'MNEMONIC', 'RHYME'] as const) {
+      const typeData = visualsData[type.toLowerCase()];
+      if (!typeData) continue;
+
+      // Upsert visual for this type
+      const visual = await prisma.wordVisual.upsert({
+        where: {
+          wordId_type: {
+            wordId,
+            type,
+          },
+        },
+        update: {
+          imageUrl: typeData.imageUrl,
+          captionKo: typeData.captionKo,
+          captionEn: typeData.captionEn,
+          promptEn: typeData.promptEn,
+        },
+        create: {
+          wordId,
+          type,
+          imageUrl: typeData.imageUrl,
+          captionKo: typeData.captionKo,
+          captionEn: typeData.captionEn,
+          promptEn: typeData.promptEn,
+          labelEn: type === 'CONCEPT' ? 'Concept' : type === 'MNEMONIC' ? 'Mnemonic' : 'Rhyme',
+          labelKo: type === 'CONCEPT' ? '의미' : type === 'MNEMONIC' ? '연상' : '라이밍',
+          order: type === 'CONCEPT' ? 0 : type === 'MNEMONIC' ? 1 : 2,
+        },
+      });
+      updatedVisuals.push(visual);
+    }
+
+    // Create audit log
+    await createAuditLog(
+      'WORD_VISUAL',
+      wordId,
+      'UPDATE',
+      null,
+      visualsData,
+      Object.keys(visualsData)
+    );
+
+    res.json({
+      success: true,
+      visuals: updatedVisuals,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Helper function to create audit log entry
 export const createAuditLog = async (
   entityType: string,
