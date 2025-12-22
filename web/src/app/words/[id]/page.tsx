@@ -18,6 +18,11 @@ interface WordVisual {
   labelKo?: string;
 }
 
+interface ExamLevel {
+  examCategory: string;
+  level: string | null;
+}
+
 interface Word {
   id: string;
   word: string;
@@ -31,6 +36,7 @@ interface Word {
   difficulty: string;
   level?: string;
   examCategory?: string;
+  examLevels?: ExamLevel[];  // 시험/레벨 매핑
   prefix?: string;
   root?: string;
   suffix?: string;
@@ -122,6 +128,24 @@ const levelStyles: Record<string, { bg: string; text: string; label: string }> =
   INTERMEDIATE: { bg: 'bg-blue-100', text: 'text-blue-700', label: '중급' },
   ADVANCED: { bg: 'bg-purple-100', text: 'text-purple-700', label: '고급' },
   EXPERT: { bg: 'bg-red-100', text: 'text-red-700', label: '전문가' },
+};
+
+// Exam category colors and labels
+const examStyles: Record<string, { bg: string; text: string; label: string }> = {
+  CSAT: { bg: 'bg-pink-100', text: 'text-pink-700', label: '수능' },
+  CSAT_BASIC: { bg: 'bg-rose-100', text: 'text-rose-700', label: '기초수능' },
+  EBS: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'EBS' },
+  TEPS: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'TEPS' },
+  TOEIC: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'TOEIC' },
+  TOEFL: { bg: 'bg-sky-100', text: 'text-sky-700', label: 'TOEFL' },
+  SAT: { bg: 'bg-slate-100', text: 'text-slate-700', label: 'SAT' },
+};
+
+// Format exam level label
+const getExamLevelLabel = (examCategory: string, level: string | null): string => {
+  const examLabel = examStyles[examCategory]?.label || examCategory;
+  if (!level) return examLabel;
+  return `${examLabel}-${level}`;
 };
 
 export default function WordDetailPage({ params }: { params: { id: string } }) {
@@ -242,17 +266,28 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
           <div className="grid md:grid-cols-2 gap-0">
             {/* Word Info */}
             <div className="p-6 sm:p-8 flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-4">
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${levelStyle.bg} ${levelStyle.text}`}>
-                  {levelStyle.label}
-                </span>
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {/* Exam Level badges - 시험/레벨 표시 */}
+                {word.examLevels && word.examLevels.length > 0 ? (
+                  word.examLevels.map((el, idx) => {
+                    const style = examStyles[el.examCategory] || examStyles.CSAT;
+                    return (
+                      <span
+                        key={idx}
+                        className={`px-3 py-1 rounded-full text-sm font-semibold ${style.bg} ${style.text}`}
+                      >
+                        {getExamLevelLabel(el.examCategory, el.level)}
+                      </span>
+                    );
+                  })
+                ) : (
+                  // Fallback: 기존 level/difficulty 표시
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${levelStyle.bg} ${levelStyle.text}`}>
+                    {word.examCategory ? `${examStyles[word.examCategory]?.label || word.examCategory}${word.level ? `-${word.level}` : ''}` : levelStyle.label}
+                  </span>
+                )}
                 {word.partOfSpeech && (
                   <span className="text-sm text-slate-500">{word.partOfSpeech}</span>
-                )}
-                {word.examCategory && (
-                  <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full">
-                    {word.examCategory}
-                  </span>
                 )}
               </div>
 

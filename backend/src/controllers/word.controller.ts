@@ -60,6 +60,7 @@ export const getWords = async (
           etymology: true,
           collocations: { take: 5 },
           visuals: { orderBy: { order: 'asc' } },  // 3-이미지 시각화
+          examLevels: true,  // 시험/레벨 매핑
         },
         skip,
         take: limitNum,
@@ -109,6 +110,7 @@ export const getWordById = async (
         synonyms: true,
         antonyms: true,
         visuals: { orderBy: { order: 'asc' } },  // 3-이미지 시각화
+        examLevels: true,  // 시험/레벨 매핑
       }
     });
 
