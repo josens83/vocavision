@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
 
-// 2026 수능일: 2026년 11월 12일 (예정)
-const CSAT_DATE = new Date("2026-11-12T00:00:00");
+// 2027학년도 수능일: 2026년 11월 19일 (목)
+const CSAT_DATE = new Date("2026-11-19T00:00:00");
 
 interface TimeLeft {
   days: number;
@@ -71,7 +71,7 @@ export default function DDayBanner() {
           <div className="text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-semibold mb-2">
               <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
-              2026 수능
+              2027학년도 수능
             </div>
             <h2 className="text-xl md:text-2xl font-bold text-white">
               수능까지 <span className="text-yellow-400">D-{timeLeft.days}</span>

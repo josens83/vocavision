@@ -1,25 +1,25 @@
 // /web/src/constants/stats.ts
 // VocaVision 플랫폼 상수 정의
-// 실제 DB 수치 기준 (2024년 업데이트)
+// 실제 DB 수치 기준 (2024년 12월 업데이트)
 
 /**
  * 플랫폼 전체 통계
  */
 export const PLATFORM_STATS = {
   // 수능 단어 수 (기본 무료 제공)
-  totalWords: 3232,
+  totalWords: 3340,
 
   // 레벨별 단어 수 (CSAT 기준)
   levels: {
-    L1: 1077, // 기초
-    L2: 1078, // 중급
-    L3: 1077, // 고급
+    L1: 1113, // 기초
+    L2: 1114, // 중급
+    L3: 1113, // 고급
   },
 
   // 시험 카테고리
   exams: {
-    CSAT: { name: '수능', words: 3232, active: true },
-    TEPS: { name: 'TEPS', words: 3007, active: true, premium: true },
+    CSAT: { name: '수능', words: 3340, active: true },
+    TEPS: { name: 'TEPS', words: 6278, active: true, premium: true },
     TOEFL: { name: 'TOEFL', words: 4, active: false },
     TOEIC: { name: 'TOEIC', words: 5, active: false },
     SAT: { name: 'SAT', words: 5, active: false },
@@ -27,7 +27,7 @@ export const PLATFORM_STATS = {
 
   // 프리미엄 통계
   premium: {
-    totalWords: 6239, // CSAT 3,232 + TEPS 3,007
+    totalWords: 9618, // CSAT 3,340 + TEPS 6,278
     exams: ['CSAT', 'TEPS'],
   },
 
