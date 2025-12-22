@@ -7,6 +7,22 @@ export interface AuthRequest extends Request {
   userRole?: string;
 }
 
+// Helper to add CORS headers to error responses
+const addCorsHeaders = (req: Request, res: Response) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://vocavision-web.vercel.app',
+    'https://vocavision.kr',
+    'https://www.vocavision.kr',
+  ];
+
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+};
+
 export const authenticateToken = async (
   req: AuthRequest,
   res: Response,
@@ -18,6 +34,7 @@ export const authenticateToken = async (
 
     if (!token) {
       console.log('[Auth] No token provided');
+      addCorsHeaders(req, res);
       return res.status(401).json({ error: 'Access token required' });
     }
 
@@ -40,6 +57,7 @@ export const authenticateToken = async (
 
     if (!user) {
       console.log('[Auth] User not found in database');
+      addCorsHeaders(req, res);
       return res.status(401).json({ error: 'User not found' });
     }
 
@@ -49,6 +67,7 @@ export const authenticateToken = async (
     next();
   } catch (error) {
     console.error('[Auth] Token verification failed:', error instanceof Error ? error.message : error);
+    addCorsHeaders(req, res);
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
 };
@@ -87,6 +106,7 @@ export const requireAdmin = async (
     }
   }
 
+  addCorsHeaders(req, res);
   return res.status(403).json({ error: 'Admin access required' });
 };
 
@@ -102,6 +122,7 @@ export const requireSubscription = async (
     });
 
     if (!user) {
+      addCorsHeaders(req, res);
       return res.status(404).json({ error: 'User not found' });
     }
 
@@ -111,6 +132,7 @@ export const requireSubscription = async (
       (user.subscriptionEnd && new Date(user.subscriptionEnd) > new Date());
 
     if (!hasActiveSubscription) {
+      addCorsHeaders(req, res);
       return res.status(403).json({
         error: 'Active subscription required',
         subscriptionStatus: user.subscriptionStatus

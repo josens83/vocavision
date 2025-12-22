@@ -20,6 +20,20 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
+  // Add CORS headers to error responses
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://vocavision-web.vercel.app',
+    'https://vocavision.kr',
+    'https://www.vocavision.kr',
+  ];
+
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
   // Log all errors for debugging
   console.error('=== Error Details ===');
   console.error('Path:', req.path);
