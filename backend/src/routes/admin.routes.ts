@@ -31,6 +31,7 @@ import {
   getWordAuditLogs,
   // Word Visuals
   getWordVisuals,
+  updateWordVisuals,
   // Image Generation Management
   getImageGenerationStatus,
   startImageBatchGeneration,
@@ -391,5 +392,38 @@ router.get('/words/:wordId/audit-logs', getWordAuditLogs);
  *           type: string
  */
 router.get('/words/:wordId/visuals', getWordVisuals);
+
+/**
+ * @swagger
+ * /admin/words/{wordId}/visuals:
+ *   put:
+ *     summary: Update visuals for a word
+ *     tags: [Admin - Visuals]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: wordId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               concept:
+ *                 type: object
+ *                 properties:
+ *                   imageUrl: { type: string }
+ *                   captionKo: { type: string }
+ *                   captionEn: { type: string }
+ *               mnemonic:
+ *                 type: object
+ *               rhyme:
+ *                 type: object
+ */
+router.put('/words/:wordId/visuals', updateWordVisuals);
 
 export default router;
