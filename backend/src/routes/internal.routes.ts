@@ -7,7 +7,7 @@ import {
   COST_PER_WORD,
 } from '../utils/wordDeduplication';
 import { CSAT_L1_WORDS, CSAT_L2_WORDS, CSAT_L3_WORDS } from '../data/csat-words';
-import { processGenerationJob } from '../services/contentGenerator.service';
+import { processGenerationJob, generateWordContent, saveGeneratedContent } from '../services/contentGenerator.service';
 import logger from '../utils/logger';
 import {
   generateAndUploadImage,
@@ -1673,6 +1673,315 @@ async function runContinuousImageGeneration(
 
   session.isRunning = false;
   logger.info(`[Internal/ImageGen] Session ${sessionId} finished. Words: ${session.wordsProcessed}, Images: ${session.imagesGenerated}`);
+}
+
+// ============================================
+// Continuous Content Generation
+// ============================================
+
+// Track active continuous content generation sessions
+const activeContentSessions: Map<string, {
+  isRunning: boolean;
+  wordsProcessed: number;
+  wordsSucceeded: number;
+  wordsFailed: number;
+  errors: string[];
+  startedAt: Date;
+  lastProcessedAt: Date | null;
+  examCategory?: string;
+  currentWord?: string;
+}> = new Map();
+
+/**
+ * GET /internal/generate-content-continuous?key=YOUR_SECRET&examCategory=TEPS
+ * 자동 연속 콘텐츠 생성 (Claude AI로 단어 콘텐츠 생성)
+ * - examCategory: CSAT, TEPS, TOEFL, EBS, CSAT_BASIC 등 (선택사항)
+ * - batchSize: 한 번에 처리할 단어 수 (기본값: 10, 최대: 50)
+ */
+router.get('/generate-content-continuous', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const examCategory = req.query.examCategory as string;
+    const batchSize = Math.min(parseInt(req.query.batchSize as string) || 10, 50);
+
+    // Check if there's already a content generation session running
+    const existingSession = Array.from(activeContentSessions.entries())
+      .find(([_, session]) => session.isRunning);
+
+    if (existingSession) {
+      return res.json({
+        message: 'Content generation already running',
+        sessionId: existingSession[0],
+        session: existingSession[1],
+      });
+    }
+
+    // Create session ID
+    const sessionId = `content-${Date.now()}`;
+
+    // Initialize session
+    activeContentSessions.set(sessionId, {
+      isRunning: true,
+      wordsProcessed: 0,
+      wordsSucceeded: 0,
+      wordsFailed: 0,
+      errors: [],
+      startedAt: new Date(),
+      lastProcessedAt: null,
+      examCategory,
+    });
+
+    // Start the continuous content generation process
+    runContinuousContentGeneration(sessionId, examCategory, batchSize);
+
+    logger.info(`[Internal/ContentGen] Started session ${sessionId}: examCategory=${examCategory || 'all'}, batchSize=${batchSize}`);
+
+    res.json({
+      message: 'Continuous content generation started',
+      sessionId,
+      config: {
+        examCategory: examCategory || 'all',
+        batchSize,
+      },
+    });
+  } catch (error) {
+    console.error('[Internal/ContentGen] Error:', error);
+    res.status(500).json({ error: 'Failed to start content generation', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/content-generation-status?key=YOUR_SECRET
+ * 콘텐츠 생성 세션 상태 확인
+ */
+router.get('/content-generation-status', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const sessions = Array.from(activeContentSessions.entries()).map(([id, session]) => ({
+      sessionId: id,
+      ...session,
+      runningTime: session.isRunning
+        ? Math.round((Date.now() - session.startedAt.getTime()) / 1000) + 's'
+        : null,
+    }));
+
+    // Get content generation stats from database
+    const [totalWords, wordsWithContent, wordsByExam] = await Promise.all([
+      prisma.word.count({
+        where: { status: { in: ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED'] } },
+      }),
+      prisma.word.count({
+        where: { aiGeneratedAt: { not: null } },
+      }),
+      prisma.word.groupBy({
+        by: ['examCategory'],
+        where: { status: { in: ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED'] } },
+        _count: { id: true },
+      }),
+    ]);
+
+    // Get words needing content by exam category
+    const wordsNeedingContentByExam = await prisma.word.groupBy({
+      by: ['examCategory'],
+      where: {
+        aiGeneratedAt: null,
+        status: { in: ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED'] },
+      },
+      _count: { id: true },
+    });
+
+    res.json({
+      activeSessions: sessions.filter(s => s.isRunning),
+      completedSessions: sessions.filter(s => !s.isRunning).slice(-5),
+      contentStats: {
+        totalWords,
+        wordsWithContent,
+        wordsNeedingContent: totalWords - wordsWithContent,
+        completionRate: totalWords > 0 ? Math.round((wordsWithContent / totalWords) * 100) + '%' : '0%',
+        byExam: wordsByExam.reduce((acc, v) => {
+          acc[v.examCategory] = v._count.id;
+          return acc;
+        }, {} as Record<string, number>),
+        needingContentByExam: wordsNeedingContentByExam.reduce((acc, v) => {
+          acc[v.examCategory] = v._count.id;
+          return acc;
+        }, {} as Record<string, number>),
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[Internal/ContentGenStatus] Error:', error);
+    res.status(500).json({ error: 'Status check failed' });
+  }
+});
+
+/**
+ * GET /internal/stop-content-generation?key=YOUR_SECRET&sessionId=xxx
+ * 콘텐츠 생성 중지
+ */
+router.get('/stop-content-generation', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const sessionId = req.query.sessionId as string;
+
+    if (sessionId) {
+      const session = activeContentSessions.get(sessionId);
+      if (session) {
+        session.isRunning = false;
+        return res.json({ message: `Session ${sessionId} stopped`, session });
+      }
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    // Stop all sessions
+    let stoppedCount = 0;
+    activeContentSessions.forEach((session) => {
+      if (session.isRunning) {
+        session.isRunning = false;
+        stoppedCount++;
+      }
+    });
+
+    res.json({ message: `Stopped ${stoppedCount} content generation sessions` });
+  } catch (error) {
+    console.error('[Internal/StopContentGen] Error:', error);
+    res.status(500).json({ error: 'Failed to stop' });
+  }
+});
+
+// Helper function to run continuous content generation
+async function runContinuousContentGeneration(
+  sessionId: string,
+  examCategory?: string,
+  batchSize: number = 10
+): Promise<void> {
+  const session = activeContentSessions.get(sessionId);
+  if (!session) return;
+
+  // Process words continuously
+  while (session.isRunning) {
+    try {
+      // Build where clause for words that need content
+      const whereClause: any = {
+        aiGeneratedAt: null,
+        status: { in: ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED'] },
+      };
+
+      if (examCategory) {
+        // Check if filtering by examCategory in Word or WordExamLevel
+        const examCategoryList = examCategory.split(',').map(e => e.trim());
+        if (examCategoryList.length === 1) {
+          // Use WordExamLevel for more accurate filtering
+          whereClause.examLevels = {
+            some: {
+              examCategory: examCategory as any,
+            },
+          };
+        } else {
+          whereClause.examLevels = {
+            some: {
+              examCategory: { in: examCategoryList as any[] },
+            },
+          };
+        }
+      }
+
+      // Find words that need content generation
+      const wordsToProcess = await prisma.word.findMany({
+        where: whereClause,
+        include: {
+          examLevels: true,
+        },
+        orderBy: { frequency: 'desc' }, // High frequency first
+        take: batchSize,
+      });
+
+      if (wordsToProcess.length === 0) {
+        logger.info(`[Internal/ContentGen] Session ${sessionId}: No more words need content generation`);
+        session.isRunning = false;
+        break;
+      }
+
+      // Process each word
+      for (const word of wordsToProcess) {
+        if (!session.isRunning) break;
+
+        session.currentWord = word.word;
+
+        try {
+          // Determine exam category and CEFR level for generation
+          const wordExamCategory = word.examLevels?.[0]?.examCategory || word.examCategory || 'CSAT';
+          const wordCefrLevel = word.cefrLevel || 'B1';
+
+          logger.info(`[Internal/ContentGen] Session ${sessionId}: Processing "${word.word}" (${wordExamCategory})`);
+
+          // Generate content using Claude
+          const content = await generateWordContent({
+            word: word.word,
+            examCategory: wordExamCategory as any,
+            cefrLevel: wordCefrLevel as any,
+          });
+
+          // Save generated content to database
+          await saveGeneratedContent(word.id, content);
+
+          session.wordsSucceeded++;
+          session.lastProcessedAt = new Date();
+
+          logger.info(`[Internal/ContentGen] Session ${sessionId}: Successfully generated content for "${word.word}"`);
+
+          // Rate limiting - delay between API calls (1.5 seconds)
+          await new Promise(resolve => setTimeout(resolve, 1500));
+
+        } catch (wordError) {
+          const errorMsg = wordError instanceof Error ? wordError.message : String(wordError);
+          logger.error(`[Internal/ContentGen] Session ${sessionId}: Error processing "${word.word}":`, wordError);
+          session.errors.push(`${word.word}: ${errorMsg}`);
+          session.wordsFailed++;
+
+          // If it's a rate limit error, wait longer
+          if (errorMsg.includes('rate') || errorMsg.includes('429')) {
+            logger.warn(`[Internal/ContentGen] Session ${sessionId}: Rate limit hit, waiting 30 seconds...`);
+            await new Promise(resolve => setTimeout(resolve, 30000));
+          } else {
+            // Normal delay after error
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
+        }
+
+        session.wordsProcessed++;
+      }
+
+      logger.info(`[Internal/ContentGen] Session ${sessionId}: Batch complete. Processed: ${session.wordsProcessed}, Succeeded: ${session.wordsSucceeded}, Failed: ${session.wordsFailed}`);
+
+      // Delay between batches
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.error(`[Internal/ContentGen] Session ${sessionId} error:`, error);
+      session.errors.push(`Batch error: ${errorMsg}`);
+
+      // Continue despite errors, but add a longer delay
+      await new Promise(resolve => setTimeout(resolve, 10000));
+    }
+  }
+
+  session.isRunning = false;
+  session.currentWord = undefined;
+  logger.info(`[Internal/ContentGen] Session ${sessionId} finished. Processed: ${session.wordsProcessed}, Succeeded: ${session.wordsSucceeded}, Failed: ${session.wordsFailed}`);
 }
 
 // ============================================
