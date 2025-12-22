@@ -1734,7 +1734,7 @@ export const updateWordVisuals = async (
       return res.status(404).json({ error: 'Word not found' });
     }
 
-    const updatedVisuals = [];
+    const updatedVisuals: any[] = [];
 
     // Process each visual type
     for (const type of ['CONCEPT', 'MNEMONIC', 'RHYME'] as const) {
