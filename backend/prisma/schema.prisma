@@ -237,6 +237,7 @@ enum ContentStatus {
 enum ExamCategory {
   CSAT        // 수능 (대학수학능력시험) - 고급 어휘
   CSAT_BASIC  // 수능 기초 (중학 필수 어휘)
+  EBS         // EBS 연계 어휘
   TEPS        // 텝스 (서울대 영어능력시험)
   TOEIC       // 토익 (비즈니스 영어)
   TOEFL       // 토플 (학술 영어)
