@@ -158,12 +158,27 @@ export const getAdminWords = async (
 
     if (examCategories) {
       const categories = (examCategories as string).split(',');
-      where.examCategory = { in: categories };
+      // Filter through WordExamLevel mapping table
+      where.examLevels = {
+        some: {
+          examCategory: { in: categories }
+        }
+      };
     }
 
     if (levels) {
       const levelList = (levels as string).split(',');
-      where.cefrLevel = { in: levelList };
+      // Filter through WordExamLevel mapping table
+      if (where.examLevels) {
+        // Combine with existing examLevels filter
+        where.examLevels.some.level = { in: levelList };
+      } else {
+        where.examLevels = {
+          some: {
+            level: { in: levelList }
+          }
+        };
+      }
     }
 
     if (status) {
