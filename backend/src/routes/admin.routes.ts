@@ -37,6 +37,12 @@ import {
   startImageBatchGeneration,
   getImageGenerationJobStatus,
   stopImageGeneration,
+  // Image Management (missing images, regeneration, upload)
+  getWordsMissingImages,
+  regenerateWordImage,
+  uploadWordImage,
+  deleteWordImage,
+  batchRegenerateImages,
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -425,5 +431,161 @@ router.get('/words/:wordId/visuals', getWordVisuals);
  *                 type: object
  */
 router.put('/words/:wordId/visuals', updateWordVisuals);
+
+// ============================================
+// Image Management Routes (missing images, regeneration, upload)
+// ============================================
+
+/**
+ * @swagger
+ * /admin/words/missing-images:
+ *   get:
+ *     summary: Get words with missing images
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: examCategory
+ *         schema:
+ *           type: string
+ *           enum: [CSAT, TEPS, TOEFL, EBS, CSAT_BASIC]
+ *       - in: query
+ *         name: imageType
+ *         schema:
+ *           type: string
+ *           enum: [CONCEPT, MNEMONIC, RHYME]
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ */
+router.get('/words/missing-images', getWordsMissingImages);
+
+/**
+ * @swagger
+ * /admin/words/{wordId}/regenerate-image:
+ *   post:
+ *     summary: Regenerate a single image for a word
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: wordId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - imageType
+ *             properties:
+ *               imageType:
+ *                 type: string
+ *                 enum: [CONCEPT, MNEMONIC, RHYME]
+ *               customPrompt:
+ *                 type: string
+ */
+router.post('/words/:wordId/regenerate-image', regenerateWordImage);
+
+/**
+ * @swagger
+ * /admin/words/{wordId}/upload-image:
+ *   post:
+ *     summary: Upload an image directly for a word
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: wordId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - imageType
+ *               - imageBase64
+ *             properties:
+ *               imageType:
+ *                 type: string
+ *                 enum: [CONCEPT, MNEMONIC, RHYME]
+ *               imageBase64:
+ *                 type: string
+ *               captionKo:
+ *                 type: string
+ *               captionEn:
+ *                 type: string
+ */
+router.post('/words/:wordId/upload-image', uploadWordImage);
+
+/**
+ * @swagger
+ * /admin/words/{wordId}/images/{imageType}:
+ *   delete:
+ *     summary: Delete an image for a word
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: wordId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: imageType
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [CONCEPT, MNEMONIC, RHYME]
+ */
+router.delete('/words/:wordId/images/:imageType', deleteWordImage);
+
+/**
+ * @swagger
+ * /admin/words/batch-regenerate-images:
+ *   post:
+ *     summary: Batch regenerate images for multiple words
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - wordIds
+ *             properties:
+ *               wordIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               imageTypes:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [CONCEPT, MNEMONIC, RHYME]
+ */
+router.post('/words/batch-regenerate-images', batchRegenerateImages);
 
 export default router;

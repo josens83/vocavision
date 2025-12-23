@@ -556,7 +556,9 @@ export const batchCreateWords = async (
       },
     });
 
-    const existingMap = new Map(existingWords.map((w) => [w.word.toLowerCase(), w]));
+    const existingMap = new Map<string, typeof existingWords[number]>(
+      existingWords.map((w) => [w.word.toLowerCase(), w])
+    );
 
     // Separate words into: new (create), existing-same-exam (skip), existing-different-exam (add mapping)
     const newWordTexts: string[] = [];
@@ -2277,4 +2279,576 @@ async function processImageBatch(
   job.status = 'completed';
   job.currentWord = undefined;
   logger.info(`[Admin/ImageGen] Job ${jobId} completed. Success: ${job.successCount}, Errors: ${job.errorCount}`);
+}
+
+// ============================================
+// Image Management - Missing Images & Regeneration
+// ============================================
+
+/**
+ * Get words with missing images
+ * GET /admin/words/missing-images
+ */
+export const getWordsMissingImages = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {
+      examCategory,
+      imageType,
+      page = '1',
+      limit = '20',
+      search,
+    } = req.query;
+
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = Math.min(parseInt(limit as string, 10), 100);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build where clause
+    const whereClause: any = {
+      status: { in: ['PUBLISHED', 'PENDING_REVIEW'] },
+      aiGeneratedAt: { not: null },
+    };
+
+    // Filter by exam category using WordExamLevel
+    if (examCategory) {
+      whereClause.examLevels = {
+        some: {
+          examCategory: examCategory as any,
+        },
+      };
+    }
+
+    // Search by word
+    if (search) {
+      whereClause.word = {
+        contains: search as string,
+        mode: 'insensitive',
+      };
+    }
+
+    // Get words with their visuals
+    const words = await prisma.word.findMany({
+      where: whereClause,
+      include: {
+        visuals: {
+          select: { type: true, imageUrl: true },
+        },
+        examLevels: {
+          select: { examCategory: true, level: true },
+        },
+      },
+      orderBy: { frequency: 'desc' },
+      skip,
+      take: limitNum,
+    });
+
+    // Filter words that are missing specific image types
+    const imageTypes: VisualType[] = imageType
+      ? [imageType as VisualType]
+      : ['CONCEPT', 'MNEMONIC', 'RHYME'];
+
+    const wordsWithMissingImages = words
+      .map((word) => {
+        const existingTypes = new Set(word.visuals.map((v) => v.type));
+        const missingTypes = imageTypes.filter((t) => !existingTypes.has(t));
+
+        if (missingTypes.length === 0) return null;
+
+        return {
+          id: word.id,
+          word: word.word,
+          definition: word.definition,
+          definitionKo: word.definitionKo,
+          examLevels: word.examLevels,
+          visuals: word.visuals,
+          missingTypes,
+        };
+      })
+      .filter(Boolean);
+
+    // Get total count for pagination
+    const totalWords = await prisma.word.count({
+      where: whereClause,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        words: wordsWithMissingImages,
+        pagination: {
+          total: totalWords,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(totalWords / limitNum),
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('[Admin/MissingImages] Error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Regenerate a single image for a word
+ * POST /admin/words/:wordId/regenerate-image
+ */
+export const regenerateWordImage = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { wordId } = req.params;
+    const { imageType, customPrompt } = req.body;
+
+    if (!imageType || !['CONCEPT', 'MNEMONIC', 'RHYME'].includes(imageType)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid imageType (CONCEPT, MNEMONIC, RHYME) is required',
+      });
+    }
+
+    // Get the word with related data
+    const word = await prisma.word.findUnique({
+      where: { id: wordId },
+      include: {
+        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+      },
+    });
+
+    if (!word) {
+      return res.status(404).json({
+        success: false,
+        error: 'Word not found',
+      });
+    }
+
+    // Generate prompt based on type
+    let prompt: string;
+    let captionKo: string;
+    let captionEn: string;
+
+    if (customPrompt) {
+      prompt = customPrompt;
+      captionKo = word.definitionKo || '';
+      captionEn = word.definition || '';
+    } else if (imageType === 'CONCEPT') {
+      prompt = generateConceptPrompt(word.definition || '', word.word);
+      captionKo = word.definitionKo || word.definition || '';
+      captionEn = word.definition || '';
+    } else if (imageType === 'MNEMONIC') {
+      const firstMnemonic = word.mnemonics?.[0];
+      if (firstMnemonic?.content) {
+        const sceneResult = await extractMnemonicScene(
+          word.word,
+          word.definition || '',
+          firstMnemonic.content,
+          firstMnemonic.koreanHint || ''
+        );
+        prompt = sceneResult.prompt;
+        captionKo = sceneResult.captionKo;
+        captionEn = sceneResult.captionEn;
+      } else {
+        prompt = generateMnemonicPrompt(word.word, word.word);
+        captionKo = word.definitionKo || '';
+        captionEn = `Memory tip for ${word.word}`;
+      }
+    } else {
+      // RHYME
+      const rhymingWords = (word.rhymingWords || []) as string[];
+      if (rhymingWords.length > 0) {
+        const rhymeResult = await generateRhymeScene(
+          word.word,
+          word.definition || '',
+          rhymingWords
+        );
+        prompt = rhymeResult.prompt;
+        captionKo = rhymeResult.captionKo;
+        captionEn = rhymeResult.captionEn;
+      } else {
+        prompt = generateRhymePrompt(word.definition || '', word.word);
+        captionKo = `${word.word} 발음 연습`;
+        captionEn = `Pronunciation practice for ${word.word}`;
+      }
+    }
+
+    logger.info(`[Admin/RegenerateImage] Generating ${imageType} for "${word.word}"`);
+
+    // Generate the image
+    const result = await generateAndUploadImage(prompt, imageType as VisualType, word.word);
+
+    if (!result) {
+      return res.status(500).json({
+        success: false,
+        error: 'Image generation failed',
+      });
+    }
+
+    // Upsert the visual
+    const visual = await prisma.wordVisual.upsert({
+      where: {
+        wordId_type: {
+          wordId: word.id,
+          type: imageType as VisualType,
+        },
+      },
+      update: {
+        imageUrl: result.imageUrl,
+        promptEn: prompt,
+        captionKo,
+        captionEn,
+      },
+      create: {
+        wordId: word.id,
+        type: imageType as VisualType,
+        imageUrl: result.imageUrl,
+        promptEn: prompt,
+        captionKo,
+        captionEn,
+      },
+    });
+
+    logger.info(`[Admin/RegenerateImage] Successfully generated ${imageType} for "${word.word}"`);
+
+    res.json({
+      success: true,
+      data: {
+        visual: {
+          type: visual.type,
+          imageUrl: visual.imageUrl,
+          prompt,
+          captionKo: visual.captionKo,
+          captionEn: visual.captionEn,
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('[Admin/RegenerateImage] Error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Upload an image directly for a word
+ * POST /admin/words/:wordId/upload-image
+ */
+export const uploadWordImage = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { wordId } = req.params;
+    const { imageType, imageBase64, captionKo, captionEn } = req.body;
+
+    if (!imageType || !['CONCEPT', 'MNEMONIC', 'RHYME'].includes(imageType)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid imageType (CONCEPT, MNEMONIC, RHYME) is required',
+      });
+    }
+
+    if (!imageBase64) {
+      return res.status(400).json({
+        success: false,
+        error: 'imageBase64 is required',
+      });
+    }
+
+    // Get the word
+    const word = await prisma.word.findUnique({
+      where: { id: wordId },
+    });
+
+    if (!word) {
+      return res.status(404).json({
+        success: false,
+        error: 'Word not found',
+      });
+    }
+
+    // Upload to Cloudinary
+    const { uploadToCloudinary } = await import('../services/imageGenerator.service');
+    const uploadResult = await uploadToCloudinary(imageBase64, word.word, imageType);
+
+    // Upsert the visual
+    const visual = await prisma.wordVisual.upsert({
+      where: {
+        wordId_type: {
+          wordId: word.id,
+          type: imageType as VisualType,
+        },
+      },
+      update: {
+        imageUrl: uploadResult.url,
+        captionKo: captionKo || null,
+        captionEn: captionEn || null,
+        promptEn: 'Manually uploaded',
+      },
+      create: {
+        wordId: word.id,
+        type: imageType as VisualType,
+        imageUrl: uploadResult.url,
+        captionKo: captionKo || null,
+        captionEn: captionEn || null,
+        promptEn: 'Manually uploaded',
+      },
+    });
+
+    logger.info(`[Admin/UploadImage] Successfully uploaded ${imageType} for "${word.word}"`);
+
+    res.json({
+      success: true,
+      data: {
+        visual: {
+          type: visual.type,
+          imageUrl: visual.imageUrl,
+          captionKo: visual.captionKo,
+          captionEn: visual.captionEn,
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('[Admin/UploadImage] Error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Delete an image for a word
+ * DELETE /admin/words/:wordId/images/:imageType
+ */
+export const deleteWordImage = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { wordId, imageType } = req.params;
+
+    if (!['CONCEPT', 'MNEMONIC', 'RHYME'].includes(imageType.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid imageType (CONCEPT, MNEMONIC, RHYME) is required',
+      });
+    }
+
+    // Delete the visual
+    const deleted = await prisma.wordVisual.deleteMany({
+      where: {
+        wordId,
+        type: imageType.toUpperCase() as VisualType,
+      },
+    });
+
+    if (deleted.count === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Image not found',
+      });
+    }
+
+    logger.info(`[Admin/DeleteImage] Deleted ${imageType} for word ${wordId}`);
+
+    res.json({
+      success: true,
+      message: `${imageType} image deleted successfully`,
+    });
+  } catch (error) {
+    logger.error('[Admin/DeleteImage] Error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Batch regenerate images for multiple words
+ * POST /admin/words/batch-regenerate-images
+ */
+export const batchRegenerateImages = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { wordIds, imageTypes = ['CONCEPT', 'MNEMONIC', 'RHYME'] } = req.body;
+
+    if (!wordIds || !Array.isArray(wordIds) || wordIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'wordIds array is required',
+      });
+    }
+
+    if (wordIds.length > 50) {
+      return res.status(400).json({
+        success: false,
+        error: 'Maximum 50 words per batch',
+      });
+    }
+
+    // Create a job ID for tracking
+    const jobId = `batch-img-${Date.now()}`;
+
+    // Initialize job tracking
+    imageGenJobs.set(jobId, {
+      id: jobId,
+      status: 'processing',
+      totalWords: wordIds.length,
+      processedWords: 0,
+      successCount: 0,
+      errorCount: 0,
+      startedAt: new Date().toISOString(),
+      errors: [],
+    });
+
+    // Start processing in background
+    processBatchImageRegeneration(jobId, wordIds, imageTypes);
+
+    res.json({
+      success: true,
+      data: {
+        jobId,
+        message: `Started regenerating images for ${wordIds.length} words`,
+        totalWords: wordIds.length,
+        imageTypes,
+      },
+    });
+  } catch (error) {
+    logger.error('[Admin/BatchRegenerate] Error:', error);
+    next(error);
+  }
+};
+
+// Helper function for batch image regeneration
+async function processBatchImageRegeneration(
+  jobId: string,
+  wordIds: string[],
+  imageTypes: string[]
+): Promise<void> {
+  const job = imageGenJobs.get(jobId);
+  if (!job) return;
+
+  for (const wordId of wordIds) {
+    if (job.status !== 'processing') break;
+
+    const word = await prisma.word.findUnique({
+      where: { id: wordId },
+      include: {
+        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+        visuals: { select: { type: true } },
+      },
+    });
+
+    if (!word) {
+      job.errors.push({ word: wordId, error: 'Word not found' });
+      job.errorCount++;
+      job.processedWords++;
+      continue;
+    }
+
+    job.currentWord = word.word;
+
+    for (const imageType of imageTypes) {
+      try {
+        // Skip if image already exists
+        const existingTypes = new Set(word.visuals.map((v) => v.type));
+        if (existingTypes.has(imageType as VisualType)) {
+          continue;
+        }
+
+        let prompt: string;
+        let captionKo: string;
+        let captionEn: string;
+
+        if (imageType === 'CONCEPT') {
+          prompt = generateConceptPrompt(word.definition || '', word.word);
+          captionKo = word.definitionKo || word.definition || '';
+          captionEn = word.definition || '';
+        } else if (imageType === 'MNEMONIC') {
+          const firstMnemonic = word.mnemonics?.[0];
+          if (firstMnemonic?.content) {
+            const sceneResult = await extractMnemonicScene(
+              word.word,
+              word.definition || '',
+              firstMnemonic.content,
+              firstMnemonic.koreanHint || ''
+            );
+            prompt = sceneResult.prompt;
+            captionKo = sceneResult.captionKo;
+            captionEn = sceneResult.captionEn;
+          } else {
+            prompt = generateMnemonicPrompt(word.word, word.word);
+            captionKo = word.definitionKo || '';
+            captionEn = `Memory tip for ${word.word}`;
+          }
+        } else {
+          // RHYME
+          const rhymingWords = (word.rhymingWords || []) as string[];
+          if (rhymingWords.length > 0) {
+            const rhymeResult = await generateRhymeScene(
+              word.word,
+              word.definition || '',
+              rhymingWords
+            );
+            prompt = rhymeResult.prompt;
+            captionKo = rhymeResult.captionKo;
+            captionEn = rhymeResult.captionEn;
+          } else {
+            prompt = generateRhymePrompt(word.definition || '', word.word);
+            captionKo = `${word.word} 발음 연습`;
+            captionEn = `Pronunciation practice for ${word.word}`;
+          }
+        }
+
+        const result = await generateAndUploadImage(prompt, imageType as VisualType, word.word);
+
+        if (result) {
+          await prisma.wordVisual.upsert({
+            where: {
+              wordId_type: {
+                wordId: word.id,
+                type: imageType as VisualType,
+              },
+            },
+            update: {
+              imageUrl: result.imageUrl,
+              promptEn: prompt,
+              captionKo,
+              captionEn,
+            },
+            create: {
+              wordId: word.id,
+              type: imageType as VisualType,
+              imageUrl: result.imageUrl,
+              promptEn: prompt,
+              captionKo,
+              captionEn,
+            },
+          });
+          job.successCount++;
+        }
+
+        // Delay between images
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        job.errors.push({ word: word.word, error: `${imageType}: ${errorMsg}` });
+        job.errorCount++;
+        logger.error(`[Admin/BatchRegen] Error generating ${imageType} for "${word.word}":`, error);
+
+        await new Promise((resolve) => setTimeout(resolve, 8000));
+      }
+    }
+
+    job.processedWords++;
+  }
+
+  job.status = 'completed';
+  job.currentWord = undefined;
+  logger.info(`[Admin/BatchRegen] Job ${jobId} completed. Success: ${job.successCount}, Errors: ${job.errorCount}`);
 }

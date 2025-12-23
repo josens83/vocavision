@@ -106,7 +106,9 @@ async function seedCSATLevel(
     },
   });
 
-  const existingMap = new Map(existingWords.map(w => [w.word.toLowerCase(), w]));
+  const existingMap = new Map<string, typeof existingWords[number]>(
+    existingWords.map(w => [w.word.toLowerCase(), w])
+  );
 
   const newWordTexts: string[] = [];
   const mappingsToAdd: { wordId: string; word: string }[] = [];
