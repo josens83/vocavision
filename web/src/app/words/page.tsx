@@ -119,51 +119,60 @@ function WordsPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
+      {/* Header - Mobile optimized */}
+      <header className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-600">VocaVision</h1>
-            <nav className="flex gap-4">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">V</span>
+              </div>
+              <span className="font-bold text-lg">
+                <span className="text-indigo-600">Voca</span>
+                <span className="text-gray-700">Vision</span>
+              </span>
+            </Link>
+            {/* Desktop nav only */}
+            <nav className="hidden md:flex gap-4">
               <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
                 대시보드
               </Link>
               <Link href="/learn" className="text-gray-600 hover:text-gray-900">
                 학습
               </Link>
-              <Link href="/words" className="text-blue-600 font-semibold">
+              <Link href="/words" className="text-indigo-600 font-semibold">
                 단어 탐색
-              </Link>
-              <Link href="/statistics" className="text-gray-600 hover:text-gray-900">
-                통계
               </Link>
             </nav>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">단어 탐색</h2>
-          <p className="text-gray-600">학습하고 싶은 단어를 찾아보세요</p>
+      <main className="container mx-auto px-4 py-6 md:py-8">
+        <div className="mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">단어 탐색</h2>
+          <p className="text-gray-600 text-sm md:text-base">학습하고 싶은 단어를 찾아보세요</p>
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
+        <div className="bg-white rounded-xl p-4 md:p-6 mb-6 shadow-sm">
           <form onSubmit={handleSearch} className="mb-4">
-            <div className="flex gap-4">
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="단어 검색..."
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 min-w-0 px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm md:text-base"
               />
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="bg-indigo-600 text-white px-4 md:px-8 py-2.5 md:py-3 rounded-lg font-semibold hover:bg-indigo-700 transition shrink-0"
               >
-                검색
+                <span className="hidden sm:inline">검색</span>
+                <svg className="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </button>
             </div>
           </form>
@@ -174,12 +183,10 @@ function WordsPageContent() {
               <span className="text-sm text-gray-500 mr-3">시험</span>
               <div className="inline-flex gap-2 flex-wrap">
                 {[
-                  { value: '', label: '전체', color: 'gray' },
-                  { value: 'CSAT', label: '수능', color: 'blue' },
-                  { value: 'TEPS', label: 'TEPS', color: 'purple' },
-                  { value: 'TOEFL', label: 'TOEFL', color: 'orange' },
-                  { value: 'TOEIC', label: 'TOEIC', color: 'green' },
-                ].map(({ value, label, color }) => (
+                  { value: '', label: '전체' },
+                  { value: 'CSAT', label: '수능' },
+                  { value: 'TEPS', label: 'TEPS' },
+                ].map(({ value, label }) => (
                   <button
                     key={value}
                     onClick={() => {
@@ -188,8 +195,8 @@ function WordsPageContent() {
                     }}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                       examCategory === value
-                        ? `bg-${color}-600 text-white`
-                        : `bg-${color}-100 text-${color}-700 hover:bg-${color}-200`
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     {label}
