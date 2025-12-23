@@ -1,157 +1,142 @@
 "use client";
 
 import Link from "next/link";
-import { PLATFORM_STATS } from "@/constants/stats";
 import { useComingSoon } from "@/components/ui/ComingSoonModal";
 
-interface ExamIcon {
+interface ExamCategory {
   id: string;
   name: string;
-  nameKo: string;
-  href: string;
+  icon: string;
   color: string;
-  bgColor: string;
-  wordCount: number;
-  isAvailable: boolean;
-  isPremium?: boolean;
+  href: string;
+  available: boolean;
 }
 
-const examIcons: ExamIcon[] = [
+// 시험 카테고리 데이터 (4x2 그리드)
+const examCategories: ExamCategory[] = [
   {
-    id: "csat",
-    name: "CSAT",
-    nameKo: "수능",
-    href: "/courses/csat",
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
-    wordCount: PLATFORM_STATS.totalWords,
-    isAvailable: true,
+    id: "CSAT",
+    name: "수능",
+    icon: "📚",
+    color: "bg-pink-100 text-pink-600",
+    href: "/learn?exam=CSAT",
+    available: true,
   },
   {
-    id: "teps",
+    id: "TEPS",
     name: "TEPS",
-    nameKo: "텝스",
+    icon: "🎯",
+    color: "bg-purple-100 text-purple-600",
     href: "/learn?exam=TEPS",
-    color: "text-teal-600",
-    bgColor: "bg-teal-100",
-    wordCount: PLATFORM_STATS.exams.TEPS.words,
-    isAvailable: true,
-    isPremium: true,
+    available: true,
   },
   {
-    id: "toefl",
+    id: "TOEFL",
     name: "TOEFL",
-    nameKo: "토플",
-    href: "/courses/toefl",
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-100",
-    wordCount: 5000,
-    isAvailable: false,
+    icon: "🌍",
+    color: "bg-blue-100 text-blue-600",
+    href: "/learn?exam=TOEFL",
+    available: true,
+  },
+  {
+    id: "TOEIC",
+    name: "TOEIC",
+    icon: "💼",
+    color: "bg-green-100 text-green-600",
+    href: "/learn?exam=TOEIC",
+    available: true,
+  },
+  {
+    id: "SAT",
+    name: "SAT",
+    icon: "🎓",
+    color: "bg-amber-100 text-amber-600",
+    href: "/learn?exam=SAT",
+    available: true,
+  },
+  {
+    id: "IELTS",
+    name: "IELTS",
+    icon: "✈️",
+    color: "bg-cyan-100 text-cyan-600",
+    href: "/learn?exam=IELTS",
+    available: false,
+  },
+  {
+    id: "GRE",
+    name: "GRE",
+    icon: "🔬",
+    color: "bg-red-100 text-red-600",
+    href: "/learn?exam=GRE",
+    available: false,
+  },
+  {
+    id: "CUSTOM",
+    name: "내 단어장",
+    icon: "📝",
+    color: "bg-slate-100 text-slate-600",
+    href: "/my-words",
+    available: false,
   },
 ];
-
-function ExamIconCard({ exam, onComingSoonClick }: { exam: ExamIcon; onComingSoonClick?: (name: string) => void }) {
-  const content = (
-    <div className="flex flex-col items-center group">
-      {/* 원형 아이콘 */}
-      <div
-        className={`
-          w-16 h-16 md:w-20 md:h-20 rounded-full
-          ${exam.bgColor} ${exam.color}
-          flex items-center justify-center
-          transition-all duration-300
-          group-hover:scale-110 group-hover:shadow-lg
-          ${!exam.isAvailable ? "opacity-60 grayscale-[30%]" : ""}
-        `}
-      >
-        <span className="text-xl md:text-2xl font-bold">{exam.name.charAt(0)}</span>
-      </div>
-
-      {/* 시험명 */}
-      <div className="mt-3 text-center">
-        <p className={`font-semibold ${exam.color} ${!exam.isAvailable ? "opacity-60" : ""}`}>
-          {exam.name}
-        </p>
-        <p className="text-xs text-slate-500 mt-0.5">{exam.nameKo}</p>
-      </div>
-
-      {/* 단어 수 / 상태 배지 */}
-      <div className="mt-2 flex flex-col items-center gap-1">
-        {exam.isAvailable ? (
-          <>
-            <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-              {exam.wordCount.toLocaleString()}단어
-            </span>
-            {exam.isPremium && (
-              <span className="px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-full">
-                Premium
-              </span>
-            )}
-          </>
-        ) : (
-          <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-500 rounded-full">
-            준비중
-          </span>
-        )}
-      </div>
-    </div>
-  );
-
-  if (exam.isAvailable) {
-    return (
-      <Link href={exam.href} className="block p-4 rounded-2xl hover:bg-white transition-colors">
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <button
-      onClick={() => onComingSoonClick?.(exam.nameKo)}
-      className="block p-4 rounded-2xl hover:bg-white/50 transition-colors cursor-pointer"
-    >
-      {content}
-    </button>
-  );
-}
 
 export default function ExamIconGrid() {
   const { showComingSoon } = useComingSoon();
 
   const handleComingSoonClick = (examName: string) => {
     showComingSoon({
-      itemName: `${examName} 단어장`,
-      message: `${examName} 단어장은 곧 추가될 예정이에요.\n조금만 기다려 주세요!`,
+      itemName: `${examName}`,
+      message: `${examName}은(는) 곧 추가될 예정이에요.\n조금만 기다려 주세요!`,
     });
   };
 
   return (
-    <div className="text-center">
-      {/* 섹션 헤더 */}
-      <div className="mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
-          시험별 <span className="text-gradient">빠른 학습</span>
-        </h2>
-        <p className="text-slate-600">
-          목표 시험을 선택하고 바로 학습을 시작하세요
-        </p>
-      </div>
+    <section className="py-12 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        {/* 섹션 헤더 */}
+        <div className="text-center mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+            시험별 <span className="text-gradient">빠른 학습</span>
+          </h2>
+          <p className="text-slate-600">
+            목표 시험을 선택하고 바로 학습을 시작하세요
+          </p>
+        </div>
 
-      {/* 아이콘 그리드 */}
-      <div className="flex flex-wrap justify-center gap-2 md:gap-4 max-w-2xl mx-auto">
-        {examIcons.map((exam) => (
-          <ExamIconCard
-            key={exam.id}
-            exam={exam}
-            onComingSoonClick={handleComingSoonClick}
-          />
-        ))}
+        {/* 4x2 아이콘 그리드 */}
+        <div className="grid grid-cols-4 gap-3 sm:gap-4 max-w-lg mx-auto">
+          {examCategories.map((exam) => (
+            <div key={exam.id} className="relative">
+              {exam.available ? (
+                <Link
+                  href={exam.href}
+                  className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl ${exam.color} hover:scale-105 active:scale-95 transition-transform duration-200 aspect-square shadow-sm`}
+                >
+                  <span className="text-2xl sm:text-3xl mb-1 sm:mb-2">{exam.icon}</span>
+                  <span className="text-xs sm:text-sm font-medium truncate w-full text-center">
+                    {exam.name}
+                  </span>
+                </Link>
+              ) : (
+                <button
+                  onClick={() => handleComingSoonClick(exam.name)}
+                  className="w-full flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl bg-slate-50 text-slate-400 aspect-square cursor-pointer hover:bg-slate-100 transition-colors"
+                >
+                  <span className="text-2xl sm:text-3xl mb-1 sm:mb-2 grayscale opacity-50">
+                    {exam.icon}
+                  </span>
+                  <span className="text-xs sm:text-sm font-medium truncate w-full text-center">
+                    {exam.name}
+                  </span>
+                  <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-slate-200 text-slate-500 text-[10px] font-medium rounded-full">
+                    준비중
+                  </span>
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-
-      {/* 하단 안내 */}
-      <p className="mt-6 text-sm text-slate-400">
-        수능(CSAT)과 TEPS 어휘가 학습 가능합니다. TOEFL은 곧 추가됩니다.
-      </p>
-    </div>
+    </section>
   );
 }

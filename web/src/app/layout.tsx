@@ -7,6 +7,7 @@ import { Footer } from '@/components/Footer';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import StudyFAB from '@/components/ui/StudyFAB';
 import BottomTabBar from '@/components/navigation/BottomTabBar';
+import ScrollToTop from '@/components/ui/ScrollToTop';
 
 const siteUrl = 'https://vocavision.kr';
 const siteName = 'VocaVision';
@@ -136,6 +137,7 @@ export default function RootLayout({
           </div>
           <StudyFAB />
           <BottomTabBar />
+          <ScrollToTop />
         </Providers>
       </body>
     </html>
