@@ -121,6 +121,101 @@ router.get('/stats', getDashboardStats);
  */
 router.get('/words', getAdminWords);
 
+// ============================================
+// IMPORTANT: Specific /words/* routes MUST come BEFORE /words/:wordId
+// Otherwise Express matches 'missing-images' as a wordId parameter!
+// ============================================
+
+/**
+ * @swagger
+ * /admin/words/missing-images:
+ *   get:
+ *     summary: Get words with missing images
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: examCategory
+ *         schema:
+ *           type: string
+ *           enum: [CSAT, TEPS, TOEFL, EBS, CSAT_BASIC]
+ *       - in: query
+ *         name: imageType
+ *         schema:
+ *           type: string
+ *           enum: [CONCEPT, MNEMONIC, RHYME]
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ */
+router.get('/words/missing-images', getWordsMissingImages);
+
+/**
+ * @swagger
+ * /admin/words/batch:
+ *   post:
+ *     summary: Batch create words
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/words/batch', batchCreateWords);
+
+/**
+ * @swagger
+ * /admin/words/bulk-status:
+ *   post:
+ *     summary: Bulk update word status (approve/publish)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/words/bulk-status', bulkUpdateStatus);
+
+/**
+ * @swagger
+ * /admin/words/batch-regenerate-images:
+ *   post:
+ *     summary: Batch regenerate images for multiple words
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - wordIds
+ *             properties:
+ *               wordIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               imageTypes:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [CONCEPT, MNEMONIC, RHYME]
+ */
+router.post('/words/batch-regenerate-images', batchRegenerateImages);
+
+// ============================================
+// Parameterized /words/:wordId routes come AFTER specific routes
+// ============================================
+
 /**
  * @swagger
  * /admin/words/{wordId}:
@@ -175,28 +270,6 @@ router.put('/words/:wordId/content', updateWordContent);
  *       - bearerAuth: []
  */
 router.delete('/words/:wordId', deleteAdminWord);
-
-/**
- * @swagger
- * /admin/words/batch:
- *   post:
- *     summary: Batch create words
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- */
-router.post('/words/batch', batchCreateWords);
-
-/**
- * @swagger
- * /admin/words/bulk-status:
- *   post:
- *     summary: Bulk update word status (approve/publish)
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- */
-router.post('/words/bulk-status', bulkUpdateStatus);
 
 /**
  * @swagger
@@ -433,44 +506,9 @@ router.get('/words/:wordId/visuals', getWordVisuals);
 router.put('/words/:wordId/visuals', updateWordVisuals);
 
 // ============================================
-// Image Management Routes (missing images, regeneration, upload)
+// Image Management Routes (regeneration, upload, delete)
+// Note: /words/missing-images is defined earlier (before /words/:wordId)
 // ============================================
-
-/**
- * @swagger
- * /admin/words/missing-images:
- *   get:
- *     summary: Get words with missing images
- *     tags: [Admin - Image Management]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: examCategory
- *         schema:
- *           type: string
- *           enum: [CSAT, TEPS, TOEFL, EBS, CSAT_BASIC]
- *       - in: query
- *         name: imageType
- *         schema:
- *           type: string
- *           enum: [CONCEPT, MNEMONIC, RHYME]
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 20
- */
-router.get('/words/missing-images', getWordsMissingImages);
 
 /**
  * @swagger
@@ -559,33 +597,5 @@ router.post('/words/:wordId/upload-image', uploadWordImage);
  *           enum: [CONCEPT, MNEMONIC, RHYME]
  */
 router.delete('/words/:wordId/images/:imageType', deleteWordImage);
-
-/**
- * @swagger
- * /admin/words/batch-regenerate-images:
- *   post:
- *     summary: Batch regenerate images for multiple words
- *     tags: [Admin - Image Management]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - wordIds
- *             properties:
- *               wordIds:
- *                 type: array
- *                 items:
- *                   type: string
- *               imageTypes:
- *                 type: array
- *                 items:
- *                   type: string
- *                   enum: [CONCEPT, MNEMONIC, RHYME]
- */
-router.post('/words/batch-regenerate-images', batchRegenerateImages);
 
 export default router;
