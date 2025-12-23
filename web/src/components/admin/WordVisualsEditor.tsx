@@ -64,7 +64,7 @@ export default function WordVisualsEditor({
   onChange,
   cloudinaryCloudName,
   onJsonImport,
-  onImageDelete: _onImageDelete,
+  onImageDelete,
   onGenerateAllImages: _onGenerateAllImages,
   onGenerateSingleImage: _onGenerateSingleImage,
   onGeneratePrompt: _onGeneratePrompt,
@@ -109,6 +109,22 @@ export default function WordVisualsEditor({
       v.type === type ? { ...v, ...updates } : v
     );
     onChange(updatedVisuals);
+  };
+
+  // Handle image deletion with API call
+  const handleDeleteImage = (type: VisualType) => {
+    const currentVisuals = VISUAL_TYPES.map(getVisual);
+    const updatedVisuals = currentVisuals.map((v) =>
+      v.type === type ? { ...v, imageUrl: undefined } : v
+    );
+
+    // Update local state
+    onChange(updatedVisuals);
+
+    // Call API to persist deletion
+    if (onImageDelete) {
+      onImageDelete(type, updatedVisuals);
+    }
   };
 
   // Handle image upload
@@ -364,7 +380,7 @@ export default function WordVisualsEditor({
                       />
                       <button
                         type="button"
-                        onClick={() => updateVisual(type, { imageUrl: undefined })}
+                        onClick={() => handleDeleteImage(type)}
                         className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition opacity-0 group-hover:opacity-100"
                       >
                         <X className="w-4 h-4" />
