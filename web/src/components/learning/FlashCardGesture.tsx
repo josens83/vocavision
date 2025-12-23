@@ -217,10 +217,10 @@ export default function FlashCardGesture({
   const hasVisualImages = hasNewVisuals || hasLegacyVisuals;
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col min-h-[calc(100vh-200px)] md:min-h-0 md:block">
       {/* Swipe Hint - shown on mobile for first 5 uses */}
       {showSwipeHint && (
-        <div className="text-center text-sm text-gray-400 flex justify-center gap-6 md:hidden">
+        <div className="text-center text-sm text-gray-400 flex justify-center gap-6 md:hidden mb-2">
           <span>← 다음</span>
           {hasPrevious && <span>이전 →</span>}
         </div>
@@ -235,7 +235,7 @@ export default function FlashCardGesture({
         onDragEnd={handleDragEnd}
         animate={isExiting && exitDirection ? exitVariants[exitDirection] : {}}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        className="relative cursor-grab active:cursor-grabbing"
+        className="relative cursor-grab active:cursor-grabbing flex-1 md:flex-none"
       >
         {/* Swipe Overlay Indicators */}
         <motion.div
@@ -398,33 +398,35 @@ export default function FlashCardGesture({
         </div>
       </motion.div>
 
-      {/* Rating Buttons - hide on mobile when swiping is available */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-        <p className="text-center text-gray-500 text-sm mb-4">
-          이 단어를 알고 있었나요?
-        </p>
-        <div className="grid grid-cols-3 gap-3">
-          <button
-            onClick={() => handleRating(1)}
-            className="bg-red-50 hover:bg-red-100 text-red-600 py-4 rounded-xl font-bold transition border-2 border-transparent hover:border-red-200"
-          >
-            <span className="block text-2xl mb-1">😕</span>
-            <span className="text-sm">모름</span>
-          </button>
-          <button
-            onClick={() => handleRating(3)}
-            className="bg-yellow-50 hover:bg-yellow-100 text-yellow-600 py-4 rounded-xl font-bold transition border-2 border-transparent hover:border-yellow-200"
-          >
-            <span className="block text-2xl mb-1">🤔</span>
-            <span className="text-sm">애매함</span>
-          </button>
-          <button
-            onClick={() => handleRating(5)}
-            className="bg-green-50 hover:bg-green-100 text-green-600 py-4 rounded-xl font-bold transition border-2 border-transparent hover:border-green-200"
-          >
-            <span className="block text-2xl mb-1">😊</span>
-            <span className="text-sm">알았음</span>
-          </button>
+      {/* Rating Buttons - sticky on mobile */}
+      <div className="mt-4 md:mt-4 sticky bottom-0 md:relative bg-gray-50 md:bg-transparent pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 md:p-5">
+          <p className="text-center text-gray-500 text-xs md:text-sm mb-3 md:mb-4">
+            이 단어를 알고 있었나요?
+          </p>
+          <div className="grid grid-cols-3 gap-2 md:gap-3">
+            <button
+              onClick={() => handleRating(1)}
+              className="bg-red-50 hover:bg-red-100 text-red-600 py-3 md:py-4 rounded-xl font-bold transition border-2 border-transparent hover:border-red-200"
+            >
+              <span className="block text-xl md:text-2xl mb-0.5 md:mb-1">😕</span>
+              <span className="text-xs md:text-sm">모름</span>
+            </button>
+            <button
+              onClick={() => handleRating(3)}
+              className="bg-yellow-50 hover:bg-yellow-100 text-yellow-600 py-3 md:py-4 rounded-xl font-bold transition border-2 border-transparent hover:border-yellow-200"
+            >
+              <span className="block text-xl md:text-2xl mb-0.5 md:mb-1">🤔</span>
+              <span className="text-xs md:text-sm">애매함</span>
+            </button>
+            <button
+              onClick={() => handleRating(5)}
+              className="bg-green-50 hover:bg-green-100 text-green-600 py-3 md:py-4 rounded-xl font-bold transition border-2 border-transparent hover:border-green-200"
+            >
+              <span className="block text-xl md:text-2xl mb-0.5 md:mb-1">😊</span>
+              <span className="text-xs md:text-sm">알았음</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

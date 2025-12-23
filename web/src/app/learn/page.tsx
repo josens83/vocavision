@@ -277,7 +277,7 @@ function LearnPageContent() {
   const accuracyPercent = wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Demo Mode Banner for Guests */}
       {!user && (
         <div className="bg-amber-50 border-b border-amber-200 sticky top-0 z-20">
@@ -298,33 +298,31 @@ function LearnPageContent() {
       {/* Fixed Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             {/* Back Button */}
             <button
               onClick={() => router.push(user ? '/dashboard' : '/')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
+              className="flex items-center gap-1 text-gray-600 hover:text-gray-900 transition shrink-0"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="font-medium">나가기</span>
+              <span className="font-medium text-sm">나가기</span>
             </button>
 
             {/* Center - Course Info */}
-            <div className="text-center">
+            <div className="text-center flex-1 min-w-0">
               {examParam && (
-                <span className="text-sm font-bold text-gray-900">
-                  {examNames[examParam]} {levelParam && `· ${levelNames[levelParam] || levelParam}`}
+                <span className="text-base font-bold text-gray-900">
+                  {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {levelNames[levelParam] || levelParam}</span>}
                 </span>
               )}
             </div>
 
-            {/* Right - Stats */}
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <span className="text-sm text-gray-500">정확도</span>
-                <p className="text-lg font-bold text-green-600">{accuracyPercent}%</p>
-              </div>
+            {/* Right - Stats (compact on mobile) */}
+            <div className="flex items-center gap-1 shrink-0">
+              <span className="text-xs text-gray-500 hidden sm:inline">정확도</span>
+              <span className="text-sm font-bold text-green-600">{accuracyPercent}%</span>
             </div>
           </div>
 
@@ -345,7 +343,7 @@ function LearnPageContent() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6 max-w-2xl">
+      <div className="container mx-auto px-4 py-4 md:py-6 max-w-2xl flex-1 overflow-hidden">
         <FlashCardGesture
           word={currentWord}
           onAnswer={handleAnswer}
