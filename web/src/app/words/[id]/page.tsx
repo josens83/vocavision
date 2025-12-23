@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
 import { wordsAPI, progressAPI, pronunciationAPI } from '@/lib/api';
 import { LEVEL_INFO } from '@/constants/stats';
@@ -154,6 +155,7 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [bookmarked, setBookmarked] = useState(false);
   const [playingAudio, setPlayingAudio] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState<{ url: string; caption?: string } | null>(null);
 
   useEffect(() => {
     loadWord();
@@ -316,7 +318,10 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
             {/* Concept Image */}
             <div className="relative h-64 md:h-auto bg-gradient-to-br from-blue-50 to-blue-100">
               {conceptVisual?.imageUrl ? (
-                <div className="relative h-full">
+                <div
+                  className="relative h-full cursor-pointer"
+                  onClick={() => setFullscreenImage({ url: conceptVisual.imageUrl!, caption: conceptVisual.captionKo })}
+                >
                   <img
                     src={conceptVisual.imageUrl}
                     alt={`${word.word} concept`}
@@ -329,6 +334,12 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
                     {conceptVisual.captionKo && (
                       <p className="text-white text-sm">{conceptVisual.captionKo}</p>
                     )}
+                  </div>
+                  {/* Tap to expand hint on mobile */}
+                  <div className="absolute top-3 right-3 md:hidden">
+                    <span className="bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                      탭하여 확대
+                    </span>
                   </div>
                 </div>
               ) : (
@@ -348,7 +359,10 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
           <section className="grid sm:grid-cols-2 gap-4">
             {mnemonicVisual?.imageUrl && (
               <div className="card overflow-hidden group">
-                <div className="relative aspect-[4/3] bg-slate-100">
+                <div
+                  className="relative aspect-[4/3] bg-slate-100 cursor-pointer"
+                  onClick={() => setFullscreenImage({ url: mnemonicVisual.imageUrl!, caption: mnemonicVisual.captionKo })}
+                >
                   <img
                     src={mnemonicVisual.imageUrl}
                     alt={`${word.word} mnemonic`}
@@ -373,7 +387,10 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
 
             {rhymeVisual?.imageUrl && (
               <div className="card overflow-hidden group">
-                <div className="relative aspect-[4/3] bg-slate-100">
+                <div
+                  className="relative aspect-[4/3] bg-slate-100 cursor-pointer"
+                  onClick={() => setFullscreenImage({ url: rhymeVisual.imageUrl!, caption: rhymeVisual.captionKo })}
+                >
                   <img
                     src={rhymeVisual.imageUrl}
                     alt={`${word.word} rhyme`}
@@ -674,8 +691,8 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
           </section>
         )}
 
-        {/* CTA */}
-        <section className="card p-6 bg-gradient-to-r from-brand-primary to-brand-primary/80 text-white">
+        {/* CTA - Hidden on mobile, shown on desktop */}
+        <section className="card p-6 bg-gradient-to-r from-brand-primary to-brand-primary/80 text-white hidden md:block">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <h3 className="text-xl font-display font-bold mb-1">이 단어를 완벽히 외우셨나요?</h3>
@@ -691,7 +708,69 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
             </div>
           </div>
         </section>
+
+        {/* Mobile bottom spacer for fixed action bar */}
+        <div className="h-24 md:hidden" />
       </main>
+
+      {/* Mobile Fixed Bottom Action Bar */}
+      <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 md:hidden z-40 safe-area-bottom">
+        <div className="flex gap-3 max-w-lg mx-auto">
+          <button
+            onClick={handlePlayPronunciation}
+            disabled={playingAudio}
+            className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium flex items-center justify-center gap-2 min-h-[48px] active:bg-gray-200 transition-colors"
+          >
+            <Icons.Speaker />
+            <span>{playingAudio ? '재생 중...' : '발음'}</span>
+          </button>
+          <Link
+            href={`/words/${word.id}/learn`}
+            className="flex-1 bg-pink-500 text-white py-3 rounded-xl font-medium text-center flex items-center justify-center gap-2 min-h-[48px] active:bg-pink-600 transition-colors"
+          >
+            <Icons.Play />
+            <span>학습하기</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Fullscreen Image Modal */}
+      <AnimatePresence>
+        {fullscreenImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+            onClick={() => setFullscreenImage(null)}
+          >
+            <motion.img
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              src={fullscreenImage.url}
+              alt="Fullscreen view"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            {fullscreenImage.caption && (
+              <div className="absolute bottom-8 left-4 right-4 text-center">
+                <p className="text-white text-lg bg-black/50 py-2 px-4 rounded-lg inline-block">
+                  {fullscreenImage.caption}
+                </p>
+              </div>
+            )}
+            <button
+              onClick={() => setFullscreenImage(null)}
+              className="absolute top-4 right-4 text-white p-3 rounded-full bg-black/50 hover:bg-black/70 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
