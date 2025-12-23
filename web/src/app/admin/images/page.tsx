@@ -283,6 +283,23 @@ export default function AdminImagesPage() {
 
       if (response.data.success) {
         setActionSuccess(`${IMAGE_TYPE_LABELS[type]} 이미지 업로드 완료!`);
+
+        // Update modal state with new image
+        if (selectedWord && response.data.data?.visual) {
+          const updatedVisuals = [...selectedWord.visuals];
+          const existingIdx = updatedVisuals.findIndex((v) => v.type === type);
+          if (existingIdx >= 0) {
+            updatedVisuals[existingIdx] = response.data.data.visual as any;
+          } else {
+            updatedVisuals.push(response.data.data.visual as any);
+          }
+          setSelectedWord({
+            ...selectedWord,
+            visuals: updatedVisuals,
+            missingTypes: selectedWord.missingTypes.filter((t) => t !== type),
+          });
+        }
+
         loadWords();
       } else {
         throw new Error(response.data.error || '업로드 실패');
