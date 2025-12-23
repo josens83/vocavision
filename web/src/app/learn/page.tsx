@@ -114,6 +114,7 @@ function LearnPageContent() {
     wordsCorrect,
     setSessionId,
     incrementWord,
+    decrementWord,
     resetSession,
   } = useLearningStore();
 
@@ -225,6 +226,12 @@ function LearnPageContent() {
     }
   };
 
+  const handlePrevious = () => {
+    if (currentWordIndex > 0) {
+      decrementWord();
+    }
+  };
+
   const handleRestart = () => {
     resetSession();
     setShowResult(false);
@@ -275,10 +282,12 @@ function LearnPageContent() {
       {!user && (
         <div className="bg-amber-50 border-b border-amber-200 sticky top-0 z-20">
           <div className="container mx-auto px-4 py-2">
-            <div className="flex items-center justify-center gap-2 text-sm">
-              <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded font-bold text-xs">체험</span>
-              <span className="text-amber-800">학습 기록이 저장되지 않습니다.</span>
-              <a href="/auth/login" className="text-amber-900 font-medium underline hover:text-amber-700">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded font-bold text-xs shrink-0">체험</span>
+                <span className="text-amber-800 whitespace-nowrap">학습 기록이 저장되지 않습니다.</span>
+              </div>
+              <a href="/auth/login" className="text-amber-900 font-medium underline hover:text-amber-700 whitespace-nowrap">
                 로그인하고 기록 저장하기
               </a>
             </div>
@@ -337,7 +346,12 @@ function LearnPageContent() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 max-w-2xl">
-        <FlashCardGesture word={currentWord} onAnswer={handleAnswer} />
+        <FlashCardGesture
+          word={currentWord}
+          onAnswer={handleAnswer}
+          onPrevious={handlePrevious}
+          hasPrevious={currentWordIndex > 0}
+        />
       </div>
     </div>
   );
