@@ -82,8 +82,8 @@ const corsOptions = {
 // Handle preflight requests explicitly
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));  // Increased for base64 image uploads
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(rateLimiter);
 
 // Health check endpoints
