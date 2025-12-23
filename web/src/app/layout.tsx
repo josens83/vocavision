@@ -6,6 +6,7 @@ import Providers from '@/components/providers/Providers';
 import { Footer } from '@/components/Footer';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import StudyFAB from '@/components/ui/StudyFAB';
+import BottomTabBar from '@/components/navigation/BottomTabBar';
 
 const siteUrl = 'https://vocavision.kr';
 const siteName = 'VocaVision';
@@ -128,12 +129,13 @@ export default function RootLayout({
           <GoogleAnalytics />
           <OfflineBannerWrapper />
           <div className="flex flex-col min-h-screen">
-            <main className="flex-1">
+            <main className="flex-1 pb-16 md:pb-0">
               {children}
             </main>
             <Footer />
           </div>
           <StudyFAB />
+          <BottomTabBar />
         </Providers>
       </body>
     </html>
