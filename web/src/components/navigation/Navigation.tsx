@@ -487,7 +487,7 @@ export default function Navigation() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
               <span className="text-white font-display font-bold text-xl">V</span>
             </div>
-            <span className="font-display font-bold text-xl hidden sm:block">
+            <span className="font-display font-bold text-xl">
               <span className="text-gradient">Voca</span><span className="text-slate-700">Vision</span>
             </span>
           </Link>

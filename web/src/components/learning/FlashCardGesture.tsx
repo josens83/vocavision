@@ -83,26 +83,31 @@ interface Word {
 interface FlashCardGestureProps {
   word: Word;
   onAnswer: (correct: boolean, rating: number) => void;
+  onPrevious?: () => void;  // 이전 카드로 이동
+  hasPrevious?: boolean;    // 이전 카드 존재 여부
 }
 
 // Swipe hint counter key for localStorage
 const SWIPE_HINT_KEY = 'vocavision_swipe_hint_count';
 
-export default function FlashCardGesture({ word, onAnswer }: FlashCardGestureProps) {
+export default function FlashCardGesture({
+  word,
+  onAnswer,
+  onPrevious,
+  hasPrevious = false,
+}: FlashCardGestureProps) {
   const [showAnswer, setShowAnswer] = useState(false);
   const [showSwipeHint, setShowSwipeHint] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
-  const [exitDirection, setExitDirection] = useState<'left' | 'right' | 'up' | null>(null);
+  const [exitDirection, setExitDirection] = useState<'left' | 'right' | null>(null);
 
-  // Motion values for swipe gesture
+  // Motion values for swipe gesture (horizontal only)
   const x = useMotionValue(0);
-  const y = useMotionValue(0);
 
-  // Transform values based on drag
+  // Transform values based on drag (horizontal only)
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
   const leftOpacity = useTransform(x, [-100, 0], [1, 0]);
   const rightOpacity = useTransform(x, [0, 100], [0, 1]);
-  const upOpacity = useTransform(y, [-100, 0], [1, 0]);
 
   // Check if swipe hint should be shown (first 5 times)
   useEffect(() => {
@@ -129,37 +134,65 @@ export default function FlashCardGesture({ word, onAnswer }: FlashCardGesturePro
     setExitDirection(null);
     // Reset motion values
     x.set(0);
-    y.set(0);
   };
 
-  // Handle swipe gesture end
+  // Handle previous card navigation
+  const handlePrevious = () => {
+    if (hasPrevious && onPrevious) {
+      // Increment swipe hint counter
+      const count = parseInt(localStorage.getItem(SWIPE_HINT_KEY) || '0', 10);
+      localStorage.setItem(SWIPE_HINT_KEY, String(count + 1));
+      if (count + 1 >= 5) {
+        setShowSwipeHint(false);
+      }
+
+      setExitDirection('right');
+      setIsExiting(true);
+      setTimeout(() => {
+        onPrevious();
+        setShowAnswer(false);
+        setIsExiting(false);
+        setExitDirection(null);
+        x.set(0);
+      }, 200);
+    }
+  };
+
+  // Handle swipe gesture end (horizontal only)
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 100;
     const velocity = 500;
 
+    // Only handle horizontal swipes
+    if (Math.abs(info.offset.y) > Math.abs(info.offset.x) * 0.5) {
+      // Vertical movement is dominant - ignore (allow scroll)
+      x.set(0);
+      return;
+    }
+
     if (info.offset.x < -threshold || info.velocity.x < -velocity) {
-      // Left swipe - 모름 (rating: 1)
+      // Left swipe → 다음 카드 (틀림 표시)
       setExitDirection('left');
       setIsExiting(true);
       setTimeout(() => handleRating(1, true), 200);
     } else if (info.offset.x > threshold || info.velocity.x > velocity) {
-      // Right swipe - 알았음 (rating: 5)
-      setExitDirection('right');
-      setIsExiting(true);
-      setTimeout(() => handleRating(5, true), 200);
-    } else if (info.offset.y < -threshold || info.velocity.y < -velocity) {
-      // Up swipe - 애매함 (rating: 3)
-      setExitDirection('up');
-      setIsExiting(true);
-      setTimeout(() => handleRating(3, true), 200);
+      // Right swipe → 이전 카드
+      if (hasPrevious && onPrevious) {
+        handlePrevious();
+      } else {
+        // No previous card - spring back
+        x.set(0);
+      }
+    } else {
+      // Not enough swipe - spring back
+      x.set(0);
     }
   };
 
-  // Exit animation variants
+  // Exit animation variants (horizontal only)
   const exitVariants = {
     left: { x: -300, opacity: 0, rotate: -20 },
     right: { x: 300, opacity: 0, rotate: 20 },
-    up: { y: -300, opacity: 0 },
   };
 
   // Get display values
@@ -188,50 +221,42 @@ export default function FlashCardGesture({ word, onAnswer }: FlashCardGesturePro
       {/* Swipe Hint - shown on mobile for first 5 uses */}
       {showSwipeHint && (
         <div className="text-center text-sm text-gray-400 flex justify-center gap-6 md:hidden">
-          <span>← 모름</span>
-          <span>↑ 애매</span>
-          <span>알았음 →</span>
+          <span>← 다음</span>
+          {hasPrevious && <span>이전 →</span>}
         </div>
       )}
 
-      {/* Main Card with Swipe Gesture */}
+      {/* Main Card with Swipe Gesture (horizontal only) */}
       <motion.div
-        style={{ x, y, rotate }}
-        drag
-        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+        style={{ x, rotate }}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.7}
         onDragEnd={handleDragEnd}
         animate={isExiting && exitDirection ? exitVariants[exitDirection] : {}}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        className="relative touch-none cursor-grab active:cursor-grabbing"
+        className="relative cursor-grab active:cursor-grabbing"
       >
         {/* Swipe Overlay Indicators */}
         <motion.div
           style={{ opacity: leftOpacity }}
-          className="absolute inset-0 bg-red-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-10"
+          className="absolute inset-0 bg-pink-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-10"
         >
-          <div className="bg-red-500 text-white rounded-full p-4">
-            <span className="text-4xl">😕</span>
+          <div className="bg-pink-500 text-white rounded-full px-6 py-3">
+            <span className="text-xl font-bold">다음 →</span>
           </div>
         </motion.div>
 
-        <motion.div
-          style={{ opacity: rightOpacity }}
-          className="absolute inset-0 bg-green-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-10"
-        >
-          <div className="bg-green-500 text-white rounded-full p-4">
-            <span className="text-4xl">😊</span>
-          </div>
-        </motion.div>
-
-        <motion.div
-          style={{ opacity: upOpacity }}
-          className="absolute inset-0 bg-yellow-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-10"
-        >
-          <div className="bg-yellow-500 text-white rounded-full p-4">
-            <span className="text-4xl">🤔</span>
-          </div>
-        </motion.div>
+        {hasPrevious && (
+          <motion.div
+            style={{ opacity: rightOpacity }}
+            className="absolute inset-0 bg-slate-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-10"
+          >
+            <div className="bg-slate-500 text-white rounded-full px-6 py-3">
+              <span className="text-xl font-bold">← 이전</span>
+            </div>
+          </motion.div>
+        )}
 
         {/* Card Content */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">

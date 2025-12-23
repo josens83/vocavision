@@ -105,6 +105,9 @@
 
   html {
     scroll-behavior: smooth;
+    /* 한국어 단어 단위 줄바꿈 */
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
 
   body {
@@ -113,6 +116,8 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display font-semibold;
+    /* 제목은 확실히 단어 단위 줄바꿈 */
+    word-break: keep-all;
   }
 
   ::selection {
