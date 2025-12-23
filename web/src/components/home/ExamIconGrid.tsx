@@ -36,7 +36,7 @@ const examCategories: ExamCategory[] = [
     icon: "🌍",
     color: "bg-blue-100 text-blue-600",
     href: "/learn?exam=TOEFL",
-    available: true,
+    available: false,
   },
   {
     id: "TOEIC",
@@ -44,7 +44,7 @@ const examCategories: ExamCategory[] = [
     icon: "💼",
     color: "bg-green-100 text-green-600",
     href: "/learn?exam=TOEIC",
-    available: true,
+    available: false,
   },
   {
     id: "SAT",
@@ -52,7 +52,7 @@ const examCategories: ExamCategory[] = [
     icon: "🎓",
     color: "bg-amber-100 text-amber-600",
     href: "/learn?exam=SAT",
-    available: true,
+    available: false,
   },
   {
     id: "IELTS",
@@ -68,14 +68,6 @@ const examCategories: ExamCategory[] = [
     icon: "🔬",
     color: "bg-red-100 text-red-600",
     href: "/learn?exam=GRE",
-    available: false,
-  },
-  {
-    id: "CUSTOM",
-    name: "내 단어장",
-    icon: "📝",
-    color: "bg-slate-100 text-slate-600",
-    href: "/my-words",
     available: false,
   },
 ];
@@ -103,8 +95,8 @@ export default function ExamIconGrid() {
           </p>
         </div>
 
-        {/* 4x2 아이콘 그리드 */}
-        <div className="grid grid-cols-4 gap-3 sm:gap-4 max-w-lg mx-auto">
+        {/* 시험 아이콘 그리드 */}
+        <div className="grid grid-cols-4 gap-3 sm:gap-4 max-w-lg mx-auto justify-items-center">
           {examCategories.map((exam) => (
             <div key={exam.id} className="relative">
               {exam.available ? (
