@@ -1,17 +1,17 @@
 // ============================================
 // VocaVision - AI Image Generation Service
-// Stability AI + Cloudinary 이미지 생성
+// Stability AI + Supabase Storage 이미지 생성
 // ============================================
 
-import crypto from 'crypto';
 import logger from '../utils/logger';
+import { getSupabaseClient, checkSupabaseConfig } from '../lib/supabase';
 
 // Configuration
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY || '';
 const STABILITY_API_URL = 'https://api.stability.ai/v1/generation';
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || '';
-const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '';
-const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
+
+// Storage bucket name
+const STORAGE_BUCKET = 'word-images';
 
 // Visual type configurations
 const VISUAL_CONFIGS = {
@@ -104,64 +104,64 @@ export async function generateImageWithStabilityAI(
 }
 
 // ---------------------------------------------
-// Cloudinary Upload
+// Supabase Storage Upload
 // ---------------------------------------------
 
-export async function uploadToCloudinary(
+export async function uploadToSupabase(
   base64Data: string,
   word: string,
   visualType: string
 ): Promise<{ url: string; publicId: string }> {
-  logger.info('[Cloudinary] Starting upload...', { word, visualType });
+  logger.info('[Supabase] Starting upload...', { word, visualType });
 
-  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-    logger.error('[Cloudinary] Configuration missing');
-    throw new Error('Cloudinary not configured');
+  if (!checkSupabaseConfig()) {
+    logger.error('[Supabase] Configuration missing');
+    throw new Error('Supabase not configured');
   }
 
-  const timestamp = Math.floor(Date.now() / 1000);
-  const folder = 'vocavision/visuals';
-  const publicId = `${word.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${visualType.toLowerCase()}-${Date.now()}`;
+  const supabase = getSupabaseClient();
 
-  // Generate signature
-  const signatureString = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
-  const signature = crypto.createHash('sha1').update(signatureString).digest('hex');
+  // Generate unique file path: word-images/word-type-timestamp.png
+  const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const fileName = `${sanitizedWord}-${visualType.toLowerCase()}-${Date.now()}.png`;
+  const filePath = `visuals/${fileName}`;
 
-  // Prepare form data
-  const formData = new FormData();
-  formData.append('file', `data:image/png;base64,${base64Data}`);
-  formData.append('api_key', CLOUDINARY_API_KEY);
-  formData.append('timestamp', String(timestamp));
-  formData.append('signature', signature);
-  formData.append('folder', folder);
-  formData.append('public_id', publicId);
+  // Convert base64 to Buffer
+  const buffer = Buffer.from(base64Data, 'base64');
 
-  logger.info('[Cloudinary] Sending upload request...');
+  logger.info('[Supabase] Uploading file:', filePath);
 
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-    {
-      method: 'POST',
-      body: formData,
-    }
-  );
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, buffer, {
+      contentType: 'image/png',
+      cacheControl: '31536000', // 1 year cache
+      upsert: false,
+    });
 
-  logger.info('[Cloudinary] Response status:', response.status);
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    logger.error('[Cloudinary] Error response:', errorText);
-    throw new Error(`Cloudinary upload error: ${response.status} - ${errorText}`);
+  if (error) {
+    logger.error('[Supabase] Upload error:', error);
+    throw new Error(`Supabase upload error: ${error.message}`);
   }
 
-  const result = await response.json() as { secure_url: string; public_id: string };
-  logger.info('[Cloudinary] Upload successful:', result.secure_url);
+  logger.info('[Supabase] Upload successful:', data.path);
+
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(filePath);
+
+  const publicUrl = urlData.publicUrl;
+  logger.info('[Supabase] Public URL:', publicUrl);
 
   return {
-    url: result.secure_url,
-    publicId: result.public_id,
+    url: publicUrl,
+    publicId: filePath,
   };
 }
+
+// Legacy alias for backward compatibility
+export const uploadToCloudinary = uploadToSupabase;
 
 // ---------------------------------------------
 // Combined: Generate and Upload
@@ -224,11 +224,14 @@ export function generateRhymePrompt(definitionEn: string, word: string): string 
 
 export function checkImageServiceConfig(): {
   stabilityConfigured: boolean;
-  cloudinaryConfigured: boolean;
+  storageConfigured: boolean;
+  cloudinaryConfigured?: boolean; // Legacy alias
 } {
+  const storageConfigured = checkSupabaseConfig();
   return {
     stabilityConfigured: !!STABILITY_API_KEY,
-    cloudinaryConfigured: !!(CLOUDINARY_CLOUD_NAME && CLOUDINARY_API_KEY && CLOUDINARY_API_SECRET),
+    storageConfigured,
+    cloudinaryConfigured: storageConfigured, // Legacy alias for backward compatibility
   };
 }
 

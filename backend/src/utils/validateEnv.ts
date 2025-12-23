@@ -24,10 +24,9 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
-  // Optional: Cloudinary (for images)
-  CLOUDINARY_CLOUD_NAME: z.string().optional(),
-  CLOUDINARY_API_KEY: z.string().optional(),
-  CLOUDINARY_API_SECRET: z.string().optional(),
+  // Optional: Supabase Storage (for images)
+  SUPABASE_URL: z.string().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 
   // Optional: Email
   SMTP_HOST: z.string().optional(),
@@ -58,8 +57,8 @@ export function validateEnv(): EnvConfig {
       logger.warn('[WARN] STRIPE_SECRET_KEY not set - Payment features will be disabled');
     }
 
-    if (!env.CLOUDINARY_CLOUD_NAME) {
-      logger.warn('[WARN] Cloudinary credentials not set - Image upload will be disabled');
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+      logger.warn('[WARN] Supabase Storage credentials not set - Image upload will be disabled');
     }
 
     if (env.NODE_ENV === 'production') {

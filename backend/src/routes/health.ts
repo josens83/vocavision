@@ -250,18 +250,16 @@ async function checkCache(): Promise<ServiceStatus> {
 }
 
 /**
- * Check storage (Cloudinary/S3)
+ * Check storage (Supabase Storage)
  */
 async function checkStorage(): Promise<ServiceStatus> {
   try {
-    // TODO: Implement storage health check
-    // Could check if API keys are configured
-
-    const hasCloudinary = !!process.env.CLOUDINARY_CLOUD_NAME;
+    // Check if Supabase Storage is configured
+    const hasSupabase = !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
     return {
-      status: hasCloudinary ? 'up' : 'degraded',
-      message: hasCloudinary ? undefined : 'Storage not configured (optional)',
+      status: hasSupabase ? 'up' : 'degraded',
+      message: hasSupabase ? undefined : 'Storage not configured (optional)',
     };
   } catch (error) {
     return {

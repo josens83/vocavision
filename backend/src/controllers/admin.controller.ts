@@ -896,7 +896,7 @@ async function processImageGenerationJob(
   try {
     // Check configuration
     const config = checkImageServiceConfig();
-    if (!config.stabilityConfigured || !config.cloudinaryConfigured) {
+    if (!config.stabilityConfigured || !config.storageConfigured) {
       logger.error('[ImageJob] Service not configured:', config);
       await prisma.contentGenerationJob.update({
         where: { id: jobId },
@@ -1280,8 +1280,8 @@ export const createImageGenJob = async (
       return res.status(500).json({ message: 'Stability AI not configured. Set STABILITY_API_KEY.' });
     }
 
-    if (!config.cloudinaryConfigured) {
-      return res.status(500).json({ message: 'Cloudinary not configured. Set CLOUDINARY_* variables.' });
+    if (!config.storageConfigured) {
+      return res.status(500).json({ message: 'Storage not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.' });
     }
 
     // Create job in database
@@ -2580,9 +2580,9 @@ export const uploadWordImage = async (
       });
     }
 
-    // Upload to Cloudinary
-    const { uploadToCloudinary } = await import('../services/imageGenerator.service');
-    const uploadResult = await uploadToCloudinary(imageBase64, word.word, imageType);
+    // Upload to Supabase Storage
+    const { uploadToSupabase } = await import('../services/imageGenerator.service');
+    const uploadResult = await uploadToSupabase(imageBase64, word.word, imageType);
 
     // Upsert the visual
     const visual = await prisma.wordVisual.upsert({

@@ -4,7 +4,7 @@
  * Generates images for words without visuals using:
  * - Claude API for smart prompts/captions
  * - Stability AI for image generation
- * - Cloudinary for image storage
+ * - Supabase Storage for image storage
  *
  * Usage:
  *   npm run generate-images -- --limit=100
@@ -18,7 +18,7 @@ import { PrismaClient } from '@prisma/client';
 type VisualType = 'CONCEPT' | 'MNEMONIC' | 'RHYME';
 type ExamCategory = 'CSAT' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT';
 import Anthropic from '@anthropic-ai/sdk';
-import * as crypto from 'crypto';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import 'dotenv/config';
 
 const prisma = new PrismaClient();
@@ -26,10 +26,10 @@ const prisma = new PrismaClient();
 // Configuration
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY || '';
 const STABILITY_API_URL = 'https://api.stability.ai/v1/generation';
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '';
-const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '';
-const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
+const STORAGE_BUCKET = 'word-images';
 
 // Rate limiting
 const IMAGE_DELAY_MS = 2000; // 2 seconds between images
@@ -286,40 +286,53 @@ async function generateImage(prompt: string, visualType: VisualType): Promise<st
   return null;
 }
 
-// Upload to Cloudinary
-async function uploadToCloudinary(base64Data: string, word: string, visualType: string): Promise<string> {
-  const timestamp = Math.floor(Date.now() / 1000);
-  const folder = 'vocavision/visuals';
-  const publicId = `${word.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${visualType.toLowerCase()}-${Date.now()}`;
-
-  // Generate signature
-  const signatureString = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
-  const signature = crypto.createHash('sha1').update(signatureString).digest('hex');
-
-  // Prepare form data
-  const formData = new FormData();
-  formData.append('file', `data:image/png;base64,${base64Data}`);
-  formData.append('api_key', CLOUDINARY_API_KEY);
-  formData.append('timestamp', String(timestamp));
-  formData.append('signature', signature);
-  formData.append('folder', folder);
-  formData.append('public_id', publicId);
-
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-    {
-      method: 'POST',
-      body: formData,
+// Supabase client singleton
+let supabaseClient: SupabaseClient | null = null;
+function getSupabaseClient(): SupabaseClient {
+  if (!supabaseClient) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Supabase configuration missing');
     }
-  );
+    supabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+  }
+  return supabaseClient;
+}
 
-  if (!response.ok) {
-    const error = await response.json() as { error?: { message?: string } };
-    throw new Error(`Cloudinary error: ${error.error?.message || response.statusText}`);
+// Upload to Supabase Storage
+async function uploadToSupabase(base64Data: string, word: string, visualType: string): Promise<string> {
+  const supabase = getSupabaseClient();
+
+  // Generate unique file path
+  const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const fileName = `${sanitizedWord}-${visualType.toLowerCase()}-${Date.now()}.png`;
+  const filePath = `visuals/${fileName}`;
+
+  // Convert base64 to Buffer
+  const buffer = Buffer.from(base64Data, 'base64');
+
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, buffer, {
+      contentType: 'image/png',
+      cacheControl: '31536000', // 1 year cache
+      upsert: false,
+    });
+
+  if (error) {
+    throw new Error(`Supabase upload error: ${error.message}`);
   }
 
-  const result = await response.json() as { secure_url: string };
-  return result.secure_url;
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(filePath);
+
+  return urlData.publicUrl;
 }
 
 // Save visual to database
@@ -394,8 +407,8 @@ async function main() {
       console.error('❌ STABILITY_API_KEY가 설정되지 않았습니다');
       process.exit(1);
     }
-    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-      console.error('❌ Cloudinary 설정이 완료되지 않았습니다');
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('❌ Supabase Storage 설정이 완료되지 않았습니다 (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)');
       process.exit(1);
     }
     if (!ANTHROPIC_API_KEY) {
@@ -502,9 +515,9 @@ async function main() {
           throw new Error('이미지 생성 실패');
         }
 
-        // Upload to Cloudinary
+        // Upload to Supabase Storage
         console.log(`  ⏳ ${type} - 업로드 중...`);
-        const imageUrl = await uploadToCloudinary(base64, word.word, type);
+        const imageUrl = await uploadToSupabase(base64, word.word, type);
 
         // Save to database
         await saveVisual(word.id, type, imageUrl, content.prompt, content.captionKo, content.captionEn);
