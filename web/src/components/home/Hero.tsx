@@ -72,12 +72,16 @@ export default function Hero() {
             </div>
 
             <h1 className="font-display">
-              <span className="block text-display-lg text-slate-900">영어 단어 학습의</span>
-              <span className="block text-display-xl text-gradient">새로운 비전</span>
+              <span className="block text-[1.75rem] sm:text-4xl md:text-display-lg text-slate-900 whitespace-nowrap">
+                영어 단어 학습의
+              </span>
+              <span className="block text-[1.75rem] sm:text-4xl md:text-display-xl text-gradient whitespace-nowrap">
+                새로운 비전
+              </span>
             </h1>
 
-            <p className="text-xl text-slate-600 max-w-xl leading-relaxed">
-              과학적으로 검증된 <strong className="text-slate-800">간격 반복 학습</strong>과
+            <p className="text-lg md:text-xl text-slate-600 max-w-xl leading-relaxed">
+              과학적으로 검증된 <strong className="text-slate-800">간격 반복 학습</strong>과{' '}
               <strong className="text-slate-800">적응형 퀴즈</strong>로 효율적인 어휘력 향상을 경험하세요.
             </p>
 
