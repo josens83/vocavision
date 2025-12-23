@@ -114,7 +114,7 @@ export default function PopularWordsSection() {
           </div>
 
           {/* 탭 버튼 */}
-          <div className="flex bg-slate-100 rounded-xl p-1">
+          <div className="inline-flex bg-slate-100 rounded-xl p-1">
             <TabButton
               active={activeTab === "best"}
               onClick={() => setActiveTab("best")}
