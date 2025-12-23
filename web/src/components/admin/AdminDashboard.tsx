@@ -28,6 +28,7 @@ interface NavItem {
   id: string;
   label: string;
   icon: React.ReactNode;
+  href?: string; // 외부 링크 (별도 페이지)
 }
 
 const navItems: NavItem[] = [
@@ -94,6 +95,16 @@ const navItems: NavItem[] = [
       </svg>
     ),
   },
+  {
+    id: 'images',
+    label: '이미지 관리',
+    href: '/admin/images',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
 ];
 
 // ---------------------------------------------
@@ -123,25 +134,45 @@ const Sidebar: React.FC<SidebarProps> = ({ activeNav, onNavChange, pendingReview
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-1">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onNavChange(item.id)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-              activeNav === item.id
-                ? 'bg-pink-500 text-white'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            {item.icon}
-            <span className="font-medium">{item.label}</span>
-            {item.id === 'review' && pendingReviewCount > 0 && (
-              <span className="ml-auto bg-amber-500 text-xs font-bold px-2 py-0.5 rounded-full">
-                {pendingReviewCount}
-              </span>
-            )}
-          </button>
-        ))}
+        {navItems.map((item) => {
+          const isActive = activeNav === item.id;
+          const className = `w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+            isActive
+              ? 'bg-pink-500 text-white'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }`;
+
+          // 외부 링크인 경우 Link 사용
+          if (item.href) {
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={className}
+              >
+                {item.icon}
+                <span className="font-medium">{item.label}</span>
+              </Link>
+            );
+          }
+
+          // 내부 네비게이션인 경우 button 사용
+          return (
+            <button
+              key={item.id}
+              onClick={() => onNavChange(item.id)}
+              className={className}
+            >
+              {item.icon}
+              <span className="font-medium">{item.label}</span>
+              {item.id === 'review' && pendingReviewCount > 0 && (
+                <span className="ml-auto bg-amber-500 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {pendingReviewCount}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </nav>
 
       {/* User */}
