@@ -58,9 +58,9 @@ function Footer() {
               <span className="font-bold text-xl ml-1">VocaVision</span>
             </div>
             <p className="text-gray-400 text-sm">
-              © Copyright 2024
+              © Copyright 2025
               <br />
-              vocavision.com
+              vocavision.kr
               <br />
               All rights reserved.
             </p>

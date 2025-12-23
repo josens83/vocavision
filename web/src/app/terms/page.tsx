@@ -91,8 +91,7 @@ export default function TermsPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">3. 환불 신청 방법</h3>
                 <ul className="list-disc list-inside ml-4 space-y-1">
-                  <li>이메일: support@vocavision.com</li>
-                  <li>전화: 010-5167-7227</li>
+                  <li>이메일: support@vocavision.kr</li>
                 </ul>
               </div>
               <div>
@@ -150,9 +149,7 @@ export default function TermsPage() {
         <div className="mt-8 text-center text-gray-500">
           <p>약관에 대해 궁금한 점이 있으시면 문의해 주세요.</p>
           <p className="mt-2">
-            이메일: <a href="mailto:support@vocavision.com" className="text-brand-primary hover:underline">support@vocavision.com</a>
-            {' | '}
-            전화: <a href="tel:010-5167-7227" className="text-brand-primary hover:underline">010-5167-7227</a>
+            이메일: <a href="mailto:support@vocavision.kr" className="text-brand-primary hover:underline">support@vocavision.kr</a>
           </p>
         </div>
       </div>

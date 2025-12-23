@@ -53,7 +53,7 @@ const faqCategories: FAQCategory[] = [
       {
         question: '환불은 어떻게 받나요?',
         answer:
-          '결제 후 7일 이내 미이용 시 전액 환불, 이용 후에는 잔여 기간 일할 계산하여 환불됩니다. support@vocavision.com으로 문의해주세요.',
+          '결제 후 7일 이내 미이용 시 전액 환불, 이용 후에는 잔여 기간 일할 계산하여 환불됩니다. support@vocavision.kr로 문의해주세요.',
       },
     ],
   },
@@ -197,13 +197,8 @@ export default function FAQContent() {
         <div className="mt-8 text-center text-gray-500 text-sm">
           <p>
             이메일:{' '}
-            <a href="mailto:support@vocavision.com" className="text-brand-primary hover:underline">
-              support@vocavision.com
-            </a>
-            {' | '}
-            전화:{' '}
-            <a href="tel:010-5167-7227" className="text-brand-primary hover:underline">
-              010-5167-7227
+            <a href="mailto:support@vocavision.kr" className="text-brand-primary hover:underline">
+              support@vocavision.kr
             </a>
           </p>
         </div>

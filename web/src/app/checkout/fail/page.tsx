@@ -60,10 +60,10 @@ function FailContent() {
           <p className="text-sm text-gray-500">
             결제 관련 문의:{" "}
             <a
-              href="mailto:support@vocavision.com"
+              href="mailto:support@vocavision.kr"
               className="text-indigo-600 hover:underline"
             >
-              support@vocavision.com
+              support@vocavision.kr
             </a>
           </p>
         </div>

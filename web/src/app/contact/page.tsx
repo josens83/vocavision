@@ -3,21 +3,15 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: '문의하기',
-  description: 'VocaVision 고객 지원 및 문의 안내. 이메일, 전화로 문의하세요.',
+  description: 'VocaVision 고객 지원 및 문의 안내. 이메일로 문의하세요.',
 };
 
 const contactInfo = [
   {
     icon: '📧',
     label: '이메일',
-    value: 'support@vocavision.com',
-    href: 'mailto:support@vocavision.com',
-  },
-  {
-    icon: '📞',
-    label: '전화',
-    value: '010-5167-7227',
-    href: 'tel:010-5167-7227',
+    value: 'support@vocavision.kr',
+    href: 'mailto:support@vocavision.kr',
   },
   {
     icon: '⏰',
@@ -134,7 +128,6 @@ export default function ContactPage() {
         {/* 추가 안내 */}
         <div className="mt-8 text-center text-gray-500 text-sm">
           <p>문의 접수 후 영업일 기준 1~2일 이내에 답변 드립니다.</p>
-          <p className="mt-1">긴급한 문의는 전화로 연락해 주세요.</p>
         </div>
       </div>
     </div>

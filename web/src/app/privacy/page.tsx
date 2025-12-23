@@ -153,7 +153,7 @@ export default function PrivacyPage() {
               <li>처리 정지 요구</li>
             </ul>
             <p className="text-gray-700 mt-4">
-              위 권리 행사는 서비스 내 설정 메뉴 또는 이메일(support@vocavision.com)을 통해 가능합니다.
+              위 권리 행사는 서비스 내 설정 메뉴 또는 이메일(support@vocavision.kr)을 통해 가능합니다.
             </p>
           </section>
 
@@ -186,8 +186,7 @@ export default function PrivacyPage() {
             <div className="text-gray-700 space-y-2">
               <p><strong>성명:</strong> 김도헌</p>
               <p><strong>직책:</strong> 대표</p>
-              <p><strong>이메일:</strong> support@vocavision.com</p>
-              <p><strong>연락처:</strong> 010-5167-7227</p>
+              <p><strong>이메일:</strong> support@vocavision.kr</p>
             </div>
           </section>
 
@@ -211,9 +210,7 @@ export default function PrivacyPage() {
         <div className="mt-8 text-center text-gray-500">
           <p>개인정보 관련 문의가 있으시면 연락해 주세요.</p>
           <p className="mt-2">
-            이메일: <a href="mailto:support@vocavision.com" className="text-brand-primary hover:underline">support@vocavision.com</a>
-            {' | '}
-            전화: <a href="tel:010-5167-7227" className="text-brand-primary hover:underline">010-5167-7227</a>
+            이메일: <a href="mailto:support@vocavision.kr" className="text-brand-primary hover:underline">support@vocavision.kr</a>
           </p>
         </div>
       </div>

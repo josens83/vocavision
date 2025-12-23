@@ -352,7 +352,7 @@ function ExplanationTab({
             >
               {categoryTitle}
             </h3>
-            <p className="text-center text-xs text-gray-400 mb-6">vocavision.com</p>
+            <p className="text-center text-xs text-gray-400 mb-6">vocavision.kr</p>
           </>
         )}
 
