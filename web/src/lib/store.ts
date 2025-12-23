@@ -54,6 +54,7 @@ interface LearningState {
   wordsCorrect: number;
   setSessionId: (id: string) => void;
   incrementWord: (correct: boolean) => void;
+  decrementWord: () => void;
   resetSession: () => void;
 }
 
@@ -68,6 +69,10 @@ export const useLearningStore = create<LearningState>()((set) => ({
       currentWordIndex: state.currentWordIndex + 1,
       wordsStudied: state.wordsStudied + 1,
       wordsCorrect: correct ? state.wordsCorrect + 1 : state.wordsCorrect,
+    })),
+  decrementWord: () =>
+    set((state) => ({
+      currentWordIndex: Math.max(0, state.currentWordIndex - 1),
     })),
   resetSession: () =>
     set({
