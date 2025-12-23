@@ -2305,12 +2305,22 @@ export const getWordsMissingImages = async (
 
     const pageNum = parseInt(page as string, 10);
     const limitNum = Math.min(parseInt(limit as string, 10), 100);
-    const skip = (pageNum - 1) * limitNum;
 
-    // Build where clause
+    // Determine which image types to check
+    const imageTypes: VisualType[] = imageType
+      ? [imageType as VisualType]
+      : ['CONCEPT', 'MNEMONIC', 'RHYME'];
+
+    // Build where clause - only get words missing at least one image type
     const whereClause: any = {
       status: { in: ['PUBLISHED', 'PENDING_REVIEW'] },
       aiGeneratedAt: { not: null },
+      // Filter for words that DON'T have all required image types
+      OR: imageTypes.map((type) => ({
+        visuals: {
+          none: { type },
+        },
+      })),
     };
 
     // Filter by exam category using WordExamLevel
@@ -2330,12 +2340,18 @@ export const getWordsMissingImages = async (
       };
     }
 
-    // Get words with their visuals
+    // Get total count FIRST (of words with missing images)
+    const totalWords = await prisma.word.count({
+      where: whereClause,
+    });
+
+    // Then get paginated words
+    const skip = (pageNum - 1) * limitNum;
     const words = await prisma.word.findMany({
       where: whereClause,
       include: {
         visuals: {
-          select: { type: true, imageUrl: true },
+          select: { type: true, imageUrl: true, captionKo: true, captionEn: true },
         },
         examLevels: {
           select: { examCategory: true, level: true },
@@ -2346,33 +2362,20 @@ export const getWordsMissingImages = async (
       take: limitNum,
     });
 
-    // Filter words that are missing specific image types
-    const imageTypes: VisualType[] = imageType
-      ? [imageType as VisualType]
-      : ['CONCEPT', 'MNEMONIC', 'RHYME'];
+    // Map words with their missing types
+    const wordsWithMissingImages = words.map((word) => {
+      const existingTypes = new Set(word.visuals.map((v) => v.type));
+      const missingTypes = imageTypes.filter((t) => !existingTypes.has(t));
 
-    const wordsWithMissingImages = words
-      .map((word) => {
-        const existingTypes = new Set(word.visuals.map((v) => v.type));
-        const missingTypes = imageTypes.filter((t) => !existingTypes.has(t));
-
-        if (missingTypes.length === 0) return null;
-
-        return {
-          id: word.id,
-          word: word.word,
-          definition: word.definition,
-          definitionKo: word.definitionKo,
-          examLevels: word.examLevels,
-          visuals: word.visuals,
-          missingTypes,
-        };
-      })
-      .filter(Boolean);
-
-    // Get total count for pagination
-    const totalWords = await prisma.word.count({
-      where: whereClause,
+      return {
+        id: word.id,
+        word: word.word,
+        definition: word.definition,
+        definitionKo: word.definitionKo,
+        examLevels: word.examLevels,
+        visuals: word.visuals,
+        missingTypes,
+      };
     });
 
     res.json({
@@ -2384,6 +2387,11 @@ export const getWordsMissingImages = async (
           page: pageNum,
           limit: limitNum,
           totalPages: Math.ceil(totalWords / limitNum),
+        },
+        filters: {
+          examCategory: examCategory || undefined,
+          imageType: imageType || undefined,
+          search: search || undefined,
         },
       },
     });
