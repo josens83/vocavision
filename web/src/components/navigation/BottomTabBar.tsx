@@ -72,19 +72,33 @@ export default function BottomTabBar() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white border-t border-gray-200 md:hidden"
-         style={{ paddingBottom: 'env(safe-area-inset-bottom)', transform: 'translateZ(0)' }}>
-      <div className="flex justify-around items-center h-16 max-w-screen-sm mx-auto">
+    <nav
+      className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white border-t border-gray-200 md:hidden"
+      style={{
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        transform: 'translateZ(0)',
+        WebkitBackfaceVisibility: 'hidden',
+      }}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+    >
+      <div
+        className="flex justify-around items-center h-16 w-full px-2"
+        style={{
+          touchAction: 'manipulation',
+          overscrollBehaviorX: 'contain',
+        }}
+      >
         {tabs.map((tab) => {
           const active = isActive(tab.href);
           return (
             <Link
               key={tab.key}
               href={tab.href}
-              className="flex flex-col items-center justify-center min-w-[64px] min-h-[44px] py-2 transition-colors"
+              className="flex flex-col items-center justify-center flex-1 min-w-0 min-h-[44px] py-2 transition-colors"
             >
               {tab.icon(active)}
-              <span className={`text-[10px] mt-1 ${active ? 'text-pink-500 font-medium' : 'text-gray-400'}`}>
+              <span className={`text-[10px] mt-1 truncate ${active ? 'text-pink-500 font-medium' : 'text-gray-400'}`}>
                 {tab.label}
               </span>
             </Link>
