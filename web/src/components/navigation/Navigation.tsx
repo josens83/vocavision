@@ -121,7 +121,7 @@ interface NavDropdownProps {
 function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave }: NavDropdownProps) {
   return (
     <div className="relative nav-item" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      <button className={`nav-link flex items-center gap-2 ${item.color || ""}`}>
+      <button className={`nav-link flex items-center gap-2 whitespace-nowrap ${item.color || ""}`}>
         {item.icon}
         <span>{item.label}</span>
         <svg className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,7 +161,7 @@ function NavLink({ item, isAuthenticated, onAuthRequired }: NavLinkProps) {
     return (
       <button
         onClick={() => onAuthRequired?.(item.label)}
-        className={`nav-link flex items-center gap-2 ${item.color || ""} opacity-75 hover:opacity-100`}
+        className={`nav-link flex items-center gap-2 whitespace-nowrap ${item.color || ""} opacity-75 hover:opacity-100`}
       >
         {item.icon}
         <span>{item.label}</span>
@@ -173,7 +173,7 @@ function NavLink({ item, isAuthenticated, onAuthRequired }: NavLinkProps) {
   }
 
   return (
-    <Link href={item.href || "#"} className={`nav-link flex items-center gap-2 ${item.color || ""}`}>
+    <Link href={item.href || "#"} className={`nav-link flex items-center gap-2 whitespace-nowrap ${item.color || ""}`}>
       {item.icon}
       <span>{item.label}</span>
     </Link>
