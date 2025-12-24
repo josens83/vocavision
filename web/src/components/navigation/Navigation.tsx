@@ -488,7 +488,7 @@ export default function Navigation() {
               <span className="text-white font-display font-bold text-xl">V</span>
             </div>
             <span className="font-display font-bold text-xl">
-              <span className="text-gradient">Voca</span><span className="text-slate-700">Vision</span>
+              <span className="text-gradient">Voca</span><span className="text-slate-700">Vision</span><span className="text-slate-400 ml-1">AI</span>
             </span>
           </Link>
 
