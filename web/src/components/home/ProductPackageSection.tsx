@@ -22,6 +22,45 @@ interface ProductPackage {
   wordCount: number;
 }
 
+// 정적 패키지 데이터 (API 실패 또는 데이터 부족 시 사용)
+function getStaticPackages(): ProductPackage[] {
+  return [
+    {
+      id: "static-1",
+      name: "수능 핵심 200",
+      slug: "csat-core-200",
+      shortDesc: "수능 영어에서 가장 자주 출제되는 핵심 200단어",
+      price: 3900,
+      durationDays: 365,
+      badge: "BEST",
+      isComingSoon: false,
+      wordCount: 200,
+    },
+    {
+      id: "static-2",
+      name: "EBS 연계어휘",
+      slug: "ebs-vocab",
+      shortDesc: "EBS 수능특강, 수능완성 연계 어휘 완벽 마스터",
+      price: 4900,
+      durationDays: 365,
+      badge: "대용량",
+      isComingSoon: false,
+      wordCount: 3837,
+    },
+    {
+      id: "static-3",
+      name: "2026 수능기출완전분석",
+      slug: "csat-2026-analysis",
+      shortDesc: "2026년 수능 기출문제 완전 분석, 출제 경향과 핵심 어휘",
+      price: 0,
+      durationDays: 365,
+      badge: "출시예정",
+      isComingSoon: true,
+      wordCount: 0,
+    },
+  ];
+}
+
 // 패키지 카드 컴포넌트 - 배너 스타일
 function PackageCard({ pkg }: { pkg: ProductPackage }) {
   const hasDiscount = pkg.originalPrice && pkg.originalPrice > pkg.price;
@@ -139,7 +178,6 @@ function PackageCardSkeleton() {
 export default function ProductPackageSection() {
   const [packages, setPackages] = useState<ProductPackage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPackages();
@@ -152,46 +190,18 @@ export default function ProductPackageSection() {
       );
       if (!response.ok) throw new Error("Failed to fetch packages");
       const data = await response.json();
-      setPackages(data.packages || []);
+      const apiPackages = data.packages || [];
+
+      // API에서 3개 미만이면 정적 데이터로 대체
+      if (apiPackages.length < 3) {
+        setPackages(getStaticPackages());
+      } else {
+        setPackages(apiPackages);
+      }
     } catch (err) {
       console.error("Failed to fetch packages:", err);
-      setError("패키지를 불러오는 중 오류가 발생했습니다.");
-      // 에러 시 하드코딩된 샘플 데이터 사용
-      setPackages([
-        {
-          id: "sample-1",
-          name: "TEPS 최다 빈출 100",
-          slug: "teps-top-100",
-          shortDesc: "TEPS 고득점을 위한 필수 단어장",
-          price: 3900,
-          durationDays: 180,
-          badge: "BEST",
-          isComingSoon: false,
-          wordCount: 108,
-        },
-        {
-          id: "sample-2",
-          name: "기초수능",
-          slug: "csat-basic",
-          shortDesc: "수능 기초 필수 어휘 완벽 정리",
-          price: 3900,
-          durationDays: 180,
-          badge: "추천",
-          isComingSoon: false,
-          wordCount: 1972,
-        },
-        {
-          id: "sample-3",
-          name: "EBS 연계어휘",
-          slug: "ebs-vocab",
-          shortDesc: "2027 수능 EBS 연계 어휘 총정리",
-          price: 4900,
-          durationDays: 365,
-          badge: "NEW",
-          isComingSoon: false,
-          wordCount: 4811,
-        },
-      ]);
+      // 에러 시 정적 데이터 사용
+      setPackages(getStaticPackages());
     } finally {
       setLoading(false);
     }
