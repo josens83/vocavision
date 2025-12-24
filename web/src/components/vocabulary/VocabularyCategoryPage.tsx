@@ -55,7 +55,7 @@ function Footer() {
           <div className="lg:col-span-1">
             <div className="flex items-center mb-4">
               <span className="text-emerald-400 text-2xl">✓</span>
-              <span className="font-bold text-xl ml-1">VocaVision</span>
+              <span className="font-bold text-xl ml-1">VocaVision AI</span>
             </div>
             <p className="text-gray-400 text-sm">
               © Copyright 2025

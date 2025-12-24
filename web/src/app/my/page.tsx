@@ -486,7 +486,7 @@ export default function MyPage() {
 
         {/* App Version */}
         <p className="text-center text-xs text-gray-400 mt-6">
-          VocaVision v1.0.0
+          VocaVision AI v1.0.0
         </p>
       </div>
     </TabLayout>

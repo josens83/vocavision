@@ -193,7 +193,7 @@ export default function ExamCoursePage() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/dashboard" className="text-2xl font-bold text-blue-600">
-            VocaVision
+            VocaVision AI
           </Link>
           <nav className="flex items-center gap-4">
             <Link href="/dashboard" className="text-gray-600 hover:text-blue-600">

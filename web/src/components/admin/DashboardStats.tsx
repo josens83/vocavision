@@ -315,7 +315,7 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">대시보드</h1>
-          <p className="text-slate-500 mt-1">VocaVision 콘텐츠 현황</p>
+          <p className="text-slate-500 mt-1">VocaVision AI 콘텐츠 현황</p>
         </div>
         <button
           onClick={fetchStats}

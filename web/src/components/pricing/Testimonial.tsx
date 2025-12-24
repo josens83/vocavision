@@ -130,7 +130,7 @@ export function TestimonialsGrid({ children, columns = 3 }: TestimonialsGridProp
 export const vocaVisionTestimonials: TestimonialProps[] = [
   {
     quote:
-      "VocaVision을 사용한 후 영어 단어 암기가 훨씬 쉬워졌어요. 플래시카드와 퀴즈가 정말 효과적이고, 매일 학습하는 게 즐거워졌습니다. TOEIC 점수도 100점이나 올랐어요!",
+      "VocaVision AI를 사용한 후 영어 단어 암기가 훨씬 쉬워졌어요. AI 이미지와 플래시카드가 정말 효과적이고, 매일 학습하는 게 즐거워졌습니다. TOEIC 점수도 100점이나 올랐어요!",
     authorName: "김민지",
     authorTitle: "대학생",
   },
@@ -142,7 +142,7 @@ export const vocaVisionTestimonials: TestimonialProps[] = [
   },
   {
     quote:
-      "영어 학원 강사로서 학생들에게 VocaVision을 추천하고 있어요. 학생들의 동기부여에 효과적이고, 리더보드 기능이 경쟁심을 자극해서 더 열심히 공부하게 만들어요.",
+      "영어 학원 강사로서 학생들에게 VocaVision AI를 추천하고 있어요. 학생들의 동기부여에 효과적이고, AI 이미지가 기억에 오래 남아서 더 효과적으로 공부하게 만들어요.",
     authorName: "박서연",
     authorTitle: "영어 강사",
   },

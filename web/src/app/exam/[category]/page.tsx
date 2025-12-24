@@ -178,7 +178,7 @@ export default function ExamCategoryPage() {
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/" className="text-2xl font-bold text-blue-600">
-            VocaVision
+            VocaVision AI
           </Link>
           <div className="flex items-center gap-4">
             {user ? (
@@ -362,7 +362,7 @@ export default function ExamCategoryPage() {
       <footer className="bg-gray-900 text-white py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-xl font-bold text-blue-400 mb-4 md:mb-0">VocaVision</div>
+            <div className="text-xl font-bold text-blue-400 mb-4 md:mb-0">VocaVision AI</div>
             <div className="flex gap-6 text-gray-400 text-sm">
               <Link href="/exam/csat" className="hover:text-white transition">수능</Link>
               <Link href="/exam/teps" className="hover:text-white transition">TEPS</Link>
@@ -372,7 +372,7 @@ export default function ExamCategoryPage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-6 pt-6 text-center text-gray-500 text-sm">
-            <p>&copy; 2024 VocaVision. All rights reserved.</p>
+            <p>&copy; 2025 VocaVision AI. All rights reserved.</p>
           </div>
         </div>
       </footer>

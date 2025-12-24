@@ -118,7 +118,7 @@ export default function PricingPage() {
             </div>
 
             <p className="text-gray-600 text-sm mb-6">
-              VocaVision을 처음 시작하는 분께 추천
+              VocaVision AI를 처음 시작하는 분께 추천
             </p>
 
             <Link

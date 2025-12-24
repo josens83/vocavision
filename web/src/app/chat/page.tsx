@@ -48,7 +48,7 @@ function ChatContent() {
           </Link>
           <div className="h-6 w-px bg-gray-200" />
           <Link href="/dashboard" className="text-xl font-bold text-blue-600">
-            VocaVision
+            VocaVision AI
           </Link>
         </div>
 

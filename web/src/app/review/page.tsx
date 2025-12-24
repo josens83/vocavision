@@ -239,7 +239,7 @@ export default function ReviewPage() {
           <h4 className="font-bold text-blue-800 mb-2">💡 간격 반복 학습이란?</h4>
           <p className="text-sm text-blue-700">
             기억이 사라지기 직전에 복습하면 장기 기억으로 전환됩니다.
-            VocaVision은 학습 데이터를 기반으로 최적의 복습 시점을 계산합니다.
+            VocaVision AI는 학습 데이터를 기반으로 최적의 복습 시점을 계산합니다.
           </p>
         </div>
       </div>

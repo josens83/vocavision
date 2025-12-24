@@ -90,7 +90,7 @@ function SuccessContent() {
             <p className="text-gray-600 mb-6">
               {isPackagePurchase
                 ? "단품 구매가 완료되었습니다. 지금 바로 학습을 시작하세요!"
-                : "VocaVision 프리미엄 서비스를 이용해주셔서 감사합니다."}
+                : "VocaVision AI 프리미엄 서비스를 이용해주셔서 감사합니다."}
             </p>
             <div className="space-y-3">
               <Link

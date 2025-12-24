@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: '이용약관',
-  description: 'VocaVision 서비스 이용약관을 확인하세요.',
+  description: 'VocaVision AI 서비스 이용약관을 확인하세요.',
 };
 
 export default function TermsPage() {
@@ -25,7 +25,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold text-gray-900 mb-4">제1조 (목적)</h2>
             <p className="text-gray-700 leading-relaxed">
-              이 약관은 유니패스(이하 &quot;회사&quot;)가 제공하는 VocaVision 서비스(이하 &quot;서비스&quot;)의 이용조건 및 절차,
+              이 약관은 유니패스(이하 &quot;회사&quot;)가 제공하는 VocaVision AI 서비스(이하 &quot;서비스&quot;)의 이용조건 및 절차,
               회사와 이용자의 권리, 의무 및 책임사항 등을 규정함을 목적으로 합니다.
             </p>
           </section>

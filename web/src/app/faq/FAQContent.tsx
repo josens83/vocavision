@@ -20,9 +20,9 @@ const faqCategories: FAQCategory[] = [
     icon: '📚',
     items: [
       {
-        question: 'VocaVision은 어떤 서비스인가요?',
+        question: 'VocaVision AI는 어떤 서비스인가요?',
         answer:
-          'VocaVision은 AI 기반 영어 단어 학습 플랫폼입니다. 수능, TEPS, TOEFL 등 다양한 시험 대비 단어를 시각적 연상법, 어원 분석, 라임 등을 통해 효과적으로 학습할 수 있습니다.',
+          'VocaVision AI는 AI 기반 영어 단어 학습 플랫폼입니다. 수능, TEPS, TOEFL 등 다양한 시험 대비 단어를 AI 이미지 연상법, 어원 분석, 라임 등을 통해 효과적으로 학습할 수 있습니다.',
       },
       {
         question: '무료로 이용할 수 있나요?',
@@ -146,7 +146,7 @@ export default function FAQContent() {
             &larr; 홈으로 돌아가기
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">자주 묻는 질문</h1>
-          <p className="text-gray-500 mt-2">VocaVision에 대해 궁금한 점을 확인해 보세요.</p>
+          <p className="text-gray-500 mt-2">VocaVision AI에 대해 궁금한 점을 확인해 보세요.</p>
         </div>
 
         {/* FAQ 카테고리 */}

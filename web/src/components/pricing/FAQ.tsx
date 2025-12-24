@@ -145,7 +145,7 @@ export function FAQSection({
 
 export const vocaVisionFAQ: FAQItemData[] = [
   {
-    question: "VocaVision은 무료로 계속 사용할 수 있나요?",
+    question: "VocaVision AI는 무료로 계속 사용할 수 있나요?",
     answer:
       "네! 기본 학습 기능은 영원히 무료입니다. Pro 구독은 광고 제거, 무제한 학습, 고급 통계 등 추가 기능을 제공합니다.",
   },
@@ -182,6 +182,6 @@ export const vocaVisionFAQ: FAQItemData[] = [
   {
     question: "모바일에서도 사용할 수 있나요?",
     answer:
-      "네! VocaVision은 모바일 반응형으로 설계되어 스마트폰과 태블릿에서도 편리하게 학습할 수 있습니다. 전용 앱도 준비 중입니다.",
+      "네! VocaVision AI는 모바일 반응형으로 설계되어 스마트폰과 태블릿에서도 편리하게 학습할 수 있습니다. 전용 앱도 준비 중입니다.",
   },
 ];

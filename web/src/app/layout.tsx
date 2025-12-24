@@ -10,15 +10,15 @@ import BottomTabBar from '@/components/navigation/BottomTabBar';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 
 const siteUrl = 'https://vocavision.kr';
-const siteName = 'VocaVision';
+const siteName = 'VocaVision AI';
 
 export const metadata: Metadata = {
   // 기본 정보
   title: {
-    default: 'VocaVision - AI 기반 영어 단어 학습 플랫폼',
-    template: '%s | VocaVision',
+    default: 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼',
+    template: '%s | VocaVision AI',
   },
-  description: '수능, TEPS, TOEFL 영어 단어를 이미지 연상법, 어원 분석, Rhyme으로 효과적으로 암기하세요. 3,000개+ 단어 무료 제공.',
+  description: '수능, TEPS, TOEFL 영어 단어를 AI 이미지 연상법, 어원 분석, Rhyme으로 효과적으로 암기하세요. 3,000개+ 단어 무료 제공.',
 
   // 검색 엔진
   keywords: [
@@ -31,11 +31,12 @@ export const metadata: Metadata = {
     '연상법 영어',
     '어원 학습',
     'AI 영어 학습',
-    'VocaVision',
+    'VocaVision AI',
+    '보카비전 AI',
   ],
 
   // 저자 정보
-  authors: [{ name: 'VocaVision', url: siteUrl }],
+  authors: [{ name: 'VocaVision AI', url: siteUrl }],
   creator: 'Unipath',
   publisher: 'Unipath',
 
@@ -58,14 +59,14 @@ export const metadata: Metadata = {
     locale: 'ko_KR',
     url: siteUrl,
     siteName: siteName,
-    title: 'VocaVision - AI 기반 영어 단어 학습 플랫폼',
+    title: 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼',
     description: '수능, TEPS 필수 영단어를 AI 이미지와 함께 학습하세요.',
     images: [
       {
         url: `${siteUrl}/og-image.jpg`,
         width: 1200,
         height: 630,
-        alt: 'VocaVision - AI 기반 영어 단어 학습 플랫폼',
+        alt: 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼',
       },
     ],
   },
@@ -73,7 +74,7 @@ export const metadata: Metadata = {
   // Twitter Card
   twitter: {
     card: 'summary_large_image',
-    title: 'VocaVision - AI 기반 영어 단어 학습 플랫폼',
+    title: 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼',
     description: '수능, TEPS 필수 영단어를 AI 이미지와 함께 학습하세요.',
     images: [`${siteUrl}/og-image.jpg`],
   },
@@ -85,7 +86,7 @@ export const metadata: Metadata = {
   },
 
   // 앱 정보
-  applicationName: 'VocaVision',
+  applicationName: 'VocaVision AI',
   category: 'education',
 
   // 검증 (나중에 추가)

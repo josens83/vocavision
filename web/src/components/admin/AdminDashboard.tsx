@@ -126,7 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeNav, onNavChange, pendingReview
             <span className="text-white font-bold">V</span>
           </div>
           <div>
-            <h1 className="font-bold text-lg">VocaVision</h1>
+            <h1 className="font-bold text-lg">VocaVision AI</h1>
             <p className="text-xs text-slate-400">Admin Dashboard</p>
           </div>
         </Link>

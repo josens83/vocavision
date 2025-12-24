@@ -140,7 +140,7 @@ function LoginContent() {
             로그인
           </h1>
           <p className="text-slate-500 mb-6 text-center">
-            VocaVision에 오신 것을 환영합니다
+            VocaVision AI에 오신 것을 환영합니다
           </p>
 
           {/* 소셜 로그인 버튼 */}

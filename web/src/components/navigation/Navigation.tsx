@@ -347,7 +347,7 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired }:
       <div className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`} onClick={onClose} />
       <div className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white z-50 shadow-2xl transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
         <div className="flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))] border-b border-surface-border">
-          <span className="font-display font-bold text-xl text-gradient">VocaVision</span>
+          <span className="font-display font-bold text-xl text-gradient">VocaVision AI</span>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>

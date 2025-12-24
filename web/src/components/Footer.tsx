@@ -14,11 +14,12 @@ export function Footer() {
               <span className="text-2xl font-bold">
                 <span className="text-indigo-400">Voca</span>
                 <span className="text-pink-400">Vision</span>
+                <span className="text-gray-300 ml-1">AI</span>
               </span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
-              스마트 영어 단어 학습 플랫폼<br />
-              과학적으로 검증된 간격 반복 학습과 적응형 퀴즈로<br />
+              AI 기반 스마트 영어 단어 학습 플랫폼<br />
+              과학적으로 검증된 간격 반복 학습과 AI 이미지 연상법으로<br />
               효율적인 어휘력 향상을 경험하세요.
             </p>
           </div>

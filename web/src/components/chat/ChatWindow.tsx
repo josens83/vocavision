@@ -138,7 +138,7 @@ export default function ChatWindow({ wordId, wordText, initialMessage }: ChatWin
 
 1. **간격 반복 학습 (Spaced Repetition)**
    - 복습 주기를 점점 늘려가며 학습하세요
-   - VocaVision의 플래시카드가 이 방법을 사용합니다!
+   - VocaVision AI의 플래시카드가 이 방법을 사용합니다!
 
 2. **연상 기억법 (Mnemonics)**
    - 단어와 관련된 이미지나 이야기를 만들어보세요

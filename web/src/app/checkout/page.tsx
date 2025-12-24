@@ -424,7 +424,7 @@ function SubscriptionCheckout() {
 
       await requestPaymentWithParams({
         orderId,
-        orderName: `VocaVision ${plan.name} (${billingCycle === "monthly" ? "월간" : "연간"})`,
+        orderName: `VocaVision AI ${plan.name} (${billingCycle === "monthly" ? "월간" : "연간"})`,
         amount: price,
         customerEmail: user.email || undefined,
         customerName: user.name || "고객",

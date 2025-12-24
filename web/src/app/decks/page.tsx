@@ -165,7 +165,7 @@ export default function DecksPage() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-indigo-600">VocaVision</h1>
+            <h1 className="text-2xl font-bold text-indigo-600">VocaVision AI</h1>
             <nav className="flex gap-4">
               <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
                 대시보드

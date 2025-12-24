@@ -162,7 +162,7 @@ export const AnalyticsEvents = {
       items: [
         {
           item_id: plan,
-          item_name: `VocaVision ${plan} subscription`,
+          item_name: `VocaVision AI ${plan} subscription`,
         },
       ],
       category: 'conversion',
