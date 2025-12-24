@@ -490,6 +490,10 @@ export default function Navigation() {
             <span className="font-display font-bold text-xl">
               <span className="text-gradient">Voca</span><span className="text-slate-700">Vision</span><span className="text-slate-400 ml-1">AI</span>
             </span>
+            {/* 태그라인 - 데스크톱만 표시 */}
+            <div className="hidden lg:flex items-center gap-2 ml-1 pl-3 border-l border-gray-300">
+              <span className="text-xs text-gray-500 italic">Vocabulary, Visualized.</span>
+            </div>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-4">
