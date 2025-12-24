@@ -20,6 +20,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { wordsAPI } from '@/lib/api';
 import Link from 'next/link';
@@ -178,9 +179,9 @@ export default function MatchGamePage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <Link
             href="/dashboard"
-            className="text-white hover:text-purple-200 transition"
+            className="text-white hover:text-purple-200 transition inline-flex items-center gap-1"
           >
-            ← 대시보드로
+            <ArrowLeft className="w-4 h-4" /> 대시보드로
           </Link>
           <div className="flex gap-2 md:gap-6 text-white w-full sm:w-auto justify-between sm:justify-end">
             <div className="bg-white/20 rounded-lg px-3 md:px-4 py-2 backdrop-blur-sm flex-1 sm:flex-initial">

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import axios from 'axios';
 
@@ -74,8 +74,8 @@ export default function CollectionsPage() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-              ← 대시보드
+            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1">
+              <ArrowLeft className="w-4 h-4" /> 대시보드
             </Link>
             <h1 className="text-2xl font-bold text-blue-600">단어 컬렉션</h1>
           </div>

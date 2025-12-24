@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { decksAPI } from '@/lib/api';
 
 // Benchmarking: Anki-style deck creation
@@ -87,9 +88,9 @@ export default function CreateDeckPage() {
           <div className="mb-8">
             <Link
               href="/decks"
-              className="inline-flex items-center text-indigo-600 hover:text-indigo-700 mb-4"
+              className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 mb-4"
             >
-              ← 덱 목록으로 돌아가기
+              <ArrowLeft className="w-4 h-4" /> 덱 목록으로 돌아가기
             </Link>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">새 덱 만들기</h2>
             <p className="text-gray-600">나만의 학습 덱을 만들어 효율적으로 단어를 학습하세요</p>

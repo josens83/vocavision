@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import axios from 'axios';
 
@@ -134,8 +135,8 @@ export default function CollectionDetailPage() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/collections" className="text-gray-600 hover:text-gray-900">
-              ← 컬렉션
+            <Link href="/collections" className="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1">
+              <ArrowLeft className="w-4 h-4" /> 컬렉션
             </Link>
             <h1 className="text-2xl font-bold text-blue-600">
               {collection.icon} {collection.name}

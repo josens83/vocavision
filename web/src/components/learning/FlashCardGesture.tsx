@@ -13,6 +13,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import WordVisualPanel from './WordVisualPanel';
 import PronunciationButton from './PronunciationButton';
 
@@ -221,8 +222,8 @@ export default function FlashCardGesture({
       {/* Swipe Hint - shown on mobile for first 5 uses */}
       {showSwipeHint && (
         <div className="text-center text-sm text-gray-400 flex justify-center gap-6 md:hidden mb-2">
-          <span>← 다음</span>
-          {hasPrevious && <span>이전 →</span>}
+          <span className="inline-flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" /> 다음</span>
+          {hasPrevious && <span className="inline-flex items-center gap-1">이전 <ArrowRight className="w-3.5 h-3.5" /></span>}
         </div>
       )}
 
@@ -243,7 +244,7 @@ export default function FlashCardGesture({
           className="absolute inset-0 bg-pink-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-10"
         >
           <div className="bg-pink-500 text-white rounded-full px-6 py-3">
-            <span className="text-xl font-bold">다음 →</span>
+            <span className="text-xl font-bold inline-flex items-center gap-1">다음 <ArrowRight className="w-5 h-5" /></span>
           </div>
         </motion.div>
 
@@ -253,7 +254,7 @@ export default function FlashCardGesture({
             className="absolute inset-0 bg-slate-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-10"
           >
             <div className="bg-slate-500 text-white rounded-full px-6 py-3">
-              <span className="text-xl font-bold">← 이전</span>
+              <span className="text-xl font-bold inline-flex items-center gap-1"><ArrowLeft className="w-5 h-5" /> 이전</span>
             </div>
           </motion.div>
         )}

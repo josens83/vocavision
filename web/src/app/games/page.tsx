@@ -12,7 +12,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import Link from 'next/link';
 
@@ -75,7 +75,7 @@ export default function GamesPage() {
             href="/dashboard"
             className="text-gray-600 hover:text-blue-600 transition inline-flex items-center gap-2"
           >
-            <span>←</span>
+            <ArrowLeft className="w-4 h-4" />
             <span>대시보드로 돌아가기</span>
           </Link>
         </div>

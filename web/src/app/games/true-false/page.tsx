@@ -20,6 +20,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { wordsAPI } from '@/lib/api';
 import Link from 'next/link';
@@ -143,9 +144,9 @@ export default function TrueFalsePage() {
         <div className="flex justify-between items-center mb-4">
           <Link
             href="/dashboard"
-            className="text-white hover:text-blue-200 transition"
+            className="text-white hover:text-blue-200 transition inline-flex items-center gap-1"
           >
-            ← 대시보드로
+            <ArrowLeft className="w-4 h-4" /> 대시보드로
           </Link>
           <div className="flex gap-4 text-white">
             <div className="bg-white/20 rounded-lg px-4 py-2 backdrop-blur-sm">
