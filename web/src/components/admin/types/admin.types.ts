@@ -360,7 +360,7 @@ export interface WordVisual {
   captionKo?: string; // 한국어 캡션 (학습자용)
 
   // 이미지 URL (정적 이미지 또는 GIF)
-  imageUrl?: string;  // Cloudinary URL
+  imageUrl?: string;  // Supabase Storage URL
 
   // AI 이미지 생성 프롬프트
   promptEn?: string;  // DALL-E/Midjourney 프롬프트
