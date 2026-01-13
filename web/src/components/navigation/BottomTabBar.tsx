@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
@@ -54,6 +56,12 @@ const hiddenPaths = ['/auth', '/admin', '/checkout'];
 export default function BottomTabBar() {
   const pathname = usePathname();
   const { user } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  // Portal needs to be mounted on client side only
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Hide on specific paths
   const shouldHide = hiddenPaths.some(path => pathname.startsWith(path));
@@ -71,7 +79,7 @@ export default function BottomTabBar() {
     return pathname === basePath || pathname.startsWith(basePath + '/');
   };
 
-  return (
+  const tabBar = (
     <nav
       className="md:hidden"
       style={{
@@ -79,24 +87,14 @@ export default function BottomTabBar() {
         bottom: 0,
         left: 0,
         right: 0,
-        width: '100%',
+        width: '100vw',
         zIndex: 9999,
         backgroundColor: 'white',
         borderTop: '1px solid #e5e7eb',
         paddingBottom: 'env(safe-area-inset-bottom)',
-        transform: 'translateZ(0)',
-        WebkitBackfaceVisibility: 'hidden',
       }}
-      onTouchStart={(e) => e.stopPropagation()}
-      onTouchMove={(e) => e.stopPropagation()}
     >
-      <div
-        className="flex justify-around items-center h-16 w-full px-2"
-        style={{
-          touchAction: 'manipulation',
-          overscrollBehaviorX: 'contain',
-        }}
-      >
+      <div className="flex justify-around items-center h-16 w-full px-2">
         {tabs.map((tab) => {
           const active = isActive(tab.href);
           return (
@@ -115,4 +113,9 @@ export default function BottomTabBar() {
       </div>
     </nav>
   );
+
+  // Use Portal to render directly to body, bypassing parent CSS issues
+  if (!mounted) return null;
+
+  return createPortal(tabBar, document.body);
 }
