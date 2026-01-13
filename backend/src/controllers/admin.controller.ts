@@ -2860,3 +2860,308 @@ async function processBatchImageRegeneration(
   job.currentWord = undefined;
   logger.info(`[Admin/BatchRegen] Job ${jobId} completed. Success: ${job.successCount}, Errors: ${job.errorCount}`);
 }
+
+// ============================================
+// Cloudinary → Supabase Migration
+// ============================================
+
+// Migration session state (in-memory)
+let cloudinaryMigrationSession: {
+  sessionId: string;
+  isRunning: boolean;
+  processed: number;
+  success: number;
+  failed: number;
+  total: number;
+  errors: string[];
+  lastProcessedAt: Date | null;
+  startedAt: Date | null;
+} | null = null;
+
+/**
+ * Get Cloudinary migration status
+ * GET /admin/migration/cloudinary-status
+ */
+export const getCloudinaryMigrationStatus = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // Count Cloudinary URLs
+    const cloudinaryCount = await prisma.wordVisual.count({
+      where: { imageUrl: { contains: 'cloudinary' } },
+    });
+
+    // Count Supabase URLs
+    const supabaseCount = await prisma.wordVisual.count({
+      where: { imageUrl: { contains: 'supabase' } },
+    });
+
+    // Count by type for Cloudinary
+    const cloudinaryByType = await prisma.wordVisual.groupBy({
+      by: ['type'],
+      where: { imageUrl: { contains: 'cloudinary' } },
+      _count: true,
+    });
+
+    // Sample URLs
+    const samples = await prisma.wordVisual.findMany({
+      where: { imageUrl: { contains: 'cloudinary' } },
+      select: { imageUrl: true, type: true },
+      take: 5,
+    });
+
+    res.json({
+      totalCloudinaryImages: cloudinaryCount,
+      totalSupabaseImages: supabaseCount,
+      cloudinaryByType: cloudinaryByType.reduce((acc, item) => {
+        acc[item.type] = item._count;
+        return acc;
+      }, {} as Record<string, number>),
+      sampleUrls: samples.map((s) => ({ url: s.imageUrl, type: s.type })),
+    });
+  } catch (error) {
+    logger.error('[Migration] Status error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Start Cloudinary to Supabase migration
+ * POST /admin/migration/cloudinary-to-supabase
+ */
+export const startCloudinaryMigration = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { batchSize = 50, startOffset = 0, dryRun = false } = req.body;
+
+    // Check if already running
+    if (cloudinaryMigrationSession?.isRunning) {
+      return res.status(409).json({
+        error: 'Migration already running',
+        sessionId: cloudinaryMigrationSession.sessionId,
+      });
+    }
+
+    // Count total migration targets
+    const total = await prisma.wordVisual.count({
+      where: { imageUrl: { contains: 'cloudinary' } },
+    });
+
+    if (total === 0) {
+      return res.json({
+        message: 'No Cloudinary images to migrate',
+        total: 0,
+      });
+    }
+
+    // Initialize session
+    const sessionId = `migration-${Date.now()}`;
+    cloudinaryMigrationSession = {
+      sessionId,
+      isRunning: true,
+      processed: 0,
+      success: 0,
+      failed: 0,
+      total,
+      errors: [],
+      lastProcessedAt: null,
+      startedAt: new Date(),
+    };
+
+    // Run migration asynchronously (return response first)
+    if (!dryRun) {
+      runCloudinaryMigration(batchSize, startOffset).catch((err) => {
+        logger.error('[Migration] Fatal error:', err);
+        if (cloudinaryMigrationSession) {
+          cloudinaryMigrationSession.isRunning = false;
+          cloudinaryMigrationSession.errors.push(`Fatal: ${err.message}`);
+        }
+      });
+    }
+
+    res.json({
+      sessionId,
+      status: dryRun ? 'dry-run' : 'started',
+      totalToMigrate: total,
+      batchSize,
+      startOffset,
+      message: dryRun
+        ? `Dry run: Would migrate ${total} images`
+        : `Migration started for ${total} images`,
+    });
+  } catch (error) {
+    logger.error('[Migration] Start error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get Cloudinary migration progress
+ * GET /admin/migration/cloudinary-to-supabase/status
+ */
+export const getCloudinaryMigrationProgress = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!cloudinaryMigrationSession) {
+    return res.json({
+      isRunning: false,
+      sessionId: null,
+      progress: null,
+      message: 'No migration session',
+    });
+  }
+
+  const { processed, success, failed, total, startedAt } = cloudinaryMigrationSession;
+
+  // Calculate estimated time remaining
+  let estimatedTimeRemaining = 'calculating...';
+  if (startedAt && processed > 0) {
+    const elapsed = Date.now() - startedAt.getTime();
+    const avgTimePerItem = elapsed / processed;
+    const remaining = (total - processed) * avgTimePerItem;
+    const minutes = Math.ceil(remaining / 60000);
+    estimatedTimeRemaining = `~${minutes} minutes`;
+  }
+
+  res.json({
+    isRunning: cloudinaryMigrationSession.isRunning,
+    sessionId: cloudinaryMigrationSession.sessionId,
+    progress: {
+      processed,
+      success,
+      failed,
+      total,
+      percentage: total > 0 ? Math.round((processed / total) * 100) : 0,
+    },
+    errors: cloudinaryMigrationSession.errors.slice(-20),
+    lastProcessedAt: cloudinaryMigrationSession.lastProcessedAt?.toISOString(),
+    startedAt: cloudinaryMigrationSession.startedAt?.toISOString(),
+    estimatedTimeRemaining,
+  });
+};
+
+/**
+ * Stop Cloudinary migration
+ * POST /admin/migration/cloudinary-to-supabase/stop
+ */
+export const stopCloudinaryMigration = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!cloudinaryMigrationSession?.isRunning) {
+    return res.json({ message: 'No migration running' });
+  }
+
+  cloudinaryMigrationSession.isRunning = false;
+  res.json({
+    message: 'Migration stopped',
+    progress: {
+      processed: cloudinaryMigrationSession.processed,
+      success: cloudinaryMigrationSession.success,
+      failed: cloudinaryMigrationSession.failed,
+    },
+  });
+};
+
+/**
+ * Internal: Run Cloudinary migration
+ */
+async function runCloudinaryMigration(batchSize: number, startOffset: number) {
+  const { getSupabaseClient } = await import('../lib/supabase');
+  const supabase = getSupabaseClient();
+  let offset = startOffset;
+  const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'vocavision-images';
+
+  logger.info(`[Migration] Starting migration with batchSize=${batchSize}, startOffset=${startOffset}`);
+
+  while (cloudinaryMigrationSession?.isRunning) {
+    // Get records with Cloudinary URLs
+    const records = await prisma.wordVisual.findMany({
+      where: { imageUrl: { contains: 'cloudinary' } },
+      include: { word: { select: { word: true } } },
+      skip: offset,
+      take: batchSize,
+    });
+
+    if (records.length === 0) {
+      logger.info('[Migration] All records processed');
+      break;
+    }
+
+    logger.info(`[Migration] Processing batch: ${records.length} records (offset: ${offset})`);
+
+    for (const record of records) {
+      if (!cloudinaryMigrationSession.isRunning) break;
+
+      try {
+        // 1. Download image from Cloudinary
+        const response = await fetch(record.imageUrl);
+        if (!response.ok) {
+          throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+        }
+        const buffer = Buffer.from(await response.arrayBuffer());
+
+        // 2. Generate filename
+        const wordName = record.word?.word || 'unknown';
+        const sanitizedWord = wordName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        const fileName = `${sanitizedWord}-${record.type.toLowerCase()}-${Date.now()}.png`;
+        const filePath = `visuals/${fileName}`;
+
+        // 3. Upload to Supabase
+        const { error: uploadError } = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, buffer, {
+            contentType: 'image/png',
+            cacheControl: '31536000',
+            upsert: true,
+          });
+
+        if (uploadError) {
+          throw new Error(`Upload failed: ${uploadError.message}`);
+        }
+
+        // 4. Get public URL
+        const { data: urlData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath);
+
+        // 5. Update DB
+        await prisma.wordVisual.update({
+          where: { id: record.id },
+          data: { imageUrl: urlData.publicUrl },
+        });
+
+        cloudinaryMigrationSession.success++;
+        logger.info(`[Migration] ✅ ${wordName} - ${record.type}`);
+      } catch (error: any) {
+        cloudinaryMigrationSession.failed++;
+        const errorMsg = `${record.word?.word || record.id}-${record.type}: ${error.message}`;
+        cloudinaryMigrationSession.errors.push(errorMsg);
+        logger.error(`[Migration] ❌ ${errorMsg}`);
+      }
+
+      cloudinaryMigrationSession.processed++;
+      cloudinaryMigrationSession.lastProcessedAt = new Date();
+
+      // Rate limit delay (100ms between images)
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    offset += batchSize;
+  }
+
+  if (cloudinaryMigrationSession) {
+    cloudinaryMigrationSession.isRunning = false;
+    logger.info(
+      `[Migration] Completed: ${cloudinaryMigrationSession.success} success, ${cloudinaryMigrationSession.failed} failed`
+    );
+  }
+}
