@@ -3102,6 +3102,11 @@ async function runCloudinaryMigration(batchSize: number, startOffset: number) {
       if (!cloudinaryMigrationSession.isRunning) break;
 
       try {
+        // Skip if imageUrl is null
+        if (!record.imageUrl) {
+          throw new Error('Image URL is null');
+        }
+
         // 1. Download image from Cloudinary
         const response = await fetch(record.imageUrl);
         if (!response.ok) {
