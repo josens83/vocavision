@@ -2,20 +2,16 @@
  * Admin AI Image Generation API
  *
  * POST /api/admin/generate-image
- * Generates an image using Stability AI and uploads to Supabase Storage
+ * Generates an image using Stability AI and uploads via backend API
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
 // Configuration
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY || '';
 const STABILITY_API_URL = 'https://api.stability.ai/v1/generation';
-
-// Supabase configuration
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'vocavision-images';
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_KEY || '';
 
 // Visual type configurations for prompt templates
 // Strong negative prompts to prevent text rendering issues
@@ -117,44 +113,38 @@ async function generateWithStabilityAI(
 }
 
 /**
- * Upload image to Supabase Storage
+ * Upload image via backend API (which stores in Supabase Storage)
  */
-async function uploadToSupabase(
+async function uploadViaBackend(
   base64Data: string,
-  word: string,
+  wordId: string,
   visualType: string
 ): Promise<{ url: string; publicId: string }> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  const response = await fetch(`${BACKEND_API_URL}/admin/words/${wordId}/upload-image?key=${ADMIN_KEY}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      imageType: visualType,
+      imageBase64: base64Data,
+    }),
+  });
 
-  // Convert base64 to buffer
-  const buffer = Buffer.from(base64Data, 'base64');
-
-  // Generate filename
-  const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  const fileName = `${sanitizedWord}-${visualType.toLowerCase()}-${Date.now()}.png`;
-  const filePath = `visuals/${fileName}`;
-
-  // Upload to Supabase Storage
-  const { error: uploadError } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .upload(filePath, buffer, {
-      contentType: 'image/png',
-      cacheControl: '31536000',
-      upsert: true,
-    });
-
-  if (uploadError) {
-    throw new Error(`Supabase upload error: ${uploadError.message}`);
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: response.statusText }));
+    throw new Error(`Backend upload error: ${error.message || error.error || response.statusText}`);
   }
 
-  // Get public URL
-  const { data: urlData } = supabase.storage
-    .from(STORAGE_BUCKET)
-    .getPublicUrl(filePath);
+  const result = await response.json();
+
+  if (!result.success || !result.data?.visual?.imageUrl) {
+    throw new Error(result.error || 'Upload failed');
+  }
 
   return {
-    url: urlData.publicUrl,
-    publicId: filePath,
+    url: result.data.visual.imageUrl,
+    publicId: result.data.visual.id || '',
   };
 }
 
@@ -167,13 +157,6 @@ export async function POST(request: NextRequest) {
     if (!STABILITY_API_KEY) {
       return NextResponse.json(
         { success: false, error: 'Stability API key not configured' },
-        { status: 500 }
-      );
-    }
-
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-      return NextResponse.json(
-        { success: false, error: 'Supabase not configured' },
         { status: 500 }
       );
     }
@@ -198,25 +181,46 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to generate image');
     }
 
-    console.log(`[AI Image Gen] Image generated, uploading to Supabase Storage...`);
+    console.log(`[AI Image Gen] Image generated successfully`);
 
-    // Upload to Supabase Storage
-    const uploadResult = await uploadToSupabase(imageResult.base64, word, visualType);
+    // If wordId is provided, upload via backend API
+    if (wordId) {
+      console.log(`[AI Image Gen] Uploading via backend API for wordId: ${wordId}`);
 
-    console.log(`[AI Image Gen] Success! URL: ${uploadResult.url}`);
+      const uploadResult = await uploadViaBackend(imageResult.base64, wordId, visualType);
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        imageUrl: uploadResult.url,
-        publicId: uploadResult.publicId,
-        seed: imageResult.seed,
-        prompt,
-        visualType,
-        word,
-        wordId,
-      },
-    });
+      console.log(`[AI Image Gen] Success! URL: ${uploadResult.url}`);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          imageUrl: uploadResult.url,
+          publicId: uploadResult.publicId,
+          seed: imageResult.seed,
+          prompt,
+          visualType,
+          word,
+          wordId,
+        },
+      });
+    } else {
+      // No wordId - return base64 for preview/manual handling
+      console.log(`[AI Image Gen] No wordId provided, returning base64 preview`);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          imageUrl: `data:image/png;base64,${imageResult.base64}`,
+          publicId: null,
+          seed: imageResult.seed,
+          prompt,
+          visualType,
+          word,
+          wordId: null,
+          isPreview: true,
+        },
+      });
+    }
   } catch (error) {
     console.error('[AI Image Gen] Error:', error);
     return NextResponse.json(
