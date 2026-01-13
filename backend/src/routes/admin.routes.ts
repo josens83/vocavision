@@ -43,6 +43,11 @@ import {
   uploadWordImage,
   deleteWordImage,
   batchRegenerateImages,
+  // Cloudinary → Supabase Migration
+  getCloudinaryMigrationStatus,
+  startCloudinaryMigration,
+  getCloudinaryMigrationProgress,
+  stopCloudinaryMigration,
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -597,5 +602,121 @@ router.post('/words/:wordId/upload-image', uploadWordImage);
  *           enum: [CONCEPT, MNEMONIC, RHYME]
  */
 router.delete('/words/:wordId/images/:imageType', deleteWordImage);
+
+// ============================================
+// Cloudinary → Supabase Migration Routes
+// ============================================
+
+/**
+ * @swagger
+ * /admin/migration/cloudinary-status:
+ *   get:
+ *     summary: Get Cloudinary migration status (total images to migrate)
+ *     tags: [Admin - Migration]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Migration status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalCloudinaryImages:
+ *                   type: number
+ *                 totalSupabaseImages:
+ *                   type: number
+ *                 cloudinaryByType:
+ *                   type: object
+ *                 sampleUrls:
+ *                   type: array
+ */
+router.get('/migration/cloudinary-status', getCloudinaryMigrationStatus);
+
+/**
+ * @swagger
+ * /admin/migration/cloudinary-to-supabase:
+ *   post:
+ *     summary: Start Cloudinary to Supabase migration
+ *     tags: [Admin - Migration]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               batchSize:
+ *                 type: number
+ *                 default: 50
+ *               startOffset:
+ *                 type: number
+ *                 default: 0
+ *               dryRun:
+ *                 type: boolean
+ *                 default: false
+ *     responses:
+ *       200:
+ *         description: Migration started
+ *       409:
+ *         description: Migration already running
+ */
+router.post('/migration/cloudinary-to-supabase', startCloudinaryMigration);
+
+/**
+ * @swagger
+ * /admin/migration/cloudinary-to-supabase/status:
+ *   get:
+ *     summary: Get migration progress
+ *     tags: [Admin - Migration]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Migration progress
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isRunning:
+ *                   type: boolean
+ *                 sessionId:
+ *                   type: string
+ *                 progress:
+ *                   type: object
+ *                   properties:
+ *                     processed:
+ *                       type: number
+ *                     success:
+ *                       type: number
+ *                     failed:
+ *                       type: number
+ *                     total:
+ *                       type: number
+ *                     percentage:
+ *                       type: number
+ *                 errors:
+ *                   type: array
+ *                 estimatedTimeRemaining:
+ *                   type: string
+ */
+router.get('/migration/cloudinary-to-supabase/status', getCloudinaryMigrationProgress);
+
+/**
+ * @swagger
+ * /admin/migration/cloudinary-to-supabase/stop:
+ *   post:
+ *     summary: Stop running migration
+ *     tags: [Admin - Migration]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Migration stopped
+ */
+router.post('/migration/cloudinary-to-supabase/stop', stopCloudinaryMigration);
 
 export default router;
