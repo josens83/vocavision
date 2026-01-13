@@ -1939,7 +1939,6 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                     visuals={localVisuals as WordVisual[]}
                     onChange={handleVisualsChange}
                     onImageDelete={handleImageDelete}
-                    cloudinaryCloudName={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
                     wordData={{
                       definitionEn: content?.definitions?.[0]?.definitionEn,
                       definitionKo: content?.definitions?.[0]?.definitionKo,
@@ -2142,7 +2141,6 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                     visuals={localVisuals as WordVisual[]}
                     onChange={handleVisualsChange}
                     onImageDelete={handleImageDelete}
-                    cloudinaryCloudName={process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
                     onGenerateAllImages={handleGenerateAllImages}
                     onGenerateSingleImage={handleGenerateSingleImage}
                     onGeneratePrompt={handleGeneratePrompt}
