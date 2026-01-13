@@ -87,7 +87,6 @@ export default function BottomTabBar() {
         bottom: 0,
         left: 0,
         right: 0,
-        width: '100vw',
         zIndex: 9999,
         backgroundColor: 'white',
         borderTop: '1px solid #e5e7eb',
