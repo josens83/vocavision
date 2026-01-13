@@ -73,8 +73,16 @@ export default function BottomTabBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white border-t border-gray-200 md:hidden"
+      className="md:hidden"
       style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        width: '100%',
+        zIndex: 9999,
+        backgroundColor: 'white',
+        borderTop: '1px solid #e5e7eb',
         paddingBottom: 'env(safe-area-inset-bottom)',
         transform: 'translateZ(0)',
         WebkitBackfaceVisibility: 'hidden',
