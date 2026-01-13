@@ -5,12 +5,15 @@
  * - Concept (의미): 단어 의미를 직관적으로 보여주는 이미지
  * - Mnemonic (연상): 한국어식 연상법에 맞는 이미지
  * - Rhyme (라이밍): 발음/라이밍 기반 상황 이미지
+ *
+ * 이미지는 백엔드 API를 통해 Supabase Storage에 저장됩니다.
  */
 
 'use client';
 
 import React, { useState } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface WordImageData {
   imageConceptUrl?: string;
@@ -24,8 +27,16 @@ interface WordImageData {
 interface WordImageSectionProps {
   word: WordImageData;
   onUpdate: (field: string, value: string) => void;
-  cloudinaryCloudName?: string;
+  /** 단어 ID (기존 단어 편집 시 필수, 새 단어 생성 시 없음) */
+  wordId?: string;
 }
+
+// imageType 매핑: urlField -> API imageType
+const URL_FIELD_TO_IMAGE_TYPE: Record<string, string> = {
+  imageConceptUrl: 'CONCEPT',
+  imageMnemonicUrl: 'MNEMONIC',
+  imageRhymeUrl: 'RHYME',
+};
 
 const IMAGE_TYPES = [
   {
@@ -75,10 +86,11 @@ const COLOR_CLASSES: Record<string, { badge: string; border: string }> = {
 export default function WordImageSection({
   word,
   onUpdate,
-  cloudinaryCloudName,
+  wordId,
 }: WordImageSectionProps) {
   const [uploading, setUploading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -100,39 +112,55 @@ export default function WordImageSection({
 
     setUploading(urlField);
     setError(null);
+    setSuccess(null);
 
     try {
-      // Cloudinary 업로드
-      if (cloudinaryCloudName) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'vocavision');
-
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`,
-          {
-            method: 'POST',
-            body: formData,
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('업로드 실패');
-        }
-
-        const data = await response.json();
-        onUpdate(urlField, data.secure_url);
-      } else {
-        // Cloudinary 미설정 시 로컬 미리보기 (개발용)
-        const reader = new FileReader();
+      // Convert file to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
         reader.onload = () => {
-          onUpdate(urlField, reader.result as string);
+          const result = reader.result as string;
+          // Remove data:image/xxx;base64, prefix
+          const base64 = result.split(',')[1];
+          resolve(base64);
         };
-        reader.readAsDataURL(file);
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(file);
+      const imageBase64 = await base64Promise;
+
+      // wordId가 있으면 백엔드 API를 통해 Supabase Storage에 업로드
+      if (wordId) {
+        const imageType = URL_FIELD_TO_IMAGE_TYPE[urlField];
+        const response = await api.post<{
+          success: boolean;
+          data?: { visual: { imageUrl: string } };
+          error?: string;
+        }>(`/admin/words/${wordId}/upload-image`, {
+          imageType,
+          imageBase64,
+        });
+
+        if (response.data.success && response.data.data?.visual.imageUrl) {
+          onUpdate(urlField, response.data.data.visual.imageUrl);
+          setSuccess('이미지가 업로드되었습니다.');
+        } else {
+          throw new Error(response.data.error || '업로드 실패');
+        }
+      } else {
+        // wordId가 없으면 (새 단어 생성 시) 로컬 미리보기만 표시
+        // 실제 저장은 단어 저장 시 처리됨
+        const dataUrl = `data:${file.type};base64,${imageBase64}`;
+        onUpdate(urlField, dataUrl);
+        setSuccess('이미지 미리보기가 설정되었습니다. 단어 저장 시 업로드됩니다.');
       }
     } catch (err) {
       console.error('Upload failed:', err);
-      setError('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : '이미지 업로드에 실패했습니다. 다시 시도해주세요.'
+      );
     } finally {
       setUploading(null);
     }
@@ -140,6 +168,7 @@ export default function WordImageSection({
 
   const handleRemoveImage = (urlField: string) => {
     onUpdate(urlField, '');
+    setSuccess(null);
   };
 
   const handleUrlInput = (urlField: string, url: string) => {
@@ -154,12 +183,24 @@ export default function WordImageSection({
         <h3 className="text-lg font-semibold text-gray-900">
           단어 시각화 이미지 (3종)
         </h3>
+        {!wordId && (
+          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+            새 단어 - 저장 후 이미지 업로드 가능
+          </span>
+        )}
       </div>
 
       {/* 에러 메시지 */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
           {error}
+        </div>
+      )}
+
+      {/* 성공 메시지 */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+          {success}
         </div>
       )}
 

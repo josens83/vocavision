@@ -8,7 +8,7 @@
  *
  * 기능:
  * - 이중 언어 라벨/캡션 (En/Ko)
- * - 이미지 업로드 (Cloudinary) 또는 URL 직접 입력
+ * - 이미지 업로드 (백엔드 API -> Supabase Storage) 또는 URL 직접 입력
  * - AI 이미지 생성 프롬프트 저장
  * - JSON 템플릿 가져오기
  * - GIF 지원
@@ -34,13 +34,13 @@ import {
   VisualTemplate,
   VISUAL_TYPE_CONFIG,
 } from './types/admin.types';
+import { api } from '@/lib/api';
 
 interface WordVisualsEditorProps {
   wordId?: string;
   word: string; // Display word for context
   visuals: WordVisual[];
   onChange: (visuals: WordVisualInput[]) => void;
-  cloudinaryCloudName?: string;
   onJsonImport?: (template: VisualTemplate) => void;
   onImageDelete?: (type: string, updatedVisuals: WordVisualInput[]) => void | Promise<void>;
   onGenerateAllImages?: () => void;
@@ -59,10 +59,10 @@ interface WordVisualsEditorProps {
 const VISUAL_TYPES: VisualType[] = ['CONCEPT', 'MNEMONIC', 'RHYME'];
 
 export default function WordVisualsEditor({
+  wordId,
   word,
   visuals,
   onChange,
-  cloudinaryCloudName,
   onJsonImport,
   onImageDelete,
   onGenerateAllImages: _onGenerateAllImages,
@@ -123,7 +123,7 @@ export default function WordVisualsEditor({
     onChange(updatedVisuals);
   };
 
-  // Handle image upload
+  // Handle image upload via backend API (Supabase Storage)
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: VisualType
@@ -146,37 +146,48 @@ export default function WordVisualsEditor({
     setError(null);
 
     try {
-      if (cloudinaryCloudName) {
-        // Cloudinary upload
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'vocavision');
-
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`,
-          {
-            method: 'POST',
-            body: formData,
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('업로드 실패');
-        }
-
-        const data = await response.json();
-        updateVisual(type, { imageUrl: data.secure_url });
-      } else {
-        // Local preview (development)
-        const reader = new FileReader();
+      // Convert file to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
         reader.onload = () => {
-          updateVisual(type, { imageUrl: reader.result as string });
+          const result = reader.result as string;
+          // Remove data:image/xxx;base64, prefix
+          const base64 = result.split(',')[1];
+          resolve(base64);
         };
-        reader.readAsDataURL(file);
+        reader.onerror = reject;
+      });
+      reader.readAsDataURL(file);
+      const imageBase64 = await base64Promise;
+
+      // wordId가 있으면 백엔드 API를 통해 Supabase Storage에 업로드
+      if (wordId) {
+        const response = await api.post<{
+          success: boolean;
+          data?: { visual: { imageUrl: string } };
+          error?: string;
+        }>(`/admin/words/${wordId}/upload-image`, {
+          imageType: type,
+          imageBase64,
+        });
+
+        if (response.data.success && response.data.data?.visual.imageUrl) {
+          updateVisual(type, { imageUrl: response.data.data.visual.imageUrl });
+        } else {
+          throw new Error(response.data.error || '업로드 실패');
+        }
+      } else {
+        // wordId가 없으면 로컬 미리보기만 표시
+        const dataUrl = `data:${file.type};base64,${imageBase64}`;
+        updateVisual(type, { imageUrl: dataUrl });
       }
     } catch (err) {
       console.error('Upload failed:', err);
-      setError('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : '이미지 업로드에 실패했습니다. 다시 시도해주세요.'
+      );
     } finally {
       setUploading(null);
     }
