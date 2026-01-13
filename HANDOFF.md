@@ -1,11 +1,11 @@
-# VocaVision Handoff Document 📋
+# VocaVision AI Handoff Document 📋
 
-> 마지막 업데이트: 2025-12-23
+> 마지막 업데이트: 2026-01-13
 > 목적: 개발 중단 후 컨텍스트 복구용
 
 ## 🎯 프로젝트 요약
 
-VocaVision은 AI 기반 영어 단어 학습 플랫폼입니다.
+VocaVision AI는 AI 기반 영어 단어 학습 플랫폼입니다. (2024-12월 VocaVision → VocaVision AI로 리브랜딩)
 - **프론트엔드**: Next.js 14 (web/)
 - **백엔드**: Express.js + TypeScript (backend/)
 - **DB**: PostgreSQL (Supabase)
@@ -13,7 +13,50 @@ VocaVision은 AI 기반 영어 단어 학습 플랫폼입니다.
 
 ---
 
-## 📝 최근 변경사항 (2025-12-23)
+## 📝 최근 변경사항 (2026-01-13)
+
+### 1. VocaVision → VocaVision AI 리브랜딩 ✅
+- 헤더 로고에 "AI" 추가
+- 태그라인 추가: "AI와 함께하는 어휘 학습"
+- Navigation, Footer 등 전역 업데이트
+
+### 2. Lucide 화살표 아이콘 교체 ✅
+**이전**: 텍스트 화살표 (→, ←)
+**이후**: Lucide ArrowLeft/ArrowRight 컴포넌트
+
+**변경 파일 (11개):**
+- `web/src/components/learning/FlashCardGesture.tsx`
+- `web/src/app/my/history/page.tsx`
+- `web/src/app/my/collections/page.tsx`
+- `web/src/app/my/bookmarks/page.tsx`
+- `web/src/app/games/page.tsx`
+- `web/src/app/games/write/page.tsx`
+- `web/src/app/games/true-false/page.tsx`
+- `web/src/app/games/match/page.tsx`
+- `web/src/app/statistics/page.tsx`
+- `web/src/app/decks/create/page.tsx`
+- `web/src/app/my/collections/[id]/page.tsx`
+
+### 3. 모바일 하단 탭 버그 수정 ✅
+**문제 1**: 스크롤 시 "홈", "수능" 탭만 보이는 현상
+**문제 2**: 탭 스와이프가 메인 페이지 콘텐츠를 이동시킴
+
+**해결책 (`web/src/components/navigation/BottomTabBar.tsx`):**
+- `max-w-screen-sm mx-auto` 제거 → `w-full` 사용
+- `flex-1 min-w-0`로 탭 균등 분배
+- `onTouchStart/onTouchMove`에 `stopPropagation()` 추가
+- `touchAction: manipulation`, `overscrollBehaviorX: contain` 추가
+
+### 4. 홈 페이지 정적 상품 카드 ✅
+**문제**: API에서 1개만 반환 시 상품이 1개만 표시됨
+**해결책**: `getStaticPackages()` 함수로 3개 정적 카드 폴백
+
+**변경 파일:**
+- `web/src/components/home/ProductPackageSection.tsx`
+
+---
+
+## 📝 이전 변경사항 (2025-12-23)
 
 ### 1. Cloudinary → Supabase Storage 마이그레이션 ✅
 **이유**: Cloudinary 무료 티어 초과
@@ -170,22 +213,17 @@ images: {
 ## 📊 최근 커밋 히스토리
 
 ```
-293d228 fix: Make BEST/NEW tab container compact with inline-flex
-c0ea8b6 fix: Improve mobile UX for bottom tab bar and exam grid
-404413c fix: Improve /words page mobile UX
-dab8873 fix: Improve mobile UX for flashcard page
-36777d4 fix: Update Footer and contact info for privacy
-739bc0b fix: Display English caption in admin images modal
-8ed79d6 fix: Add Supabase Storage domain to Next.js image config
-e1e1492 feat: Migrate image storage from Cloudinary to Supabase Storage
-e3de494 fix: Fix pagination for missing-images API
-0d56925 fix: Use null instead of undefined for image deletion
-620ad12 fix: Make image deletion work same as caption editing
-3e0d1d8 fix: Call API when deleting image via X button in admin
-81b9690 fix: Update modal state after image upload success
-5b29943 fix: Increase Express body size limit to 10mb for image uploads
-00e6a1d fix: Fix Express route order for /words/missing-images API
-1604535 feat: Add image management menu to admin sidebar
+ac31cd7 Merge PR #471: Resolve mobile bottom tab visibility and swipe conflicts
+8f838fd fix: Resolve mobile bottom tab visibility and swipe conflicts
+fb90671 Merge PR #470: Replace text arrows with Lucide ArrowLeft/ArrowRight icons
+f9573f2 feat: Replace text arrows with Lucide ArrowLeft/ArrowRight icons
+e781184 Merge PR #469: Show static product cards on home page
+c4c1303 fix: Show static product cards on home page when API data is incomplete
+053ee75 feat: Add product cards and replace text arrows with Lucide icons
+c2dda8b fix: Prevent nav items from wrapping to multiple lines
+17c4faf feat: Add tagline to header logo
+1b370be fix: Add AI to header logo in Navigation component
+30e8f5d feat: Rebrand VocaVision to VocaVision AI
 ```
 
 ---
