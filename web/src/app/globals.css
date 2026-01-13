@@ -103,11 +103,13 @@
     }
   }
 
-  html {
+  html, body {
     scroll-behavior: smooth;
     /* 한국어 단어 단위 줄바꿈 */
     word-break: keep-all;
     overflow-wrap: break-word;
+    /* 수평 스크롤 방지 */
+    overflow-x: hidden;
   }
 
   body {
