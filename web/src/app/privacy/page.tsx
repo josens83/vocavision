@@ -132,7 +132,7 @@ export default function PrivacyPage() {
                     <td className="border border-gray-200 px-4 py-2">데이터베이스 호스팅</td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-200 px-4 py-2">Cloudinary</td>
+                    <td className="border border-gray-200 px-4 py-2">Supabase Storage</td>
                     <td className="border border-gray-200 px-4 py-2">이미지 저장 및 CDN</td>
                   </tr>
                 </tbody>

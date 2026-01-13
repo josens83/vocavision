@@ -2,17 +2,20 @@
  * Admin AI Image Generation API
  *
  * POST /api/admin/generate-image
- * Generates an image using Stability AI and uploads to Cloudinary
+ * Generates an image using Stability AI and uploads to Supabase Storage
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 // Configuration
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY || '';
 const STABILITY_API_URL = 'https://api.stability.ai/v1/generation';
-const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '';
-const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '';
-const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
+
+// Supabase configuration
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'vocavision-images';
 
 // Visual type configurations for prompt templates
 // Strong negative prompts to prevent text rendering issues
@@ -29,19 +32,6 @@ const VISUAL_CONFIGS = {
     style: 'playful cartoon, humorous, bright colors',
     negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle',
   },
-};
-
-// Prompt templates (not exported - Next.js API routes only allow HTTP method exports)
-// CRITICAL: Strong emphasis on NO TEXT to prevent AI text rendering issues
-const PROMPT_TEMPLATES = {
-  CONCEPT: (word: string, definitionEn: string) =>
-    `A 1:1 square cute 3D cartoon illustration showing the meaning of "${word}" which means "${definitionEn}". Style: whimsical 3D animated style, bright vibrant colors, soft lighting, friendly character design, simple clean composition, white background, educational and memorable. The image should help language learners instantly understand and remember the word meaning. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
-
-  MNEMONIC: (word: string, mnemonic: string, koreanHint?: string) =>
-    `A 1:1 square cartoon illustration visualizing this memory scene: ${mnemonic}. Style: cute cartoon, memorable, colorful, exaggerated expressions, whimsical. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
-
-  RHYME: (word: string, rhymingWords: string[], definitionEn?: string) =>
-    `A 1:1 square humorous cartoon illustration showing a funny scene that represents "${definitionEn || word}". Style: playful cartoon, bright colors, fun expressions, dynamic composition. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
 };
 
 // Caption templates (not exported - Next.js API routes only allow HTTP method exports)
@@ -127,48 +117,44 @@ async function generateWithStabilityAI(
 }
 
 /**
- * Upload image to Cloudinary
+ * Upload image to Supabase Storage
  */
-async function uploadToCloudinary(
+async function uploadToSupabase(
   base64Data: string,
   word: string,
   visualType: string
 ): Promise<{ url: string; publicId: string }> {
-  const crypto = await import('crypto');
-  const timestamp = Math.floor(Date.now() / 1000);
-  const folder = 'vocavision/visuals';
-  const publicId = `${word.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${visualType.toLowerCase()}-${Date.now()}`;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-  // Generate signature
-  const signatureString = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
-  const signature = crypto.createHash('sha1').update(signatureString).digest('hex');
+  // Convert base64 to buffer
+  const buffer = Buffer.from(base64Data, 'base64');
 
-  // Prepare form data
-  const formData = new FormData();
-  formData.append('file', `data:image/png;base64,${base64Data}`);
-  formData.append('api_key', CLOUDINARY_API_KEY);
-  formData.append('timestamp', String(timestamp));
-  formData.append('signature', signature);
-  formData.append('folder', folder);
-  formData.append('public_id', publicId);
+  // Generate filename
+  const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const fileName = `${sanitizedWord}-${visualType.toLowerCase()}-${Date.now()}.png`;
+  const filePath = `visuals/${fileName}`;
 
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-    {
-      method: 'POST',
-      body: formData,
-    }
-  );
+  // Upload to Supabase Storage
+  const { error: uploadError } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, buffer, {
+      contentType: 'image/png',
+      cacheControl: '31536000',
+      upsert: true,
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Cloudinary upload error: ${error.error?.message || response.statusText}`);
+  if (uploadError) {
+    throw new Error(`Supabase upload error: ${uploadError.message}`);
   }
 
-  const result = await response.json();
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(filePath);
+
   return {
-    url: result.secure_url,
-    publicId: result.public_id,
+    url: urlData.publicUrl,
+    publicId: filePath,
   };
 }
 
@@ -185,9 +171,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
       return NextResponse.json(
-        { success: false, error: 'Cloudinary not configured' },
+        { success: false, error: 'Supabase not configured' },
         { status: 500 }
       );
     }
@@ -212,10 +198,10 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to generate image');
     }
 
-    console.log(`[AI Image Gen] Image generated, uploading to Cloudinary...`);
+    console.log(`[AI Image Gen] Image generated, uploading to Supabase Storage...`);
 
-    // Upload to Cloudinary
-    const uploadResult = await uploadToCloudinary(imageResult.base64, word, visualType);
+    // Upload to Supabase Storage
+    const uploadResult = await uploadToSupabase(imageResult.base64, word, visualType);
 
     console.log(`[AI Image Gen] Success! URL: ${uploadResult.url}`);
 
