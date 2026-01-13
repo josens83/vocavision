@@ -93,7 +93,10 @@ export function Footer() {
                 사업자등록번호: 719-02-03518
               </p>
               <p className="mt-1">
-                주소: 경기도 화성시
+                통신판매업신고: 제 2025-화성동탄-5651 호
+              </p>
+              <p className="mt-1">
+                주소: 경기도 화성시 동탄대로시범길 19
               </p>
               <p className="mt-1">
                 이메일: support@vocavision.kr
