@@ -3078,7 +3078,7 @@ async function runCloudinaryMigration(batchSize: number, startOffset: number) {
   const { getSupabaseClient } = await import('../lib/supabase');
   const supabase = getSupabaseClient();
   let offset = startOffset;
-  const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'vocavision-images';
+  const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'word-images';
 
   logger.info(`[Migration] Starting migration with batchSize=${batchSize}, startOffset=${startOffset}`);
 
