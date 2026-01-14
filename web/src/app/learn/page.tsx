@@ -53,12 +53,12 @@ const levelNames: Record<string, string> = {
   L3: '고급',
 };
 
-// 60초 맛보기 데모용 고정 단어 목록 (20개) - 실제 시드된 CSAT 단어들
+// 60초 맛보기 데모용 고정 단어 목록 (20개) - seed.ts csatWordsL1에서 검증된 단어들
 const DEMO_WORDS = [
-  'abstract', 'achieve', 'acknowledge', 'acquire', 'adapt',
-  'advantage', 'advocate', 'affect', 'allow', 'analyze',
-  'appear', 'approach', 'argue', 'benefit', 'challenge',
-  'demonstrate', 'enhance', 'perceive', 'perspective', 'respond',
+  'maintain', 'increase', 'decrease', 'require', 'provide',
+  'allow', 'prevent', 'reduce', 'affect', 'include',
+  'depend', 'describe', 'compare', 'prefer', 'achieve',
+  'environment', 'behavior', 'attitude', 'challenge', 'advantage',
 ];
 
 // Loading fallback component
