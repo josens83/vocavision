@@ -489,30 +489,65 @@ export const getFeaturedWords = async (
     const { type = 'best', limit = '10' } = req.query;
     const limitNum = Math.min(parseInt(limit as string), 20);
 
-    // Get words that have CONCEPT visuals for better display
-    const orderBy = type === 'new'
-      ? { createdAt: 'desc' as const }
-      : { frequency: 'desc' as const }; // 'best' = most common words
+    let words;
 
-    const words = await prisma.word.findMany({
-      where: {
-        status: 'PUBLISHED',
-        visuals: {
-          some: {
-            type: 'CONCEPT',
-            imageUrl: { not: null },
+    if (type === 'best') {
+      // BEST 탭: 고정된 10개 단어 목록 (순서 유지)
+      const bestWordsList = [
+        'sycophant',
+        'ephemeral',
+        'ubiquitous',
+        'scrutinize',
+        'eloquent',
+        'synthesis',
+        'paradigm',
+        'anthropology',
+        'methodology',
+        'subsidiary',
+      ];
+
+      // Fetch these specific words by name
+      const fetchedWords = await prisma.word.findMany({
+        where: {
+          word: { in: bestWordsList },
+          status: 'PUBLISHED',
+        },
+        include: {
+          visuals: {
+            where: { type: 'CONCEPT' },
+            take: 1,
           },
         },
-      },
-      include: {
-        visuals: {
-          where: { type: 'CONCEPT' },
-          take: 1,
+      });
+
+      // Sort by the original order in bestWordsList
+      const wordMap = new Map(fetchedWords.map(w => [w.word.toLowerCase(), w]));
+      words = bestWordsList
+        .map(name => wordMap.get(name.toLowerCase()))
+        .filter((w): w is NonNullable<typeof w> => w != null)
+        .slice(0, limitNum);
+    } else {
+      // NEW 탭: 최신 단어 (기존 로직)
+      words = await prisma.word.findMany({
+        where: {
+          status: 'PUBLISHED',
+          visuals: {
+            some: {
+              type: 'CONCEPT',
+              imageUrl: { not: null },
+            },
+          },
         },
-      },
-      orderBy,
-      take: limitNum,
-    });
+        include: {
+          visuals: {
+            where: { type: 'CONCEPT' },
+            take: 1,
+          },
+        },
+        orderBy: { createdAt: 'desc' as const },
+        take: limitNum,
+      });
+    }
 
     // Map to simpler format for frontend
     const result = words.map((word) => ({
