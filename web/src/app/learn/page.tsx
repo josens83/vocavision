@@ -53,12 +53,12 @@ const levelNames: Record<string, string> = {
   L3: '고급',
 };
 
-// 60초 맛보기 데모용 고정 단어 목록 (20개) - CSAT DB에 존재하는 단어들
+// 60초 맛보기 데모용 고정 단어 목록 (20개) - 실제 시드된 CSAT 단어들
 const DEMO_WORDS = [
-  'abandon', 'abstract', 'accomplish', 'achieve', 'acknowledge',
-  'adapt', 'advocate', 'affect', 'acquire', 'advance',
-  'benefit', 'capable', 'celebrate', 'challenge', 'collapse',
-  'demonstrate', 'enhance', 'genuine', 'perceive', 'perspective',
+  'abstract', 'achieve', 'acknowledge', 'acquire', 'adapt',
+  'advantage', 'advocate', 'affect', 'allow', 'analyze',
+  'appear', 'approach', 'argue', 'benefit', 'challenge',
+  'demonstrate', 'enhance', 'perceive', 'perspective', 'respond',
 ];
 
 // Loading fallback component
