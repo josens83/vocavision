@@ -53,12 +53,12 @@ const levelNames: Record<string, string> = {
   L3: '고급',
 };
 
-// 60초 맛보기 데모용 고정 단어 목록 (20개) - 실제 시드된 CSAT 단어들
+// 60초 맛보기 데모용 고정 단어 목록 (20개) - seed.ts csatWordsL1에서 검증된 단어들
 const DEMO_WORDS = [
-  'abstract', 'achieve', 'acknowledge', 'acquire', 'adapt',
-  'advantage', 'advocate', 'affect', 'allow', 'analyze',
-  'appear', 'approach', 'argue', 'benefit', 'challenge',
-  'demonstrate', 'enhance', 'perceive', 'perspective', 'respond',
+  'maintain', 'increase', 'decrease', 'require', 'provide',
+  'allow', 'prevent', 'reduce', 'affect', 'include',
+  'depend', 'describe', 'compare', 'prefer', 'achieve',
+  'environment', 'behavior', 'attitude', 'challenge', 'advantage',
 ];
 
 // Loading fallback component
@@ -163,24 +163,13 @@ function LearnPageContent() {
         });
         const words = data.words || data.data || [];
 
-        // DEBUG: 로그 출력
-        console.log('[DEMO DEBUG] API returned words:', words.length);
-        console.log('[DEMO DEBUG] API word list:', words.map((w: Word) => w.word));
-
         // Filter to demo words and maintain order (include all found words)
         const wordMap = new Map<string, Word>(words.map((w: Word) => [w.word.toLowerCase(), w]));
-        console.log('[DEMO DEBUG] wordMap keys:', Array.from(wordMap.keys()));
-
-        const matchedWords = DEMO_WORDS.filter(name => wordMap.has(name.toLowerCase()));
-        console.log('[DEMO DEBUG] DEMO_WORDS:', DEMO_WORDS);
-        console.log('[DEMO DEBUG] Matched words:', matchedWords);
-
         const demoReviews = DEMO_WORDS
           .map(name => wordMap.get(name.toLowerCase()))
           .filter((w): w is Word => w != null)
           .map(word => ({ word }));
 
-        console.log('[DEMO DEBUG] Final demoReviews count:', demoReviews.length);
         setReviews(demoReviews);
       } else if (examParam) {
         // If exam filter is provided, load words from that exam
