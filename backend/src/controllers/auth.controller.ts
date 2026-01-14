@@ -264,8 +264,9 @@ export const kakaoLogin = async (
     const kakaoId = String(kakaoUser.id);
     const nickname = kakaoUser.properties?.nickname || '사용자';
     const profileImage = kakaoUser.properties?.profile_image || null;
+    const email = kakaoUser.kakao_account?.email || null;
 
-    console.log('[KakaoLogin] Kakao user:', { kakaoId, nickname });
+    console.log('[KakaoLogin] Kakao user:', { kakaoId, nickname, email });
 
     // 3. 기존 사용자 확인 또는 새 사용자 생성
     let user = await prisma.user.findUnique({
@@ -282,6 +283,7 @@ export const kakaoLogin = async (
           kakaoId,
           name: nickname,
           avatar: profileImage,
+          email,
           provider: 'kakao',
           subscriptionStatus: 'TRIAL',
           trialEnd,
@@ -296,6 +298,8 @@ export const kakaoLogin = async (
           name: nickname,
           avatar: profileImage,
           lastActiveDate: new Date(),
+          // 기존에 이메일이 없고 새로 받아온 이메일이 있으면 업데이트
+          ...((!user.email && email) ? { email } : {}),
         },
       });
       console.log('[KakaoLogin] Existing user logged in:', user.id);
