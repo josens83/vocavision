@@ -160,9 +160,6 @@ export async function uploadToSupabase(
   };
 }
 
-// Legacy alias for backward compatibility
-export const uploadToCloudinary = uploadToSupabase;
-
 // ---------------------------------------------
 // Combined: Generate and Upload
 // ---------------------------------------------
@@ -179,8 +176,8 @@ export async function generateAndUploadImage(
       return null;
     }
 
-    // Upload to Cloudinary
-    const uploadResult = await uploadToCloudinary(imageResult.base64, word, visualType);
+    // Upload to Supabase Storage
+    const uploadResult = await uploadToSupabase(imageResult.base64, word, visualType);
 
     return {
       imageUrl: uploadResult.url,
@@ -225,13 +222,11 @@ export function generateRhymePrompt(definitionEn: string, word: string): string 
 export function checkImageServiceConfig(): {
   stabilityConfigured: boolean;
   storageConfigured: boolean;
-  cloudinaryConfigured?: boolean; // Legacy alias
 } {
   const storageConfigured = checkSupabaseConfig();
   return {
     stabilityConfigured: !!STABILITY_API_KEY,
     storageConfigured,
-    cloudinaryConfigured: storageConfigured, // Legacy alias for backward compatibility
   };
 }
 
