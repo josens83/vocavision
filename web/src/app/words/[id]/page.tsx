@@ -4,6 +4,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
@@ -150,6 +151,7 @@ const getExamLevelLabel = (examCategory: string, level: string | null): string =
 };
 
 export default function WordDetailPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const [word, setWord] = useState<Word | null>(null);
   const [loading, setLoading] = useState(true);
@@ -241,10 +243,10 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/words" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
+            <button onClick={() => router.back()} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
               <Icons.ArrowLeft />
-              <span className="hidden sm:inline">단어 목록</span>
-            </Link>
+              <span className="hidden sm:inline">뒤로</span>
+            </button>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setBookmarked(!bookmarked)}
