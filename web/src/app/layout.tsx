@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     description: '수능, TEPS 필수 영단어를 AI 이미지와 함께 학습하세요.',
     images: [
       {
-        url: `${siteUrl}/og-image.jpg`,
+        url: `${siteUrl}/og-image-v2.jpg`,
         width: 1200,
         height: 630,
         alt: 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼',
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼',
     description: '수능, TEPS 필수 영단어를 AI 이미지와 함께 학습하세요.',
-    images: [`${siteUrl}/og-image.jpg`],
+    images: [`${siteUrl}/og-image-v2.jpg`],
   },
 
   // 추가 메타
