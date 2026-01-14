@@ -306,8 +306,7 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
                 <p className="text-lg text-slate-600">{word.definitionKo}</p>
               )}
 
-              {/* TODO: 인터랙티브 학습 기능 완성 후 활성화 */}
-              {false && word && (
+              {/* TODO: 인터랙티브 학습 기능 완성 후 활성화
               <Link
                 href={`/words/${word.id}/learn`}
                 className="mt-6 inline-flex items-center gap-2 text-brand-primary font-medium hover:underline"
@@ -315,7 +314,7 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
                 <Icons.Play />
                 인터랙티브 학습 시작
               </Link>
-              )}
+              */}
             </div>
 
             {/* Concept Image */}
