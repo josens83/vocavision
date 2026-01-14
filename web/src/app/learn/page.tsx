@@ -53,14 +53,6 @@ const levelNames: Record<string, string> = {
   L3: '고급',
 };
 
-// 60초 맛보기 데모용 고정 단어 목록 (20개) - seed.ts csatWordsL1에서 검증된 단어들
-const DEMO_WORDS = [
-  'maintain', 'increase', 'decrease', 'require', 'provide',
-  'allow', 'prevent', 'reduce', 'affect', 'include',
-  'depend', 'describe', 'compare', 'prefer', 'achieve',
-  'environment', 'behavior', 'attitude', 'challenge', 'advantage',
-];
-
 // Loading fallback component
 function LearnPageLoading() {
   return (
@@ -154,21 +146,19 @@ function LearnPageContent() {
 
   const loadReviews = async () => {
     try {
-      // Demo mode: fetch specific 20 words in order
+      // Demo mode: fetch first 20 CSAT words from API
       if (isDemo && examParam) {
         const data = await wordsAPI.getWords({
           examCategory: examParam,
           level: levelParam || undefined,
-          limit: 100, // Fetch more to find all demo words
+          limit: 20, // Get exactly 20 words for demo
         });
         const words = data.words || data.data || [];
 
-        // Filter to demo words and maintain order (include all found words)
-        const wordMap = new Map<string, Word>(words.map((w: Word) => [w.word.toLowerCase(), w]));
-        const demoReviews = DEMO_WORDS
-          .map(name => wordMap.get(name.toLowerCase()))
-          .filter((w): w is Word => w != null)
-          .map(word => ({ word }));
+        // Use API response directly (no filtering by hardcoded list)
+        const demoReviews = words
+          .slice(0, 20)
+          .map((word: Word) => ({ word }));
 
         setReviews(demoReviews);
       } else if (examParam) {
