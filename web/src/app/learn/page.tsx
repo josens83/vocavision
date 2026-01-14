@@ -53,6 +53,14 @@ const levelNames: Record<string, string> = {
   L3: '고급',
 };
 
+// 60초 맛보기 데모용 고정 단어 목록 (20개)
+const DEMO_WORDS = [
+  'perceive', 'pursue', 'restrict', 'severe', 'abstract',
+  'comprehensive', 'crucial', 'diverse', 'elaborate', 'enhance',
+  'fundamental', 'genuine', 'inherent', 'innovation', 'perspective',
+  'maintain', 'consequence', 'subsequent', 'accomplish', 'demonstrate',
+];
+
 // Loading fallback component
 function LearnPageLoading() {
   return (
@@ -104,6 +112,7 @@ function LearnPageContent() {
   const searchParams = useSearchParams();
   const examParam = searchParams.get('exam')?.toUpperCase();
   const levelParam = searchParams.get('level');
+  const isDemo = searchParams.get('demo') === '1';
 
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
@@ -132,7 +141,7 @@ function LearnPageContent() {
     if (user) {
       startSession();
     }
-  }, [user, hasHydrated, router, examParam, levelParam]);
+  }, [user, hasHydrated, router, examParam, levelParam, isDemo]);
 
   const startSession = async () => {
     try {
@@ -145,8 +154,27 @@ function LearnPageContent() {
 
   const loadReviews = async () => {
     try {
-      // If exam filter is provided, load words from that exam
-      if (examParam) {
+      // Demo mode: fetch specific 20 words in order
+      if (isDemo && examParam) {
+        const data = await wordsAPI.getWords({
+          examCategory: examParam,
+          level: levelParam || undefined,
+          limit: 100, // Fetch more to find all demo words
+        });
+        const words = data.words || data.data || [];
+
+        // Filter to demo words and maintain order
+        const wordMap = new Map(words.map((w: Word) => [w.word.toLowerCase(), w]));
+        const demoReviews = DEMO_WORDS
+          .map(name => wordMap.get(name.toLowerCase()))
+          .filter((w): w is Word => w != null &&
+            ((w.definition && w.definition.trim() !== '') ||
+             (w.definitionKo && w.definitionKo.trim() !== '')))
+          .map(word => ({ word }));
+
+        setReviews(demoReviews);
+      } else if (examParam) {
+        // If exam filter is provided, load words from that exam
         const data = await wordsAPI.getWords({
           examCategory: examParam,
           level: levelParam || undefined,
