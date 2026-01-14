@@ -347,18 +347,18 @@ function WordCardSkeleton() {
   );
 }
 
-// 샘플 데이터 (API에서 이미지가 없을 때 fallback)
+// 샘플 데이터 (API에서 이미지가 없을 때 fallback) - BEST 탭 고정 10개 단어
 const sampleBestWords: Word[] = [
-  { id: "1", word: "ubiquitous", definition: "어디에나 있는", level: "L2", pronunciation: "/juːˈbɪk.wɪ.təs/" },
+  { id: "1", word: "sycophant", definition: "아첨꾼", level: "L3", pronunciation: "/ˈsɪk.ə.fænt/" },
   { id: "2", word: "ephemeral", definition: "일시적인", level: "L3", pronunciation: "/ɪˈfem.ər.əl/" },
-  { id: "3", word: "pragmatic", definition: "실용적인", level: "L2", pronunciation: "/præɡˈmæt.ɪk/" },
-  { id: "4", word: "meticulous", definition: "꼼꼼한", level: "L2", pronunciation: "/məˈtɪk.jə.ləs/" },
-  { id: "5", word: "resilient", definition: "회복력 있는", level: "L2", pronunciation: "/rɪˈzɪl.i.ənt/" },
-  { id: "6", word: "ambiguous", definition: "모호한", level: "L2", pronunciation: "/æmˈbɪɡ.ju.əs/" },
+  { id: "3", word: "ubiquitous", definition: "어디에나 있는", level: "L2", pronunciation: "/juːˈbɪk.wɪ.təs/" },
+  { id: "4", word: "scrutinize", definition: "면밀히 조사하다", level: "L2", pronunciation: "/ˈskruː.tɪ.naɪz/" },
+  { id: "5", word: "eloquent", definition: "웅변적인", level: "L3", pronunciation: "/ˈel.ə.kwənt/" },
+  { id: "6", word: "synthesis", definition: "종합, 합성", level: "L2", pronunciation: "/ˈsɪn.θə.sɪs/" },
   { id: "7", word: "paradigm", definition: "패러다임, 전형", level: "L3", pronunciation: "/ˈpær.ə.daɪm/" },
-  { id: "8", word: "eloquent", definition: "웅변적인", level: "L3", pronunciation: "/ˈel.ə.kwənt/" },
-  { id: "9", word: "profound", definition: "심오한", level: "L2", pronunciation: "/prəˈfaʊnd/" },
-  { id: "10", word: "inevitable", definition: "불가피한", level: "L1", pronunciation: "/ɪnˈev.ɪ.tə.bəl/" },
+  { id: "8", word: "anthropology", definition: "인류학", level: "L2", pronunciation: "/ˌæn.θrəˈpɒl.ə.dʒi/" },
+  { id: "9", word: "methodology", definition: "방법론", level: "L2", pronunciation: "/ˌmeθ.əˈdɒl.ə.dʒi/" },
+  { id: "10", word: "subsidiary", definition: "자회사, 부수적인", level: "L2", pronunciation: "/səbˈsɪd.i.er.i/" },
 ];
 
 const sampleNewWords: Word[] = [
