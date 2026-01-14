@@ -164,12 +164,15 @@ function LearnPageContent() {
         const words = data.words || data.data || [];
 
         // Filter to demo words and maintain order
-        const wordMap = new Map(words.map((w: Word) => [w.word.toLowerCase(), w]));
+        const wordMap = new Map<string, Word>(words.map((w: Word) => [w.word.toLowerCase(), w]));
         const demoReviews = DEMO_WORDS
           .map(name => wordMap.get(name.toLowerCase()))
-          .filter((w): w is Word => w != null &&
-            ((w.definition && w.definition.trim() !== '') ||
-             (w.definitionKo && w.definitionKo.trim() !== '')))
+          .filter((w): w is Word => {
+            if (!w) return false;
+            const hasDef = w.definition && w.definition.trim() !== '';
+            const hasDefKo = w.definitionKo && w.definitionKo.trim() !== '';
+            return !!(hasDef || hasDefKo);
+          })
           .map(word => ({ word }));
 
         setReviews(demoReviews);
