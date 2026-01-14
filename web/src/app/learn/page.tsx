@@ -163,13 +163,24 @@ function LearnPageContent() {
         });
         const words = data.words || data.data || [];
 
+        // DEBUG: 로그 출력
+        console.log('[DEMO DEBUG] API returned words:', words.length);
+        console.log('[DEMO DEBUG] API word list:', words.map((w: Word) => w.word));
+
         // Filter to demo words and maintain order (include all found words)
         const wordMap = new Map<string, Word>(words.map((w: Word) => [w.word.toLowerCase(), w]));
+        console.log('[DEMO DEBUG] wordMap keys:', Array.from(wordMap.keys()));
+
+        const matchedWords = DEMO_WORDS.filter(name => wordMap.has(name.toLowerCase()));
+        console.log('[DEMO DEBUG] DEMO_WORDS:', DEMO_WORDS);
+        console.log('[DEMO DEBUG] Matched words:', matchedWords);
+
         const demoReviews = DEMO_WORDS
           .map(name => wordMap.get(name.toLowerCase()))
           .filter((w): w is Word => w != null)
           .map(word => ({ word }));
 
+        console.log('[DEMO DEBUG] Final demoReviews count:', demoReviews.length);
         setReviews(demoReviews);
       } else if (examParam) {
         // If exam filter is provided, load words from that exam
