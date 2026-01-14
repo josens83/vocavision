@@ -27,11 +27,32 @@ interface Word {
 
 type TabType = "best" | "new";
 
-// 레벨별 스타일
+// 레벨별 스타일 (NEW 탭용)
 const levelStyles: Record<string, { bg: string; text: string; label: string }> = {
   L1: { bg: "bg-green-100", text: "text-green-700", label: "기초" },
   L2: { bg: "bg-blue-100", text: "text-blue-700", label: "중급" },
   L3: { bg: "bg-purple-100", text: "text-purple-700", label: "고급" },
+};
+
+// BEST 탭 단어별 난이도 매핑
+const bestWordDifficulty: Record<string, string> = {
+  'sycophant': '고급',
+  'ephemeral': '고급',
+  'ubiquitous': '중급',
+  'scrutinize': '중급',
+  'eloquent': '중급',
+  'synthesis': '중급',
+  'paradigm': '중급',
+  'anthropology': '중급',
+  'methodology': '중급',
+  'subsidiary': '중급',
+};
+
+// 난이도별 스타일 (BEST 탭용)
+const difficultyStyles: Record<string, { bg: string; text: string }> = {
+  '기초': { bg: "bg-green-100", text: "text-green-700" },
+  '중급': { bg: "bg-orange-100", text: "text-orange-700" },
+  '고급': { bg: "bg-purple-100", text: "text-purple-700" },
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -234,7 +255,17 @@ function WordCard({
   delay: number;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+
+  // BEST 탭(rank가 있을 때)은 하드코딩된 난이도 사용, NEW 탭은 기존 레벨 스타일 사용
+  const isBest = rank !== undefined;
+  const difficulty = isBest ? bestWordDifficulty[word.word.toLowerCase()] : null;
+  const diffStyle = difficulty ? difficultyStyles[difficulty] : null;
   const levelStyle = levelStyles[word.level] || levelStyles.L1;
+
+  // 배지에 표시할 텍스트와 스타일
+  const badgeLabel = isBest && difficulty ? difficulty : levelStyle.label;
+  const badgeBg = isBest && diffStyle ? diffStyle.bg : levelStyle.bg;
+  const badgeText = isBest && diffStyle ? diffStyle.text : levelStyle.text;
 
   return (
     <motion.div
@@ -317,9 +348,9 @@ function WordCard({
                 )}
               </div>
               <span
-                className={`flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded-full ${levelStyle.bg} ${levelStyle.text}`}
+                className={`flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded-full ${badgeBg} ${badgeText}`}
               >
-                {levelStyle.label}
+                {badgeLabel}
               </span>
             </div>
           </div>
