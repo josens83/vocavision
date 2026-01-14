@@ -307,7 +307,7 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
               )}
 
               {/* TODO: 인터랙티브 학습 기능 완성 후 활성화 */}
-              {false && (
+              {false && word && (
               <Link
                 href={`/words/${word.id}/learn`}
                 className="mt-6 inline-flex items-center gap-2 text-brand-primary font-medium hover:underline"
