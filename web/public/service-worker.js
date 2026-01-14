@@ -252,7 +252,7 @@ self.addEventListener('push', (event) => {
   console.log('[Service Worker] Push received:', event);
 
   const data = event.data ? event.data.json() : {};
-  const title = data.title || 'VocaVision';
+  const title = data.title || 'VocaVision AI';
   const options = {
     body: data.body || '새로운 알림이 있습니다.',
     icon: '/icon-192.png',
