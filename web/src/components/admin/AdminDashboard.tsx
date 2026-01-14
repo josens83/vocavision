@@ -7,6 +7,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { DashboardStatsView } from './DashboardStats';
 import { WordList } from './WordList';
 import { VocabularySets } from './VocabularySets';
@@ -20,6 +21,7 @@ import {
 import { BatchImageGenerationModal } from './BatchImageGenerationModal';
 import { VocaWord, VocaContentFull } from './types/admin.types';
 import { useWordDetail, useDashboardStats } from './hooks/useAdminApi';
+import { useAuthStore } from '@/lib/store';
 
 // ---------------------------------------------
 // Sidebar Navigation
@@ -114,9 +116,10 @@ interface SidebarProps {
   activeNav: string;
   onNavChange: (id: string) => void;
   pendingReviewCount?: number;
+  onLogout: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeNav, onNavChange, pendingReviewCount = 0 }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeNav, onNavChange, pendingReviewCount = 0, onLogout }) => {
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-slate-900 text-white flex flex-col">
       {/* Logo */}
@@ -185,7 +188,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activeNav, onNavChange, pendingReview
             <p className="text-sm font-medium text-white truncate">Do Hurn</p>
             <p className="text-xs text-slate-400 truncate">Admin</p>
           </div>
-          <button className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800">
+          <button
+            onClick={onLogout}
+            title="로그아웃"
+            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+          >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
@@ -248,8 +255,17 @@ const Header: React.FC = () => {
 // Main Admin Dashboard Page
 // ---------------------------------------------
 export const AdminDashboard: React.FC = () => {
+  const router = useRouter();
+  const { logout } = useAuthStore();
+
   // Navigation state
   const [activeNav, setActiveNav] = useState('dashboard');
+
+  // Logout handler
+  const handleLogout = useCallback(() => {
+    logout();
+    router.push('/');
+  }, [logout, router]);
 
   // Modal states
   const [showWordForm, setShowWordForm] = useState(false);
@@ -453,6 +469,7 @@ export const AdminDashboard: React.FC = () => {
         activeNav={activeNav}
         onNavChange={setActiveNav}
         pendingReviewCount={stats?.pendingReview ?? 0}
+        onLogout={handleLogout}
       />
 
       {/* Main Content */}
