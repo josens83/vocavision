@@ -332,7 +332,16 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired }:
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    // 배너 숨김을 위한 속성 추가
+    if (isOpen) {
+      document.body.setAttribute('data-menu-open', 'true');
+    } else {
+      document.body.removeAttribute('data-menu-open');
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.removeAttribute('data-menu-open');
+    };
   }, [isOpen]);
 
   const handleItemClick = (item: NavItem) => {

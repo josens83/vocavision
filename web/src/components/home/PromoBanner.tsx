@@ -6,30 +6,41 @@ import { useAuthStore } from '@/lib/store';
 
 export default function PromoBanner() {
   const [isVisible, setIsVisible] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user } = useAuthStore();
 
   // 로그인 사용자(프리미엄)에게는 표시 안함
   const isPremium = user?.subscriptionStatus === 'ACTIVE';
 
   useEffect(() => {
-    // 이미 닫은 경우 표시 안함
-    const dismissed = localStorage.getItem('promo-banner-dismissed');
-    const dismissedAt = dismissed ? parseInt(dismissed, 10) : 0;
-    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-
-    // 24시간 후 다시 표시
-    if (!dismissed || dismissedAt < oneDayAgo) {
+    // sessionStorage 사용 - 탭/브라우저 닫으면 리셋
+    const dismissed = sessionStorage.getItem('promo-banner-dismissed');
+    if (!dismissed) {
       setIsVisible(true);
     }
   }, []);
 
+  // 메뉴 열림 상태 감지 (body의 data-menu-open 속성)
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsMenuOpen(document.body.hasAttribute('data-menu-open'));
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-menu-open'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   const handleDismiss = () => {
     setIsVisible(false);
-    localStorage.setItem('promo-banner-dismissed', Date.now().toString());
+    sessionStorage.setItem('promo-banner-dismissed', 'true');
   };
 
-  // 프리미엄 사용자이거나 숨김 상태면 렌더링 안함
-  if (isPremium || !isVisible) return null;
+  // 프리미엄 사용자, 숨김 상태, 또는 메뉴 열림 상태면 렌더링 안함
+  if (isPremium || !isVisible || isMenuOpen) return null;
 
   return (
     <div className="sticky top-0 z-50 bg-gradient-to-r from-brand-primary via-purple-600 to-brand-secondary text-white py-2 px-4 relative">
