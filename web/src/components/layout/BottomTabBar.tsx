@@ -38,7 +38,7 @@ const tabs: Tab[] = [
     label: 'MY',
     icon: '👤',
     activeIcon: '👤',
-    href: '/my',
+    href: '/dashboard',
   },
 ];
 

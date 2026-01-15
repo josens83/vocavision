@@ -47,7 +47,7 @@ const authTabs = [
   { key: 'home', label: '홈', href: '/', icon: icons.home },
   { key: 'learn', label: '학습', href: '/learn?exam=CSAT', icon: icons.learn },
   { key: 'quiz', label: '퀴즈', href: '/quiz', icon: icons.quiz },
-  { key: 'my', label: 'MY', href: '/my', icon: icons.user },
+  { key: 'my', label: 'MY', href: '/dashboard', icon: icons.user },
 ];
 
 // Paths where tab bar should be hidden

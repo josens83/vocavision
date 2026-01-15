@@ -148,7 +148,7 @@ export default function DashboardSidebar() {
       {/* User Info */}
       {user && (
         <div className="p-4 border-b border-gray-100">
-          <Link href="/my" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors">
+          <Link href="/dashboard" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors">
             {user.avatar ? (
               <img
                 src={user.avatar}
