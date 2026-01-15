@@ -110,6 +110,11 @@ export default function FlashCardGesture({
   const leftOpacity = useTransform(x, [-100, 0], [1, 0]);
   const rightOpacity = useTransform(x, [0, 100], [0, 1]);
 
+  // Reset showAnswer when word changes (새 단어로 넘어갈 때 정답 숨김)
+  useEffect(() => {
+    setShowAnswer(false);
+  }, [word.id]);
+
   // Check if swipe hint should be shown (first 5 times)
   useEffect(() => {
     const count = parseInt(localStorage.getItem(SWIPE_HINT_KEY) || '0', 10);

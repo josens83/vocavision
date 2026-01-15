@@ -272,8 +272,34 @@ function LearnPageContent() {
   };
 
   const handleNext = () => {
-    if (currentWordIndex < reviews.length - 1) {
-      incrementWord(false); // Skip without marking as correct
+    // "다음" 버튼은 "모름"(rating=1)으로 자동 처리
+    const currentWord = reviews[currentWordIndex]?.word;
+
+    if (!currentWord) return;
+
+    // Submit review with "모름" rating for logged-in users
+    if (user) {
+      progressAPI.submitReview({
+        wordId: currentWord.id,
+        rating: 1, // 모름
+        learningMethod: 'FLASHCARD',
+        sessionId: sessionId || undefined,
+      }).catch(error => console.error('Failed to submit review:', error));
+    }
+
+    // Advance to next word
+    incrementWord(false);
+
+    // Check if we've finished all words
+    if (currentWordIndex + 1 >= reviews.length) {
+      setShowResult(true);
+      if (user && sessionId) {
+        progressAPI.endSession({
+          sessionId,
+          wordsStudied: wordsStudied + 1,
+          wordsCorrect, // Don't increment since marked as "모름"
+        }).catch(error => console.error('Failed to end session:', error));
+      }
     }
   };
 

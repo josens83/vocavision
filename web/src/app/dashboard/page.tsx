@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
-import { progressAPI } from '@/lib/api';
+import { progressAPI, wordsAPI } from '@/lib/api';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 import { StatsOverview } from '@/components/dashboard';
@@ -56,6 +56,8 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [dueReviewCount, setDueReviewCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [examLevelTotalWords, setExamLevelTotalWords] = useState(0);
+  const [examLevelLearnedWords, setExamLevelLearnedWords] = useState(0);
 
   // Calendar data
   const today = new Date();
@@ -73,6 +75,12 @@ export default function DashboardPage() {
     loadData();
   }, [user, hasHydrated, router]);
 
+  // Load exam/level specific word counts when selection changes
+  useEffect(() => {
+    if (!hasHydrated || !user) return;
+    loadExamLevelProgress();
+  }, [activeExam, activeLevel, hasHydrated, user]);
+
   const loadData = async () => {
     try {
       const [progressData, reviewsData] = await Promise.all([
@@ -88,15 +96,44 @@ export default function DashboardPage() {
     }
   };
 
+  const loadExamLevelProgress = async () => {
+    try {
+      const examCategory = activeExam || 'CSAT';
+      const level = activeLevel || 'L1';
+
+      // Get total words for this exam/level
+      const totalData = await wordsAPI.getWords({
+        examCategory,
+        level,
+        limit: 1,
+      });
+      const totalWords = totalData.pagination?.total || 0;
+      setExamLevelTotalWords(totalWords);
+
+      // Get remaining unlearned words (excludeLearned=true returns only unlearned)
+      const unlearnedData = await wordsAPI.getWords({
+        examCategory,
+        level,
+        limit: 1,
+        excludeLearned: true,
+      });
+      const unlearnedWords = unlearnedData.pagination?.total || 0;
+      setExamLevelLearnedWords(totalWords - unlearnedWords);
+    } catch (error) {
+      console.error('Failed to load exam/level progress:', error);
+    }
+  };
+
   const selectedExam = activeExam || 'CSAT';
   const selectedLevel = activeLevel || 'L1';
   const exam = examInfo[selectedExam];
   const level = levelInfo[selectedLevel];
 
-  const totalWords = level.wordCount;
-  const learnedWords = stats?.totalWordsLearned || 0;
+  // Use exam/level specific word counts (real data from API)
+  const totalWords = examLevelTotalWords || level.wordCount;
+  const learnedWords = examLevelLearnedWords;
   const remainingWords = Math.max(totalWords - learnedWords, 0);
-  const progressPercent = Math.min(Math.round((learnedWords / totalWords) * 100), 100);
+  const progressPercent = totalWords > 0 ? Math.min(Math.round((learnedWords / totalWords) * 100), 100) : 0;
 
   // Calculate estimated time (assuming 10 words per 3 minutes)
   const estimatedMinutes = Math.ceil(dueReviewCount * 0.3);
