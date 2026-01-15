@@ -148,6 +148,8 @@ export const wordsAPI = {
     level?: string;
     search?: string;
     hasImages?: boolean; // 이미지 유무 필터
+    excludeLearned?: boolean; // 학습한 단어 제외
+    shuffle?: boolean; // 랜덤 순서
   }) => {
     if (isMockMode()) return mockWordsAPI.getWords(params);
     const response = await api.get('/words', { params });
