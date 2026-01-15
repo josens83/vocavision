@@ -122,6 +122,9 @@ function LearnPageContent() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [showResult, setShowResult] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalWordsInLevel, setTotalWordsInLevel] = useState(0);
+  const [totalLearnedInLevel, setTotalLearnedInLevel] = useState(0);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -150,7 +153,7 @@ function LearnPageContent() {
     }
   };
 
-  const loadReviews = async () => {
+  const loadReviews = async (page = 1) => {
     try {
       // Demo mode: use first 10 words from API directly
       if (isDemo && examParam) {
@@ -160,12 +163,17 @@ function LearnPageContent() {
         });
         const words = data.words || data.data || [];
         setReviews(words.map((word: Word) => ({ word })));
+        setTotalWordsInLevel(data.pagination?.total || 0);
       } else if (examParam) {
         // If exam filter is provided, load words from that exam
+        // Use excludeLearned for logged-in users, shuffle for randomization
         const data = await wordsAPI.getWords({
           examCategory: examParam,
           level: levelParam || undefined,
-          limit: 50, // Fetch more to filter
+          limit: 20,
+          page,
+          excludeLearned: user ? true : undefined,
+          shuffle: true,
         });
         const words = data.words || data.data || [];
         // Filter to only include words with actual content (definition or definitionKo exists)
@@ -174,6 +182,22 @@ function LearnPageContent() {
           (word.definitionKo && word.definitionKo.trim() !== '')
         );
         setReviews(wordsWithContent.slice(0, 20).map((word: Word) => ({ word })));
+        setTotalWordsInLevel(data.pagination?.total || 0);
+        setCurrentPage(page);
+
+        // Calculate total learned (total words minus remaining unlearned)
+        if (user && data.pagination?.total !== undefined) {
+          // Get total words in this exam/level first
+          const totalData = await wordsAPI.getWords({
+            examCategory: examParam,
+            level: levelParam || undefined,
+            limit: 1,
+          });
+          const totalInLevel = totalData.pagination?.total || 0;
+          const remainingUnlearned = data.pagination.total;
+          setTotalLearnedInLevel(totalInLevel - remainingUnlearned);
+          setTotalWordsInLevel(totalInLevel);
+        }
       } else if (user) {
         // Logged-in users: Get due reviews or random words
         try {
@@ -262,6 +286,16 @@ function LearnPageContent() {
     }
   };
 
+  const handleNextBatch = () => {
+    resetSession();
+    setShowResult(false);
+    setLoading(true);
+    loadReviews(currentPage + 1);
+    if (user) {
+      startSession();
+    }
+  };
+
   if (!hasHydrated || loading) {
     return <LearnPageLoading />;
   }
@@ -275,6 +309,9 @@ function LearnPageContent() {
   }
 
   if (showResult) {
+    // Check if there are more words to learn
+    const hasMoreWords = totalWordsInLevel > 0 && (totalLearnedInLevel + wordsStudied) < totalWordsInLevel;
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <CelebrateCompletion
@@ -282,7 +319,12 @@ function LearnPageContent() {
           total={wordsStudied}
           onRetry={handleRestart}
           onHome={() => router.push(user ? '/dashboard' : '/')}
+          onNext={user && hasMoreWords && examParam ? handleNextBatch : undefined}
           isGuest={!user}
+          totalProgress={user && totalWordsInLevel > 0 ? {
+            learned: totalLearnedInLevel + wordsStudied,
+            total: totalWordsInLevel,
+          } : undefined}
         />
       </div>
     );

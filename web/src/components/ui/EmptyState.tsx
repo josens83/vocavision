@@ -237,18 +237,24 @@ export function CelebrateCompletion({
   total,
   onRetry,
   onHome,
+  onNext,
   isGuest = false,
+  totalProgress,
 }: {
   score: number;
   total: number;
   onRetry?: () => void;
   onHome?: () => void;
+  onNext?: () => void;
   /** Guest 사용자일 경우 가입 유도 CTA 표시 */
   isGuest?: boolean;
+  /** 전체 진행 상황 (예: { learned: 40, total: 1000 }) */
+  totalProgress?: { learned: number; total: number };
 }) {
   const percentage = Math.round((score / total) * 100);
   const isPerfect = percentage === 100;
   const isGood = percentage >= 80;
+  const overallPercentage = totalProgress ? Math.round((totalProgress.learned / totalProgress.total) * 100) : 0;
 
   return (
     <motion.div
@@ -273,27 +279,55 @@ export function CelebrateCompletion({
         {total}문제 중 {score}문제 정답
       </p>
 
-      <div className="text-4xl font-bold text-brand-primary mb-6">
+      <div className="text-4xl font-bold text-brand-primary mb-4">
         {percentage}%
       </div>
 
-      <div className="flex gap-3 justify-center">
-        {onRetry && (
+      {/* 전체 진행 상황 표시 */}
+      {totalProgress && (
+        <div className="bg-gray-50 rounded-xl p-4 mb-6">
+          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+            <span>전체 진행</span>
+            <span className="font-medium">{totalProgress.learned}/{totalProgress.total} 단어 ({overallPercentage}%)</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-gradient-to-r from-pink-500 to-pink-600 h-2 rounded-full transition-all"
+              style={{ width: `${overallPercentage}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-3">
+        {/* 다음 20개 학습 버튼 - 가장 눈에 띄게 */}
+        {onNext && (
           <button
-            onClick={onRetry}
-            className="bg-brand-primary hover:bg-brand-primary/90 text-white px-6 py-3 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
+            onClick={onNext}
+            className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-pink-500/25"
           >
-            다시 도전
+            다음 20개 학습 →
           </button>
         )}
-        {onHome && (
-          <button
-            onClick={onHome}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
-          >
-            홈으로
-          </button>
-        )}
+
+        <div className="flex gap-3 justify-center">
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
+            >
+              다시 도전
+            </button>
+          )}
+          {onHome && (
+            <button
+              onClick={onHome}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
+            >
+              홈으로
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Guest 사용자에게 가입 유도 */}

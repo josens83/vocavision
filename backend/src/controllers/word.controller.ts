@@ -16,12 +16,17 @@ export const getWords = async (
       difficulty,
       examCategory,
       level,
-      search
+      search,
+      excludeLearned,
+      shuffle,
     } = req.query;
 
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
+
+    // Get user ID if authenticated
+    const userId = (req as any).user?.id;
 
     // Only show PUBLISHED words to users
     const where: any = {
@@ -47,8 +52,56 @@ export const getWords = async (
       };
     }
 
-    const [words, total] = await Promise.all([
-      prisma.word.findMany({
+    // Exclude already-learned words if requested and user is authenticated
+    if (excludeLearned === 'true' && userId) {
+      const learnedWordIds = await prisma.userProgress.findMany({
+        where: { userId },
+        select: { wordId: true },
+      });
+      const learnedIds = learnedWordIds.map(p => p.wordId);
+      if (learnedIds.length > 0) {
+        where.id = { notIn: learnedIds };
+      }
+    }
+
+    // Get total count first
+    const total = await prisma.word.count({ where });
+
+    let words;
+
+    // If shuffle is requested, fetch more and randomize
+    if (shuffle === 'true') {
+      // Fetch words without skip (we'll handle pagination differently for shuffle)
+      const allMatchingWords = await prisma.word.findMany({
+        where,
+        include: {
+          images: { take: 1 },
+          mnemonics: {
+            take: 1,
+            orderBy: { rating: 'desc' }
+          },
+          examples: { take: 3 },
+          etymology: true,
+          collocations: { take: 5 },
+          visuals: { orderBy: { order: 'asc' } },
+          examLevels: true,
+        },
+        orderBy: { frequency: 'desc' },
+        take: Math.min(total, 200), // Limit to prevent memory issues
+      });
+
+      // Shuffle using Fisher-Yates algorithm
+      const shuffled = [...allMatchingWords];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+
+      // Apply pagination to shuffled results
+      words = shuffled.slice(skip, skip + limitNum);
+    } else {
+      // Standard pagination with frequency ordering
+      words = await prisma.word.findMany({
         where,
         include: {
           images: { take: 1 },
@@ -65,9 +118,8 @@ export const getWords = async (
         skip,
         take: limitNum,
         orderBy: { frequency: 'desc' }
-      }),
-      prisma.word.count({ where })
-    ]);
+      });
+    }
 
     res.json({
       data: words,
