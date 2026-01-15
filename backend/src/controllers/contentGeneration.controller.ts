@@ -21,59 +21,78 @@ export const generateContent = async (
   next: NextFunction
 ) => {
   try {
-    const { word, examCategory = 'CSAT', cefrLevel = 'B1', saveToDb = false } = req.body;
+    const { word, wordId, examCategory = 'CSAT', cefrLevel = 'B1', saveToDb = false, regenerate = false } = req.body;
 
-    if (!word || typeof word !== 'string') {
-      throw new AppError('Word is required', 400);
+    let targetWord: string;
+    let existingWordRecord: any = null;
+
+    // If wordId is provided, lookup the word and auto-save
+    if (wordId) {
+      existingWordRecord = await prisma.word.findUnique({
+        where: { id: wordId },
+      });
+
+      if (!existingWordRecord) {
+        throw new AppError('Word not found', 404);
+      }
+
+      targetWord = existingWordRecord.word;
+      logger.info(`Generating content for existing word: ${targetWord} (ID: ${wordId})`);
+    } else if (word && typeof word === 'string') {
+      targetWord = word.trim().toLowerCase();
+      logger.info(`Generating content for word: ${targetWord}`);
+    } else {
+      throw new AppError('Word or wordId is required', 400);
     }
 
     const options: GenerationOptions = {
-      word: word.trim().toLowerCase(),
-      examCategory,
-      cefrLevel,
+      word: targetWord,
+      examCategory: existingWordRecord?.examCategory || examCategory,
+      cefrLevel: existingWordRecord?.cefrLevel || cefrLevel,
     };
-
-    logger.info(`Generating content for word: ${options.word}`);
 
     const content = await generateWordContent(options);
 
-    let wordId: string | undefined;
+    let resultWordId: string | undefined;
 
-    // Optionally save to database
-    if (saveToDb) {
-      // Check if word exists
-      let existingWord = await prisma.word.findFirst({
-        where: { word: options.word },
-      });
-
-      if (!existingWord) {
-        // Create new word - cast partOfSpeech to valid enum value
-        const posString = content.definitions[0]?.partOfSpeech?.toUpperCase() || 'NOUN';
-        const validPOS = ['NOUN', 'VERB', 'ADJECTIVE', 'ADVERB', 'PRONOUN', 'PREPOSITION', 'CONJUNCTION', 'INTERJECTION'];
-        const partOfSpeech = validPOS.includes(posString) ? posString : 'NOUN';
-
-        existingWord = await prisma.word.create({
-          data: {
-            word: options.word,
-            definition: content.definitions[0]?.definitionEn || '',
-            definitionKo: content.definitions[0]?.definitionKo || '',
-            partOfSpeech: partOfSpeech as any,
-            examCategory,
-            cefrLevel,
-            status: 'DRAFT',
-          },
+    // Auto-save when wordId is provided, or when saveToDb is true
+    if (wordId || saveToDb) {
+      if (!existingWordRecord) {
+        // Check if word exists
+        existingWordRecord = await prisma.word.findFirst({
+          where: { word: options.word },
         });
+
+        if (!existingWordRecord) {
+          // Create new word - cast partOfSpeech to valid enum value
+          const posString = content.definitions[0]?.partOfSpeech?.toUpperCase() || 'NOUN';
+          const validPOS = ['NOUN', 'VERB', 'ADJECTIVE', 'ADVERB', 'PRONOUN', 'PREPOSITION', 'CONJUNCTION', 'INTERJECTION'];
+          const partOfSpeech = validPOS.includes(posString) ? posString : 'NOUN';
+
+          existingWordRecord = await prisma.word.create({
+            data: {
+              word: options.word,
+              definition: content.definitions[0]?.definitionEn || '',
+              definitionKo: content.definitions[0]?.definitionKo || '',
+              partOfSpeech: partOfSpeech as any,
+              examCategory,
+              cefrLevel,
+              status: 'DRAFT',
+            },
+          });
+        }
       }
 
-      wordId = existingWord.id;
-      await saveGeneratedContent(existingWord.id, content);
+      resultWordId = existingWordRecord.id;
+      await saveGeneratedContent(existingWordRecord.id, content);
+      logger.info(`Content saved for word: ${targetWord} (ID: ${resultWordId})`);
     }
 
     res.json({
       success: true,
       word: options.word,
       content,
-      wordId,
+      wordId: resultWordId,
     });
   } catch (error) {
     logger.error('Content generation failed:', error);
