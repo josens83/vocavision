@@ -345,38 +345,7 @@ export default function FlashCardGesture({
                 />
               )}
 
-              {/* Mnemonic */}
-              {mnemonic && (
-                <div className="bg-yellow-50 rounded-xl p-5 border-l-4 border-yellow-400">
-                  <p className="text-sm font-medium text-yellow-700 mb-2">💡 연상법</p>
-                  <p className="text-gray-800">
-                    {mnemonic.content || mnemonic.koreanHint}
-                  </p>
-                </div>
-              )}
-
-              {/* Examples - 최대 3개 */}
-              {examples.length > 0 && (
-                <div className="bg-blue-50 rounded-xl p-5">
-                  <p className="text-sm font-medium text-blue-600 mb-3">예문</p>
-                  <div className="space-y-3">
-                    {examples.map((ex, index) => (
-                      <div key={ex.id || index} className={index > 0 ? "pt-3 border-t border-blue-100" : ""}>
-                        <p className="text-gray-800 italic">
-                          "{ex.sentence}"
-                        </p>
-                        {ex.translation && (
-                          <p className="text-gray-500 text-sm mt-1">
-                            → {ex.translation}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Etymology */}
+              {/* Etymology - 어원 */}
               {word.etymology && (
                 <div className="bg-purple-50 rounded-xl p-5">
                   <p className="text-sm font-medium text-purple-600 mb-2">📚 어원</p>
@@ -399,7 +368,38 @@ export default function FlashCardGesture({
                 </div>
               )}
 
-              {/* Collocations */}
+              {/* Examples - 예문 (최대 3개) */}
+              {examples.length > 0 && (
+                <div className="bg-blue-50 rounded-xl p-5">
+                  <p className="text-sm font-medium text-blue-600 mb-3">예문</p>
+                  <div className="space-y-3">
+                    {examples.map((ex, index) => (
+                      <div key={ex.id || index} className={index > 0 ? "pt-3 border-t border-blue-100" : ""}>
+                        <p className="text-gray-800 italic">
+                          "{ex.sentence}"
+                        </p>
+                        {ex.translation && (
+                          <p className="text-gray-500 text-sm mt-1">
+                            → {ex.translation}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mnemonic - 연상법 */}
+              {mnemonic && (
+                <div className="bg-yellow-50 rounded-xl p-5 border-l-4 border-yellow-400">
+                  <p className="text-sm font-medium text-yellow-700 mb-2">💡 연상법</p>
+                  <p className="text-gray-800">
+                    {mnemonic.content || mnemonic.koreanHint}
+                  </p>
+                </div>
+              )}
+
+              {/* Collocations - 연어 표현 */}
               {word.collocations && word.collocations.length > 0 && (
                 <div>
                   <p className="text-sm font-medium text-gray-400 mb-2">연어 표현</p>
