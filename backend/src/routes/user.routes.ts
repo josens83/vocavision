@@ -192,18 +192,149 @@ router.post('/upgrade-admin', async (req: Request, res: Response) => {
  *     responses:
  *       200:
  *         description: 사용자 통계
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.get('/stats', authenticateToken, (req, res) => {
-  res.json({ message: 'User stats endpoint' });
+router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Get user for streak data
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        currentStreak: true,
+        longestStreak: true,
+        lastActiveDate: true,
+      }
+    });
+
+    // Get all reviews with word level info
+    const reviews = await prisma.review.findMany({
+      where: { userId },
+      include: {
+        session: {
+          include: {
+            reviews: {
+              select: { id: true }
+            }
+          }
+        }
+      }
+    });
+
+    // Get reviews with word levels for byLevel stats
+    const reviewsWithWords = await prisma.$queryRaw<Array<{
+      level: string | null;
+      rating: number;
+    }>>`
+      SELECT w.level, r.rating
+      FROM "Review" r
+      JOIN "Word" w ON r."wordId" = w.id
+      WHERE r."userId" = ${userId}
+    `;
+
+    // Calculate overall stats
+    const totalQuestions = reviews.length;
+    const correctAnswers = reviews.filter(r => r.rating >= 3).length;
+    const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+
+    // Calculate by level stats
+    const byLevelMap: Record<string, { total: number; correct: number }> = {
+      L1: { total: 0, correct: 0 },
+      L2: { total: 0, correct: 0 },
+      L3: { total: 0, correct: 0 },
+    };
+
+    for (const review of reviewsWithWords) {
+      const level = review.level || 'L1';
+      if (byLevelMap[level]) {
+        byLevelMap[level].total++;
+        if (review.rating >= 3) {
+          byLevelMap[level].correct++;
+        }
+      }
+    }
+
+    const byLevel = Object.entries(byLevelMap).reduce((acc, [key, value]) => {
+      acc[key] = {
+        total: value.total,
+        correct: value.correct,
+        accuracy: value.total > 0 ? Math.round((value.correct / value.total) * 100) : 0,
+      };
+      return acc;
+    }, {} as Record<string, { total: number; correct: number; accuracy: number }>);
+
+    // Calculate weekly activity (last 7 days)
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const recentReviews = await prisma.review.groupBy({
+      by: ['createdAt'],
+      where: {
+        userId,
+        createdAt: {
+          gte: sevenDaysAgo,
+        }
+      },
+      _count: true,
+    });
+
+    // Aggregate by day
+    const dailyActivity: Record<string, number> = {};
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(sevenDaysAgo);
+      date.setDate(date.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      dailyActivity[dateStr] = 0;
+    }
+
+    // Get daily counts using raw query for proper date grouping
+    const dailyCounts = await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+      SELECT DATE("createdAt") as date, COUNT(*) as count
+      FROM "Review"
+      WHERE "userId" = ${userId}
+        AND "createdAt" >= ${sevenDaysAgo}
+      GROUP BY DATE("createdAt")
+      ORDER BY date
+    `;
+
+    for (const row of dailyCounts) {
+      const dateStr = new Date(row.date).toISOString().split('T')[0];
+      if (dailyActivity[dateStr] !== undefined) {
+        dailyActivity[dateStr] = Number(row.count);
+      }
+    }
+
+    const weeklyActivity = Object.entries(dailyActivity).map(([date, count]) => ({
+      date,
+      count,
+      dayName: new Date(date).toLocaleDateString('ko-KR', { weekday: 'short' }),
+    }));
+
+    res.json({
+      overall: {
+        totalQuestions,
+        correctAnswers,
+        accuracy,
+      },
+      byLevel,
+      streak: {
+        current: user?.currentStreak || 0,
+        longest: user?.longestStreak || 0,
+      },
+      weeklyActivity,
+      lastActiveDate: user?.lastActiveDate,
+    });
+  } catch (error) {
+    console.error('[Stats] Error:', error);
+    res.status(500).json({ error: 'Failed to fetch user stats' });
+  }
 });
 
 /**
