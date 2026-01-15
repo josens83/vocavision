@@ -408,32 +408,27 @@ const WordTable: React.FC<WordTableProps> = ({
                 </div>
               </td>
               <td className="px-4 py-3">
-                <div className="flex flex-wrap gap-1">
-                  {/* Show exam-level mappings with combined label */}
+                <div className="flex flex-wrap gap-1 max-w-[200px]">
+                  {/* Show all exam-level mappings with flex-wrap */}
                   {word.examLevels && word.examLevels.length > 0 ? (
                     <>
-                      {word.examLevels.slice(0, 2).map((el, idx) => {
+                      {word.examLevels.map((el, idx) => {
                         const colorClass = EXAM_CATEGORY_COLORS[el.examCategory as ExamCategory] || 'bg-slate-500';
                         return (
                           <span
                             key={`${el.examCategory}-${el.level}-${idx}`}
-                            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium text-white ${colorClass}`}
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-white ${colorClass}`}
                           >
                             {getExamLevelLabel(el.examCategory, el.level)}
                           </span>
                         );
                       })}
-                      {word.examLevels.length > 2 && (
-                        <Badge color="gray" size="sm">
-                          +{word.examLevels.length - 2}
-                        </Badge>
-                      )}
                     </>
                   ) : (
                     /* Fallback to examCategory for backward compatibility */
                     word.examCategory && (
                       <span
-                        className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium text-white ${EXAM_CATEGORY_COLORS[word.examCategory as ExamCategory] || 'bg-slate-500'}`}
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-white ${EXAM_CATEGORY_COLORS[word.examCategory as ExamCategory] || 'bg-slate-500'}`}
                       >
                         {getExamLevelLabel(word.examCategory, word.wordLevel || null)}
                       </span>
