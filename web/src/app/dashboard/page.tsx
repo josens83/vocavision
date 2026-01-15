@@ -149,7 +149,7 @@ export default function DashboardPage() {
               )}
             </div>
             <Link
-              href={dueReviewCount > 0 ? '/review' : `/learn?exam=${selectedExam}&level=${selectedLevel}`}
+              href={dueReviewCount > 0 ? '/review' : `/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
               className="bg-white text-pink-600 px-8 py-4 rounded-xl font-bold text-center hover:bg-pink-50 transition shadow-lg whitespace-nowrap"
             >
               {dueReviewCount > 0 ? '복습 시작' : '학습 시작'}
@@ -174,7 +174,7 @@ export default function DashboardPage() {
             </div>
             <span className="text-xs font-medium text-gray-700">약한 단어</span>
           </Link>
-          <Link href={`/learn?exam=${selectedExam}&level=${selectedLevel}`} className="bg-white rounded-xl p-4 text-center hover:bg-gray-50 transition border border-gray-100 shadow-sm">
+          <Link href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`} className="bg-white rounded-xl p-4 text-center hover:bg-gray-50 transition border border-gray-100 shadow-sm">
             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2">
               <span className="text-xl">🆕</span>
             </div>
