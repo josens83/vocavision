@@ -9,6 +9,7 @@ import { progressAPI } from '@/lib/api';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 import { StatsOverview } from '@/components/dashboard';
+import ExamLevelSelector from '@/components/dashboard/ExamLevelSelector';
 
 // Exam info
 const examInfo: Record<string, { name: string; icon: string; gradient: string; color: string }> = {
@@ -49,11 +50,11 @@ export default function DashboardPage() {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const activeExam = useExamCourseStore((state) => state.activeExam);
+  const activeLevel = useExamCourseStore((state) => state.activeLevel);
   const setActiveExam = useExamCourseStore((state) => state.setActiveExam);
 
   const [stats, setStats] = useState<UserStats | null>(null);
   const [dueReviewCount, setDueReviewCount] = useState(0);
-  const [selectedLevel, setSelectedLevel] = useState('L1');
   const [loading, setLoading] = useState(true);
 
   // Calendar data
@@ -80,9 +81,6 @@ export default function DashboardPage() {
       ]);
       setStats(progressData.stats);
       setDueReviewCount(reviewsData.count || 0);
-
-      const savedLevel = localStorage.getItem('selectedLevel');
-      if (savedLevel) setSelectedLevel(savedLevel);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -90,12 +88,8 @@ export default function DashboardPage() {
     }
   };
 
-  const handleLevelChange = (level: string) => {
-    setSelectedLevel(level);
-    localStorage.setItem('selectedLevel', level);
-  };
-
   const selectedExam = activeExam || 'CSAT';
+  const selectedLevel = activeLevel || 'L1';
   const exam = examInfo[selectedExam];
   const level = levelInfo[selectedLevel];
 
@@ -193,6 +187,9 @@ export default function DashboardPage() {
             <span className="text-xs font-medium text-gray-700">퀴즈</span>
           </Link>
         </div>
+
+        {/* 시험/레벨 선택 */}
+        <ExamLevelSelector />
 
         {/* 2열 그리드 (데스크탑) */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
@@ -321,30 +318,6 @@ export default function DashboardPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
             <p className="text-3xl font-bold text-green-500">{dueReviewCount}</p>
             <p className="text-sm text-gray-500">복습 대기</p>
-          </div>
-        </div>
-
-        {/* 레벨 선택 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">학습 레벨</h2>
-          <div className="grid grid-cols-3 gap-3">
-            {Object.entries(levelInfo).map(([key, info]) => (
-              <button
-                key={key}
-                onClick={() => handleLevelChange(key)}
-                className={`p-4 rounded-xl border-2 transition text-center ${
-                  selectedLevel === key
-                    ? 'border-pink-500 bg-pink-50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                }`}
-              >
-                <p className={`font-bold text-lg ${selectedLevel === key ? 'text-pink-600' : 'text-gray-900'}`}>
-                  {key}
-                </p>
-                <p className="text-sm text-gray-600">{info.name}</p>
-                <p className="text-xs text-gray-400">{info.wordCount.toLocaleString()}개</p>
-              </button>
-            ))}
           </div>
         </div>
 

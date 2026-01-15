@@ -85,11 +85,14 @@ export const useLearningStore = create<LearningState>()((set) => ({
 
 // Exam Course State - 시험별 코스 관리
 export type ExamType = 'CSAT' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT' | null;
+export type LevelType = 'L1' | 'L2' | 'L3';
 
 interface ExamCourseState {
   activeExam: ExamType;
+  activeLevel: LevelType;
   goalScore: string | null;
   setActiveExam: (exam: ExamType) => void;
+  setActiveLevel: (level: LevelType) => void;
   setGoalScore: (score: string) => void;
   clearExam: () => void;
 }
@@ -97,11 +100,13 @@ interface ExamCourseState {
 export const useExamCourseStore = create<ExamCourseState>()(
   persist(
     (set) => ({
-      activeExam: null,
+      activeExam: 'CSAT',
+      activeLevel: 'L1',
       goalScore: null,
       setActiveExam: (exam) => set({ activeExam: exam }),
+      setActiveLevel: (level) => set({ activeLevel: level }),
       setGoalScore: (score) => set({ goalScore: score }),
-      clearExam: () => set({ activeExam: null, goalScore: null }),
+      clearExam: () => set({ activeExam: null, activeLevel: 'L1', goalScore: null }),
     }),
     {
       name: 'exam-course-storage',
