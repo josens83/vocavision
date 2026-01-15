@@ -9,6 +9,11 @@ const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
 const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET;
 const KAKAO_REDIRECT_URI = process.env.KAKAO_REDIRECT_URI;
 
+// Google OAuth 설정
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+
 // 카카오 API 응답 타입 정의
 interface KakaoTokenResponse {
   access_token: string;
@@ -26,6 +31,25 @@ interface KakaoUserResponse {
   kakao_account?: {
     email?: string;
   };
+}
+
+// Google API 응답 타입 정의
+interface GoogleTokenResponse {
+  access_token: string;
+  expires_in: number;
+  token_type: string;
+  scope: string;
+  refresh_token?: string;
+}
+
+interface GoogleUserResponse {
+  id: string;
+  email: string;
+  verified_email: boolean;
+  name: string;
+  given_name?: string;
+  family_name?: string;
+  picture?: string;
 }
 
 export const register = async (
@@ -325,6 +349,155 @@ export const kakaoLogin = async (
     });
   } catch (error) {
     console.error('[KakaoLogin] Error:', error);
+    next(error);
+  }
+};
+
+// ============================================
+// Google OAuth Login
+// ============================================
+
+export const googleLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      throw new AppError('인가 코드가 필요합니다', 400);
+    }
+
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REDIRECT_URI) {
+      console.error('[GoogleLogin] Missing environment variables:', {
+        hasClientId: !!GOOGLE_CLIENT_ID,
+        hasClientSecret: !!GOOGLE_CLIENT_SECRET,
+        hasRedirectUri: !!GOOGLE_REDIRECT_URI,
+      });
+      throw new AppError('구글 로그인 설정이 완료되지 않았습니다', 500);
+    }
+
+    // 1. Google 토큰 발급
+    console.log('[GoogleLogin] Requesting token from Google...');
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: GOOGLE_REDIRECT_URI,
+        code,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.json();
+      console.error('[GoogleLogin] Token error:', errorData);
+      throw new AppError('구글 토큰 발급 실패', 400);
+    }
+
+    const tokenData = (await tokenResponse.json()) as GoogleTokenResponse;
+    const { access_token } = tokenData;
+
+    // 2. Google 사용자 정보 조회
+    console.log('[GoogleLogin] Fetching user info from Google...');
+    const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+
+    if (!userResponse.ok) {
+      throw new AppError('구글 사용자 정보 조회 실패', 400);
+    }
+
+    const googleUser = (await userResponse.json()) as GoogleUserResponse;
+    const googleId = googleUser.id;
+    const name = googleUser.name || '사용자';
+    const email = googleUser.email;
+    const picture = googleUser.picture || null;
+
+    console.log('[GoogleLogin] Google user:', { googleId, name, email });
+
+    // 3. 기존 사용자 확인 또는 새 사용자 생성
+    let user = await prisma.user.findUnique({
+      where: { googleId },
+    });
+
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + 7); // 7-day trial
+
+    if (!user) {
+      // 이메일로 기존 사용자 확인 (다른 방법으로 가입한 경우)
+      const existingUserByEmail = email ? await prisma.user.findUnique({
+        where: { email },
+      }) : null;
+
+      if (existingUserByEmail) {
+        // 기존 이메일 사용자에 Google ID 연결
+        user = await prisma.user.update({
+          where: { email },
+          data: {
+            googleId,
+            avatar: existingUserByEmail.avatar || picture,
+            lastActiveDate: new Date(),
+          },
+        });
+        console.log('[GoogleLogin] Linked Google to existing email user:', user.id);
+      } else {
+        // 새 사용자 생성
+        user = await prisma.user.create({
+          data: {
+            googleId,
+            name,
+            avatar: picture,
+            email,
+            provider: 'google',
+            subscriptionStatus: 'TRIAL',
+            trialEnd,
+          },
+        });
+        console.log('[GoogleLogin] New user created:', user.id);
+      }
+    } else {
+      // 기존 사용자 정보 업데이트
+      user = await prisma.user.update({
+        where: { googleId },
+        data: {
+          name,
+          avatar: picture,
+          lastActiveDate: new Date(),
+          // 기존에 이메일이 없고 새로 받아온 이메일이 있으면 업데이트
+          ...((!user.email && email) ? { email } : {}),
+        },
+      });
+      console.log('[GoogleLogin] Existing user logged in:', user.id);
+    }
+
+    // 4. JWT 토큰 발급
+    const token = generateToken(user.id, user.role);
+
+    // 5. 응답
+    res.json({
+      success: true,
+      message: '구글 로그인 성공',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        role: user.role,
+        provider: user.provider,
+        subscriptionStatus: user.subscriptionStatus,
+      },
+    });
+  } catch (error) {
+    console.error('[GoogleLogin] Error:', error);
     next(error);
   }
 };

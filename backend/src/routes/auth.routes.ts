@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, getProfile, kakaoLogin } from '../controllers/auth.controller';
+import { register, login, getProfile, kakaoLogin, googleLogin } from '../controllers/auth.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -141,5 +141,42 @@ router.get('/profile', authenticateToken, getProfile);
  *         description: 잘못된 인가 코드
  */
 router.post('/kakao', kakaoLogin);
+
+/**
+ * @swagger
+ * /auth/google:
+ *   post:
+ *     summary: 구글 OAuth 로그인
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - code
+ *             properties:
+ *               code:
+ *                 type: string
+ *                 description: 구글 인가 코드
+ *     responses:
+ *       200:
+ *         description: 로그인 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: 잘못된 인가 코드
+ */
+router.post('/google', googleLogin);
 
 export default router;
