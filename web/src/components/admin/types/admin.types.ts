@@ -86,7 +86,15 @@ export interface VocaContentFull {
   mnemonicImage?: string;
   mnemonicKorean?: string;
 
-  // Examples
+  // Examples (from backend - Prisma Example table)
+  examples?: {
+    id: string;
+    sentence: string;
+    translation?: string;
+    source?: string;
+  }[];
+
+  // Examples (legacy funnyExamples format)
   funnyExamples: VocaExample[];
 
   // Definitions
