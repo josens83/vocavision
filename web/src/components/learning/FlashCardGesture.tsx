@@ -202,7 +202,7 @@ export default function FlashCardGesture({
   const definition = word.definitionKo || word.definition || '정의 없음';
   const englishDefinition = word.definition || '';
   const mnemonic = word.mnemonics?.[0];
-  const example = word.examples?.[0];
+  const examples = word.examples?.slice(0, 3) || [];  // 최대 3개 예문
 
   // 3-이미지 시각화 데이터 (support both new and legacy format)
   const hasNewVisuals = word.visuals && word.visuals.length > 0;
@@ -355,18 +355,24 @@ export default function FlashCardGesture({
                 </div>
               )}
 
-              {/* Example */}
-              {example && (
+              {/* Examples - 최대 3개 */}
+              {examples.length > 0 && (
                 <div className="bg-blue-50 rounded-xl p-5">
-                  <p className="text-sm font-medium text-blue-600 mb-2">예문</p>
-                  <p className="text-gray-800 italic">
-                    "{example.sentence}"
-                  </p>
-                  {example.translation && (
-                    <p className="text-gray-500 text-sm mt-2">
-                      → {example.translation}
-                    </p>
-                  )}
+                  <p className="text-sm font-medium text-blue-600 mb-3">예문</p>
+                  <div className="space-y-3">
+                    {examples.map((ex, index) => (
+                      <div key={ex.id || index} className={index > 0 ? "pt-3 border-t border-blue-100" : ""}>
+                        <p className="text-gray-800 italic">
+                          "{ex.sentence}"
+                        </p>
+                        {ex.translation && (
+                          <p className="text-gray-500 text-sm mt-1">
+                            → {ex.translation}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

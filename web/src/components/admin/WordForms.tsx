@@ -1840,7 +1840,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {content.funnyExamples?.length > 0 ? (
+                    {content?.funnyExamples?.length > 0 ? (
                       content.funnyExamples.map((ex, i) => (
                         <div key={ex.id || i} className="p-3 bg-slate-50 rounded-lg">
                           {ex.isFunny && <Badge color="yellow" size="sm">재미있는 예문</Badge>}
@@ -1848,9 +1848,9 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                           <p className="text-slate-500 text-sm">{ex.sentenceKo}</p>
                         </div>
                       ))
-                    ) : (content.examples?.length ?? 0) > 0 ? (
+                    ) : (content?.examples?.length ?? 0) > 0 ? (
                       // Fallback to content.examples (from backend)
-                      content.examples!.map((ex, i) => (
+                      content!.examples!.map((ex, i) => (
                         <div key={ex.id || i} className="p-3 bg-slate-50 rounded-lg">
                           <p className="text-slate-800 mt-1">{ex.sentence}</p>
                           {ex.translation && <p className="text-slate-500 text-sm">{ex.translation}</p>}
