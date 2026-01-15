@@ -126,6 +126,12 @@ function LearnPageContent() {
   useEffect(() => {
     if (!hasHydrated) return;
 
+    // Reset state on page entry to fix re-entry issue
+    resetSession();
+    setShowResult(false);
+    setReviews([]);
+    setLoading(true);
+
     // Guest users can also learn - don't redirect to login
     loadReviews();
 
@@ -241,6 +247,12 @@ function LearnPageContent() {
     }
   };
 
+  const handleNext = () => {
+    if (currentWordIndex < reviews.length - 1) {
+      incrementWord(false); // Skip without marking as correct
+    }
+  };
+
   const handleRestart = () => {
     resetSession();
     setShowResult(false);
@@ -335,17 +347,53 @@ function LearnPageContent() {
             </div>
           </div>
 
-          {/* Progress Bar */}
+          {/* Progress Bar with Navigation */}
           <div className="mt-3">
-            <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-gray-500">진행률</span>
-              <span className="font-medium text-pink-600">{currentWordIndex + 1} / {reviews.length}</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div
-                className="bg-pink-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
-              />
+            <div className="flex items-center gap-2">
+              {/* Previous Button */}
+              <button
+                onClick={handlePrevious}
+                disabled={currentWordIndex === 0}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-sm font-medium transition shrink-0 ${
+                  currentWordIndex === 0
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="hidden sm:inline">이전</span>
+              </button>
+
+              {/* Progress Bar */}
+              <div className="flex-1">
+                <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div
+                    className="bg-pink-500 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Next Button */}
+              <button
+                onClick={handleNext}
+                disabled={currentWordIndex >= reviews.length - 1}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-sm font-medium transition shrink-0 ${
+                  currentWordIndex >= reviews.length - 1
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <span className="hidden sm:inline">다음</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {/* Progress Count */}
+              <span className="text-sm font-medium text-pink-600 shrink-0">{currentWordIndex + 1}/{reviews.length}</span>
             </div>
           </div>
         </div>
