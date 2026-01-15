@@ -25,8 +25,8 @@ export const getWords = async (
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
 
-    // Get user ID if authenticated
-    const userId = (req as any).user?.id;
+    // Get user ID if authenticated (set by optionalAuth middleware)
+    const userId = (req as any).userId;
 
     // Only show PUBLISHED words to users
     const where: any = {
