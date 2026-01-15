@@ -44,6 +44,13 @@ export interface VocaWord {
   wordLevel?: string; // L1, L2, L3
   // Multi-exam mappings
   examLevels?: WordExamLevel[];
+  // Examples from Prisma relation (top-level)
+  examples?: {
+    id: string;
+    sentence: string;
+    translation?: string;
+    source?: string;
+  }[];
 }
 
 export interface VocaContentSummary {

@@ -1849,8 +1849,16 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                         </div>
                       ))
                     ) : (content.examples?.length ?? 0) > 0 ? (
-                      // Fallback to Prisma Example table data
+                      // Fallback to content.examples (from backend)
                       content.examples!.map((ex, i) => (
+                        <div key={ex.id || i} className="p-3 bg-slate-50 rounded-lg">
+                          <p className="text-slate-800 mt-1">{ex.sentence}</p>
+                          {ex.translation && <p className="text-slate-500 text-sm">{ex.translation}</p>}
+                        </div>
+                      ))
+                    ) : (word.examples?.length ?? 0) > 0 ? (
+                      // Fallback to word.examples (top-level Prisma relation)
+                      word.examples!.map((ex, i) => (
                         <div key={ex.id || i} className="p-3 bg-slate-50 rounded-lg">
                           <p className="text-slate-800 mt-1">{ex.sentence}</p>
                           {ex.translation && <p className="text-slate-500 text-sm">{ex.translation}</p>}
