@@ -369,6 +369,29 @@ export default function FlashCardGesture({
                 </div>
               )}
 
+              {/* Etymology */}
+              {word.etymology && (
+                <div className="bg-purple-50 rounded-xl p-5">
+                  <p className="text-sm font-medium text-purple-600 mb-2">📚 어원</p>
+                  {word.etymology.origin && (
+                    <p className="text-gray-800 mb-2">{word.etymology.origin}</p>
+                  )}
+                  {word.etymology.breakdown && (
+                    <p className="text-gray-600 text-sm mb-2">
+                      <span className="font-medium">형태분석:</span> {word.etymology.breakdown}
+                    </p>
+                  )}
+                  {word.etymology.relatedWords && word.etymology.relatedWords.length > 0 && (
+                    <div className="mt-2">
+                      <span className="text-gray-500 text-sm">관련 단어: </span>
+                      <span className="text-purple-700 text-sm">
+                        {word.etymology.relatedWords.slice(0, 5).join(', ')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Collocations */}
               {word.collocations && word.collocations.length > 0 && (
                 <div>
