@@ -1848,7 +1848,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                           <p className="text-slate-500 text-sm">{ex.sentenceKo}</p>
                         </div>
                       ))
-                    ) : content.examples?.length > 0 ? (
+                    ) : (content.examples?.length ?? 0) > 0 ? (
                       // Fallback to Prisma Example table data
                       content.examples.map((ex, i) => (
                         <div key={ex.id || i} className="p-3 bg-slate-50 rounded-lg">

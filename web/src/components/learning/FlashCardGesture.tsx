@@ -341,6 +341,7 @@ export default function FlashCardGesture({
                   visuals={hasNewVisuals ? word.visuals : undefined}
                   images={!hasNewVisuals ? legacyVisualImages : undefined}
                   word={word.word}
+                  showEnglishCaption={true}
                 />
               )}
 
