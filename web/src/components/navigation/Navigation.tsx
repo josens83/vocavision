@@ -611,7 +611,7 @@ export default function Navigation() {
                         대시보드
                       </Link>
                       <Link
-                        href="/my"
+                        href="/dashboard"
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                       >
