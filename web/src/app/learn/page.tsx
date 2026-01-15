@@ -53,6 +53,20 @@ const levelNames: Record<string, string> = {
   L3: '고급',
 };
 
+// 60초 맛보기 데모용 단어 목록 (10개) - DB에서 확인된 CSAT 단어
+const DEMO_WORDS = [
+  'innovate',       // 혁신하다
+  'negotiate',      // 협상하다
+  'participate',    // 참여하다
+  'classify',       // 분류하다
+  'operate',        // 작동시키다
+  'accomplishment', // 성취
+  'abundance',      // 풍부함
+  'implementation', // 실행
+  'manifest',       // 명백한
+  'candid',         // 솔직한
+];
+
 // Loading fallback component
 function LearnPageLoading() {
   return (
@@ -146,19 +160,21 @@ function LearnPageContent() {
 
   const loadReviews = async () => {
     try {
-      // Demo mode: fetch first 20 CSAT words from API
+      // Demo mode: fetch DEMO_WORDS from API
       if (isDemo && examParam) {
         const data = await wordsAPI.getWords({
           examCategory: examParam,
           level: levelParam || undefined,
-          limit: 20, // Get exactly 20 words for demo
+          limit: 100, // Fetch more to find demo words
         });
         const words = data.words || data.data || [];
 
-        // Use API response directly (no filtering by hardcoded list)
-        const demoReviews = words
-          .slice(0, 20)
-          .map((word: Word) => ({ word }));
+        // Filter by DEMO_WORDS and maintain order
+        const wordMap = new Map<string, Word>(words.map((w: Word) => [w.word.toLowerCase(), w]));
+        const demoReviews = DEMO_WORDS
+          .map(name => wordMap.get(name.toLowerCase()))
+          .filter((w): w is Word => w != null)
+          .map(word => ({ word }));
 
         setReviews(demoReviews);
       } else if (examParam) {
