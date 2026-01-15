@@ -50,7 +50,7 @@ export function useUserStats(exam: string = 'CSAT') {
   return { stats, isLoading, error, refetch };
 }
 
-// 개발용 더미 데이터
+// API 실패 시 빈 통계 데이터 (개발용 더미 데이터 제거)
 function getDummyStats(): UserStats {
   // 오늘 날짜 기준으로 이번 주 계산
   const today = new Date();
@@ -65,58 +65,57 @@ function getDummyStats(): UserStats {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
     const dateStr = date.toISOString().split('T')[0];
-    const isPast = date <= today;
 
     weeklyActivity.push({
       date: dateStr,
       dayOfWeek: dayNames[i],
-      wordsStudied: isPast && i < 3 ? Math.floor(Math.random() * 40) + 10 : 0,
-      questionsAnswered: isPast && i < 3 ? Math.floor(Math.random() * 50) + 20 : 0,
-      accuracy: isPast && i < 3 ? Math.floor(Math.random() * 30) + 60 : 0,
+      wordsStudied: 0,
+      questionsAnswered: 0,
+      accuracy: 0,
     });
   }
 
   return {
     overall: {
-      totalQuestions: 1234,
-      correctAnswers: 840,
-      accuracy: 68,
+      totalQuestions: 0,
+      correctAnswers: 0,
+      accuracy: 0,
     },
     byLevel: {
       L1: {
-        totalQuestions: 500,
-        correctAnswers: 425,
-        accuracy: 85,
-        wordsCount: 1000,
+        totalQuestions: 0,
+        correctAnswers: 0,
+        accuracy: 0,
+        wordsCount: 0,
       },
       L2: {
-        totalQuestions: 450,
-        correctAnswers: 279,
-        accuracy: 62,
-        wordsCount: 1200,
+        totalQuestions: 0,
+        correctAnswers: 0,
+        accuracy: 0,
+        wordsCount: 0,
       },
       L3: {
-        totalQuestions: 284,
-        correctAnswers: 136,
-        accuracy: 48,
-        wordsCount: 900,
+        totalQuestions: 0,
+        correctAnswers: 0,
+        accuracy: 0,
+        wordsCount: 0,
       },
     },
     byMode: {
-      flashcard: { totalQuestions: 600, correctAnswers: 468, accuracy: 78 },
-      engToKor: { totalQuestions: 400, correctAnswers: 260, accuracy: 65 },
-      korToEng: { totalQuestions: 234, correctAnswers: 112, accuracy: 48 },
+      flashcard: { totalQuestions: 0, correctAnswers: 0, accuracy: 0 },
+      engToKor: { totalQuestions: 0, correctAnswers: 0, accuracy: 0 },
+      korToEng: { totalQuestions: 0, correctAnswers: 0, accuracy: 0 },
     },
     weeklyActivity,
     streak: {
-      current: 3,
-      longest: 12,
+      current: 0,
+      longest: 0,
     },
     wordsLearned: {
-      total: 3100,
-      mastered: 450,
-      learning: 280,
-      new: 2370,
+      total: 0,
+      mastered: 0,
+      learning: 0,
+      new: 0,
     },
   };
 }
