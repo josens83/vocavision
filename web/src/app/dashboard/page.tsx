@@ -211,37 +211,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick Actions - Fastcampus 스타일 아이콘 네비 */}
-        <div className="grid grid-cols-4 gap-3 mb-6">
-          <Link href="/review" className="bg-white rounded-xl p-4 text-center hover:bg-gray-50 transition border border-gray-100 shadow-sm">
-            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <span className="text-xl">🔄</span>
-            </div>
-            <span className="text-xs font-medium text-gray-700">오늘 복습</span>
-            {dueReviewCount > 0 && (
-              <span className="block text-xs text-orange-500 font-bold">{dueReviewCount}개</span>
-            )}
-          </Link>
-          <Link href="/words?filter=weak" className="bg-white rounded-xl p-4 text-center hover:bg-gray-50 transition border border-gray-100 shadow-sm">
-            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <span className="text-xl">🔥</span>
-            </div>
-            <span className="text-xs font-medium text-gray-700">약한 단어</span>
-          </Link>
-          <Link href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`} className="bg-white rounded-xl p-4 text-center hover:bg-gray-50 transition border border-gray-100 shadow-sm">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <span className="text-xl">🆕</span>
-            </div>
-            <span className="text-xs font-medium text-gray-700">새 단어</span>
-          </Link>
-          <Link href="/quiz" className="bg-white rounded-xl p-4 text-center hover:bg-gray-50 transition border border-gray-100 shadow-sm">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <span className="text-xl">🎯</span>
-            </div>
-            <span className="text-xs font-medium text-gray-700">퀴즈</span>
-          </Link>
-        </div>
-
         {/* 시험/레벨 선택 */}
         <ExamLevelSelector />
 
