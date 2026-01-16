@@ -39,10 +39,9 @@ export const getWords = async (
 
     // examCategory 또는 level이 지정된 경우 WordExamLevel 테이블을 통해 필터링
     // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
+    // Note: Word.status로 이미 PUBLISHED 필터링하므로 examLevels에서는 status 제외
     if (examCategory || level) {
-      const examLevelFilter: any = {
-        status: 'PUBLISHED' as const,
-      };
+      const examLevelFilter: any = {};
 
       if (examCategory) {
         // CSAT_ARCHIVE는 명시적으로 요청하지 않는 한 제외
@@ -248,10 +247,9 @@ export const getRandomWords = async (
     }
 
     // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
+    // Note: Word.status로 이미 PUBLISHED 필터링하므로 examLevels에서는 status 제외
     if (examCategory || level) {
-      const examLevelFilter: any = {
-        status: 'PUBLISHED' as const,
-      };
+      const examLevelFilter: any = {};
 
       if (examCategory) {
         examLevelFilter.examCategory = examCategory as ExamCategory;
@@ -347,13 +345,13 @@ export const getLevelTestQuestions = async (
     const wordsByLevel = await Promise.all(
       levels.map(async (level) => {
         // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
+        // Note: Word.status로 이미 PUBLISHED 필터링하므로 examLevels에서는 status 제외
         const levelWhere = {
           status: 'PUBLISHED' as const,
           examLevels: {
             some: {
               examCategory: examCategory as ExamCategory,
               level,
-              status: 'PUBLISHED' as const,
             },
           },
         };
@@ -386,6 +384,7 @@ export const getLevelTestQuestions = async (
       shuffled.map(async (word) => {
         // Get random wrong options (3 other words)
         // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
+        // Note: Word.status로 이미 PUBLISHED 필터링하므로 examLevels에서는 status 제외
         const otherWords = await prisma.word.findMany({
           where: {
             id: { not: word.id },
@@ -393,7 +392,6 @@ export const getLevelTestQuestions = async (
             examLevels: {
               some: {
                 examCategory: examCategory as ExamCategory,
-                status: 'PUBLISHED' as const,
               },
             },
           },
@@ -447,9 +445,9 @@ export const getQuizQuestions = async (
     const countNum = Math.min(parseInt(count as string), 50); // Max 50 questions
 
     // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
+    // Note: Word.status로 이미 PUBLISHED 필터링하므로 examLevels에서는 status 제외
     const examLevelFilter: any = {
       examCategory: examCategory as ExamCategory,
-      status: 'PUBLISHED' as const,
     };
 
     if (level) {
@@ -486,6 +484,7 @@ export const getQuizQuestions = async (
     const questions = await Promise.all(
       shuffled.map(async (word) => {
         // Get pool of wrong options (WordExamLevel 테이블을 통해 필터링)
+        // Note: Word.status로 이미 PUBLISHED 필터링하므로 examLevels에서는 status 제외
         const otherWords = await prisma.word.findMany({
           where: {
             id: { not: word.id },
@@ -493,7 +492,6 @@ export const getQuizQuestions = async (
             examLevels: {
               some: {
                 examCategory: examCategory as ExamCategory,
-                status: 'PUBLISHED' as const,
               },
             },
           },
@@ -568,10 +566,9 @@ export const getPublicWords = async (
     }
 
     // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
+    // Note: Word.status로 이미 PUBLISHED 필터링하므로 examLevels에서는 status 제외
     if (examCategory || level) {
-      const examLevelFilter: any = {
-        status: 'PUBLISHED' as const,
-      };
+      const examLevelFilter: any = {};
 
       if (examCategory) {
         examLevelFilter.examCategory = examCategory as ExamCategory;
