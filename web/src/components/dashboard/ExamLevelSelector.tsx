@@ -8,18 +8,30 @@ const examOptions: { key: ExamType; name: string; icon: string }[] = [
   { key: 'TEPS', name: 'TEPS', icon: '🎓' },
 ];
 
-// 레벨 정보
-const levelOptions: { key: LevelType; name: string; description: string }[] = [
-  { key: 'L1', name: '초급', description: '기초 필수 단어' },
-  { key: 'L2', name: '중급', description: '핵심 심화 단어' },
-  { key: 'L3', name: '고급', description: '고난도 단어' },
-];
+// 레벨 정보 - 시험별 다른 표시
+const getLevelOptions = (exam: ExamType) => {
+  if (exam === 'TEPS') {
+    return [
+      { key: 'L1' as LevelType, name: '고급어휘 Lv.1', description: 'TEPS 고급 어휘' },
+      { key: 'L2' as LevelType, name: '고급어휘 Lv.2', description: 'TEPS 심화 어휘' },
+      { key: 'L3' as LevelType, name: '고급어휘 Lv.3', description: 'TEPS 최고급 어휘' },
+    ];
+  }
+  return [
+    { key: 'L1' as LevelType, name: '초급', description: '기초 필수 단어' },
+    { key: 'L2' as LevelType, name: '중급', description: '핵심 심화 단어' },
+    { key: 'L3' as LevelType, name: '고급', description: '고난도 단어' },
+  ];
+};
 
 export default function ExamLevelSelector() {
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
   const setActiveExam = useExamCourseStore((state) => state.setActiveExam);
   const setActiveLevel = useExamCourseStore((state) => state.setActiveLevel);
+
+  const selectedExam = activeExam || 'CSAT';
+  const levelOptions = getLevelOptions(selectedExam);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">

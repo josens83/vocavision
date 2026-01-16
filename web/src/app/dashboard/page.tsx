@@ -19,16 +19,23 @@ const examInfo: Record<string, { name: string; icon: string; gradient: string; c
   TEPS: { name: 'TEPS', icon: '🎓', gradient: 'from-purple-500 to-purple-600', color: 'purple' },
 };
 
-// Level info
-const levelInfo: Record<string, {
-  name: string;
-  description: string;
-  target: string;
-  wordCount: number;
-}> = {
-  L1: { name: '초급', description: '기초 필수 단어', target: '3등급 목표', wordCount: 1000 },
-  L2: { name: '중급', description: '핵심 심화 단어', target: '2등급 목표', wordCount: 1000 },
-  L3: { name: '고급', description: '고난도 단어', target: '1등급 목표', wordCount: 1000 },
+// Level info - exam-specific
+const getLevelInfo = (exam: string, level: string) => {
+  if (exam === 'TEPS') {
+    const tepsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
+      L1: { name: '고급어휘 Lv.1', description: 'TEPS 고급 어휘', target: '고득점 목표', wordCount: 1000 },
+      L2: { name: '고급어휘 Lv.2', description: 'TEPS 심화 어휘', target: '고득점 목표', wordCount: 1000 },
+      L3: { name: '고급어휘 Lv.3', description: 'TEPS 최고급 어휘', target: '고득점 목표', wordCount: 1000 },
+    };
+    return tepsLevels[level] || tepsLevels.L1;
+  }
+
+  const defaultLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
+    L1: { name: '초급', description: '기초 필수 단어', target: '3등급 목표', wordCount: 1000 },
+    L2: { name: '중급', description: '핵심 심화 단어', target: '2등급 목표', wordCount: 1000 },
+    L3: { name: '고급', description: '고난도 단어', target: '1등급 목표', wordCount: 1000 },
+  };
+  return defaultLevels[level] || defaultLevels.L1;
 };
 
 // Badge definitions
@@ -58,6 +65,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [examLevelTotalWords, setExamLevelTotalWords] = useState(0);
   const [examLevelLearnedWords, setExamLevelLearnedWords] = useState(0);
+  const [examLevelLoading, setExamLevelLoading] = useState(false);
 
   // Calendar data
   const today = new Date();
@@ -97,6 +105,11 @@ export default function DashboardPage() {
   };
 
   const loadExamLevelProgress = async () => {
+    // 즉시 로딩 상태로 전환하고 이전 데이터 초기화 (버그 1 수정)
+    setExamLevelLoading(true);
+    setExamLevelLearnedWords(0);
+    setExamLevelTotalWords(0);
+
     try {
       const examCategory = activeExam || 'CSAT';
       const level = activeLevel || 'L1';
@@ -123,13 +136,15 @@ export default function DashboardPage() {
       setExamLevelLearnedWords(totalWords - unlearnedWords);
     } catch (error) {
       console.error('Failed to load exam/level progress:', error);
+    } finally {
+      setExamLevelLoading(false);
     }
   };
 
   const selectedExam = activeExam || 'CSAT';
   const selectedLevel = activeLevel || 'L1';
   const exam = examInfo[selectedExam];
-  const level = levelInfo[selectedLevel];
+  const level = getLevelInfo(selectedExam, selectedLevel);
 
   // Use exam/level specific word counts (real data from API)
   const totalWords = examLevelTotalWords || level.wordCount;
@@ -255,22 +270,34 @@ export default function DashboardPage() {
             <div className="bg-gray-50 rounded-xl p-4 mb-4">
               <div className="grid grid-cols-3 gap-4 text-center mb-3">
                 <div>
-                  <p className="text-2xl font-bold text-blue-600">{learnedWords}</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {examLevelLoading ? (
+                      <span className="inline-block w-8 h-6 bg-blue-200 rounded animate-pulse" />
+                    ) : learnedWords}
+                  </p>
                   <p className="text-xs text-gray-500">학습 완료</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-400">{remainingWords}</p>
+                  <p className="text-2xl font-bold text-gray-400">
+                    {examLevelLoading ? (
+                      <span className="inline-block w-8 h-6 bg-gray-200 rounded animate-pulse" />
+                    ) : remainingWords}
+                  </p>
                   <p className="text-xs text-gray-500">남은 단어</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-500">{progressPercent}%</p>
+                  <p className="text-2xl font-bold text-green-500">
+                    {examLevelLoading ? (
+                      <span className="inline-block w-8 h-6 bg-green-200 rounded animate-pulse" />
+                    ) : `${progressPercent}%`}
+                  </p>
                   <p className="text-xs text-gray-500">진행률</p>
                 </div>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all"
-                  style={{ width: `${progressPercent}%` }}
+                  className={`bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all ${examLevelLoading ? 'animate-pulse' : ''}`}
+                  style={{ width: examLevelLoading ? '0%' : `${progressPercent}%` }}
                 />
               </div>
             </div>
