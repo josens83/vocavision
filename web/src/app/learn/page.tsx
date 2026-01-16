@@ -111,12 +111,14 @@ function LearnPageContent() {
   const {
     currentWordIndex,
     sessionId,
-    wordsStudied,
-    wordsCorrect,
+    cardRatings,
     setSessionId,
-    incrementWord,
-    decrementWord,
+    setCardRating,
+    goToNextCard,
+    goToPrevCard,
     resetSession,
+    getWordsStudied,
+    getWordsCorrect,
   } = useLearningStore();
 
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -254,17 +256,23 @@ function LearnPageContent() {
       }).catch(error => console.error('Failed to submit review:', error));
     }
 
+    // Record rating for this card (prevents duplicate counting)
+    setCardRating(currentWordIndex, rating);
+
     // Immediately advance to next word
-    incrementWord(correct);
+    goToNextCard();
 
     // Check if we've finished all words
     if (currentWordIndex + 1 >= reviews.length) {
       setShowResult(true);
       if (user && sessionId) {
+        // Calculate final stats from cardRatings
+        const finalWordsStudied = getWordsStudied();
+        const finalWordsCorrect = getWordsCorrect();
         progressAPI.endSession({
           sessionId,
-          wordsStudied: wordsStudied + 1,
-          wordsCorrect: wordsCorrect + (correct ? 1 : 0),
+          wordsStudied: finalWordsStudied,
+          wordsCorrect: finalWordsCorrect,
         }).catch(error => console.error('Failed to end session:', error));
       }
     }
@@ -272,37 +280,48 @@ function LearnPageContent() {
 
   const handlePrevious = () => {
     if (currentWordIndex > 0) {
-      decrementWord();
+      goToPrevCard();
     }
   };
 
   const handleNext = () => {
-    // "다음" 버튼은 "모름"(rating=1)으로 자동 처리
+    // "다음" 버튼은 "모름"(rating=1)으로 자동 처리 (이미 평가한 카드는 변경하지 않음)
     const currentWord = reviews[currentWordIndex]?.word;
 
     if (!currentWord) return;
 
-    // Submit review with "모름" rating for logged-in users
-    if (user) {
-      progressAPI.submitReview({
-        wordId: currentWord.id,
-        rating: 1, // 모름
-        learningMethod: 'FLASHCARD',
-        sessionId: sessionId || undefined,
-      }).catch(error => console.error('Failed to submit review:', error));
+    // Only record rating if this card hasn't been rated yet
+    const alreadyRated = cardRatings[currentWordIndex] !== undefined;
+
+    if (!alreadyRated) {
+      // Submit review with "모름" rating for logged-in users
+      if (user) {
+        progressAPI.submitReview({
+          wordId: currentWord.id,
+          rating: 1, // 모름
+          learningMethod: 'FLASHCARD',
+          sessionId: sessionId || undefined,
+        }).catch(error => console.error('Failed to submit review:', error));
+      }
+
+      // Record as "모름" (rating=1)
+      setCardRating(currentWordIndex, 1);
     }
 
     // Advance to next word
-    incrementWord(false);
+    goToNextCard();
 
     // Check if we've finished all words
     if (currentWordIndex + 1 >= reviews.length) {
       setShowResult(true);
       if (user && sessionId) {
+        // Calculate final stats from cardRatings
+        const finalWordsStudied = getWordsStudied();
+        const finalWordsCorrect = getWordsCorrect();
         progressAPI.endSession({
           sessionId,
-          wordsStudied: wordsStudied + 1,
-          wordsCorrect, // Don't increment since marked as "모름"
+          wordsStudied: finalWordsStudied,
+          wordsCorrect: finalWordsCorrect,
         }).catch(error => console.error('Failed to end session:', error));
       }
     }
@@ -340,6 +359,9 @@ function LearnPageContent() {
   }
 
   if (showResult) {
+    // Calculate final stats from cardRatings
+    const wordsStudied = getWordsStudied();
+    const wordsCorrect = getWordsCorrect();
     // Check if there are more words to learn
     const hasMoreWords = totalWordsInLevel > 0 && (totalLearnedInLevel + wordsStudied) < totalWordsInLevel;
 
@@ -368,6 +390,9 @@ function LearnPageContent() {
   }
 
   const progressPercent = ((currentWordIndex + 1) / reviews.length) * 100;
+  // Calculate accuracy from cardRatings (prevents duplicate counting issue)
+  const wordsStudied = getWordsStudied();
+  const wordsCorrect = getWordsCorrect();
   const accuracyPercent = wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0;
 
   return (

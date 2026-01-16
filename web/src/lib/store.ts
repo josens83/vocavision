@@ -50,27 +50,34 @@ export const useAuthStore = create<AuthState>()(
 interface LearningState {
   currentWordIndex: number;
   sessionId: string | null;
-  wordsStudied: number;
-  wordsCorrect: number;
+  cardRatings: Record<number, number>; // 카드 인덱스 → rating (중복 방지)
   setSessionId: (id: string) => void;
-  incrementWord: (correct: boolean) => void;
-  decrementWord: () => void;
+  setCardRating: (index: number, rating: number) => void;
+  goToNextCard: () => void;
+  goToPrevCard: () => void;
   resetSession: () => void;
+  // Computed getters (calculated from cardRatings)
+  getWordsStudied: () => number;
+  getWordsCorrect: () => number;
 }
 
-export const useLearningStore = create<LearningState>()((set) => ({
+export const useLearningStore = create<LearningState>()((set, get) => ({
   currentWordIndex: 0,
   sessionId: null,
-  wordsStudied: 0,
-  wordsCorrect: 0,
+  cardRatings: {},
   setSessionId: (id) => set({ sessionId: id }),
-  incrementWord: (correct) =>
+  setCardRating: (index, rating) =>
+    set((state) => ({
+      cardRatings: {
+        ...state.cardRatings,
+        [index]: rating,
+      },
+    })),
+  goToNextCard: () =>
     set((state) => ({
       currentWordIndex: state.currentWordIndex + 1,
-      wordsStudied: state.wordsStudied + 1,
-      wordsCorrect: correct ? state.wordsCorrect + 1 : state.wordsCorrect,
     })),
-  decrementWord: () =>
+  goToPrevCard: () =>
     set((state) => ({
       currentWordIndex: Math.max(0, state.currentWordIndex - 1),
     })),
@@ -78,9 +85,11 @@ export const useLearningStore = create<LearningState>()((set) => ({
     set({
       currentWordIndex: 0,
       sessionId: null,
-      wordsStudied: 0,
-      wordsCorrect: 0,
+      cardRatings: {},
     }),
+  getWordsStudied: () => Object.keys(get().cardRatings).length,
+  getWordsCorrect: () =>
+    Object.values(get().cardRatings).filter((rating) => rating >= 3).length,
 }));
 
 // Exam Course State - 시험별 코스 관리
