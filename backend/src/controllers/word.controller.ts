@@ -29,8 +29,10 @@ export const getWords = async (
     const userId = (req as any).userId;
 
     // Only show PUBLISHED words to users
+    // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
     const where: any = {
       status: 'PUBLISHED',
+      NOT: { examCategory: 'CSAT_ARCHIVE' },
     };
 
     if (difficulty) {
@@ -215,8 +217,10 @@ export const getRandomWords = async (
     const limitNum = parseInt(count as string);
 
     // Only show PUBLISHED words to users
+    // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
     const where: any = {
       status: 'PUBLISHED',
+      NOT: { examCategory: 'CSAT_ARCHIVE' },
     };
     if (difficulty) {
       where.difficulty = difficulty;
@@ -298,22 +302,19 @@ export const getLevelTestQuestions = async (
 
     const wordsByLevel = await Promise.all(
       levels.map(async (level) => {
-        const totalCount = await prisma.word.count({
-          where: {
-            examCategory: examCategory as ExamCategory,
-            level,
-            status: 'PUBLISHED',
-          },
-        });
+        // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
+        const levelWhere = {
+          examCategory: examCategory as ExamCategory,
+          level,
+          status: 'PUBLISHED' as const,
+          NOT: { examCategory: 'CSAT_ARCHIVE' as ExamCategory },
+        };
+        const totalCount = await prisma.word.count({ where: levelWhere });
 
         const skip = Math.max(0, Math.floor(Math.random() * Math.max(0, totalCount - questionsPerLevel)));
 
         return prisma.word.findMany({
-          where: {
-            examCategory: examCategory as ExamCategory,
-            level,
-            status: 'PUBLISHED',
-          },
+          where: levelWhere,
           select: {
             id: true,
             word: true,
@@ -336,11 +337,13 @@ export const getLevelTestQuestions = async (
     const questions = await Promise.all(
       shuffled.map(async (word) => {
         // Get random wrong options (3 other words)
+        // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
         const otherWords = await prisma.word.findMany({
           where: {
             id: { not: word.id },
             examCategory: examCategory as ExamCategory,
             status: 'PUBLISHED',
+            NOT: { examCategory: 'CSAT_ARCHIVE' as ExamCategory },
           },
           select: {
             id: true,
@@ -391,9 +394,11 @@ export const getQuizQuestions = async (
     } = req.query;
     const countNum = Math.min(parseInt(count as string), 50); // Max 50 questions
 
+    // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
     const where: any = {
       examCategory: examCategory as ExamCategory,
       status: 'PUBLISHED',
+      NOT: { examCategory: 'CSAT_ARCHIVE' },
     };
 
     if (level) {
@@ -423,11 +428,13 @@ export const getQuizQuestions = async (
     const questions = await Promise.all(
       shuffled.map(async (word) => {
         // Get pool of wrong options
+        // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
         const otherWords = await prisma.word.findMany({
           where: {
             id: { not: word.id },
             examCategory: examCategory as ExamCategory,
             status: 'PUBLISHED',
+            NOT: { examCategory: 'CSAT_ARCHIVE' as ExamCategory },
           },
           select: {
             id: true,
@@ -491,8 +498,10 @@ export const getPublicWords = async (
     const limitNum = Math.min(parseInt(limit as string), 50); // Max 50 for public
 
     // Only show PUBLISHED words to public
+    // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
     const where: any = {
       status: 'PUBLISHED',
+      NOT: { examCategory: 'CSAT_ARCHIVE' },
     };
 
     if (examCategory) {
