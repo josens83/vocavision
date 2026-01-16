@@ -30,7 +30,7 @@ export const getWords = async (
 
     // Only show PUBLISHED words to users
     const where: any = {
-      status: 'PUBLISHED',
+      status: 'PUBLISHED' as const,
     };
 
     if (difficulty) {
@@ -41,7 +41,7 @@ export const getWords = async (
     // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
     if (examCategory || level) {
       const examLevelFilter: any = {
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
       };
 
       if (examCategory) {
@@ -171,7 +171,7 @@ export const getWordById = async (
     const word = await prisma.word.findFirst({
       where: {
         id,
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
       },
       include: {
         examples: true,
@@ -241,7 +241,7 @@ export const getRandomWords = async (
 
     // Only show PUBLISHED words to users
     const where: any = {
-      status: 'PUBLISHED',
+      status: 'PUBLISHED' as const,
     };
     if (difficulty) {
       where.difficulty = difficulty;
@@ -252,7 +252,7 @@ export const getRandomWords = async (
       where.examLevels = {
         some: {
           examCategory: examCategory as ExamCategory,
-          status: 'PUBLISHED',
+          status: 'PUBLISHED' as const,
         },
       };
     } else {
@@ -300,7 +300,7 @@ export const getWordCountsByExam = async (
         const count = await prisma.word.count({
           where: {
             examCategory: exam,
-            status: 'PUBLISHED',
+            status: 'PUBLISHED' as const,
           },
         });
         return { exam, count };
@@ -344,7 +344,7 @@ export const getLevelTestQuestions = async (
             some: {
               examCategory: examCategory as ExamCategory,
               level,
-              status: 'PUBLISHED',
+              status: 'PUBLISHED' as const,
             },
           },
         };
@@ -380,11 +380,11 @@ export const getLevelTestQuestions = async (
         const otherWords = await prisma.word.findMany({
           where: {
             id: { not: word.id },
-            status: 'PUBLISHED',
+            status: 'PUBLISHED' as const,
             examLevels: {
               some: {
                 examCategory: examCategory as ExamCategory,
-                status: 'PUBLISHED',
+                status: 'PUBLISHED' as const,
               },
             },
           },
@@ -440,7 +440,7 @@ export const getQuizQuestions = async (
     // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
     const examLevelFilter: any = {
       examCategory: examCategory as ExamCategory,
-      status: 'PUBLISHED',
+      status: 'PUBLISHED' as const,
     };
 
     if (level) {
@@ -448,7 +448,7 @@ export const getQuizQuestions = async (
     }
 
     const where: any = {
-      status: 'PUBLISHED',
+      status: 'PUBLISHED' as const,
       examLevels: {
         some: examLevelFilter,
       },
@@ -480,11 +480,11 @@ export const getQuizQuestions = async (
         const otherWords = await prisma.word.findMany({
           where: {
             id: { not: word.id },
-            status: 'PUBLISHED',
+            status: 'PUBLISHED' as const,
             examLevels: {
               some: {
                 examCategory: examCategory as ExamCategory,
-                status: 'PUBLISHED',
+                status: 'PUBLISHED' as const,
               },
             },
           },
@@ -551,7 +551,7 @@ export const getPublicWords = async (
 
     // Only show PUBLISHED words to public
     const where: any = {
-      status: 'PUBLISHED',
+      status: 'PUBLISHED' as const,
     };
 
     if (difficulty) {
@@ -563,7 +563,7 @@ export const getPublicWords = async (
       where.examLevels = {
         some: {
           examCategory: examCategory as ExamCategory,
-          status: 'PUBLISHED',
+          status: 'PUBLISHED' as const,
         },
       };
     } else {
@@ -632,7 +632,7 @@ export const getFeaturedWords = async (
       const fetchedWords = await prisma.word.findMany({
         where: {
           word: { in: bestWordsList },
-          status: 'PUBLISHED',
+          status: 'PUBLISHED' as const,
         },
         include: {
           visuals: {
@@ -652,7 +652,7 @@ export const getFeaturedWords = async (
       // NEW 탭: 최신 단어 (기존 로직)
       words = await prisma.word.findMany({
         where: {
-          status: 'PUBLISHED',
+          status: 'PUBLISHED' as const,
           visuals: {
             some: {
               type: 'CONCEPT',
@@ -718,7 +718,7 @@ export const getWordsBatch = async (
     const words = await prisma.word.findMany({
       where: {
         id: { in: idArray },
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
       },
       select: {
         id: true,
@@ -781,7 +781,7 @@ export const getWordsBatchWithVisuals = async (
     const words = await prisma.word.findMany({
       where: {
         id: { in: idArray },
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
       },
       include: {
         examples: { take: 3 },
@@ -1062,7 +1062,7 @@ export const getWordWithVisuals = async (
     const word = await prisma.word.findFirst({
       where: {
         id,
-        status: 'PUBLISHED',
+        status: 'PUBLISHED' as const,
       },
       include: {
         examples: { take: 3 },
