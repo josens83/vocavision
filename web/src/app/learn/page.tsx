@@ -155,11 +155,11 @@ function LearnPageContent() {
 
   const loadReviews = async (page = 1) => {
     try {
-      // Demo mode: use first 10 words from API directly
+      // Demo mode: use first 20 words from API directly
       if (isDemo && examParam) {
         const data = await wordsAPI.getWords({
           examCategory: examParam,
-          limit: 10,
+          limit: 20,
         });
         const words = data.words || data.data || [];
         setReviews(words.map((word: Word) => ({ word })));
@@ -209,7 +209,7 @@ function LearnPageContent() {
           const data = await progressAPI.getDueReviews();
 
           if (data.count === 0) {
-            const randomWords = await wordsAPI.getRandomWords(10);
+            const randomWords = await wordsAPI.getRandomWords(20);
             setReviews(randomWords.words.map((word: Word) => ({ word })));
           } else {
             setReviews(data.reviews);
@@ -217,19 +217,19 @@ function LearnPageContent() {
         } catch (error) {
           // Fallback to random words if progress API fails
           console.error('Failed to load due reviews:', error);
-          const randomWords = await wordsAPI.getRandomWords(10);
+          const randomWords = await wordsAPI.getRandomWords(20);
           setReviews(randomWords.words.map((word: Word) => ({ word })));
         }
       } else {
         // Guest users: Load random words directly
-        const randomWords = await wordsAPI.getRandomWords(10);
+        const randomWords = await wordsAPI.getRandomWords(20);
         setReviews(randomWords.words.map((word: Word) => ({ word })));
       }
     } catch (error) {
       console.error('Failed to load reviews:', error);
       // Fallback to random words
       try {
-        const randomWords = await wordsAPI.getRandomWords(10);
+        const randomWords = await wordsAPI.getRandomWords(20);
         setReviews(randomWords.words.map((word: Word) => ({ word })));
       } catch (e) {
         console.error('Failed to load random words:', e);
@@ -449,21 +449,28 @@ function LearnPageContent() {
                 </div>
               </div>
 
-              {/* Next Button */}
-              <button
-                onClick={handleNext}
-                disabled={currentWordIndex >= reviews.length - 1}
-                className={`flex items-center gap-1 px-2 py-1 rounded text-sm font-medium transition shrink-0 ${
-                  currentWordIndex >= reviews.length - 1
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                <span className="hidden sm:inline">다음</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+              {/* Next/Complete Button */}
+              {currentWordIndex >= reviews.length - 1 ? (
+                <button
+                  onClick={handleNext}
+                  className="flex items-center gap-1 px-3 py-1 rounded text-sm font-bold transition shrink-0 bg-pink-500 text-white hover:bg-pink-600"
+                >
+                  <span>완료</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  onClick={handleNext}
+                  className="flex items-center gap-1 px-2 py-1 rounded text-sm font-medium transition shrink-0 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                >
+                  <span className="hidden sm:inline">다음</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
 
               {/* Progress Count */}
               <span className="text-sm font-medium text-pink-600 shrink-0">{currentWordIndex + 1}/{reviews.length}</span>
