@@ -5,7 +5,7 @@
 // ---------------------------------------------
 // Enums
 // ---------------------------------------------
-export type ExamCategory = 'CSAT' | 'CSAT_BASIC' | 'EBS' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT';
+export type ExamCategory = 'CSAT' | 'CSAT_BASIC' | 'CSAT_ARCHIVE' | 'EBS' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT';
 
 export type ContentStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'ARCHIVED';
 
@@ -243,6 +243,7 @@ export interface WordFilters {
 export const EXAM_CATEGORY_LABELS: Record<ExamCategory, string> = {
   CSAT: '수능',
   CSAT_BASIC: '기초수능',
+  CSAT_ARCHIVE: '수능(Archive)',
   EBS: 'EBS',
   TEPS: 'TEPS',
   TOEIC: 'TOEIC',
@@ -254,6 +255,7 @@ export const EXAM_CATEGORY_LABELS: Record<ExamCategory, string> = {
 export const EXAM_CATEGORY_COLORS: Record<ExamCategory, string> = {
   CSAT: 'bg-pink-500',
   CSAT_BASIC: 'bg-rose-400',
+  CSAT_ARCHIVE: 'bg-gray-400',
   EBS: 'bg-emerald-500',
   TEPS: 'bg-purple-500',
   TOEIC: 'bg-blue-500',
@@ -266,6 +268,7 @@ export const getExamLevelLabel = (examCategory: string, level: string | null): s
   const labels: Record<string, string> = {
     'CSAT': '수능',
     'CSAT_BASIC': '기초수능',
+    'CSAT_ARCHIVE': '수능(Archive)',
     'EBS': 'EBS',
     'TEPS': 'TEPS',
     'TOEFL': 'TOEFL',
