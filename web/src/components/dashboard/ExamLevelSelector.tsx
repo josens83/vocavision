@@ -12,9 +12,9 @@ const examOptions: { key: ExamType; name: string; icon: string }[] = [
 const getLevelOptions = (exam: ExamType) => {
   if (exam === 'TEPS') {
     return [
-      { key: 'L1' as LevelType, name: '고급어휘 Lv.1', description: 'TEPS 고급 어휘' },
-      { key: 'L2' as LevelType, name: '고급어휘 Lv.2', description: 'TEPS 심화 어휘' },
-      { key: 'L3' as LevelType, name: '고급어휘 Lv.3', description: 'TEPS 최고급 어휘' },
+      { key: 'L1' as LevelType, name: '고급어휘 L1', description: 'TEPS 고급 어휘' },
+      { key: 'L2' as LevelType, name: '고급어휘 L2', description: 'TEPS 심화 어휘' },
+      { key: 'L3' as LevelType, name: '고급어휘 L3', description: 'TEPS 최고급 어휘' },
     ];
   }
   return [

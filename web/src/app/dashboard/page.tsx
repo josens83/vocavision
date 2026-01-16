@@ -23,9 +23,9 @@ const examInfo: Record<string, { name: string; icon: string; gradient: string; c
 const getLevelInfo = (exam: string, level: string) => {
   if (exam === 'TEPS') {
     const tepsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: '고급어휘 Lv.1', description: 'TEPS 고급 어휘', target: '고득점 목표', wordCount: 1000 },
-      L2: { name: '고급어휘 Lv.2', description: 'TEPS 심화 어휘', target: '고득점 목표', wordCount: 1000 },
-      L3: { name: '고급어휘 Lv.3', description: 'TEPS 최고급 어휘', target: '고득점 목표', wordCount: 1000 },
+      L1: { name: '고급어휘 L1', description: 'TEPS 고급 어휘', target: '고득점 목표', wordCount: 1000 },
+      L2: { name: '고급어휘 L2', description: 'TEPS 심화 어휘', target: '고득점 목표', wordCount: 1000 },
+      L3: { name: '고급어휘 L3', description: 'TEPS 최고급 어휘', target: '고득점 목표', wordCount: 1000 },
     };
     return tepsLevels[level] || tepsLevels.L1;
   }
