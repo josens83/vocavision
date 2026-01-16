@@ -301,6 +301,38 @@ export default function FlashCardGesture({
         {/* Divider */}
         <div className="border-t border-gray-100" />
 
+        {/* Rating Buttons - 항상 표시 */}
+        <div className="p-6 pb-0">
+          <div className="bg-white rounded-xl border-2 border-pink-100 p-4">
+            <p className="text-center text-gray-500 text-xs md:text-sm mb-3">
+              이 단어를 알고 있었나요?
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => handleRating(1)}
+                className="bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl font-bold transition border-2 border-transparent hover:border-red-200"
+              >
+                <span className="block text-xl mb-0.5">😕</span>
+                <span className="text-xs">모름</span>
+              </button>
+              <button
+                onClick={() => handleRating(3)}
+                className="bg-yellow-50 hover:bg-yellow-100 text-yellow-600 py-3 rounded-xl font-bold transition border-2 border-transparent hover:border-yellow-200"
+              >
+                <span className="block text-xl mb-0.5">🤔</span>
+                <span className="text-xs">애매함</span>
+              </button>
+              <button
+                onClick={() => handleRating(5)}
+                className="bg-green-50 hover:bg-green-100 text-green-600 py-3 rounded-xl font-bold transition border-2 border-transparent hover:border-green-200"
+              >
+                <span className="block text-xl mb-0.5">😊</span>
+                <span className="text-xs">알았음</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Answer Section */}
         <AnimatePresence mode="wait">
           {!showAnswer ? (
@@ -327,36 +359,6 @@ export default function FlashCardGesture({
               transition={{ duration: 0.15 }}
               className="p-6 space-y-4"
             >
-              {/* Rating Buttons - 정답 보기 직후 바로 표시 */}
-              <div className="bg-white rounded-xl border-2 border-pink-100 p-4">
-                <p className="text-center text-gray-500 text-xs md:text-sm mb-3">
-                  이 단어를 알고 있었나요?
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => handleRating(1)}
-                    className="bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl font-bold transition border-2 border-transparent hover:border-red-200"
-                  >
-                    <span className="block text-xl mb-0.5">😕</span>
-                    <span className="text-xs">모름</span>
-                  </button>
-                  <button
-                    onClick={() => handleRating(3)}
-                    className="bg-yellow-50 hover:bg-yellow-100 text-yellow-600 py-3 rounded-xl font-bold transition border-2 border-transparent hover:border-yellow-200"
-                  >
-                    <span className="block text-xl mb-0.5">🤔</span>
-                    <span className="text-xs">애매함</span>
-                  </button>
-                  <button
-                    onClick={() => handleRating(5)}
-                    className="bg-green-50 hover:bg-green-100 text-green-600 py-3 rounded-xl font-bold transition border-2 border-transparent hover:border-green-200"
-                  >
-                    <span className="block text-xl mb-0.5">😊</span>
-                    <span className="text-xs">알았음</span>
-                  </button>
-                </div>
-              </div>
-
               {/* Definition */}
               <div className="bg-gray-50 rounded-xl p-5">
                 <p className="text-sm font-medium text-gray-400 mb-2">뜻</p>
