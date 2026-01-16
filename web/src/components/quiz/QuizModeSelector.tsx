@@ -1,8 +1,8 @@
 'use client';
 
-import { ArrowLeft, BookOpen, CheckSquare, RefreshCw, PenTool } from 'lucide-react';
+import { ArrowLeft, CheckSquare, RefreshCw, PenTool } from 'lucide-react';
 
-export type QuizMode = 'flashcard' | 'eng-to-kor' | 'kor-to-eng' | 'spelling';
+export type QuizMode = 'eng-to-kor' | 'kor-to-eng' | 'spelling';
 
 interface QuizModeSelectorProps {
   exam: string;
@@ -12,14 +12,6 @@ interface QuizModeSelectorProps {
 }
 
 const MODES = [
-  {
-    id: 'flashcard' as QuizMode,
-    icon: BookOpen,
-    title: '플래시카드',
-    description: '카드를 넘기며 학습',
-    color: 'bg-blue-100 text-blue-600',
-    available: true,
-  },
   {
     id: 'eng-to-kor' as QuizMode,
     icon: CheckSquare,
@@ -120,8 +112,7 @@ export default function QuizModeSelector({
       {/* 추천 배지 */}
       <div className="mt-6 p-4 bg-pink-50 rounded-xl border border-pink-100">
         <p className="text-sm text-pink-700">
-          💡 <strong>추천:</strong> 처음이라면 플래시카드로 단어를 익히고, 4지선다로
-          테스트해보세요!
+          💡 <strong>추천:</strong> 영→한으로 시작하고, 익숙해지면 한→영으로 도전해보세요!
         </p>
       </div>
     </div>
