@@ -29,22 +29,45 @@ export const getWords = async (
     const userId = (req as any).userId;
 
     // Only show PUBLISHED words to users
-    // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
     const where: any = {
       status: 'PUBLISHED',
-      NOT: { examCategory: 'CSAT_ARCHIVE' },
     };
 
     if (difficulty) {
       where.difficulty = difficulty;
     }
 
-    if (examCategory) {
-      where.examCategory = examCategory;
-    }
+    // examCategory 또는 level이 지정된 경우 WordExamLevel 테이블을 통해 필터링
+    // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
+    if (examCategory || level) {
+      const examLevelFilter: any = {
+        status: 'PUBLISHED',
+      };
 
-    if (level) {
-      where.level = level;
+      if (examCategory) {
+        // CSAT_ARCHIVE는 명시적으로 요청하지 않는 한 제외
+        if (examCategory === 'CSAT_ARCHIVE') {
+          // 관리자가 명시적으로 CSAT_ARCHIVE 요청 시에만 허용 (실제로는 여기 도달 안 함)
+          examLevelFilter.examCategory = 'CSAT_ARCHIVE';
+        } else {
+          examLevelFilter.examCategory = examCategory;
+        }
+      }
+
+      if (level) {
+        examLevelFilter.level = level;
+      }
+
+      where.examLevels = {
+        some: examLevelFilter,
+      };
+    } else {
+      // examCategory/level 없이 전체 조회 시에도 CSAT_ARCHIVE 제외
+      where.examLevels = {
+        none: {
+          examCategory: 'CSAT_ARCHIVE',
+        },
+      };
     }
 
     if (search) {
@@ -217,16 +240,28 @@ export const getRandomWords = async (
     const limitNum = parseInt(count as string);
 
     // Only show PUBLISHED words to users
-    // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
     const where: any = {
       status: 'PUBLISHED',
-      NOT: { examCategory: 'CSAT_ARCHIVE' },
     };
     if (difficulty) {
       where.difficulty = difficulty;
     }
+
+    // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
     if (examCategory) {
-      where.examCategory = examCategory;
+      where.examLevels = {
+        some: {
+          examCategory: examCategory as ExamCategory,
+          status: 'PUBLISHED',
+        },
+      };
+    } else {
+      // examCategory 없이 조회 시에도 CSAT_ARCHIVE 제외
+      where.examLevels = {
+        none: {
+          examCategory: 'CSAT_ARCHIVE',
+        },
+      };
     }
 
     // Get random words using a simple approach
@@ -302,12 +337,16 @@ export const getLevelTestQuestions = async (
 
     const wordsByLevel = await Promise.all(
       levels.map(async (level) => {
-        // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
+        // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
         const levelWhere = {
-          examCategory: examCategory as ExamCategory,
-          level,
           status: 'PUBLISHED' as const,
-          NOT: { examCategory: 'CSAT_ARCHIVE' as ExamCategory },
+          examLevels: {
+            some: {
+              examCategory: examCategory as ExamCategory,
+              level,
+              status: 'PUBLISHED',
+            },
+          },
         };
         const totalCount = await prisma.word.count({ where: levelWhere });
 
@@ -337,13 +376,17 @@ export const getLevelTestQuestions = async (
     const questions = await Promise.all(
       shuffled.map(async (word) => {
         // Get random wrong options (3 other words)
-        // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
+        // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
         const otherWords = await prisma.word.findMany({
           where: {
             id: { not: word.id },
-            examCategory: examCategory as ExamCategory,
             status: 'PUBLISHED',
-            NOT: { examCategory: 'CSAT_ARCHIVE' as ExamCategory },
+            examLevels: {
+              some: {
+                examCategory: examCategory as ExamCategory,
+                status: 'PUBLISHED',
+              },
+            },
           },
           select: {
             id: true,
@@ -394,16 +437,22 @@ export const getQuizQuestions = async (
     } = req.query;
     const countNum = Math.min(parseInt(count as string), 50); // Max 50 questions
 
-    // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
-    const where: any = {
+    // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
+    const examLevelFilter: any = {
       examCategory: examCategory as ExamCategory,
       status: 'PUBLISHED',
-      NOT: { examCategory: 'CSAT_ARCHIVE' },
     };
 
     if (level) {
-      where.level = level;
+      examLevelFilter.level = level;
     }
+
+    const where: any = {
+      status: 'PUBLISHED',
+      examLevels: {
+        some: examLevelFilter,
+      },
+    };
 
     // Get total count for random selection
     const totalCount = await prisma.word.count({ where });
@@ -427,14 +476,17 @@ export const getQuizQuestions = async (
     // Generate questions based on mode
     const questions = await Promise.all(
       shuffled.map(async (word) => {
-        // Get pool of wrong options
-        // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
+        // Get pool of wrong options (WordExamLevel 테이블을 통해 필터링)
         const otherWords = await prisma.word.findMany({
           where: {
             id: { not: word.id },
-            examCategory: examCategory as ExamCategory,
             status: 'PUBLISHED',
-            NOT: { examCategory: 'CSAT_ARCHIVE' as ExamCategory },
+            examLevels: {
+              some: {
+                examCategory: examCategory as ExamCategory,
+                status: 'PUBLISHED',
+              },
+            },
           },
           select: {
             id: true,
@@ -498,18 +550,29 @@ export const getPublicWords = async (
     const limitNum = Math.min(parseInt(limit as string), 50); // Max 50 for public
 
     // Only show PUBLISHED words to public
-    // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
     const where: any = {
       status: 'PUBLISHED',
-      NOT: { examCategory: 'CSAT_ARCHIVE' },
     };
-
-    if (examCategory) {
-      where.examCategory = examCategory;
-    }
 
     if (difficulty) {
       where.difficulty = difficulty;
+    }
+
+    // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
+    if (examCategory) {
+      where.examLevels = {
+        some: {
+          examCategory: examCategory as ExamCategory,
+          status: 'PUBLISHED',
+        },
+      };
+    } else {
+      // examCategory 없이 조회 시에도 CSAT_ARCHIVE 제외
+      where.examLevels = {
+        none: {
+          examCategory: 'CSAT_ARCHIVE',
+        },
+      };
     }
 
     const words = await prisma.word.findMany({
