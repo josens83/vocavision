@@ -236,7 +236,7 @@ export const getRandomWords = async (
   next: NextFunction
 ) => {
   try {
-    const { count = '10', difficulty, examCategory } = req.query;
+    const { count = '10', difficulty, examCategory, level } = req.query;
     const limitNum = parseInt(count as string);
 
     // Only show PUBLISHED words to users
@@ -248,15 +248,24 @@ export const getRandomWords = async (
     }
 
     // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
-    if (examCategory) {
+    if (examCategory || level) {
+      const examLevelFilter: any = {
+        status: 'PUBLISHED' as const,
+      };
+
+      if (examCategory) {
+        examLevelFilter.examCategory = examCategory as ExamCategory;
+      }
+
+      if (level) {
+        examLevelFilter.level = level;
+      }
+
       where.examLevels = {
-        some: {
-          examCategory: examCategory as ExamCategory,
-          status: 'PUBLISHED' as const,
-        },
+        some: examLevelFilter,
       };
     } else {
-      // examCategory 없이 조회 시에도 CSAT_ARCHIVE 제외
+      // examCategory/level 없이 조회 시에도 CSAT_ARCHIVE 제외
       where.examLevels = {
         none: {
           examCategory: 'CSAT_ARCHIVE',
@@ -546,7 +555,7 @@ export const getPublicWords = async (
   next: NextFunction
 ) => {
   try {
-    const { examCategory, limit = '10', difficulty } = req.query;
+    const { examCategory, level, limit = '10', difficulty } = req.query;
     const limitNum = Math.min(parseInt(limit as string), 50); // Max 50 for public
 
     // Only show PUBLISHED words to public
@@ -559,15 +568,24 @@ export const getPublicWords = async (
     }
 
     // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
-    if (examCategory) {
+    if (examCategory || level) {
+      const examLevelFilter: any = {
+        status: 'PUBLISHED' as const,
+      };
+
+      if (examCategory) {
+        examLevelFilter.examCategory = examCategory as ExamCategory;
+      }
+
+      if (level) {
+        examLevelFilter.level = level;
+      }
+
       where.examLevels = {
-        some: {
-          examCategory: examCategory as ExamCategory,
-          status: 'PUBLISHED' as const,
-        },
+        some: examLevelFilter,
       };
     } else {
-      // examCategory 없이 조회 시에도 CSAT_ARCHIVE 제외
+      // examCategory/level 없이 조회 시에도 CSAT_ARCHIVE 제외
       where.examLevels = {
         none: {
           examCategory: 'CSAT_ARCHIVE',
