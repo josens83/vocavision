@@ -32,12 +32,6 @@ function QuizPageContent() {
   const [result, setResult] = useState<QuizResultData | null>(null);
 
   const handleModeSelect = (selectedMode: QuizMode) => {
-    if (selectedMode === 'flashcard') {
-      // 플래시카드는 기존 learn 페이지로
-      router.push(`/learn?exam=${exam}&level=${level}`);
-      return;
-    }
-
     if (selectedMode === 'spelling') {
       // 스펠링 모드는 아직 미구현
       return;
