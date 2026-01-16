@@ -227,7 +227,7 @@ export default function MultipleChoiceQuiz({
         {/* 모드 뱃지 */}
         <div className="text-center mb-4">
           <span className="inline-block bg-pink-100 text-pink-600 text-xs font-medium px-3 py-1 rounded-full">
-            {mode === 'eng-to-kor' ? '📖 영→한 퀴즈' : '🔄 한→영 퀴즈'}
+            {exam === 'CSAT' ? '수능' : exam === 'TEPS' ? 'TEPS' : exam} {level} • {mode === 'eng-to-kor' ? '📖 영→한 퀴즈' : '🔄 한→영 퀴즈'}
           </span>
         </div>
 
