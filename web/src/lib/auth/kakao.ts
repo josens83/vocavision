@@ -8,11 +8,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 /**
  * 카카오 로그인 URL 생성
+ * redirect_uri를 현재 도메인 기준으로 동적 생성하여 도메인 간 세션 문제 방지
  */
 export function getKakaoLoginUrl(): string {
+  // 현재 도메인 기준으로 redirect_uri 생성 (브라우저 환경에서만)
+  // 이렇게 하면 vocavision-web.vercel.app에서 로그인해도 같은 도메인으로 콜백됨
+  const redirectUri = typeof window !== 'undefined'
+    ? `${window.location.origin}/auth/callback/kakao`
+    : KAKAO_REDIRECT_URI;
+
   const params = new URLSearchParams({
     client_id: KAKAO_CLIENT_ID,
-    redirect_uri: KAKAO_REDIRECT_URI,
+    redirect_uri: redirectUri,
     response_type: 'code',
     scope: 'profile_nickname',
   });
