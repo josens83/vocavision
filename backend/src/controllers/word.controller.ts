@@ -64,31 +64,35 @@ export const getWords = async (
       }
     }
 
-    // Get total count first
-    const total = await prisma.word.count({ where });
-
+    let total: number;
     let words;
+
+    const wordInclude = {
+      images: { take: 1 },
+      mnemonics: {
+        take: 1,
+        orderBy: { rating: 'desc' } as const,
+      },
+      examples: { take: 3 },
+      etymology: true,
+      collocations: { take: 5 },
+      visuals: { orderBy: { order: 'asc' } as const },
+      examLevels: true,
+    };
 
     // If shuffle is requested, fetch more and randomize
     if (shuffle === 'true') {
-      // Fetch words without skip (we'll handle pagination differently for shuffle)
-      const allMatchingWords = await prisma.word.findMany({
-        where,
-        include: {
-          images: { take: 1 },
-          mnemonics: {
-            take: 1,
-            orderBy: { rating: 'desc' }
-          },
-          examples: { take: 3 },
-          etymology: true,
-          collocations: { take: 5 },
-          visuals: { orderBy: { order: 'asc' } },
-          examLevels: true,
-        },
-        orderBy: { frequency: 'desc' },
-        take: Math.min(total, 200), // Limit to prevent memory issues
-      });
+      // 병렬로 count와 findMany 실행 (성능 개선)
+      const [countResult, allMatchingWords] = await Promise.all([
+        prisma.word.count({ where }),
+        prisma.word.findMany({
+          where,
+          include: wordInclude,
+          orderBy: { frequency: 'desc' },
+          take: 200, // Limit to prevent memory issues
+        }),
+      ]);
+      total = countResult;
 
       // Shuffle using Fisher-Yates algorithm
       const shuffled = [...allMatchingWords];
@@ -100,25 +104,19 @@ export const getWords = async (
       // Apply pagination to shuffled results
       words = shuffled.slice(skip, skip + limitNum);
     } else {
-      // Standard pagination with frequency ordering
-      words = await prisma.word.findMany({
-        where,
-        include: {
-          images: { take: 1 },
-          mnemonics: {
-            take: 1,
-            orderBy: { rating: 'desc' }
-          },
-          examples: { take: 3 },
-          etymology: true,
-          collocations: { take: 5 },
-          visuals: { orderBy: { order: 'asc' } },  // 3-이미지 시각화
-          examLevels: true,  // 시험/레벨 매핑
-        },
-        skip,
-        take: limitNum,
-        orderBy: { frequency: 'desc' }
-      });
+      // 병렬로 count와 findMany 실행 (성능 개선)
+      const [countResult, wordsResult] = await Promise.all([
+        prisma.word.count({ where }),
+        prisma.word.findMany({
+          where,
+          include: wordInclude,
+          skip,
+          take: limitNum,
+          orderBy: { frequency: 'desc' },
+        }),
+      ]);
+      total = countResult;
+      words = wordsResult;
     }
 
     res.json({

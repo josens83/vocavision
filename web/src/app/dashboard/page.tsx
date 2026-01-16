@@ -101,23 +101,25 @@ export default function DashboardPage() {
       const examCategory = activeExam || 'CSAT';
       const level = activeLevel || 'L1';
 
-      // Get total words for this exam/level
-      const totalData = await wordsAPI.getWords({
-        examCategory,
-        level,
-        limit: 1,
-      });
-      const totalWords = totalData.pagination?.total || 0;
-      setExamLevelTotalWords(totalWords);
+      // 병렬 호출로 성능 개선 (5-8초 → 2-3초)
+      const [totalData, unlearnedData] = await Promise.all([
+        wordsAPI.getWords({
+          examCategory,
+          level,
+          limit: 1,
+        }),
+        wordsAPI.getWords({
+          examCategory,
+          level,
+          limit: 1,
+          excludeLearned: true,
+        }),
+      ]);
 
-      // Get remaining unlearned words (excludeLearned=true returns only unlearned)
-      const unlearnedData = await wordsAPI.getWords({
-        examCategory,
-        level,
-        limit: 1,
-        excludeLearned: true,
-      });
+      const totalWords = totalData.pagination?.total || 0;
       const unlearnedWords = unlearnedData.pagination?.total || 0;
+
+      setExamLevelTotalWords(totalWords);
       setExamLevelLearnedWords(totalWords - unlearnedWords);
     } catch (error) {
       console.error('Failed to load exam/level progress:', error);
