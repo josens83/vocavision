@@ -38,7 +38,7 @@ const tabs: Tab[] = [
     label: 'MY',
     icon: '👤',
     activeIcon: '👤',
-    href: '/dashboard',
+    href: '/my',
   },
 ];
 
@@ -46,11 +46,14 @@ export default function BottomTabBar() {
   const pathname = usePathname();
 
   const isActive = (tab: Tab) => {
-    if (tab.href === '/dashboard') {
+    if (tab.id === 'home') {
       return pathname === '/dashboard' || pathname === '/';
     }
-    if (tab.href === '/courses') {
+    if (tab.id === 'learn') {
       return pathname.startsWith('/courses') || pathname.startsWith('/learn');
+    }
+    if (tab.id === 'my') {
+      return pathname === '/my' || pathname.startsWith('/my/');
     }
     return pathname.startsWith(tab.href);
   };
