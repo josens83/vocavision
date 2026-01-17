@@ -198,6 +198,8 @@ router.post('/upgrade-admin', async (req: Request, res: Response) => {
 router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
+    const { exam } = req.query;
+
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -209,126 +211,248 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
         currentStreak: true,
         longestStreak: true,
         lastActiveDate: true,
+        totalWordsLearned: true,
       }
     });
 
-    // Get all reviews with word level info
-    const reviews = await prisma.review.findMany({
+    // ===== 1. 전체 정답률 (UserProgress 기반) =====
+    const progressStats = await prisma.userProgress.aggregate({
       where: { userId },
-      include: {
-        session: {
-          include: {
-            reviews: {
-              select: { id: true }
-            }
-          }
-        }
+      _sum: {
+        correctCount: true,
+        incorrectCount: true,
       }
     });
 
-    // Get reviews with word levels for byLevel stats
-    const reviewsWithWords = await prisma.$queryRaw<Array<{
-      level: string | null;
-      rating: number;
-    }>>`
-      SELECT w.level, r.rating
-      FROM "Review" r
-      JOIN "Word" w ON r."wordId" = w.id
-      WHERE r."userId" = ${userId}
-    `;
+    const totalCorrect = progressStats._sum.correctCount || 0;
+    const totalIncorrect = progressStats._sum.incorrectCount || 0;
+    const totalQuestions = totalCorrect + totalIncorrect;
+    const overallAccuracy = totalQuestions > 0
+      ? Math.round((totalCorrect / totalQuestions) * 100)
+      : 0;
 
-    // Calculate overall stats
-    const totalQuestions = reviews.length;
-    const correctAnswers = reviews.filter(r => r.rating >= 3).length;
-    const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+    // ===== 2. 레벨별 정답률 (WordExamLevel 조인) =====
+    const examFilter = exam && exam !== 'all' ? exam as string : null;
 
-    // Calculate by level stats
-    const byLevelMap: Record<string, { total: number; correct: number }> = {
-      L1: { total: 0, correct: 0 },
-      L2: { total: 0, correct: 0 },
-      L3: { total: 0, correct: 0 },
+    let levelStats: Array<{ level: string; correct: bigint; incorrect: bigint; wordsCount: bigint }>;
+
+    if (examFilter) {
+      levelStats = await prisma.$queryRaw<Array<{
+        level: string;
+        correct: bigint;
+        incorrect: bigint;
+        wordsCount: bigint;
+      }>>`
+        SELECT
+          COALESCE(wel.level, w.level, 'L1') as level,
+          COALESCE(SUM(up."correctCount"), 0)::bigint as correct,
+          COALESCE(SUM(up."incorrectCount"), 0)::bigint as incorrect,
+          COUNT(DISTINCT up."wordId")::bigint as "wordsCount"
+        FROM "UserProgress" up
+        JOIN "Word" w ON up."wordId" = w.id
+        LEFT JOIN "WordExamLevel" wel ON w.id = wel."wordId"
+        WHERE up."userId" = ${userId}
+          AND w."examCategory" != 'CSAT_ARCHIVE'
+          AND (w."examCategory" = ${examFilter} OR wel."examCategory" = ${examFilter})
+        GROUP BY COALESCE(wel.level, w.level, 'L1')
+      `;
+    } else {
+      levelStats = await prisma.$queryRaw<Array<{
+        level: string;
+        correct: bigint;
+        incorrect: bigint;
+        wordsCount: bigint;
+      }>>`
+        SELECT
+          COALESCE(wel.level, w.level, 'L1') as level,
+          COALESCE(SUM(up."correctCount"), 0)::bigint as correct,
+          COALESCE(SUM(up."incorrectCount"), 0)::bigint as incorrect,
+          COUNT(DISTINCT up."wordId")::bigint as "wordsCount"
+        FROM "UserProgress" up
+        JOIN "Word" w ON up."wordId" = w.id
+        LEFT JOIN "WordExamLevel" wel ON w.id = wel."wordId"
+        WHERE up."userId" = ${userId}
+          AND w."examCategory" != 'CSAT_ARCHIVE'
+        GROUP BY COALESCE(wel.level, w.level, 'L1')
+      `;
+    }
+
+    const byLevel: Record<string, { totalQuestions: number; correctAnswers: number; accuracy: number; wordsCount: number }> = {
+      L1: { totalQuestions: 0, correctAnswers: 0, accuracy: 0, wordsCount: 0 },
+      L2: { totalQuestions: 0, correctAnswers: 0, accuracy: 0, wordsCount: 0 },
+      L3: { totalQuestions: 0, correctAnswers: 0, accuracy: 0, wordsCount: 0 },
     };
 
-    for (const review of reviewsWithWords) {
-      const level = review.level || 'L1';
-      if (byLevelMap[level]) {
-        byLevelMap[level].total++;
-        if (review.rating >= 3) {
-          byLevelMap[level].correct++;
-        }
+    for (const row of levelStats) {
+      const level = row.level || 'L1';
+      if (byLevel[level]) {
+        const correct = Number(row.correct) || 0;
+        const incorrect = Number(row.incorrect) || 0;
+        const total = correct + incorrect;
+        byLevel[level] = {
+          totalQuestions: total,
+          correctAnswers: correct,
+          accuracy: total > 0 ? Math.round((correct / total) * 100) : 0,
+          wordsCount: Number(row.wordsCount) || 0,
+        };
       }
     }
 
-    const byLevel = Object.entries(byLevelMap).reduce((acc, [key, value]) => {
-      acc[key] = {
-        total: value.total,
-        correct: value.correct,
-        accuracy: value.total > 0 ? Math.round((value.correct / value.total) * 100) : 0,
-      };
-      return acc;
-    }, {} as Record<string, { total: number; correct: number; accuracy: number }>);
+    // ===== 3. 모드별 정답률 (LearningRecord 기반) =====
+    // 모드별 정답 수 쿼리
+    const modeCorrectCounts = await prisma.$queryRaw<Array<{
+      quizType: string;
+      total: bigint;
+      correct: bigint;
+    }>>`
+      SELECT
+        "quizType",
+        COUNT(*)::bigint as total,
+        SUM(CASE WHEN "isCorrect" = true THEN 1 ELSE 0 END)::bigint as correct
+      FROM "LearningRecord"
+      WHERE "userId" = ${userId}
+      GROUP BY "quizType"
+    `;
 
-    // Calculate weekly activity (last 7 days)
-    const today = new Date();
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
+    const byMode: Record<string, { totalQuestions: number; correctAnswers: number; accuracy: number }> = {
+      flashcard: { totalQuestions: 0, correctAnswers: 0, accuracy: 0 },
+      engToKor: { totalQuestions: 0, correctAnswers: 0, accuracy: 0 },
+      korToEng: { totalQuestions: 0, correctAnswers: 0, accuracy: 0 },
+    };
 
-    const recentReviews = await prisma.review.groupBy({
-      by: ['createdAt'],
-      where: {
-        userId,
-        createdAt: {
-          gte: sevenDaysAgo,
-        }
-      },
-      _count: true,
-    });
+    // QuizType enum 매핑: FLASHCARD, ENG_TO_KOR, KOR_TO_ENG
+    for (const row of modeCorrectCounts) {
+      const total = Number(row.total) || 0;
+      const correct = Number(row.correct) || 0;
+      const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
-    // Aggregate by day
-    const dailyActivity: Record<string, number> = {};
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(sevenDaysAgo);
-      date.setDate(date.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
-      dailyActivity[dateStr] = 0;
+      if (row.quizType === 'FLASHCARD') {
+        byMode.flashcard = { totalQuestions: total, correctAnswers: correct, accuracy };
+      } else if (row.quizType === 'ENG_TO_KOR') {
+        byMode.engToKor = { totalQuestions: total, correctAnswers: correct, accuracy };
+      } else if (row.quizType === 'KOR_TO_ENG') {
+        byMode.korToEng = { totalQuestions: total, correctAnswers: correct, accuracy };
+      }
     }
 
-    // Get daily counts using raw query for proper date grouping
-    const dailyCounts = await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
-      SELECT DATE("createdAt") as date, COUNT(*) as count
-      FROM "Review"
+    // ===== 4. 이번 주 학습 현황 (월~일, KST 기준) =====
+    const today = new Date();
+    // KST 기준 현재 요일 (0=일, 1=월, ..., 6=토)
+    const kstOffset = 9 * 60 * 60 * 1000;
+    const kstToday = new Date(today.getTime() + kstOffset);
+    const dayOfWeek = kstToday.getUTCDay();
+
+    // 이번 주 월요일 계산 (월요일 시작)
+    const monday = new Date(kstToday);
+    monday.setUTCDate(monday.getUTCDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    monday.setUTCHours(0, 0, 0, 0);
+    // KST → UTC 변환
+    const mondayUTC = new Date(monday.getTime() - kstOffset);
+
+    const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+
+    // 일별 학습 단어 수 쿼리 (UserProgress.updatedAt 기준)
+    const dailyWordCounts = await prisma.$queryRaw<Array<{ date: Date; count: bigint }>>`
+      SELECT
+        DATE("updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') as date,
+        COUNT(DISTINCT "wordId")::bigint as count
+      FROM "UserProgress"
       WHERE "userId" = ${userId}
-        AND "createdAt" >= ${sevenDaysAgo}
-      GROUP BY DATE("createdAt")
+        AND "updatedAt" >= ${mondayUTC}
+      GROUP BY DATE("updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')
       ORDER BY date
     `;
 
-    for (const row of dailyCounts) {
-      const dateStr = new Date(row.date).toISOString().split('T')[0];
-      if (dailyActivity[dateStr] !== undefined) {
-        dailyActivity[dateStr] = Number(row.count);
-      }
+    // 일별 퀴즈/리뷰 정답률 쿼리
+    const dailyQuizStats = await prisma.$queryRaw<Array<{ date: Date; total: bigint; correct: bigint }>>`
+      SELECT
+        DATE("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') as date,
+        COUNT(*)::bigint as total,
+        SUM(CASE WHEN "isCorrect" = true THEN 1 ELSE 0 END)::bigint as correct
+      FROM "LearningRecord"
+      WHERE "userId" = ${userId}
+        AND "createdAt" >= ${mondayUTC}
+      GROUP BY DATE("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')
+      ORDER BY date
+    `;
+
+    const weeklyActivity: Array<{
+      date: string;
+      dayOfWeek: string;
+      wordsStudied: number;
+      questionsAnswered: number;
+      accuracy: number;
+    }> = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(monday);
+      date.setUTCDate(monday.getUTCDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+
+      // 해당 날짜의 데이터 찾기
+      const wordCount = dailyWordCounts.find(d => {
+        const dStr = new Date(d.date).toISOString().split('T')[0];
+        return dStr === dateStr;
+      });
+      const quizStat = dailyQuizStats.find(d => {
+        const dStr = new Date(d.date).toISOString().split('T')[0];
+        return dStr === dateStr;
+      });
+
+      const wordsStudied = Number(wordCount?.count) || 0;
+      const questionsAnswered = Number(quizStat?.total) || 0;
+      const questionsCorrect = Number(quizStat?.correct) || 0;
+      const dayAccuracy = questionsAnswered > 0
+        ? Math.round((questionsCorrect / questionsAnswered) * 100)
+        : 0;
+
+      weeklyActivity.push({
+        date: dateStr,
+        dayOfWeek: dayNames[i],
+        wordsStudied,
+        questionsAnswered,
+        accuracy: dayAccuracy,
+      });
     }
 
-    const weeklyActivity = Object.entries(dailyActivity).map(([date, count]) => ({
-      date,
-      count,
-      dayName: new Date(date).toLocaleDateString('ko-KR', { weekday: 'short' }),
-    }));
+    // ===== 5. 학습 단어 분류 (mastered/learning/new) =====
+    const masteryStats = await prisma.userProgress.groupBy({
+      by: ['masteryLevel'],
+      where: { userId },
+      _count: { _all: true },
+    });
+
+    const wordsLearned = {
+      total: user?.totalWordsLearned || 0,
+      mastered: 0,
+      learning: 0,
+      new: 0,
+    };
+
+    for (const stat of masteryStats) {
+      const count = stat._count._all;
+      if (stat.masteryLevel === 'MASTERED') {
+        wordsLearned.mastered = count;
+      } else if (stat.masteryLevel === 'FAMILIAR' || stat.masteryLevel === 'LEARNING') {
+        wordsLearned.learning += count;
+      } else if (stat.masteryLevel === 'NEW') {
+        wordsLearned.new = count;
+      }
+    }
 
     res.json({
       overall: {
         totalQuestions,
-        correctAnswers,
-        accuracy,
+        correctAnswers: totalCorrect,
+        accuracy: overallAccuracy,
       },
       byLevel,
+      byMode,
+      weeklyActivity,
       streak: {
         current: user?.currentStreak || 0,
         longest: user?.longestStreak || 0,
       },
-      weeklyActivity,
+      wordsLearned,
       lastActiveDate: user?.lastActiveDate,
     });
   } catch (error) {
