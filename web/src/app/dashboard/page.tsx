@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
 import { progressAPI, wordsAPI } from '@/lib/api';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -37,13 +36,6 @@ const getLevelInfo = (exam: string, level: string) => {
   };
   return defaultLevels[level] || defaultLevels.L1;
 };
-
-// Badge definitions
-const badges = [
-  { id: 'streak7', name: '7일 연속 학습', icon: '🔥', description: '7일 연속 학습 달성', condition: (stats: any) => stats?.currentStreak >= 7 },
-  { id: 'words100', name: '100단어 마스터', icon: '📚', description: '100개 단어 학습 완료', condition: (stats: any) => stats?.totalWordsLearned >= 100 },
-  { id: 'words500', name: '500단어 마스터', icon: '🎯', description: '500개 단어 학습 완료', condition: (stats: any) => stats?.totalWordsLearned >= 500 },
-];
 
 interface UserStats {
   totalWordsLearned: number;
@@ -353,37 +345,6 @@ export default function DashboardPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
             <p className="text-3xl font-bold text-green-500">{dueReviewCount}</p>
             <p className="text-sm text-gray-500">복습 대기</p>
-          </div>
-        </div>
-
-        {/* P1-1: 배지 섹션 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">내 배지</h2>
-            <Link href="/achievements" className="text-sm text-pink-600 font-medium inline-flex items-center gap-1">전체 보기 <ArrowRight className="w-3.5 h-3.5" /></Link>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {badges.map((badge) => {
-              const isEarned = badge.condition(stats);
-              return (
-                <div
-                  key={badge.id}
-                  className={`p-4 rounded-xl text-center transition ${
-                    isEarned
-                      ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200'
-                      : 'bg-gray-50 opacity-50'
-                  }`}
-                >
-                  <span className={`text-3xl ${!isEarned && 'grayscale'}`}>{badge.icon}</span>
-                  <p className={`text-sm font-medium mt-2 ${isEarned ? 'text-gray-900' : 'text-gray-500'}`}>
-                    {badge.name}
-                  </p>
-                  {!isEarned && (
-                    <p className="text-xs text-gray-400 mt-1">미획득</p>
-                  )}
-                </div>
-              );
-            })}
           </div>
         </div>
 
