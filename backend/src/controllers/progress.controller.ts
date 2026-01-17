@@ -329,9 +329,16 @@ export const getReviewHistory = async (
   }
 };
 
-async function updateUserStats(userId: string) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+// KST 기준 날짜 변환 (UTC+9)
+function toKSTDate(date: Date): Date {
+  const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  kstDate.setUTCHours(0, 0, 0, 0);
+  return kstDate;
+}
+
+export async function updateUserStats(userId: string) {
+  const now = new Date();
+  const todayKST = toKSTDate(now);
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -347,34 +354,36 @@ async function updateUserStats(userId: string) {
   let newStreak = user.currentStreak;
 
   if (user.lastActiveDate) {
-    const lastActive = new Date(user.lastActiveDate);
-    lastActive.setHours(0, 0, 0, 0);
+    const lastActiveKST = toKSTDate(new Date(user.lastActiveDate));
 
-    const daysDiff = Math.floor((today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24));
+    const daysDiff = Math.floor((todayKST.getTime() - lastActiveKST.getTime()) / (1000 * 60 * 60 * 24));
 
     if (daysDiff === 1) {
+      // 어제 학습 → 연속 +1
       newStreak += 1;
     } else if (daysDiff > 1) {
+      // 2일 이상 공백 → 리셋
       newStreak = 1;
     }
+    // daysDiff === 0: 같은 날 → 변경 없음
   } else {
+    // 첫 학습
     newStreak = 1;
   }
 
-  const masteredCount = await prisma.userProgress.count({
-    where: {
-      userId,
-      masteryLevel: 'MASTERED'
-    }
+  // 학습한 고유 단어 수 (LearningRecord 기준)
+  const learnedWordsCount = await prisma.learningRecord.groupBy({
+    by: ['wordId'],
+    where: { userId }
   });
 
   await prisma.user.update({
     where: { id: userId },
     data: {
-      lastActiveDate: new Date(),
+      lastActiveDate: now,
       currentStreak: newStreak,
       longestStreak: Math.max(newStreak, user.longestStreak || 0),
-      totalWordsLearned: masteredCount
+      totalWordsLearned: learnedWordsCount.length
     }
   });
 }
