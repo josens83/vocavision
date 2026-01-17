@@ -351,9 +351,13 @@ export const progressAPI = {
     const response = await api.get('/progress');
     return response.data;
   },
-  getDueReviews: async () => {
+  getDueReviews: async (params?: { examCategory?: string; level?: string }) => {
     if (isMockMode()) return mockProgressAPI.getDueReviews();
-    const response = await api.get('/progress/due');
+    const queryParams = new URLSearchParams();
+    if (params?.examCategory) queryParams.set('examCategory', params.examCategory);
+    if (params?.level) queryParams.set('level', params.level);
+    const queryString = queryParams.toString();
+    const response = await api.get(`/progress/due${queryString ? `?${queryString}` : ''}`);
     return response.data;
   },
   submitReview: async (data: {

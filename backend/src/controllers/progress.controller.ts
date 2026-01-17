@@ -90,6 +90,24 @@ export const getDueReviews = async (
   try {
     const userId = req.userId!;
     const now = new Date();
+    const { examCategory, level } = req.query;
+
+    // 기본 where 조건
+    const wordWhere: any = {
+      examCategory: { not: 'CSAT_ARCHIVE' }
+    };
+
+    // 시험 필터 (CSAT_ARCHIVE 제외 유지)
+    if (examCategory && examCategory !== 'all') {
+      wordWhere.examCategory = examCategory as string;
+    }
+
+    // 레벨 필터 (WordExamLevel 조인)
+    if (level && level !== 'all') {
+      wordWhere.examLevels = {
+        some: { level: level as string }
+      };
+    }
 
     const dueReviews = await prisma.userProgress.findMany({
       where: {
@@ -97,10 +115,7 @@ export const getDueReviews = async (
         nextReviewDate: {
           lte: now
         },
-        // CSAT_ARCHIVE 단어 제외
-        word: {
-          examCategory: { not: 'CSAT_ARCHIVE' }
-        }
+        word: wordWhere
       },
       include: {
         word: {
@@ -114,6 +129,7 @@ export const getDueReviews = async (
             },
             etymology: true,
             visuals: { orderBy: { order: 'asc' } },  // 3-이미지 시각화
+            examLevels: true,  // 프론트엔드에서 시험/레벨 정보 표시용
           }
         }
       },

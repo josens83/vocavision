@@ -105,16 +105,17 @@ function LearnPageContent() {
   const examParam = searchParams.get('exam')?.toUpperCase();
   const levelParam = searchParams.get('level');
   const isDemo = searchParams.get('demo') === '1';
+  const isReviewMode = searchParams.get('mode') === 'review';
 
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
-  // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트
+  // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트 (복습 모드 제외)
   useEffect(() => {
-    if (hasHydrated && !examParam && !isDemo) {
+    if (hasHydrated && !examParam && !isDemo && !isReviewMode) {
       router.replace(user ? '/dashboard' : '/');
     }
-  }, [hasHydrated, examParam, isDemo, user, router]);
+  }, [hasHydrated, examParam, isDemo, isReviewMode, user, router]);
   const {
     currentWordIndex,
     sessionId,
@@ -164,8 +165,17 @@ function LearnPageContent() {
 
   const loadReviews = async (page = 1) => {
     try {
+      // 복습 모드: 복습할 단어 로드
+      if (isReviewMode && user) {
+        const data = await progressAPI.getDueReviews();
+        if (data.count === 0) {
+          setReviews([]);
+        } else {
+          setReviews(data.reviews);
+        }
+        setTotalWordsInLevel(data.count || 0);
       // Demo mode: use first 20 words from API directly
-      if (isDemo && examParam) {
+      } else if (isDemo && examParam) {
         const data = await wordsAPI.getWords({
           examCategory: examParam,
           limit: 20,

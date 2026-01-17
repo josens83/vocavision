@@ -26,6 +26,21 @@ interface ReviewWord {
   incorrectCount: number;
 }
 
+const EXAM_OPTIONS = [
+  { value: 'all', label: '전체 시험' },
+  { value: 'CSAT', label: '수능' },
+  { value: 'TEPS', label: 'TEPS' },
+  { value: 'TOEFL', label: 'TOEFL' },
+  { value: 'TOEIC', label: 'TOEIC' },
+];
+
+const LEVEL_OPTIONS = [
+  { value: 'all', label: '전체 레벨' },
+  { value: 'L1', label: 'L1 (초급)' },
+  { value: 'L2', label: 'L2 (중급)' },
+  { value: 'L3', label: 'L3 (고급)' },
+];
+
 export default function ReviewPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
@@ -40,6 +55,10 @@ export default function ReviewPage() {
   const [dueWords, setDueWords] = useState<ReviewWord[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 필터 상태
+  const [selectedExam, setSelectedExam] = useState('all');
+  const [selectedLevel, setSelectedLevel] = useState('all');
+
   useEffect(() => {
     if (!hasHydrated) return;
 
@@ -49,11 +68,16 @@ export default function ReviewPage() {
     }
 
     loadReviewData();
-  }, [user, hasHydrated, router]);
+  }, [user, hasHydrated, router, selectedExam, selectedLevel]);
 
   const loadReviewData = async () => {
+    setLoading(true);
     try {
-      const data = await progressAPI.getDueReviews();
+      const params: { examCategory?: string; level?: string } = {};
+      if (selectedExam !== 'all') params.examCategory = selectedExam;
+      if (selectedLevel !== 'all') params.level = selectedLevel;
+
+      const data = await progressAPI.getDueReviews(params);
       setStats({
         dueToday: data.count || 0,
         weak: data.weakCount || 0,
@@ -107,9 +131,31 @@ export default function ReviewPage() {
     <TabLayout>
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-4">
           <h1 className="text-2xl font-bold text-gray-900">복습</h1>
           <p className="text-gray-500">스페이스드 반복으로 기억을 강화하세요</p>
+        </div>
+
+        {/* 필터 */}
+        <div className="flex gap-3 mb-6">
+          <select
+            value={selectedExam}
+            onChange={(e) => setSelectedExam(e.target.value)}
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500"
+          >
+            {EXAM_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <select
+            value={selectedLevel}
+            onChange={(e) => setSelectedLevel(e.target.value)}
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500"
+          >
+            {LEVEL_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
         </div>
 
         {/* Main Review Card */}
@@ -128,7 +174,7 @@ export default function ReviewPage() {
               <span className="text-3xl font-bold text-pink-600">{stats.dueToday}개</span>
             </div>
             <Link
-              href="/learn?mode=review"
+              href={`/learn?mode=review${selectedExam !== 'all' ? `&exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `&level=${selectedLevel}` : ''}`}
               className="block w-full bg-pink-500 hover:bg-pink-600 text-white py-4 rounded-xl font-bold text-center transition shadow-lg shadow-pink-500/25"
             >
               복습 시작하기
