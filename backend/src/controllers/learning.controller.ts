@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { prisma } from '../index';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { updateUserStats } from './progress.controller';
 
 // QuizType enum (matches Prisma schema)
 type QuizType = 'LEVEL_TEST' | 'ENG_TO_KOR' | 'KOR_TO_ENG' | 'FLASHCARD' | 'SPELLING';
@@ -230,6 +231,9 @@ export const recordLearning = async (
       },
     });
 
+    // Update user stats (streak, totalWordsLearned)
+    await updateUserStats(userId);
+
     res.status(201).json({
       message: 'Learning record created',
       record,
@@ -280,6 +284,9 @@ export const recordLearningBatch = async (
     const result = await prisma.learningRecord.createMany({
       data: dataToCreate,
     });
+
+    // Update user stats (streak, totalWordsLearned)
+    await updateUserStats(userId);
 
     res.status(201).json({
       message: 'Learning records created',
