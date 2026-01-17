@@ -173,12 +173,20 @@ export default function ReviewPage() {
               </div>
               <span className="text-3xl font-bold text-pink-600">{stats.dueToday}개</span>
             </div>
-            <Link
-              href={`/learn?mode=review${selectedExam !== 'all' ? `&exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `&level=${selectedLevel}` : ''}`}
-              className="block w-full bg-pink-500 hover:bg-pink-600 text-white py-4 rounded-xl font-bold text-center transition shadow-lg shadow-pink-500/25"
-            >
-              복습 시작하기
-            </Link>
+            <div className="grid grid-cols-2 gap-3">
+              <Link
+                href={`/learn?mode=review${selectedExam !== 'all' ? `&exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `&level=${selectedLevel}` : ''}`}
+                className="block bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-bold text-center transition"
+              >
+                📚 플래시카드
+              </Link>
+              <Link
+                href={`/review/quiz${selectedExam !== 'all' ? `?exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `${selectedExam !== 'all' ? '&' : '?'}level=${selectedLevel}` : ''}`}
+                className="block bg-gradient-to-r from-pink-500 to-purple-500 text-white py-4 rounded-xl font-bold text-center transition shadow-lg shadow-pink-500/25"
+              >
+                🎯 4지선다 퀴즈
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-6 text-center">

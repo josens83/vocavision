@@ -360,6 +360,15 @@ export const progressAPI = {
     const response = await api.get(`/progress/due${queryString ? `?${queryString}` : ''}`);
     return response.data;
   },
+  getReviewQuiz: async (params?: { examCategory?: string; level?: string; limit?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.examCategory) queryParams.set('examCategory', params.examCategory);
+    if (params?.level) queryParams.set('level', params.level);
+    if (params?.limit) queryParams.set('limit', params.limit.toString());
+    const queryString = queryParams.toString();
+    const response = await api.get(`/progress/quiz${queryString ? `?${queryString}` : ''}`);
+    return response.data;
+  },
   submitReview: async (data: {
     wordId: string;
     rating: number;

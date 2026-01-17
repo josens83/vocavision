@@ -406,3 +406,142 @@ export async function updateUserStats(userId: string) {
     }
   });
 }
+
+// 복습 퀴즈 생성 API
+export const getReviewQuiz = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId!;
+    const now = new Date();
+    const { examCategory, level, limit = '10' } = req.query;
+
+    // 기본 where 조건
+    const wordWhere: any = {
+      examCategory: { not: 'CSAT_ARCHIVE' }
+    };
+
+    if (examCategory && examCategory !== 'all') {
+      wordWhere.examCategory = examCategory as string;
+    }
+
+    if (level && level !== 'all') {
+      wordWhere.examLevels = {
+        some: { level: level as string }
+      };
+    }
+
+    // 복습할 단어 가져오기
+    const dueReviews = await prisma.userProgress.findMany({
+      where: {
+        userId,
+        nextReviewDate: { lte: now },
+        word: wordWhere
+      },
+      include: {
+        word: {
+          include: {
+            visuals: { orderBy: { order: 'asc' } },
+            mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+          }
+        }
+      },
+      orderBy: { nextReviewDate: 'asc' },
+      take: parseInt(limit as string)
+    });
+
+    if (dueReviews.length === 0) {
+      return res.json({ questions: [], count: 0 });
+    }
+
+    // 오답 선택지용 단어들 가져오기 (같은 시험 카테고리에서)
+    const examCategoryFilter = examCategory && examCategory !== 'all'
+      ? examCategory as string
+      : dueReviews[0]?.word?.examCategory;
+
+    const otherWords = await prisma.word.findMany({
+      where: {
+        examCategory: examCategoryFilter,
+        id: { notIn: dueReviews.map(r => r.wordId) },
+        definitionKo: { not: null }
+      },
+      select: {
+        id: true,
+        definitionKo: true,
+        definition: true
+      },
+      take: 100 // 충분한 오답 선택지 확보
+    });
+
+    // 퀴즈 생성
+    const questions = dueReviews.map(review => {
+      const word = review.word;
+      const correctAnswer = word.definitionKo || word.definition;
+
+      // 오답 3개 랜덤 선택
+      const wrongAnswers = shuffleArray(
+        otherWords.filter(w => (w.definitionKo || w.definition) !== correctAnswer)
+      )
+        .slice(0, 3)
+        .map(w => ({
+          text: w.definitionKo || w.definition,
+          isCorrect: false
+        }));
+
+      // 정답 포함하여 섞기
+      const options = shuffleArray([
+        { text: correctAnswer, isCorrect: true },
+        ...wrongAnswers
+      ]);
+
+      // 이미지 정리 (CONCEPT, MNEMONIC, RHYME)
+      const visuals = {
+        concept: word.visuals?.find(v => v.type === 'CONCEPT')?.imageUrl || null,
+        mnemonic: word.visuals?.find(v => v.type === 'MNEMONIC')?.imageUrl ||
+                  word.mnemonics?.[0]?.imageUrl || null,
+        rhyme: word.visuals?.find(v => v.type === 'RHYME')?.imageUrl || null,
+      };
+
+      return {
+        wordId: word.id,
+        word: {
+          id: word.id,
+          word: word.word,
+          partOfSpeech: word.partOfSpeech,
+          pronunciation: word.pronunciation,
+          phonetic: word.phonetic,
+          ipaUs: word.ipaUs,
+          ipaUk: word.ipaUk,
+          audioUrlUs: word.audioUrlUs,
+          audioUrlUk: word.audioUrlUk,
+        },
+        visuals,
+        options,
+        correctAnswer,
+        progressId: review.id,
+        correctCount: review.correctCount,
+        incorrectCount: review.incorrectCount,
+      };
+    });
+
+    res.json({
+      questions,
+      count: questions.length,
+      totalDue: dueReviews.length
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Fisher-Yates 셔플 알고리즘
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}

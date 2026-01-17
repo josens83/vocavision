@@ -5,7 +5,8 @@ import {
   submitReview,
   startStudySession,
   endStudySession,
-  getReviewHistory
+  getReviewHistory,
+  getReviewQuiz
 } from '../controllers/progress.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 
@@ -75,6 +76,39 @@ router.get('/', authenticateToken, getUserProgress);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/due', authenticateToken, getDueReviews);
+
+/**
+ * @swagger
+ * /progress/quiz:
+ *   get:
+ *     summary: 복습 퀴즈 문제 생성
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: examCategory
+ *         schema:
+ *           type: string
+ *         description: 시험 카테고리 필터
+ *       - in: query
+ *         name: level
+ *         schema:
+ *           type: string
+ *         description: 레벨 필터 (L1, L2, L3)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: 문제 수
+ *     responses:
+ *       200:
+ *         description: 4지선다 퀴즈 문제 목록
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/quiz', authenticateToken, getReviewQuiz);
 
 /**
  * @swagger
