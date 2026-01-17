@@ -371,9 +371,8 @@ export async function updateUserStats(userId: string) {
     newStreak = 1;
   }
 
-  // 학습한 고유 단어 수 (LearningRecord 기준)
-  const learnedWordsCount = await prisma.learningRecord.groupBy({
-    by: ['wordId'],
+  // 학습한 단어 수 (UserProgress 기준)
+  const learnedWordsCount = await prisma.userProgress.count({
     where: { userId }
   });
 
@@ -383,7 +382,7 @@ export async function updateUserStats(userId: string) {
       lastActiveDate: now,
       currentStreak: newStreak,
       longestStreak: Math.max(newStreak, user.longestStreak || 0),
-      totalWordsLearned: learnedWordsCount.length
+      totalWordsLearned: learnedWordsCount
     }
   });
 }
