@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../index';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { ExamCategory } from '@prisma/client';
 
 // Spaced Repetition Algorithm (SM-2)
 function calculateNextReview(
@@ -458,12 +459,12 @@ export const getReviewQuiz = async (
 
     // 오답 선택지용 단어들 가져오기 (같은 시험 카테고리에서)
     const examCategoryFilter = examCategory && examCategory !== 'all'
-      ? examCategory as string
+      ? examCategory as ExamCategory
       : dueReviews[0]?.word?.examCategory;
 
     const otherWords = await prisma.word.findMany({
       where: {
-        examCategory: examCategoryFilter,
+        examCategory: examCategoryFilter as ExamCategory,
         id: { notIn: dueReviews.map(r => r.wordId) },
         definitionKo: { not: null }
       },
