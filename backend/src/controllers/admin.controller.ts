@@ -150,10 +150,25 @@ export const getAdminWords = async (
     const where: any = {};
 
     if (search) {
-      where.OR = [
-        { word: { contains: search as string, mode: 'insensitive' } },
-        { definition: { contains: search as string, mode: 'insensitive' } },
-      ];
+      let searchQuery = search as string;
+      let exactMatch = false;
+
+      // 따옴표로 감싸면 정확히 일치 검색 (예: "sin")
+      if (searchQuery.startsWith('"') && searchQuery.endsWith('"') && searchQuery.length > 2) {
+        searchQuery = searchQuery.slice(1, -1);
+        exactMatch = true;
+      }
+
+      if (exactMatch) {
+        // 정확히 일치 (단어만)
+        where.word = { equals: searchQuery, mode: 'insensitive' };
+      } else {
+        // 부분 일치 (기존 동작)
+        where.OR = [
+          { word: { contains: searchQuery, mode: 'insensitive' } },
+          { definition: { contains: searchQuery, mode: 'insensitive' } },
+        ];
+      }
     }
 
     if (examCategories) {

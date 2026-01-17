@@ -110,7 +110,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </svg>
             <input
               type="text"
-              placeholder="단어 검색..."
+              placeholder='단어 검색... (정확히: "단어")'
               value={filters.search}
               onChange={(e) => onFilterChange({ search: e.target.value })}
               className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none"
