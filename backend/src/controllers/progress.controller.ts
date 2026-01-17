@@ -96,6 +96,10 @@ export const getDueReviews = async (
         userId,
         nextReviewDate: {
           lte: now
+        },
+        // CSAT_ARCHIVE 단어 제외
+        word: {
+          examCategory: { not: 'CSAT_ARCHIVE' }
         }
       },
       include: {
