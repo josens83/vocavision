@@ -88,7 +88,7 @@ export default function Hero() {
             <div className="flex flex-wrap gap-4 pt-4">
               {isLoggedIn ? (
                 <>
-                  <Link href="/study" className="btn btn-primary group">
+                  <Link href="/dashboard" className="btn btn-primary group">
                     <Icons.Play />
                     <span>학습 시작하기</span>
                   </Link>

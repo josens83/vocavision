@@ -58,7 +58,7 @@ const sidebarItems: SidebarItem[] = [
     ),
   },
   {
-    label: '단어장',
+    label: '단어 찾기',
     href: '/words',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore } from '@/lib/store';
 import { progressAPI, wordsAPI } from '@/lib/api';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
@@ -108,6 +108,13 @@ function LearnPageContent() {
 
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
+
+  // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트
+  useEffect(() => {
+    if (hasHydrated && !examParam && !isDemo) {
+      router.replace(user ? '/dashboard' : '/');
+    }
+  }, [hasHydrated, examParam, isDemo, user, router]);
   const {
     currentWordIndex,
     sessionId,
