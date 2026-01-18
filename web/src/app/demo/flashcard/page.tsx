@@ -68,8 +68,8 @@ export default function FlashcardDemoPage() {
         <h2 className="text-2xl font-bold text-gray-900 mb-2">체험 완료!</h2>
         <p className="text-gray-600 mb-8 leading-relaxed">
           VocaVision의 플래시카드를 체험해보셨습니다.<br />
-          실제 학습에서는 <strong className="text-brand-primary">7,600개 이상의 단어</strong>와<br />
-          <strong className="text-brand-primary">AI 생성 이미지, 창의적 암기법</strong>을 경험할 수 있어요.
+          실제 학습에서는 <strong className="text-purple-600">7,600개 이상의 단어</strong>와<br />
+          <strong className="text-purple-600">AI 생성 이미지, 창의적 암기법</strong>을 경험할 수 있어요.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -82,7 +82,7 @@ export default function FlashcardDemoPage() {
           </button>
           <Link
             href="/auth/login"
-            className="px-6 py-3 bg-brand-primary text-white rounded-xl hover:bg-brand-primary-dark flex items-center justify-center gap-2 transition"
+            className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 flex items-center justify-center gap-2 transition"
           >
             실제 학습 시작하기
             <ArrowRight className="w-4 h-4" />
@@ -104,9 +104,9 @@ export default function FlashcardDemoPage() {
               key={index}
               className={`w-3 h-3 rounded-full transition-all ${
                 index < completedCount
-                  ? 'bg-brand-primary'
+                  ? 'bg-purple-500'
                   : index === currentIndex
-                  ? 'bg-brand-primary/50 scale-125'
+                  ? 'bg-purple-300 scale-125'
                   : 'bg-gray-200'
               }`}
             />
@@ -132,7 +132,7 @@ export default function FlashcardDemoPage() {
             className="absolute inset-0 bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center"
             style={{ backfaceVisibility: 'hidden' }}
           >
-            <h2 className="text-4xl font-bold text-brand-primary mb-4">{currentWord.word}</h2>
+            <h2 className="text-4xl font-bold text-purple-600 mb-4">{currentWord.word}</h2>
             <p className="text-gray-500">{currentWord.pronunciation}</p>
             <p className="text-gray-400 text-sm">{currentWord.koreanPronunciation}</p>
             <p className="text-sm text-gray-400 mt-6">👆 클릭하여 뒤집기</p>
@@ -140,7 +140,7 @@ export default function FlashcardDemoPage() {
 
           {/* 뒷면 - 뜻 + 암기법 */}
           <div
-            className="absolute inset-0 bg-gradient-to-br from-brand-primary to-brand-primary-dark text-white rounded-2xl shadow-lg p-6 flex flex-col overflow-y-auto"
+            className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-2xl shadow-lg p-6 flex flex-col overflow-y-auto"
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)'
@@ -169,7 +169,7 @@ export default function FlashcardDemoPage() {
           disabled={!isFlipped}
           className={`px-8 py-3 rounded-xl font-medium transition-all ${
             isFlipped
-              ? 'bg-brand-primary text-white hover:bg-brand-primary-dark'
+              ? 'bg-purple-600 text-white hover:bg-purple-700'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >

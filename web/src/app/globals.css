@@ -1,92 +1,46 @@
-/* Pretendard 한글 폰트 CDN */
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-
-/* Google Fonts - Nunito (Display) + DM Sans (Body) */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================
-   VocaVision Global Styles - Playful Rebrand
-   Inspired by Duolingo + Notion
+   VocaVision Global Styles
    ============================================ */
 
 @layer base {
   :root {
-    /* ============================================
-       NEW Primary Brand Colors (Duolingo-inspired)
-       ============================================ */
-
-    /* Primary - 밝고 에너지 넘치는 그린 (학습 성취감) */
-    --color-primary: #58CC02;
-    --color-primary-dark: #46A302;
-    --color-primary-light: #89E219;
-    --color-primary-shadow: #3C8E00;
-
-    /* Secondary - 따뜻한 오렌지 (동기부여) */
-    --color-secondary: #FF9600;
-    --color-secondary-dark: #E68600;
-    --color-secondary-light: #FFB84D;
-
-    /* Accent - 밝은 블루 (신뢰, 정보) */
-    --color-accent: #1CB0F6;
-    --color-accent-dark: #0099DD;
-    --color-accent-light: #4DC4F9;
-
-    /* Neutral - 따뜻한 그레이 */
-    --color-bg: #FAFAFA;
-    --color-surface: #FFFFFF;
-    --color-text: #3C3C3C;
-    --color-text-muted: #777777;
-    --color-border: #E5E5E5;
-
-    /* Feedback */
-    --color-success: #58CC02;
-    --color-error: #FF4B4B;
-    --color-warning: #FFC800;
-
-    /* 재미있는 포인트 컬러 */
-    --color-pink: #FF86D0;
-    --color-purple: #CE82FF;
-    --color-teal: #2ECFCA;
-
-    /* ============================================
-       Legacy Support (기존 시스템 호환)
-       ============================================ */
-
     /* Level Colors */
-    --color-beginner: #58CC02;
-    --color-intermediate: #1CB0F6;
-    --color-advanced: #FF9600;
-    --color-expert: #CE82FF;
+    --color-beginner: #50af31;
+    --color-intermediate: #1a8ec1;
+    --color-advanced: #ec6825;
+    --color-expert: #a84d98;
 
     /* Study Type Colors */
-    --color-flashcard: #FFC800;
-    --color-quiz: #FF4B4B;
-    --color-review: #FF86D0;
+    --color-flashcard: #fecc00;
+    --color-quiz: #ed1c24;
+    --color-review: #ff6699;
 
     /* Category Colors */
-    --color-grammar: #1CB0F6;
-    --color-vocabulary: #FF86D0;
-    --color-listening: #FFC800;
-    --color-reading: #FF4B4B;
-    --color-use-of-english: #FF9600;
-    --color-writing: #CE82FF;
-    --color-exams: #58CC02;
+    --color-grammar: #1a8ec1;
+    --color-vocabulary: #ff6699;
+    --color-listening: #fecc00;
+    --color-reading: #ed1c24;
+    --color-use-of-english: #ec6825;
+    --color-writing: #a84d98;
+    --color-exams: #50af31;
 
     /* UI Colors */
     --color-greyblue: #37424e;
-    --color-brand-primary: #58CC02;
-    --color-brand-secondary: #1CB0F6;
+    --color-brand-primary: #50af31;
+    --color-brand-secondary: #1a8ec1;
 
-    /* Accent Colors */
-    --accent-red: #FF4B4B;
-    --accent-green: #58CC02;
-    --accent-blue: #1CB0F6;
-    --accent-orange: #FF9600;
-    --accent-purple: #CE82FF;
+    /* Accent Colors (FastCampus-style) */
+    --accent-red: #FC1C49;
+    --accent-green: #20AC60;
+    --accent-blue: #3070E8;
+    --accent-orange: #EA9839;
+    --accent-purple: #7C3AED;
 
     /* Exam-specific Theme Colors */
     --color-csat: #667eea;
@@ -317,91 +271,34 @@
     @apply bg-category-exams text-white;
   }
 
-  /* Button Styles - Duolingo-inspired with depth */
+  /* Button Styles */
   .btn {
     @apply inline-flex items-center justify-center gap-2;
-    @apply px-6 py-3 rounded-xl font-bold;
-    @apply transition-all duration-100 ease-out;
+    @apply px-6 py-3 rounded-xl font-medium;
+    @apply transition-all duration-200 ease-out;
     @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
-    @apply select-none;
   }
 
   .btn-primary {
-    background: linear-gradient(180deg, #58CC02 0%, #46A302 100%);
-    color: white;
-    box-shadow: 0 4px 0 #3C8E00;
-    @apply focus:ring-green-400;
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 #3C8E00;
-  }
-
-  .btn-primary:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #3C8E00;
+    @apply bg-brand-primary text-white;
+    @apply hover:bg-brand-primary/90 hover:shadow-glow-blue;
+    @apply focus:ring-brand-primary;
   }
 
   .btn-secondary {
-    background: linear-gradient(180deg, #1CB0F6 0%, #0099DD 100%);
-    color: white;
-    box-shadow: 0 4px 0 #0077AA;
-    @apply focus:ring-blue-400;
-  }
-
-  .btn-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 #0077AA;
-  }
-
-  .btn-secondary:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #0077AA;
-  }
-
-  /* 오렌지 CTA 버튼 */
-  .btn-cta {
-    background: linear-gradient(180deg, #FF9600 0%, #E68600 100%);
-    color: white;
-    box-shadow: 0 4px 0 #CC7700;
-    @apply focus:ring-orange-400;
-  }
-
-  .btn-cta:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 #CC7700;
-  }
-
-  .btn-cta:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #CC7700;
+    @apply bg-brand-secondary text-white;
+    @apply hover:bg-brand-secondary/90 hover:shadow-glow-green;
+    @apply focus:ring-brand-secondary;
   }
 
   .btn-outline {
-    @apply border-2 border-gray-300 bg-white text-gray-700;
-    box-shadow: 0 4px 0 #D1D5DB;
-  }
-
-  .btn-outline:hover {
-    @apply border-gray-400;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 #D1D5DB;
-  }
-
-  .btn-outline:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #D1D5DB;
+    @apply border-2 border-current bg-transparent;
+    @apply hover:bg-slate-50;
   }
 
   .btn-ghost {
     @apply bg-transparent text-slate-600;
     @apply hover:bg-slate-100 hover:text-slate-900;
-    box-shadow: none;
-  }
-
-  .btn-ghost:hover {
-    transform: none;
   }
 
   /* Badge Styles */
@@ -504,16 +401,16 @@
     @apply rounded-b-xl;
   }
 
-  /* Hero Section - Playful rebrand */
+  /* Hero Section */
   .hero-gradient {
-    background: linear-gradient(135deg, #FAFFFE 0%, #E5F7D3 50%, #D6F0FE 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #e3f3fa 50%, #e8f5e4 100%);
   }
 
   .hero-pattern {
     background-image:
-      radial-gradient(circle at 20% 80%, rgba(88, 204, 2, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(28, 176, 246, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(255, 150, 0, 0.08) 0%, transparent 40%);
+      radial-gradient(circle at 20% 80%, rgba(26, 142, 193, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(80, 175, 49, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(168, 77, 152, 0.05) 0%, transparent 40%);
   }
 
   /* Progress Bar */
@@ -522,8 +419,8 @@
   }
 
   .progress-bar__fill {
-    @apply h-full transition-all duration-500 ease-out;
-    background: linear-gradient(90deg, #58CC02 0%, #1CB0F6 100%);
+    @apply h-full bg-gradient-to-r from-brand-primary to-brand-secondary;
+    @apply transition-all duration-500 ease-out;
   }
 
   /* Scroll Progress */
@@ -532,8 +429,8 @@
   }
 
   .scroll-progress__bar {
-    @apply h-full transition-all duration-100 ease-linear;
-    background: linear-gradient(90deg, #58CC02 0%, #1CB0F6 50%, #FF9600 100%);
+    @apply h-full bg-gradient-to-r from-level-beginner via-level-intermediate to-level-advanced;
+    @apply transition-all duration-100 ease-linear;
   }
 
   /* Staggered Animation Delays */
@@ -553,7 +450,7 @@
 @layer utilities {
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #58CC02 0%, #1CB0F6 100%);
+    @apply bg-gradient-to-r from-brand-primary to-brand-secondary;
   }
 
   .no-scrollbar::-webkit-scrollbar {
