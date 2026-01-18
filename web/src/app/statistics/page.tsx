@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import axios from 'axios';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import LearningHeatmap from '@/components/statistics/LearningHeatmap';
 import PredictiveAnalytics from '@/components/statistics/PredictiveAnalytics';
 import WordAccuracyChart from '@/components/statistics/WordAccuracyChart';
@@ -142,27 +142,33 @@ export default function StatisticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">로딩 중...</div>
-      </div>
+      <DashboardLayout>
+        <div className="p-4 lg:p-8 max-w-6xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 w-40 bg-gray-200 rounded mb-8" />
+            <div className="grid md:grid-cols-4 gap-6 mb-8">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-2xl p-6 h-32" />
+              ))}
+            </div>
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              <div className="bg-white rounded-2xl p-6 h-64" />
+              <div className="bg-white rounded-2xl p-6 h-64" />
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1">
-              <ArrowLeft className="w-4 h-4" /> 대시보드
-            </Link>
-            <h1 className="text-2xl font-bold text-blue-600">상세 통계</h1>
-          </div>
+    <DashboardLayout>
+      <div className="p-4 lg:p-8 max-w-6xl mx-auto">
+        {/* 페이지 헤더 */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">상세 통계</h1>
+          <p className="text-gray-500 text-sm mt-1">학습 진행 상황과 패턴을 분석합니다</p>
         </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Overview Cards */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <StatCard
@@ -202,6 +208,8 @@ export default function StatisticsPage() {
               {Object.entries(masteryDist).map(([level, count]) => {
                 const total = Object.values(masteryDist).reduce((a, b) => a + b, 0);
                 const percentage = total > 0 ? (count / total) * 100 : 0;
+                const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
+                const safeCount = isNaN(count) ? 0 : count;
 
                 return (
                   <div key={level}>
@@ -210,7 +218,7 @@ export default function StatisticsPage() {
                         {masteryLabels[level as keyof typeof masteryLabels]}
                       </span>
                       <span className="text-gray-600">
-                        {count}개 ({Math.round(percentage)}%)
+                        {safeCount}개 ({safePercentage}%)
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
@@ -218,7 +226,7 @@ export default function StatisticsPage() {
                         className={`${
                           masteryColors[level as keyof typeof masteryColors]
                         } h-3 rounded-full transition-all duration-500`}
-                        style={{ width: `${percentage}%` }}
+                        style={{ width: `${safePercentage}%` }}
                       />
                     </div>
                   </div>
@@ -234,6 +242,8 @@ export default function StatisticsPage() {
               {Object.entries(difficultyDist).map(([level, count]) => {
                 const total = Object.values(difficultyDist).reduce((a, b) => a + b, 0);
                 const percentage = total > 0 ? (count / total) * 100 : 0;
+                const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
+                const safeCount = isNaN(count) ? 0 : count;
 
                 return (
                   <div key={level}>
@@ -242,7 +252,7 @@ export default function StatisticsPage() {
                         {difficultyLabels[level as keyof typeof difficultyLabels]}
                       </span>
                       <span className="text-gray-600">
-                        {count}개 ({Math.round(percentage)}%)
+                        {safeCount}개 ({safePercentage}%)
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
@@ -250,7 +260,7 @@ export default function StatisticsPage() {
                         className={`${
                           difficultyColors[level as keyof typeof difficultyColors]
                         } h-3 rounded-full transition-all duration-500`}
-                        style={{ width: `${percentage}%` }}
+                        style={{ width: `${safePercentage}%` }}
                       />
                     </div>
                   </div>
@@ -262,7 +272,10 @@ export default function StatisticsPage() {
 
         {/* NEW: Learning Heatmap - Phase 2-2 */}
         <div className="mb-8">
-          <LearningHeatmap />
+          <LearningHeatmap
+            currentStreakOverride={stats?.currentStreak || 0}
+            longestStreakOverride={stats?.longestStreak || 0}
+          />
         </div>
 
         {/* NEW: Predictive Analytics - Phase 2-2 */}
@@ -404,8 +417,8 @@ export default function StatisticsPage() {
             </p>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 
