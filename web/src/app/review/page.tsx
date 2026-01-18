@@ -14,6 +14,9 @@ interface ReviewStats {
   weak: number;
   bookmarked: number;
   totalReviewed: number;
+  accuracy?: number;
+  completedToday?: number;
+  lastReviewDate?: string;
 }
 
 interface ReviewWord {
@@ -51,7 +54,11 @@ export default function ReviewPage() {
     weak: 0,
     bookmarked: 0,
     totalReviewed: 0,
+    accuracy: 0,
+    completedToday: 0,
+    lastReviewDate: undefined,
   });
+  const [currentStreak, setCurrentStreak] = useState(0);
   const [dueWords, setDueWords] = useState<ReviewWord[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -77,13 +84,21 @@ export default function ReviewPage() {
       if (selectedExam !== 'all') params.examCategory = selectedExam;
       if (selectedLevel !== 'all') params.level = selectedLevel;
 
-      const data = await progressAPI.getDueReviews(params);
+      const [data, progressData] = await Promise.all([
+        progressAPI.getDueReviews(params),
+        progressAPI.getUserProgress(),
+      ]);
+
       setStats({
         dueToday: data.count || 0,
         weak: data.weakCount || 0,
         bookmarked: data.bookmarkedCount || 0,
         totalReviewed: data.totalReviewed || 0,
+        accuracy: data.accuracy || 0,
+        completedToday: data.completedToday || 0,
+        lastReviewDate: data.lastReviewDate,
       });
+      setCurrentStreak(progressData.stats?.currentStreak || 0);
 
       // Get sample of due words
       if (data.reviews) {
@@ -188,37 +203,62 @@ export default function ReviewPage() {
           </select>
         </div>
 
-        {/* Main Review Card */}
-        {stats.dueToday > 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center text-3xl">
-                  📚
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">오늘의 복습</h2>
-                  <p className="text-gray-500 text-sm">복습할 단어가 있어요</p>
-                </div>
-              </div>
-              <span className="text-3xl font-bold text-pink-600">{stats.dueToday}개</span>
+        {/* 바로 복습 이어가기 카드 */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900">바로 복습 이어가기</h3>
+            <span className="text-orange-500 text-sm font-medium">🔥 {currentStreak}일 연속</span>
+          </div>
+
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center text-2xl">
+              🔄
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                href={`/learn?mode=review${selectedExam !== 'all' ? `&exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `&level=${selectedLevel}` : ''}`}
-                className="block bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-bold text-center transition"
-              >
-                📚 플래시카드
-              </Link>
-              <Link
-                href={`/review/quiz${selectedExam !== 'all' ? `?exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `${selectedExam !== 'all' ? '&' : '?'}level=${selectedLevel}` : ''}`}
-                className="block bg-gradient-to-r from-pink-500 to-purple-500 text-white py-4 rounded-xl font-bold text-center transition shadow-lg shadow-pink-500/25"
-              >
-                🎯 4지선다 퀴즈
-              </Link>
+            <div>
+              <p className="font-bold text-gray-900">
+                {selectedExam === 'all' ? '전체' : selectedExam === 'CSAT' ? '수능' : selectedExam} {selectedLevel === 'all' ? '' : selectedLevel}
+              </p>
+              <p className="text-sm text-gray-500">복습 대기 단어 • 기억 강화</p>
             </div>
           </div>
-        ) : (
+
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-pink-500">{stats.dueToday}</p>
+              <p className="text-xs text-gray-500">복습 대기</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-800">{stats.completedToday || 0}</p>
+              <p className="text-xs text-gray-500">오늘 완료</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-500">{stats.accuracy || 0}%</p>
+              <p className="text-xs text-gray-500">정답률</p>
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-500 mb-4">
+            마지막 복습: {stats.lastReviewDate ? new Date(stats.lastReviewDate).toLocaleDateString('ko-KR') : '기록 없음'}
+          </p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              href={`/learn?mode=review${selectedExam !== 'all' ? `&exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `&level=${selectedLevel}` : ''}`}
+              className="block bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-bold text-center transition"
+            >
+              📚 플래시카드
+            </Link>
+            <Link
+              href={`/review/quiz${selectedExam !== 'all' ? `?exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `${selectedExam !== 'all' ? '&' : '?'}level=${selectedLevel}` : ''}`}
+              className="block bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 rounded-xl font-bold text-center transition shadow-lg shadow-pink-500/25"
+            >
+              🎯 4지선다 퀴즈
+            </Link>
+          </div>
+        </div>
+
+        {/* 오늘 복습 완료 메시지 */}
+        {stats.dueToday === 0 && (
           <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-6 text-center">
             <div className="text-5xl mb-3">🎉</div>
             <h3 className="text-xl font-bold text-green-700 mb-2">오늘 복습 완료!</h3>

@@ -7,8 +7,8 @@ import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
 import { progressAPI, wordsAPI } from '@/lib/api';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
-import { StatsOverview } from '@/components/dashboard';
 import ExamLevelSelector from '@/components/dashboard/ExamLevelSelector';
+import { useUserStats } from '@/hooks/useUserStats';
 
 // Exam info
 const examInfo: Record<string, { name: string; icon: string; gradient: string; color: string }> = {
@@ -138,14 +138,19 @@ export default function DashboardPage() {
   const exam = examInfo[selectedExam];
   const level = getLevelInfo(selectedExam, selectedLevel);
 
+  // 학습 통계 (간단 요약용)
+  const { stats: userStats } = useUserStats(selectedExam);
+
   // Use exam/level specific word counts (real data from API)
   const totalWords = examLevelTotalWords || level.wordCount;
   const learnedWords = examLevelLearnedWords;
   const remainingWords = Math.max(totalWords - learnedWords, 0);
   const progressPercent = totalWords > 0 ? Math.min(Math.round((learnedWords / totalWords) * 100), 100) : 0;
 
-  // Calculate estimated time (assuming 10 words per 3 minutes)
-  const estimatedMinutes = Math.ceil(dueReviewCount * 0.3);
+  // 오늘의 학습 목표
+  const dailyGoal = 20;
+  const todayRemaining = Math.min(dailyGoal, remainingWords);
+  const estimatedMinutes = Math.ceil(todayRemaining * 0.3);
 
   if (!hasHydrated || loading) {
     return (
@@ -172,25 +177,25 @@ export default function DashboardPage() {
           </select>
         </div>
 
-        {/* P0-2: 오늘 해야 할 일 Hero (학습 중심) */}
+        {/* P0-2: 오늘의 학습 목표 Hero */}
         <div className="bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl p-6 mb-6 text-white shadow-lg shadow-pink-500/25">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <p className="text-pink-100 text-sm mb-1">오늘의 할 일</p>
+              <p className="text-pink-100 text-sm mb-1">오늘의 학습 목표</p>
               <h2 className="text-2xl md:text-3xl font-bold mb-2">
-                {remainingWords > 0 ? (
-                  <>다음 학습할 단어 <span className="text-yellow-300">{remainingWords}개</span></>
+                {todayRemaining > 0 ? (
+                  <>다음 학습할 단어 <span className="text-yellow-300">{todayRemaining}개</span></>
                 ) : (
-                  <>축하합니다! 모든 단어를 학습했어요 🎉</>
+                  <>축하합니다! 오늘 목표 달성! 🎉</>
                 )}
               </h2>
-              {remainingWords > 0 ? (
+              {todayRemaining > 0 ? (
                 <p className="text-pink-100">
-                  지금 시작하면 <strong className="text-white">{Math.ceil(remainingWords * 0.3)}분</strong>이면 끝나요
+                  지금 시작하면 <strong className="text-white">{estimatedMinutes}분</strong>이면 끝나요
                 </p>
               ) : (
                 <p className="text-pink-100">
-                  다른 시험이나 레벨을 선택해서 학습을 계속하세요
+                  오늘 학습을 완료했어요! 추가로 더 학습하시겠어요?
                 </p>
               )}
             </div>
@@ -198,7 +203,7 @@ export default function DashboardPage() {
               href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
               className="bg-white text-pink-600 px-8 py-4 rounded-xl font-bold text-center hover:bg-pink-50 transition shadow-lg whitespace-nowrap"
             >
-              {remainingWords > 0 ? '이어서 학습' : '다른 레벨 학습'}
+              {todayRemaining > 0 ? '이어서 학습' : '추가 학습'}
             </Link>
           </div>
         </div>
@@ -348,9 +353,34 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 상세 통계 */}
-        <div className="mb-6">
-          <StatsOverview exam={selectedExam} />
+        {/* 나의 학습 통계 (간단 요약) */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              📊 나의 학습 통계
+            </h3>
+            <Link href="/statistics" className="text-pink-500 text-sm font-medium hover:underline">
+              자세히 보기 →
+            </Link>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-900">{stats?.totalWordsLearned || 0}</p>
+              <p className="text-xs text-gray-500">학습한 단어</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-orange-500">{stats?.currentStreak || 0}일</p>
+              <p className="text-xs text-gray-500">현재 연속</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-yellow-500">{stats?.longestStreak || 0}일</p>
+              <p className="text-xs text-gray-500">최장 기록</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-500">{userStats?.overall?.accuracy || 0}%</p>
+              <p className="text-xs text-gray-500">정답률</p>
+            </div>
+          </div>
         </div>
       </div>
     </DashboardLayout>
