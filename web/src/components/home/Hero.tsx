@@ -42,9 +42,9 @@ const stats = [
 ];
 
 const features = [
-  { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn" },
-  { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템", href: "/review" },
-  { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공", href: "/statistics" },
+  { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn", demoHref: "/demo/flashcard" },
+  { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템", href: "/review", demoHref: "/demo/quiz" },
+  { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공", href: "/statistics", demoHref: "/demo/analytics" },
 ];
 
 export default function Hero() {
@@ -128,7 +128,7 @@ export default function Hero() {
             <p className="text-sm text-slate-500 text-center">👆 카드를 클릭하여 직접 체험해보세요</p>
 
             {features.map((feature, index) => (
-              <Link key={feature.title} href={feature.href}>
+              <Link key={feature.title} href={isLoggedIn ? feature.href : feature.demoHref}>
                 <div className="group card p-6 flex items-start gap-5 cursor-pointer
                                 hover:shadow-lg hover:scale-[1.02] hover:border-brand-primary/30
                                 transition-all duration-200 border border-transparent"
