@@ -15,9 +15,16 @@ interface DayData {
 interface LearningHeatmapProps {
   data?: DayData[];
   weeks?: number;
+  currentStreakOverride?: number;
+  longestStreakOverride?: number;
 }
 
-export default function LearningHeatmap({ data, weeks = 52 }: LearningHeatmapProps) {
+export default function LearningHeatmap({
+  data,
+  weeks = 52,
+  currentStreakOverride,
+  longestStreakOverride
+}: LearningHeatmapProps) {
   const [heatmapData, setHeatmapData] = useState<DayData[]>([]);
   const [hoveredDay, setHoveredDay] = useState<DayData | null>(null);
   const [hoveredPosition, setHoveredPosition] = useState({ x: 0, y: 0 });
@@ -152,8 +159,9 @@ export default function LearningHeatmap({ data, weeks = 52 }: LearningHeatmapPro
   // Calculate total stats
   const totalDays = heatmapData.filter((d) => d.count > 0).length;
   const totalWords = heatmapData.reduce((sum, d) => sum + d.count, 0);
-  const currentStreak = calculateCurrentStreak();
-  const longestStreak = calculateLongestStreak();
+  // Use override values from API if provided, otherwise calculate from heatmap data
+  const currentStreak = currentStreakOverride ?? calculateCurrentStreak();
+  const longestStreak = longestStreakOverride ?? calculateLongestStreak();
 
   function calculateCurrentStreak(): number {
     let streak = 0;
