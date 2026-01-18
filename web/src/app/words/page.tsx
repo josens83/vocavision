@@ -8,6 +8,7 @@ import { useAuthStore } from '@/lib/store';
 import { wordsAPI } from '@/lib/api';
 import { EmptySearchResults } from '@/components/ui/EmptyState';
 import { SkeletonWordCard } from '@/components/ui/Skeleton';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 
 interface Word {
   id: string;
@@ -32,20 +33,19 @@ export default function WordsPage() {
 
 function WordsPageLoading() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
+    <DashboardLayout>
+      <div className="p-4 lg:p-8 max-w-6xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-8 w-32 bg-gray-200 rounded mb-6" />
+          <div className="bg-white rounded-xl p-6 mb-6 h-40" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <SkeletonWordCard key={i} />
+            ))}
+          </div>
         </div>
-      </header>
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <SkeletonWordCard key={i} />
-          ))}
-        </div>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 
@@ -119,40 +119,12 @@ function WordsPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header - Mobile optimized */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">V</span>
-              </div>
-              <span className="font-bold text-lg">
-                <span className="text-indigo-600">Voca</span>
-                <span className="text-gray-700">Vision</span>
-              </span>
-            </Link>
-            {/* Desktop nav only */}
-            <nav className="hidden md:flex gap-4">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                대시보드
-              </Link>
-              <Link href="/learn" className="text-gray-600 hover:text-gray-900">
-                학습
-              </Link>
-              <Link href="/words" className="text-indigo-600 font-semibold">
-                단어 탐색
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-6 md:py-8">
+    <DashboardLayout>
+      <div className="p-4 lg:p-8 max-w-6xl mx-auto">
+        {/* 페이지 헤더 */}
         <div className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">단어 탐색</h2>
-          <p className="text-gray-600 text-sm md:text-base">학습하고 싶은 단어를 찾아보세요</p>
+          <h1 className="text-2xl font-bold text-gray-900">단어 탐색</h1>
+          <p className="text-gray-500 text-sm mt-1">학습하고 싶은 단어를 찾아보세요</p>
         </div>
 
         {/* Search and Filters */}
@@ -286,8 +258,8 @@ function WordsPageContent() {
             )}
           </>
         )}
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 
