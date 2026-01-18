@@ -4,7 +4,7 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 데모 안내 배너 */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-center py-3 px-4">
+      <div className="bg-gradient-to-r from-brand-primary to-brand-accent text-white text-center py-3 px-4">
         <p className="text-sm">
           🎮 <strong>체험 모드</strong> | VocaVision AI 기능을 미리 체험해보세요
           <Link href="/auth/login" className="ml-3 underline hover:no-underline">
@@ -23,25 +23,25 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
         <div className="max-w-4xl mx-auto flex justify-center gap-6">
           <Link
             href="/demo/flashcard"
-            className="text-sm text-gray-600 hover:text-purple-600 transition"
+            className="text-sm text-gray-600 hover:text-brand-primary transition"
           >
             📚 플래시카드
           </Link>
           <Link
             href="/demo/quiz"
-            className="text-sm text-gray-600 hover:text-purple-600 transition"
+            className="text-sm text-gray-600 hover:text-brand-primary transition"
           >
             🎯 퀴즈
           </Link>
           <Link
             href="/demo/analytics"
-            className="text-sm text-gray-600 hover:text-purple-600 transition"
+            className="text-sm text-gray-600 hover:text-brand-primary transition"
           >
             📊 학습 분석
           </Link>
           <Link
             href="/"
-            className="text-sm text-gray-600 hover:text-purple-600 transition"
+            className="text-sm text-gray-600 hover:text-brand-primary transition"
           >
             🏠 메인
           </Link>

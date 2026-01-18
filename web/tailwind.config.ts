@@ -126,67 +126,77 @@ const config: Config = {
         // greyblue (네비게이션, 푸터 배경)
         greyblue: '#37424e',
 
-        // 난이도별 메인 컬러
+        // 난이도별 메인 컬러 (Duolingo-inspired)
         level: {
           beginner: {
-            DEFAULT: '#50af31',
-            light: '#e8f5e4',
-            dark: '#3d8a26',
+            DEFAULT: '#58CC02',
+            light: '#E5F7D3',
+            dark: '#46A302',
           },
           intermediate: {
-            DEFAULT: '#1a8ec1',
-            light: '#e3f3fa',
-            dark: '#146d96',
+            DEFAULT: '#1CB0F6',
+            light: '#D6F0FE',
+            dark: '#0099DD',
           },
           advanced: {
-            DEFAULT: '#ec6825',
-            light: '#fde9e0',
-            dark: '#c4541c',
+            DEFAULT: '#FF9600',
+            light: '#FFF0D6',
+            dark: '#E68600',
           },
           expert: {
-            DEFAULT: '#a84d98',
-            light: '#f5e8f3',
-            dark: '#863c79',
+            DEFAULT: '#CE82FF',
+            light: '#F4E6FF',
+            dark: '#A855F7',
           },
         },
 
-        // 학습 유형별 컬러
+        // 학습 유형별 컬러 (Duolingo-inspired)
         study: {
           flashcard: {
-            DEFAULT: '#fecc00',
-            light: '#fff9db',
-            dark: '#d4aa00',
+            DEFAULT: '#FFC800',
+            light: '#FFF8D6',
+            dark: '#E6B400',
           },
           quiz: {
-            DEFAULT: '#ed1c24',
-            light: '#fde8e9',
-            dark: '#c4161c',
+            DEFAULT: '#FF4B4B',
+            light: '#FFEBEB',
+            dark: '#E63939',
           },
           review: {
-            DEFAULT: '#ff6699',
-            light: '#ffe8ef',
-            dark: '#d4527d',
+            DEFAULT: '#FF86D0',
+            light: '#FFF0F8',
+            dark: '#E66AB8',
           },
           vocabulary: {
-            DEFAULT: '#1a8ec1',
-            light: '#e3f3fa',
-            dark: '#146d96',
+            DEFAULT: '#1CB0F6',
+            light: '#D6F0FE',
+            dark: '#0099DD',
           },
         },
 
-        // 피드백 컬러
+        // 피드백 컬러 (Duolingo-inspired)
         feedback: {
-          correct: '#22c55e',
-          incorrect: '#ef4444',
-          selected: '#3b82f6',
-          hover: '#f1f5f9',
+          correct: '#58CC02',
+          incorrect: '#FF4B4B',
+          selected: '#1CB0F6',
+          hover: '#F7F7F7',
         },
 
-        // 브랜드 컬러
+        // 브랜드 컬러 (Duolingo-inspired)
         brand: {
-          primary: '#1a8ec1',
-          secondary: '#50af31',
-          accent: '#fecc00',
+          primary: '#58CC02',
+          'primary-dark': '#46A302',
+          'primary-light': '#89E219',
+          'primary-shadow': '#3C8E00',
+          secondary: '#FF9600',
+          'secondary-dark': '#E68600',
+          'secondary-light': '#FFB84D',
+          accent: '#1CB0F6',
+          'accent-dark': '#0099DD',
+          'accent-light': '#4DC4F9',
+          pink: '#FF86D0',
+          purple: '#CE82FF',
+          teal: '#2ECFCA',
         },
 
         // 뉴트럴 컬러 (배경, 텍스트)
@@ -209,8 +219,9 @@ const config: Config = {
       // 타이포그래피
       // ============================================
       fontFamily: {
-        display: ['Outfit', 'system-ui', 'sans-serif'],
-        body: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        sans: ['Pretendard', 'DM Sans', 'system-ui', 'sans-serif'],
+        display: ['Nunito', 'Pretendard', 'system-ui', 'sans-serif'],
+        body: ['Pretendard', 'DM Sans', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
 
@@ -300,8 +311,8 @@ const config: Config = {
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
         pulseGlow: {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(26, 142, 193, 0.3)' },
-          '50%': { boxShadow: '0 0 40px rgba(26, 142, 193, 0.6)' },
+          '0%, 100%': { boxShadow: '0 0 20px rgba(88, 204, 2, 0.3)' },
+          '50%': { boxShadow: '0 0 40px rgba(88, 204, 2, 0.6)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
@@ -336,13 +347,19 @@ const config: Config = {
         'modal': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
         'button': 'rgba(0, 0, 0, 0.16) 0 2px 5px 0, rgba(0, 0, 0, 0.12) 0 2px 10px 0',
         'navbar': '0 1px 13px 0 rgba(0,0,0,0.3)',
-        'glow-blue': '0 0 30px rgba(26, 142, 193, 0.3)',
-        'glow-green': '0 0 30px rgba(80, 175, 49, 0.3)',
-        'glow-orange': '0 0 30px rgba(236, 104, 37, 0.3)',
-        'glow-purple': '0 0 30px rgba(168, 77, 152, 0.3)',
-        'glow-pink': '0 0 30px rgba(255, 102, 153, 0.3)',
-        'glow-yellow': '0 0 30px rgba(254, 204, 0, 0.3)',
-        'glow-red': '0 0 30px rgba(237, 28, 36, 0.3)',
+        // Duolingo-inspired depth shadows
+        'btn-primary': '0 4px 0 #3C8E00',
+        'btn-secondary': '0 4px 0 #0077AA',
+        'btn-cta': '0 4px 0 #CC7700',
+        // Glow effects (새 팔레트)
+        'glow-green': '0 0 30px rgba(88, 204, 2, 0.3)',
+        'glow-blue': '0 0 30px rgba(28, 176, 246, 0.3)',
+        'glow-orange': '0 0 30px rgba(255, 150, 0, 0.3)',
+        'glow-purple': '0 0 30px rgba(206, 130, 255, 0.3)',
+        'glow-pink': '0 0 30px rgba(255, 134, 208, 0.3)',
+        'glow-yellow': '0 0 30px rgba(255, 200, 0, 0.3)',
+        'glow-red': '0 0 30px rgba(255, 75, 75, 0.3)',
+        'glow-teal': '0 0 30px rgba(46, 207, 202, 0.3)',
       },
 
       // ============================================
@@ -350,6 +367,11 @@ const config: Config = {
       // ============================================
       backgroundImage: {
         'gradient-main': 'linear-gradient(174.2deg, rgb(255, 252, 248) 7.1%, rgba(240, 246, 238, 1) 67.4%)',
+        // Playful gradients
+        'gradient-primary': 'linear-gradient(180deg, #58CC02 0%, #46A302 100%)',
+        'gradient-secondary': 'linear-gradient(180deg, #1CB0F6 0%, #0099DD 100%)',
+        'gradient-cta': 'linear-gradient(180deg, #FF9600 0%, #E68600 100%)',
+        'gradient-hero': 'linear-gradient(135deg, #FAFFFE 0%, #E5F7D3 50%, #D6F0FE 100%)',
       },
 
       // ============================================
