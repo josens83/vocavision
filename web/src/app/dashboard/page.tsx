@@ -172,33 +172,33 @@ export default function DashboardPage() {
           </select>
         </div>
 
-        {/* P0-2: 오늘 해야 할 일 Hero (Fastcampus 스타일) */}
+        {/* P0-2: 오늘 해야 할 일 Hero (학습 중심) */}
         <div className="bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl p-6 mb-6 text-white shadow-lg shadow-pink-500/25">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p className="text-pink-100 text-sm mb-1">오늘의 할 일</p>
               <h2 className="text-2xl md:text-3xl font-bold mb-2">
-                {dueReviewCount > 0 ? (
-                  <>복습할 단어 <span className="text-yellow-300">{dueReviewCount}개</span></>
+                {remainingWords > 0 ? (
+                  <>다음 학습할 단어 <span className="text-yellow-300">{remainingWords}개</span></>
                 ) : (
-                  <>새로운 단어를 학습해보세요</>
+                  <>축하합니다! 모든 단어를 학습했어요 🎉</>
                 )}
               </h2>
-              {dueReviewCount > 0 ? (
+              {remainingWords > 0 ? (
                 <p className="text-pink-100">
-                  지금 시작하면 <strong className="text-white">{estimatedMinutes}분</strong>이면 끝나요
+                  지금 시작하면 <strong className="text-white">{Math.ceil(remainingWords * 0.3)}분</strong>이면 끝나요
                 </p>
               ) : (
                 <p className="text-pink-100">
-                  오늘 목표: 새 단어 <strong className="text-white">20개</strong> 학습하기
+                  다른 시험이나 레벨을 선택해서 학습을 계속하세요
                 </p>
               )}
             </div>
             <Link
-              href={dueReviewCount > 0 ? '/review' : `/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
+              href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
               className="bg-white text-pink-600 px-8 py-4 rounded-xl font-bold text-center hover:bg-pink-50 transition shadow-lg whitespace-nowrap"
             >
-              {dueReviewCount > 0 ? '복습 시작' : '학습 시작'}
+              {remainingWords > 0 ? '이어서 학습' : '다른 레벨 학습'}
             </Link>
           </div>
         </div>
