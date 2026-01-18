@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { progressAPI } from '@/lib/api';
-import TabLayout from '@/components/layout/TabLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 
 interface ReviewStats {
@@ -106,8 +106,8 @@ export default function ReviewPage() {
 
   if (!hasHydrated || loading) {
     return (
-      <TabLayout>
-        <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <DashboardLayout>
+        <div className="p-4 lg:p-8 max-w-5xl mx-auto">
           <div className="mb-6">
             <div className="h-8 w-24 bg-gray-200 rounded animate-pulse mb-2" />
             <div className="h-5 w-56 bg-gray-200 rounded animate-pulse" />
@@ -123,17 +123,47 @@ export default function ReviewPage() {
           </div>
           <SkeletonCard className="mb-6 h-64" />
         </div>
-      </TabLayout>
+      </DashboardLayout>
     );
   }
 
+  // 예상 복습 시간 계산 (단어당 0.3분)
+  const estimatedMinutes = Math.ceil(stats.dueToday * 0.3);
+
   return (
-    <TabLayout>
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
-        {/* Header */}
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">복습</h1>
-          <p className="text-gray-500">스페이스드 반복으로 기억을 강화하세요</p>
+    <DashboardLayout>
+      <div className="p-4 lg:p-8 max-w-5xl mx-auto">
+        {/* 상단 히어로 배너 */}
+        <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 mb-6 text-white shadow-lg shadow-purple-500/25">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p className="text-purple-100 text-sm mb-1">오늘의 복습</p>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">
+                {stats.dueToday > 0 ? (
+                  <>복습할 단어 <span className="text-yellow-300">{stats.dueToday}개</span></>
+                ) : (
+                  <>오늘 복습 완료! 🎉</>
+                )}
+              </h2>
+              {stats.dueToday > 0 ? (
+                <p className="text-purple-100">
+                  지금 시작하면 <strong className="text-white">{estimatedMinutes}분</strong>이면 끝나요
+                </p>
+              ) : (
+                <p className="text-purple-100">
+                  내일 복습할 단어가 준비될 때까지 쉬세요
+                </p>
+              )}
+            </div>
+            {stats.dueToday > 0 && (
+              <Link
+                href={`/review/quiz${selectedExam !== 'all' ? `?exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `${selectedExam !== 'all' ? '&' : '?'}level=${selectedLevel}` : ''}`}
+                className="bg-white text-purple-600 px-8 py-4 rounded-xl font-bold text-center hover:bg-purple-50 transition shadow-lg whitespace-nowrap"
+              >
+                복습 시작
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* 필터 */}
@@ -298,6 +328,6 @@ export default function ReviewPage() {
           </p>
         </div>
       </div>
-    </TabLayout>
+    </DashboardLayout>
   );
 }
