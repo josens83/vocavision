@@ -337,22 +337,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* KPI 통계 3개 */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-            <p className="text-3xl font-bold text-blue-600">{stats?.totalWordsLearned || 0}</p>
-            <p className="text-sm text-gray-500">학습한 단어</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-            <p className="text-3xl font-bold text-orange-500">{stats?.currentStreak || 0}일</p>
-            <p className="text-sm text-gray-500">연속 학습</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
-            <p className="text-3xl font-bold text-green-500">{dueReviewCount}</p>
-            <p className="text-sm text-gray-500">복습 대기</p>
-          </div>
-        </div>
-
         {/* 나의 학습 통계 (간단 요약) */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
