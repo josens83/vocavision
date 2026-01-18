@@ -123,7 +123,7 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className={`space-y-5 ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
+          <div className={`space-y-6 md:space-y-8 ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
             {/* 섹션 안내 */}
             <p className="text-sm text-slate-500 text-center">클릭하여 기능을 체험해보세요 →</p>
 
