@@ -47,7 +47,7 @@ const authTabs = [
   { key: 'home', label: '홈', href: '/', icon: icons.home },
   { key: 'learn', label: '학습', href: '/learn?exam=CSAT', icon: icons.learn },
   { key: 'quiz', label: '퀴즈', href: '/quiz', icon: icons.quiz },
-  { key: 'my', label: 'MY', href: '/dashboard', icon: icons.user },
+  { key: 'my', label: 'MY', href: '/dashboard', icon: icons.user, showLoggedIn: true },
 ];
 
 // Paths where tab bar should be hidden
@@ -96,13 +96,19 @@ export default function BottomTabBar() {
       <div className="flex justify-around items-center h-16 w-full px-2">
         {tabs.map((tab) => {
           const active = isActive(tab.href);
+          const showLoggedInDot = 'showLoggedIn' in tab && tab.showLoggedIn;
           return (
             <Link
               key={tab.key}
               href={tab.href}
               className="flex flex-col items-center justify-center flex-1 min-w-0 min-h-[44px] py-2 transition-colors"
             >
-              {tab.icon(active)}
+              <div className="relative">
+                {tab.icon(active)}
+                {showLoggedInDot && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-white" />
+                )}
+              </div>
               <span className={`text-[10px] mt-1 truncate ${active ? 'text-pink-500 font-medium' : 'text-gray-400'}`}>
                 {tab.label}
               </span>
