@@ -25,6 +25,9 @@ interface QuizQuestion {
     ipaUk?: string;
     audioUrlUs?: string;
     audioUrlUk?: string;
+    pronunciationKo?: string;
+    examCategory?: string;
+    level?: string;
   };
   visuals: {
     concept: string | null;
@@ -48,6 +51,15 @@ const POS_LABELS: Record<string, string> = {
   PREPOSITION: '전치사',
   CONJUNCTION: '접속사',
   INTERJECTION: '감탄사',
+};
+
+// 시험 카테고리 한글 매핑
+const EXAM_LABELS: Record<string, string> = {
+  CSAT: '수능',
+  TEPS: 'TEPS',
+  TOEFL: 'TOEFL',
+  TOEIC: 'TOEIC',
+  SAT: 'SAT',
 };
 
 function QuizPageContent() {
@@ -249,6 +261,11 @@ function QuizPageContent() {
       <div className="container mx-auto px-4 py-6 max-w-lg">
         {/* 단어 정보 */}
         <div className="text-center mb-6 py-6 bg-gradient-to-b from-white to-gray-50 rounded-2xl border border-gray-200 shadow-sm">
+          {/* 시험/레벨 표시 */}
+          <p className="text-sm text-gray-500 mb-2">
+            {EXAM_LABELS[currentQuestion.word.examCategory || ''] || currentQuestion.word.examCategory} • {currentQuestion.word.level || 'L1'}
+          </p>
+
           {/* 품사 뱃지 */}
           {currentQuestion.word.partOfSpeech && (
             <span className="inline-block px-3 py-1 text-xs font-medium text-gray-600 bg-gray-200 rounded-full mb-3">
@@ -272,10 +289,17 @@ function QuizPageContent() {
             )}
           </div>
 
-          {/* 발음 기호 */}
+          {/* IPA 발음 기호 */}
           {(currentQuestion.word.ipaUs || currentQuestion.word.pronunciation) && (
             <p className="text-gray-500 text-sm">
               {currentQuestion.word.ipaUs || currentQuestion.word.pronunciation}
+            </p>
+          )}
+
+          {/* 한국어 발음 */}
+          {currentQuestion.word.pronunciationKo && (
+            <p className="text-sm text-pink-500 mt-1">
+              {currentQuestion.word.pronunciationKo}
             </p>
           )}
         </div>
