@@ -123,12 +123,12 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className={`space-y-6 md:space-y-8 ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
+          <div className={`flex flex-col gap-5 md:gap-6 ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
             {/* 섹션 안내 */}
-            <p className="text-sm text-slate-500 text-center">클릭하여 기능을 체험해보세요 →</p>
+            <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
 
             {features.map((feature, index) => (
-              <Link key={feature.title} href={isLoggedIn ? feature.href : feature.demoHref}>
+              <Link key={feature.title} href={isLoggedIn ? feature.href : feature.demoHref} className="block">
                 <div className="group card p-5 md:p-6 flex items-start gap-5 cursor-pointer
                                 hover:shadow-lg hover:scale-[1.02] hover:border-brand-primary/30
                                 transition-all duration-200 border border-transparent"
