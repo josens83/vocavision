@@ -96,7 +96,7 @@ export default function BottomTabBar() {
       <div className="flex justify-around items-center h-16 w-full px-2">
         {tabs.map((tab) => {
           const active = isActive(tab.href);
-          const showLoggedInDot = 'showLoggedIn' in tab && tab.showLoggedIn;
+          const showLoggedInDot = 'showLoggedIn' in tab && (tab as { showLoggedIn?: boolean }).showLoggedIn === true;
           return (
             <Link
               key={tab.key}
