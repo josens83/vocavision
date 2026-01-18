@@ -42,9 +42,9 @@ const stats = [
 ];
 
 const features = [
-  { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기" },
-  { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템" },
-  { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공" },
+  { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn" },
+  { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템", href: "/review" },
+  { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공", href: "/statistics" },
 ];
 
 export default function Hero() {
@@ -124,24 +124,37 @@ export default function Hero() {
           </div>
 
           <div className={`space-y-6 ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
+            {/* 섹션 안내 */}
+            <p className="text-sm text-slate-500 text-center">👆 카드를 클릭하여 직접 체험해보세요</p>
+
             {features.map((feature, index) => (
-              <div key={feature.title} className="group card p-6 flex items-start gap-5 hover:bg-slate-50" style={{ animationDelay: `${0.2 + index * 0.15}s` }}>
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110
-                  ${index === 0 ? "bg-level-beginner-light text-level-beginner" : ""}
-                  ${index === 1 ? "bg-level-intermediate-light text-level-intermediate" : ""}
-                  ${index === 2 ? "bg-level-advanced-light text-level-advanced" : ""}`}>
-                  <feature.icon />
+              <Link key={feature.title} href={feature.href}>
+                <div className="group card p-6 flex items-start gap-5 cursor-pointer
+                                hover:shadow-lg hover:scale-[1.02] hover:border-brand-primary/30
+                                transition-all duration-200 border border-transparent"
+                     style={{ animationDelay: `${0.2 + index * 0.15}s` }}>
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110
+                    ${index === 0 ? "bg-level-beginner-light text-level-beginner" : ""}
+                    ${index === 1 ? "bg-level-intermediate-light text-level-intermediate" : ""}
+                    ${index === 2 ? "bg-level-advanced-light text-level-advanced" : ""}`}>
+                    <feature.icon />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-lg font-semibold text-slate-900">{feature.title}</h3>
+                      <span className="text-xs font-medium text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">
+                        체험하기
+                      </span>
+                    </div>
+                    <p className="text-slate-600">{feature.description}</p>
+                  </div>
+                  <div className="self-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-1">{feature.title}</h3>
-                  <p className="text-slate-600">{feature.description}</p>
-                </div>
-                <div className="self-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
+              </Link>
             ))}
 
             {/* 비로그인 시: 체험 유도 카드 / 로그인 시: 학습 목표 카드 */}
