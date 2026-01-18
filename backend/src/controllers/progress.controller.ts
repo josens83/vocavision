@@ -446,6 +446,7 @@ export const getReviewQuiz = async (
           include: {
             visuals: { orderBy: { order: 'asc' } },
             mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+            examLevels: { take: 1 },  // 레벨 정보 포함
           }
         }
       },
@@ -505,6 +506,9 @@ export const getReviewQuiz = async (
         rhyme: word.visuals?.find(v => v.type === 'RHYME')?.imageUrl || null,
       };
 
+      // 레벨 정보 가져오기
+      const wordLevel = word.examLevels?.[0]?.level || word.level || 'L1';
+
       return {
         wordId: word.id,
         word: {
@@ -517,6 +521,10 @@ export const getReviewQuiz = async (
           ipaUk: word.ipaUk,
           audioUrlUs: word.audioUrlUs,
           audioUrlUk: word.audioUrlUk,
+          // 추가 필드
+          pronunciationKo: word.phonetic,  // 한국어 발음 (phonetic 필드 사용)
+          examCategory: word.examCategory,
+          level: wordLevel,
         },
         visuals,
         options,
