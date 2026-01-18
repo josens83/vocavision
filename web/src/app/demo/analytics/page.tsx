@@ -36,7 +36,7 @@ export default function AnalyticsDemoPage() {
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-          <Brain className="w-8 h-8 text-brand-primary mx-auto mb-2" />
+          <Brain className="w-8 h-8 text-purple-500 mx-auto mb-2" />
           <p className="text-2xl font-bold text-gray-900">{sampleData.totalWords}</p>
           <p className="text-sm text-gray-500">학습한 단어</p>
         </div>
@@ -64,7 +64,7 @@ export default function AnalyticsDemoPage() {
           {['일', '월', '화', '수', '목', '금', '토'].map((day, index) => (
             <div key={day} className="flex-1 flex flex-col items-center">
               <div
-                className="w-full bg-gradient-to-t from-brand-primary to-brand-primary-light rounded-t transition-all hover:from-brand-primary-dark hover:to-brand-primary"
+                className="w-full bg-gradient-to-t from-purple-500 to-purple-400 rounded-t transition-all hover:from-purple-600 hover:to-purple-500"
                 style={{ height: `${sampleData.weeklyActivity[index] * 12}px` }}
               />
               <span className="text-xs text-gray-500 mt-2">{day}</span>
@@ -105,7 +105,7 @@ export default function AnalyticsDemoPage() {
         <h3 className="font-semibold text-gray-900 mb-4">🤖 AI 학습 분석</h3>
         <div className="space-y-4">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-brand-secondary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
               ⏰
             </div>
             <div>
@@ -135,7 +135,7 @@ export default function AnalyticsDemoPage() {
       </div>
 
       {/* CTA */}
-      <div className="text-center bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-8">
+      <div className="text-center bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-8">
         <h3 className="text-xl font-bold text-gray-900 mb-2">
           나만의 학습 분석을 시작하세요
         </h3>
@@ -145,7 +145,7 @@ export default function AnalyticsDemoPage() {
         </p>
         <Link
           href="/auth/login"
-          className="inline-flex items-center gap-2 px-8 py-3 bg-brand-primary text-white rounded-xl hover:bg-brand-primary-dark transition"
+          className="inline-flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition"
         >
           학습 시작하기
           <ArrowRight className="w-4 h-4" />
