@@ -87,11 +87,20 @@ export default function MyPage() {
               </div>
             )}
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-gray-900">{user.name}</h1>
+              <h1 className="text-xl font-bold text-gray-900">{user.name || '사용자'}</h1>
               <p className="text-sm text-gray-500">{user.email}</p>
-              <span className={`inline-block mt-2 text-xs font-medium px-3 py-1 rounded-full ${currentSub.color}`}>
-                {currentSub.text}
-              </span>
+              <div className="flex items-center gap-2 mt-2">
+                <span className={`text-xs font-medium px-3 py-1 rounded-full ${currentSub.color}`}>
+                  {currentSub.text}
+                </span>
+                {user.provider && (
+                  <span className="text-xs text-gray-400">
+                    {user.provider === 'kakao' && '카카오 로그인'}
+                    {user.provider === 'google' && 'Google 로그인'}
+                    {user.provider === 'credentials' && '이메일 로그인'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -118,12 +127,24 @@ export default function MyPage() {
         {/* 메뉴 항목 */}
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4">
           <Link
-            href="/stats"
+            href="/dashboard"
+            className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🏠</span>
+              <span className="text-sm font-medium text-gray-700">대시보드</span>
+            </div>
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+          <Link
+            href="/statistics"
             className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100"
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">📊</span>
-              <span className="text-sm font-medium text-gray-700">상세 학습 통계</span>
+              <span className="text-sm font-medium text-gray-700">학습 통계</span>
             </div>
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
