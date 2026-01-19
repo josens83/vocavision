@@ -57,6 +57,8 @@ function UserStatsSection() {
     accuracy: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dailyGoal, setDailyGoal] = useState(60);
+  const [showGoalOptions, setShowGoalOptions] = useState(false);
   const activeExam = useExamCourseStore((state) => state.activeExam) || 'CSAT';
   const activeLevel = useExamCourseStore((state) => state.activeLevel) || 'L1';
 
@@ -89,10 +91,9 @@ function UserStatsSection() {
     }
   };
 
-  // 오늘의 목표 (기본 60개, 향후 사용자 설정 가능)
-  const dailyGoal = 60;
   const todayProgress = stats?.totalWordsLearned || 0;
   const progressPercent = Math.round((todayProgress / dailyGoal) * 100);
+  const goalOptions = [20, 40, 60, 80, 100];
 
   return (
     <>
@@ -155,34 +156,80 @@ function UserStatsSection() {
             <span className="text-sm font-medium text-slate-700">복습하기</span>
           </Link>
           <Link
-            href="/quiz"
-            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-purple-50 hover:bg-purple-100 transition group"
+            href="/stats"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-green-50 hover:bg-green-100 transition group"
           >
-            <div className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center group-hover:scale-110 transition">
+            <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center group-hover:scale-110 transition">
               <Icons.ChartBar />
             </div>
-            <span className="text-sm font-medium text-slate-700">퀴즈</span>
+            <span className="text-sm font-medium text-slate-700">학습 통계</span>
           </Link>
         </div>
       </div>
 
-      {/* 오늘의 목표 진행률 */}
-      <div className="card p-5 md:p-6 bg-gradient-to-br from-brand-primary to-brand-primary/80 text-white">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold">오늘의 목표</h3>
-          <span className="text-white/80 text-sm">{todayProgress}/{dailyGoal}개</span>
+      {/* 오늘의 목표 진행률 - 에너지 게이지 스타일 */}
+      <div className="card p-5 md:p-6 bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
+        {/* 배경 장식 */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-orange-500/10 rounded-full blur-2xl" />
+
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              ⚡ 오늘의 목표
+            </h3>
+            <span className="text-white/80 text-sm font-medium">{todayProgress}/{dailyGoal}개</span>
+          </div>
+
+          {/* 에너지 게이지 바 */}
+          <div className="relative w-full h-4 bg-slate-700/50 rounded-full mb-3 overflow-hidden">
+            {/* 게이지 배경 그리드 */}
+            <div className="absolute inset-0 flex">
+              {[...Array(10)].map((_, i) => (
+                <div key={i} className="flex-1 border-r border-slate-600/30 last:border-r-0" />
+              ))}
+            </div>
+            {/* 게이지 채우기 - 그라데이션 + 글로우 */}
+            <div
+              className={`absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out ${
+                progressPercent >= 100
+                  ? 'bg-gradient-to-r from-green-400 via-emerald-500 to-green-400 shadow-[0_0_20px_rgba(52,211,153,0.5)]'
+                  : progressPercent >= 70
+                    ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400 shadow-[0_0_15px_rgba(251,191,36,0.4)]'
+                    : 'bg-gradient-to-r from-orange-400 via-orange-500 to-amber-400 shadow-[0_0_10px_rgba(251,146,60,0.3)]'
+              }`}
+              style={{ width: `${Math.min(progressPercent, 100)}%` }}
+            >
+              {/* 반짝이는 효과 */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
+            </div>
+          </div>
+
+          <p className="text-white/80 text-sm mb-4">
+            {progressPercent >= 100
+              ? '🎉 목표 달성! 대단해요!'
+              : progressPercent >= 70
+                ? `거의 다 왔어요! ${dailyGoal - todayProgress}개 남음`
+                : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`}
+          </p>
+
+          {/* 목표 조정 버튼 그룹 */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/60 mr-1">목표:</span>
+            {goalOptions.map((goal) => (
+              <button
+                key={goal}
+                onClick={() => setDailyGoal(goal)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  dailyGoal === goal
+                    ? 'bg-white text-slate-900 shadow-lg'
+                    : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                }`}
+              >
+                {goal}개
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="w-full bg-white/20 rounded-full h-3 mb-3">
-          <div
-            className="bg-white h-3 rounded-full transition-all duration-500"
-            style={{ width: `${Math.min(progressPercent, 100)}%` }}
-          />
-        </div>
-        <p className="text-white/80 text-sm">
-          {progressPercent >= 100
-            ? '🎉 오늘 목표 달성! 추가로 더 학습해보세요!'
-            : `조금만 더 하면 오늘 목표 달성! (${100 - progressPercent}% 남음)`}
-        </p>
       </div>
     </>
   );
