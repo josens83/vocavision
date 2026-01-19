@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
@@ -44,8 +44,29 @@ const LEVEL_OPTIONS = [
   { value: 'L3', label: 'L3 (고급)' },
 ];
 
-export default function ReviewPage() {
+// 데모 모드용 샘플 데이터
+const DEMO_STATS: ReviewStats = {
+  dueToday: 15,
+  weak: 8,
+  bookmarked: 5,
+  totalReviewed: 120,
+  accuracy: 78,
+  completedToday: 10,
+  lastReviewDate: new Date().toISOString(),
+};
+
+const DEMO_WORDS: ReviewWord[] = [
+  { id: 'demo1', word: 'abundant', definitionKo: '풍부한', lastReviewed: new Date().toISOString(), nextReview: new Date().toISOString(), correctCount: 3, incorrectCount: 1 },
+  { id: 'demo2', word: 'benevolent', definitionKo: '자비로운', lastReviewed: new Date().toISOString(), nextReview: new Date().toISOString(), correctCount: 2, incorrectCount: 2 },
+  { id: 'demo3', word: 'comprehensive', definitionKo: '포괄적인', lastReviewed: new Date().toISOString(), nextReview: new Date().toISOString(), correctCount: 4, incorrectCount: 0 },
+  { id: 'demo4', word: 'diligent', definitionKo: '부지런한', lastReviewed: new Date().toISOString(), nextReview: new Date().toISOString(), correctCount: 1, incorrectCount: 1 },
+  { id: 'demo5', word: 'eloquent', definitionKo: '웅변의', lastReviewed: new Date().toISOString(), nextReview: new Date().toISOString(), correctCount: 2, incorrectCount: 1 },
+];
+
+function ReviewPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isDemo = searchParams.get('demo') === 'true';
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
@@ -69,13 +90,22 @@ export default function ReviewPage() {
   useEffect(() => {
     if (!hasHydrated) return;
 
+    // 데모 모드일 경우 샘플 데이터 사용
+    if (isDemo && !user) {
+      setStats(DEMO_STATS);
+      setDueWords(DEMO_WORDS);
+      setCurrentStreak(7);
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       router.push('/auth/login');
       return;
     }
 
     loadReviewData();
-  }, [user, hasHydrated, router, selectedExam, selectedLevel]);
+  }, [user, hasHydrated, router, selectedExam, selectedLevel, isDemo]);
 
   const loadReviewData = async () => {
     setLoading(true);
@@ -148,6 +178,24 @@ export default function ReviewPage() {
   return (
     <DashboardLayout>
       <div className="p-4 lg:p-8 max-w-5xl mx-auto">
+        {/* 데모 모드 배너 */}
+        {isDemo && !user && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded font-bold text-xs">체험</span>
+                <span className="text-amber-800 text-sm">샘플 데이터로 복습 기능을 미리 체험해보세요</span>
+              </div>
+              <Link
+                href="/auth/register"
+                className="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-600 transition whitespace-nowrap"
+              >
+                무료 회원가입
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* 상단 히어로 배너 */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 mb-6 text-white shadow-lg shadow-purple-500/25">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -369,5 +417,38 @@ export default function ReviewPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+// Loading component for Suspense
+function ReviewPageLoading() {
+  return (
+    <DashboardLayout>
+      <div className="p-4 lg:p-8 max-w-5xl mx-auto">
+        <div className="mb-6">
+          <div className="h-8 w-24 bg-gray-200 rounded animate-pulse mb-2" />
+          <div className="h-5 w-56 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <SkeletonCard className="mb-6 h-40" />
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-2xl p-4 border border-gray-200">
+              <div className="h-9 w-12 bg-gray-200 rounded animate-pulse mx-auto mb-1" />
+              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mx-auto" />
+            </div>
+          ))}
+        </div>
+        <SkeletonCard className="mb-6 h-64" />
+      </div>
+    </DashboardLayout>
+  );
+}
+
+// Suspense boundary로 감싸서 export
+export default function ReviewPage() {
+  return (
+    <Suspense fallback={<ReviewPageLoading />}>
+      <ReviewPageContent />
+    </Suspense>
   );
 }

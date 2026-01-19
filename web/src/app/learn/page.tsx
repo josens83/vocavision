@@ -110,15 +110,16 @@ function LearnPageContent() {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
-  // Demo 체험 완료 상태 관리 (localStorage)
-  const DEMO_KEY = 'vocavision_demo_completed';
+  // Demo 체험 횟수 관리 (localStorage) - 최대 2회 허용
+  const DEMO_KEY = 'vocavision_demo_count';
+  const MAX_DEMO_COUNT = 2;
   const [demoBlocked, setDemoBlocked] = useState(false);
 
-  // 체험 완료 여부 확인
+  // 체험 횟수 확인
   useEffect(() => {
     if (isDemo && !user && typeof window !== 'undefined') {
-      const completed = localStorage.getItem(DEMO_KEY) === 'true';
-      if (completed) {
+      const count = parseInt(localStorage.getItem(DEMO_KEY) || '0', 10);
+      if (count >= MAX_DEMO_COUNT) {
         setDemoBlocked(true);
       }
     }
@@ -296,9 +297,10 @@ function LearnPageContent() {
     // Check if we've finished all words
     if (currentWordIndex + 1 >= reviews.length) {
       setShowResult(true);
-      // 비로그인 데모 사용자의 경우 체험 완료 표시
+      // 비로그인 데모 사용자의 경우 체험 횟수 증가
       if (isDemo && !user && typeof window !== 'undefined') {
-        localStorage.setItem(DEMO_KEY, 'true');
+        const currentCount = parseInt(localStorage.getItem(DEMO_KEY) || '0', 10);
+        localStorage.setItem(DEMO_KEY, String(currentCount + 1));
       }
       if (user && sessionId) {
         // Calculate final stats from cardRatings
@@ -349,9 +351,10 @@ function LearnPageContent() {
     // Check if we've finished all words
     if (currentWordIndex + 1 >= reviews.length) {
       setShowResult(true);
-      // 비로그인 데모 사용자의 경우 체험 완료 표시
+      // 비로그인 데모 사용자의 경우 체험 횟수 증가
       if (isDemo && !user && typeof window !== 'undefined') {
-        localStorage.setItem(DEMO_KEY, 'true');
+        const currentCount = parseInt(localStorage.getItem(DEMO_KEY) || '0', 10);
+        localStorage.setItem(DEMO_KEY, String(currentCount + 1));
       }
       if (user && sessionId) {
         // Calculate final stats from cardRatings
@@ -389,7 +392,7 @@ function LearnPageContent() {
     return <LearnPageLoading />;
   }
 
-  // 비로그인 사용자가 이미 체험을 완료한 경우
+  // 비로그인 사용자가 이미 체험을 완료한 경우 (2회 완료)
   if (demoBlocked && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-primary/5 to-brand-secondary/5 p-4">
@@ -397,6 +400,7 @@ function LearnPageContent() {
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">체험이 완료되었습니다!</h2>
           <p className="text-gray-600 mb-6">
+            2회 무료 체험을 모두 사용하셨습니다.<br />
             VocaVision AI의 모든 기능을 이용하려면<br />
             무료 회원가입을 해주세요.
           </p>
