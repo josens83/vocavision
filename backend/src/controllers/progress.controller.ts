@@ -171,15 +171,14 @@ export const submitReview = async (
     });
 
     if (!progress) {
-      // Create new progress
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      // Create new progress - 즉시 복습 가능하도록 현재 시간으로 설정
+      const now = new Date();
 
       progress = await prisma.userProgress.create({
         data: {
           userId,
           wordId,
-          nextReviewDate: tomorrow,
+          nextReviewDate: now, // 오늘 학습 → 오늘 복습 가능
           masteryLevel: 'NEW'
         }
       });

@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
 import { progressAPI } from '@/lib/api';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonCard } from '@/components/ui/Skeleton';
@@ -29,20 +29,21 @@ interface ReviewWord {
   incorrectCount: number;
 }
 
-const EXAM_OPTIONS = [
-  { value: 'all', label: '전체 시험' },
-  { value: 'CSAT', label: '수능' },
-  { value: 'TEPS', label: 'TEPS' },
-  { value: 'TOEFL', label: 'TOEFL' },
-  { value: 'TOEIC', label: 'TOEIC' },
-];
+// Dashboard와 동일한 시험/레벨 정보
+const examInfo: Record<string, { name: string; icon: string }> = {
+  all: { name: '전체', icon: '📋' },
+  CSAT: { name: '수능', icon: '📝' },
+  TOEIC: { name: 'TOEIC', icon: '💼' },
+  TOEFL: { name: 'TOEFL', icon: '🌍' },
+  TEPS: { name: 'TEPS', icon: '🎓' },
+};
 
-const LEVEL_OPTIONS = [
-  { value: 'all', label: '전체 레벨' },
-  { value: 'L1', label: 'L1 (초급)' },
-  { value: 'L2', label: 'L2 (중급)' },
-  { value: 'L3', label: 'L3 (고급)' },
-];
+const levelInfo: Record<string, { name: string; description: string }> = {
+  all: { name: '전체', description: '모든 레벨' },
+  L1: { name: '초급', description: '기초 필수 단어' },
+  L2: { name: '중급', description: '핵심 심화 단어' },
+  L3: { name: '고급', description: '고난도 단어' },
+};
 
 // 데모 모드용 샘플 데이터
 const DEMO_STATS: ReviewStats = {
@@ -83,9 +84,32 @@ function ReviewPageContent() {
   const [dueWords, setDueWords] = useState<ReviewWord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 필터 상태
+  // 필터 상태 (store 연동)
+  const activeExam = useExamCourseStore((state) => state.activeExam);
+  const activeLevel = useExamCourseStore((state) => state.activeLevel);
+  const setActiveExam = useExamCourseStore((state) => state.setActiveExam);
+  const setActiveLevel = useExamCourseStore((state) => state.setActiveLevel);
+
+  // 'all'을 기본값으로 사용 (복습에서는 전체 필터 허용)
   const [selectedExam, setSelectedExam] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
+
+  // store 값으로 초기화 (마운트 시)
+  useEffect(() => {
+    if (activeExam) setSelectedExam(activeExam);
+    if (activeLevel) setSelectedLevel(activeLevel);
+  }, [activeExam, activeLevel]);
+
+  // 필터 변경 시 store도 업데이트 (all이 아닌 경우만)
+  const handleExamChange = (exam: string) => {
+    setSelectedExam(exam);
+    if (exam !== 'all') setActiveExam(exam as ExamType);
+  };
+
+  const handleLevelChange = (level: string) => {
+    setSelectedLevel(level);
+    if (level !== 'all') setActiveLevel(level as 'L1' | 'L2' | 'L3');
+  };
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -241,26 +265,49 @@ function ReviewPageContent() {
           </div>
         </div>
 
-        {/* 필터 */}
-        <div className="flex gap-3 mb-6">
-          <select
-            value={selectedExam}
-            onChange={(e) => setSelectedExam(e.target.value)}
-            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500"
-          >
-            {EXAM_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <select
-            value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e.target.value)}
-            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500"
-          >
-            {LEVEL_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+        {/* 시험/레벨 선택 - Dashboard 스타일 버튼 */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+          {/* 시험 선택 */}
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 mb-2">시험 선택</p>
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              {Object.entries(examInfo).map(([key, info]) => (
+                <button
+                  key={key}
+                  onClick={() => handleExamChange(key)}
+                  className={`p-3 rounded-xl border-2 text-center transition ${
+                    selectedExam === key
+                      ? 'border-pink-500 bg-pink-50 text-pink-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  <span className="text-lg mr-1">{info.icon}</span>
+                  <span className="font-medium text-sm">{info.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 레벨 선택 */}
+          <div>
+            <p className="text-sm text-gray-600 mb-2">레벨 선택</p>
+            <div className="grid grid-cols-4 gap-2">
+              {Object.entries(levelInfo).map(([key, info]) => (
+                <button
+                  key={key}
+                  onClick={() => handleLevelChange(key)}
+                  className={`p-3 rounded-xl border-2 text-center transition ${
+                    selectedLevel === key
+                      ? 'border-pink-500 bg-pink-50 text-pink-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  <span className="font-bold text-sm">{key === 'all' ? '전체' : key}</span>
+                  <span className="text-xs text-gray-500 ml-1 hidden sm:inline">{info.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* 바로 복습 이어가기 카드 */}
