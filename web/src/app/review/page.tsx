@@ -204,13 +204,25 @@ function ReviewPageContent() {
               <h2 className="text-2xl md:text-3xl font-bold mb-2">
                 {stats.dueToday > 0 ? (
                   <>복습할 단어 <span className="text-yellow-300">{stats.dueToday}개</span></>
-                ) : (
+                ) : (stats.completedToday || 0) > 0 ? (
                   <>오늘 복습 완료! 🎉</>
+                ) : stats.totalReviewed === 0 ? (
+                  <>아직 복습할 단어가 없어요 📚</>
+                ) : (
+                  <>오늘은 복습 쉬는 날! ✅</>
                 )}
               </h2>
               {stats.dueToday > 0 ? (
                 <p className="text-purple-100">
                   지금 시작하면 <strong className="text-white">{estimatedMinutes}분</strong>이면 끝나요
+                </p>
+              ) : (stats.completedToday || 0) > 0 ? (
+                <p className="text-purple-100">
+                  오늘 {stats.completedToday}개 복습을 완료했어요! 잘 하셨습니다.
+                </p>
+              ) : stats.totalReviewed === 0 ? (
+                <p className="text-purple-100">
+                  학습한 단어는 간격 반복 알고리즘에 따라 복습 일정에 추가됩니다
                 </p>
               ) : (
                 <p className="text-purple-100">
