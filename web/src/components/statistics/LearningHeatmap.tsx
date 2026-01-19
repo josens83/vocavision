@@ -202,25 +202,25 @@ export default function LearningHeatmap({
   }
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg">
-      <h3 className="text-2xl font-bold text-gray-900 mb-6">학습 활동</h3>
+    <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden">
+      <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">학습 활동</h3>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-indigo-600">{totalDays}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="text-center p-2 sm:p-0">
+          <div className="text-xl sm:text-2xl font-bold text-indigo-600">{totalDays}</div>
           <div className="text-xs text-gray-600">활동한 날</div>
         </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-green-600">{totalWords}</div>
+        <div className="text-center p-2 sm:p-0">
+          <div className="text-xl sm:text-2xl font-bold text-green-600">{totalWords}</div>
           <div className="text-xs text-gray-600">총 학습 단어</div>
         </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-orange-600">{currentStreak}</div>
+        <div className="text-center p-2 sm:p-0">
+          <div className="text-xl sm:text-2xl font-bold text-orange-600">{currentStreak}</div>
           <div className="text-xs text-gray-600">현재 스트릭</div>
         </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-purple-600">{longestStreak}</div>
+        <div className="text-center p-2 sm:p-0">
+          <div className="text-xl sm:text-2xl font-bold text-purple-600">{longestStreak}</div>
           <div className="text-xs text-gray-600">최장 스트릭</div>
         </div>
       </div>

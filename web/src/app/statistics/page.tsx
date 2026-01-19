@@ -214,12 +214,12 @@ function StatisticsPageContent() {
         )}
 
         {/* 페이지 헤더 */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">상세 통계</h1>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">상세 통계</h1>
           <p className="text-gray-500 text-sm mt-1">학습 진행 상황과 패턴을 분석합니다</p>
         </div>
         {/* Overview Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <StatCard
             icon="📚"
             title="학습한 단어"
@@ -249,10 +249,10 @@ function StatisticsPageContent() {
           />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
           {/* Mastery Level Distribution */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-bold mb-6">숙련도 분포</h2>
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
+            <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">숙련도 분포</h2>
             <div className="space-y-4">
               {Object.entries(masteryDist).map(([level, count]) => {
                 const total = Object.values(masteryDist).reduce((a, b) => a + b, 0);
@@ -285,8 +285,8 @@ function StatisticsPageContent() {
           </div>
 
           {/* Difficulty Distribution */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-bold mb-6">난이도 분포</h2>
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
+            <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">난이도 분포</h2>
             <div className="space-y-4">
               {Object.entries(difficultyDist).map(([level, count]) => {
                 const total = Object.values(difficultyDist).reduce((a, b) => a + b, 0);
@@ -357,12 +357,12 @@ function StatCard({
   }[color];
 
   return (
-    <div className={`${colorClasses} rounded-2xl p-6`}>
-      <div className="text-3xl mb-2">{icon}</div>
-      <div className="text-sm opacity-80 mb-1">{title}</div>
-      <div className="text-3xl font-bold">
+    <div className={`${colorClasses} rounded-2xl p-3 sm:p-6`}>
+      <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">{icon}</div>
+      <div className="text-xs sm:text-sm opacity-80 mb-1">{title}</div>
+      <div className="text-xl sm:text-3xl font-bold">
         {value}
-        {suffix && <span className="text-lg ml-1">{suffix}</span>}
+        {suffix && <span className="text-sm sm:text-lg ml-1">{suffix}</span>}
       </div>
     </div>
   );
