@@ -168,24 +168,24 @@ function UserStatsSection() {
       </div>
 
       {/* 오늘의 목표 진행률 - 에너지 게이지 스타일 */}
-      <div className="card p-5 md:p-6 bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
+      <div className="card p-5 md:p-6 bg-white border border-slate-200 relative overflow-hidden">
         {/* 배경 장식 */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-orange-500/10 rounded-full blur-2xl" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/10 to-orange-500/5 rounded-full blur-2xl" />
 
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
               ⚡ 오늘의 목표
             </h3>
-            <span className="text-white/80 text-sm font-medium">{todayProgress}/{dailyGoal}개</span>
+            <span className="text-slate-600 text-sm font-medium">{todayProgress}/{dailyGoal}개</span>
           </div>
 
           {/* 에너지 게이지 바 */}
-          <div className="relative w-full h-4 bg-slate-700/50 rounded-full mb-3 overflow-hidden">
+          <div className="relative w-full h-4 bg-slate-200 rounded-full mb-3 overflow-hidden">
             {/* 게이지 배경 그리드 */}
             <div className="absolute inset-0 flex">
               {[...Array(10)].map((_, i) => (
-                <div key={i} className="flex-1 border-r border-slate-600/30 last:border-r-0" />
+                <div key={i} className="flex-1 border-r border-slate-300/50 last:border-r-0" />
               ))}
             </div>
             {/* 게이지 채우기 - 그라데이션 + 글로우 */}
@@ -204,7 +204,7 @@ function UserStatsSection() {
             </div>
           </div>
 
-          <p className="text-white/80 text-sm mb-4">
+          <p className="text-slate-600 text-sm mb-4">
             {progressPercent >= 100
               ? '🎉 목표 달성! 대단해요!'
               : progressPercent >= 70
@@ -214,15 +214,15 @@ function UserStatsSection() {
 
           {/* 목표 조정 버튼 그룹 */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-white/60 mr-1">목표:</span>
+            <span className="text-xs text-slate-500 mr-1">목표:</span>
             {goalOptions.map((goal) => (
               <button
                 key={goal}
                 onClick={() => setDailyGoal(goal)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                   dailyGoal === goal
-                    ? 'bg-white text-slate-900 shadow-lg'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                    ? 'bg-slate-900 text-white shadow-lg'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
                 {goal}개

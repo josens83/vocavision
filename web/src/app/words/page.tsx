@@ -3,12 +3,56 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Lock } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { wordsAPI } from '@/lib/api';
 import { EmptySearchResults } from '@/components/ui/EmptyState';
 import { SkeletonWordCard } from '@/components/ui/Skeleton';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+
+// 사용자 플랜에 따른 접근 가능 레벨 정의
+function getAccessibleLevels(user: any) {
+  if (!user) return { CSAT: ['L1'], TEPS: [] }; // 비로그인: CSAT L1만 (데모)
+
+  const status = user.subscriptionStatus;
+
+  if (status === 'FREE') {
+    return { CSAT: ['L1'], TEPS: [] };
+  }
+
+  // ACTIVE 상태일 때 (구독 중)
+  if (status === 'ACTIVE') {
+    // subscriptionPlan으로 세부 구분
+    const plan = user.subscriptionPlan;
+    if (plan === 'YEARLY' || plan === 'FAMILY') {
+      // 프리미엄: 전체 접근
+      return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'] };
+    }
+    // MONTHLY (베이직): CSAT 전체만
+    return { CSAT: ['L1', 'L2', 'L3'], TEPS: [] };
+  }
+
+  // TRIAL 상태
+  if (status === 'TRIAL') {
+    return { CSAT: ['L1', 'L2'], TEPS: [] };
+  }
+
+  return { CSAT: ['L1'], TEPS: [] };
+}
+
+// 잠금 체크 함수
+function isLevelLocked(accessibleLevels: any, exam: string, level: string) {
+  if (!exam || !level) return false; // 전체 선택 시 잠금 없음
+  if (!accessibleLevels[exam]) return true;
+  return !accessibleLevels[exam].includes(level);
+}
+
+// 시험이 완전히 잠겨있는지 체크
+function isExamLocked(accessibleLevels: any, exam: string) {
+  if (!exam) return false;
+  if (!accessibleLevels[exam]) return true;
+  return accessibleLevels[exam].length === 0;
+}
 
 interface Word {
   id: string;
@@ -53,6 +97,9 @@ function WordsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
+
+  // 접근 가능 레벨 계산
+  const accessibleLevels = getAccessibleLevels(user);
 
   // Get initial search from URL parameter
   const initialSearch = searchParams.get('search') || '';
@@ -159,22 +206,33 @@ function WordsPageContent() {
                   { value: '', label: '전체' },
                   { value: 'CSAT', label: '수능' },
                   { value: 'TEPS', label: 'TEPS' },
-                ].map(({ value, label }) => (
-                  <button
-                    key={value}
-                    onClick={() => {
-                      setExamCategory(value);
-                      setPage(1);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                      examCategory === value
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+                ].map(({ value, label }) => {
+                  const locked = isExamLocked(accessibleLevels, value);
+                  return (
+                    <button
+                      key={value}
+                      onClick={() => {
+                        if (locked) {
+                          router.push('/pricing');
+                          return;
+                        }
+                        setExamCategory(value);
+                        setLevel(''); // 시험 변경 시 레벨 초기화
+                        setPage(1);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
+                        locked
+                          ? 'bg-gray-100 text-gray-400 cursor-pointer hover:bg-gray-200'
+                          : examCategory === value
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {locked && <Lock className="w-3 h-3" />}
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -187,22 +245,33 @@ function WordsPageContent() {
                   { value: 'L1', label: '초급' },
                   { value: 'L2', label: '중급' },
                   { value: 'L3', label: '고급' },
-                ].map(({ value, label }) => (
-                  <button
-                    key={value}
-                    onClick={() => {
-                      setLevel(value);
-                      setPage(1);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                      level === value
-                        ? 'bg-pink-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+                ].map(({ value, label }) => {
+                  // 현재 선택된 시험에서 해당 레벨이 잠겨있는지 확인
+                  const locked = value !== '' && examCategory && isLevelLocked(accessibleLevels, examCategory, value);
+                  return (
+                    <button
+                      key={value}
+                      onClick={() => {
+                        if (locked) {
+                          router.push('/pricing');
+                          return;
+                        }
+                        setLevel(value);
+                        setPage(1);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
+                        locked
+                          ? 'bg-gray-100 text-gray-400 cursor-pointer hover:bg-gray-200'
+                          : level === value
+                            ? 'bg-pink-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {locked && <Lock className="w-3 h-3" />}
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
