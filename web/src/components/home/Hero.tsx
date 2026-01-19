@@ -288,16 +288,19 @@ export default function Hero() {
               </div>
             )}
 
-            <div className="flex gap-8 pt-8 border-t border-slate-200">
-              {stats.map((stat, index) => (
-                <div key={stat.label} className={`${isVisible ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: `${0.3 + index * 0.1}s` }}>
-                  <div className="text-3xl font-display font-bold text-slate-900">
-                    {stat.value}<span className="text-lg text-slate-500">{stat.suffix}</span>
+            {/* 비로그인 시에만 통계 숫자 표시 */}
+            {!isLoggedIn && (
+              <div className="flex gap-8 pt-8 border-t border-slate-200">
+                {stats.map((stat, index) => (
+                  <div key={stat.label} className={`${isVisible ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: `${0.3 + index * 0.1}s` }}>
+                    <div className="text-3xl font-display font-bold text-slate-900">
+                      {stat.value}<span className="text-lg text-slate-500">{stat.suffix}</span>
+                    </div>
+                    <div className="text-sm text-slate-500">{stat.label}</div>
                   </div>
-                  <div className="text-sm text-slate-500">{stat.label}</div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className={`flex flex-col gap-5 md:gap-6 ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
