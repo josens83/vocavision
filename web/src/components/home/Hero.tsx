@@ -53,6 +53,7 @@ function UserStatsSection() {
   const [stats, setStats] = useState<{
     currentStreak: number;
     totalWordsLearned: number;
+    todayWordsLearned: number;
     dueReviewCount: number;
     accuracy: number;
   } | null>(null);
@@ -75,6 +76,7 @@ function UserStatsSection() {
       setStats({
         currentStreak: progressData.stats?.currentStreak || 0,
         totalWordsLearned: progressData.stats?.totalWordsLearned || 0,
+        todayWordsLearned: progressData.stats?.todayWordsLearned || 0,
         dueReviewCount: reviewData.count || 0,
         accuracy: reviewData.accuracy || 0,
       });
@@ -83,6 +85,7 @@ function UserStatsSection() {
       setStats({
         currentStreak: 0,
         totalWordsLearned: 0,
+        todayWordsLearned: 0,
         dueReviewCount: 0,
         accuracy: 0,
       });
@@ -91,7 +94,7 @@ function UserStatsSection() {
     }
   };
 
-  const todayProgress = stats?.totalWordsLearned || 0;
+  const todayProgress = stats?.todayWordsLearned || 0;
   const progressPercent = Math.round((todayProgress / dailyGoal) * 100);
   const goalOptions = [20, 40, 60, 80, 100];
 
@@ -177,7 +180,9 @@ function UserStatsSection() {
             <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
               ⚡ 오늘의 목표
             </h3>
-            <span className="text-slate-600 text-sm font-medium">{todayProgress}/{dailyGoal}개</span>
+            <span className="text-slate-600 text-sm font-medium">
+              {progressPercent >= 100 ? `${progressPercent}% 달성 🎉` : `${progressPercent}% 달성`}
+            </span>
           </div>
 
           {/* 에너지 게이지 바 */}
@@ -206,7 +211,7 @@ function UserStatsSection() {
 
           <p className="text-slate-600 text-sm mb-4">
             {progressPercent >= 100
-              ? '🎉 목표 달성! 대단해요!'
+              ? `🎉 목표 달성! 오늘 ${todayProgress}개 학습 완료!`
               : progressPercent >= 70
                 ? `거의 다 왔어요! ${dailyGoal - todayProgress}개 남음`
                 : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`}
@@ -214,7 +219,7 @@ function UserStatsSection() {
 
           {/* 목표 조정 버튼 그룹 */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 mr-1">목표:</span>
+            <span className="text-xs text-slate-500 mr-1">하루 목표:</span>
             {goalOptions.map((goal) => (
               <button
                 key={goal}
