@@ -142,9 +142,11 @@ export default function Hero() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-lg font-semibold text-slate-900">{feature.title}</h3>
-                      <span className="text-xs font-medium text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">
-                        체험하기
-                      </span>
+                      {!isLoggedIn && (
+                        <span className="text-xs font-medium text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">
+                          체험하기
+                        </span>
+                      )}
                     </div>
                     <p className="text-slate-600">{feature.description}</p>
                   </div>
