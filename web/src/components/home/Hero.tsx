@@ -42,9 +42,9 @@ const stats = [
 ];
 
 const features = [
-  { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn", demoHref: "/demo/flashcard" },
-  { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템", href: "/review", demoHref: "/demo/quiz" },
-  { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공", href: "/statistics", demoHref: "/demo/analytics" },
+  { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn", demoHref: "/learn?exam=CSAT&level=L1&demo=true" },
+  { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템", href: "/review", demoHref: "/review?demo=true" },
+  { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공", href: "/statistics", demoHref: "/statistics?demo=true" },
 ];
 
 export default function Hero() {
@@ -99,7 +99,7 @@ export default function Hero() {
                 </>
               ) : (
                 <>
-                  <Link href="/learn?exam=CSAT&demo=1" className="btn btn-primary group">
+                  <Link href="/learn?exam=CSAT&level=L1&demo=true" className="btn btn-primary group">
                     <Icons.Play />
                     <span>60초 맛보기</span>
                   </Link>
@@ -163,7 +163,7 @@ export default function Hero() {
                 <div className="relative z-10">
                   <h4 className="text-lg font-semibold mb-2">60초 안에 체험해보세요!</h4>
                   <p className="text-white/80 mb-4">회원가입 없이 샘플 단어로 빠르게 체험</p>
-                  <Link href="/learn?exam=CSAT&demo=1" className="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
+                  <Link href="/learn?exam=CSAT&level=L1&demo=true" className="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
                     <span>맛보기 시작</span>
                     <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />

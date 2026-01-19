@@ -104,11 +104,25 @@ function LearnPageContent() {
   const searchParams = useSearchParams();
   const examParam = searchParams.get('exam')?.toUpperCase();
   const levelParam = searchParams.get('level');
-  const isDemo = searchParams.get('demo') === '1';
+  const isDemo = searchParams.get('demo') === 'true' || searchParams.get('demo') === '1';
   const isReviewMode = searchParams.get('mode') === 'review';
 
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
+
+  // Demo 체험 완료 상태 관리 (localStorage)
+  const DEMO_KEY = 'vocavision_demo_completed';
+  const [demoBlocked, setDemoBlocked] = useState(false);
+
+  // 체험 완료 여부 확인
+  useEffect(() => {
+    if (isDemo && !user && typeof window !== 'undefined') {
+      const completed = localStorage.getItem(DEMO_KEY) === 'true';
+      if (completed) {
+        setDemoBlocked(true);
+      }
+    }
+  }, [isDemo, user]);
 
   // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트 (복습 모드 제외)
   useEffect(() => {
@@ -282,6 +296,10 @@ function LearnPageContent() {
     // Check if we've finished all words
     if (currentWordIndex + 1 >= reviews.length) {
       setShowResult(true);
+      // 비로그인 데모 사용자의 경우 체험 완료 표시
+      if (isDemo && !user && typeof window !== 'undefined') {
+        localStorage.setItem(DEMO_KEY, 'true');
+      }
       if (user && sessionId) {
         // Calculate final stats from cardRatings
         const finalWordsStudied = getWordsStudied();
@@ -331,6 +349,10 @@ function LearnPageContent() {
     // Check if we've finished all words
     if (currentWordIndex + 1 >= reviews.length) {
       setShowResult(true);
+      // 비로그인 데모 사용자의 경우 체험 완료 표시
+      if (isDemo && !user && typeof window !== 'undefined') {
+        localStorage.setItem(DEMO_KEY, 'true');
+      }
       if (user && sessionId) {
         // Calculate final stats from cardRatings
         const finalWordsStudied = getWordsStudied();
@@ -365,6 +387,42 @@ function LearnPageContent() {
 
   if (!hasHydrated || loading) {
     return <LearnPageLoading />;
+  }
+
+  // 비로그인 사용자가 이미 체험을 완료한 경우
+  if (demoBlocked && !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-primary/5 to-brand-secondary/5 p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+          <div className="text-6xl mb-4">🎉</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">체험이 완료되었습니다!</h2>
+          <p className="text-gray-600 mb-6">
+            VocaVision AI의 모든 기능을 이용하려면<br />
+            무료 회원가입을 해주세요.
+          </p>
+          <div className="space-y-3">
+            <a
+              href="/auth/register"
+              className="block w-full py-3 px-4 bg-brand-primary text-white font-bold rounded-xl hover:bg-brand-primary/90 transition"
+            >
+              무료 회원가입
+            </a>
+            <a
+              href="/auth/login"
+              className="block w-full py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+            >
+              이미 계정이 있으신가요? 로그인
+            </a>
+            <button
+              onClick={() => router.push('/')}
+              className="block w-full py-2 text-gray-500 text-sm hover:text-gray-700 transition"
+            >
+              메인으로 돌아가기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (reviews.length === 0) {
