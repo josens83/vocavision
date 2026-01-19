@@ -8,7 +8,6 @@ import { progressAPI, wordsAPI } from '@/lib/api';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 import ExamLevelSelector from '@/components/dashboard/ExamLevelSelector';
-import { useUserStats } from '@/hooks/useUserStats';
 
 // Exam info
 const examInfo: Record<string, { name: string; icon: string; gradient: string; color: string }> = {
@@ -137,9 +136,6 @@ export default function DashboardPage() {
   const selectedLevel = activeLevel || 'L1';
   const exam = examInfo[selectedExam];
   const level = getLevelInfo(selectedExam, selectedLevel);
-
-  // 학습 통계 (간단 요약용)
-  const { stats: userStats } = useUserStats(selectedExam);
 
   // Use exam/level specific word counts (real data from API)
   const totalWords = examLevelTotalWords || level.wordCount;
@@ -333,36 +329,6 @@ export default function DashboardPage() {
                   </div>
                 );
               })}
-            </div>
-          </div>
-        </div>
-
-        {/* 나의 학습 통계 (간단 요약) */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              📊 나의 학습 통계
-            </h3>
-            <Link href="/statistics" className="text-pink-500 text-sm font-medium hover:underline">
-              자세히 보기 →
-            </Link>
-          </div>
-          <div className="grid grid-cols-4 gap-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">{stats?.totalWordsLearned || 0}</p>
-              <p className="text-xs text-gray-500">학습한 단어</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-orange-500">{stats?.currentStreak || 0}일</p>
-              <p className="text-xs text-gray-500">현재 연속</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-yellow-500">{stats?.longestStreak || 0}일</p>
-              <p className="text-xs text-gray-500">최장 기록</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-500">{userStats?.overall?.accuracy || 0}%</p>
-              <p className="text-xs text-gray-500">정답률</p>
             </div>
           </div>
         </div>
