@@ -508,9 +508,9 @@ function LearnPageContent() {
               <span className="font-medium text-sm">나가기</span>
             </button>
 
-            {/* Center - Course Info */}
+            {/* Center - Course Info (데모 모드에서는 숨김) */}
             <div className="text-center flex-1 min-w-0">
-              {examParam && (
+              {examParam && !isDemo && (
                 <span className="text-base font-bold text-gray-900">
                   {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {levelNames[levelParam] || levelParam}</span>}
                 </span>

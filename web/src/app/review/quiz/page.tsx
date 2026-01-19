@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Volume2 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
-import { progressAPI, learningAPI } from '@/lib/api';
+import { progressAPI, learningAPI, wordsAPI } from '@/lib/api';
 
 interface QuizOption {
   text: string;
@@ -70,6 +70,7 @@ function QuizPageContent() {
 
   const examParam = searchParams.get('exam');
   const levelParam = searchParams.get('level');
+  const isDemo = searchParams.get('demo') === 'true';
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -89,13 +90,20 @@ function QuizPageContent() {
   useEffect(() => {
     if (!hasHydrated) return;
 
+    // 데모 모드: 비로그인도 접근 가능
+    if (isDemo) {
+      loadDemoQuiz();
+      return;
+    }
+
+    // 일반 모드: 로그인 필요
     if (!user) {
       router.push('/auth/login');
       return;
     }
 
     loadQuiz();
-  }, [hasHydrated, user, router, examParam, levelParam]);
+  }, [hasHydrated, user, router, examParam, levelParam, isDemo]);
 
   const loadQuiz = async () => {
     setLoading(true);
@@ -116,6 +124,73 @@ function QuizPageContent() {
       setStartTime(Date.now());
     } catch (error) {
       console.error('Failed to load quiz:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 데모 퀴즈 로드
+  const loadDemoQuiz = async () => {
+    setLoading(true);
+    try {
+      // API에서 샘플 단어 20개 로드
+      const data = await wordsAPI.getWords({
+        examCategory: 'CSAT',
+        limit: 20,
+      });
+
+      const words = data.words || [];
+
+      // 단어를 퀴즈 형식으로 변환
+      const quizQuestions: QuizQuestion[] = words.map((word: any) => {
+        // 오답 선택지 생성 (다른 단어들의 뜻에서 랜덤 선택)
+        const otherWords = words.filter((w: any) => w.id !== word.id);
+        const shuffledOthers = otherWords.sort(() => Math.random() - 0.5).slice(0, 3);
+
+        const correctAnswer = word.definitionKo || word.definition || '뜻 없음';
+        const wrongAnswers = shuffledOthers.map((w: any) => w.definitionKo || w.definition || '뜻 없음');
+
+        // 선택지 섞기
+        const allOptions: QuizOption[] = [
+          { text: correctAnswer, isCorrect: true },
+          ...wrongAnswers.map((text: string) => ({ text, isCorrect: false }))
+        ].sort(() => Math.random() - 0.5);
+
+        // 비주얼 이미지 추출
+        const visuals = {
+          concept: word.visuals?.find((v: any) => v.type === 'CONCEPT')?.imageUrl || null,
+          mnemonic: word.visuals?.find((v: any) => v.type === 'MNEMONIC')?.imageUrl || null,
+          rhyme: word.visuals?.find((v: any) => v.type === 'RHYME')?.imageUrl || null,
+        };
+
+        return {
+          wordId: word.id,
+          word: {
+            id: word.id,
+            word: word.word,
+            partOfSpeech: word.partOfSpeech,
+            pronunciation: word.pronunciation,
+            ipaUs: word.ipaUs,
+            ipaUk: word.ipaUk,
+            audioUrlUs: word.audioUrlUs,
+            audioUrlUk: word.audioUrlUk,
+            pronunciationKo: word.pronunciationKo,
+            examCategory: 'CSAT',
+            level: 'L1',
+          },
+          visuals,
+          options: allOptions,
+          correctAnswer,
+          progressId: 'demo',
+          correctCount: 0,
+          incorrectCount: 0,
+        };
+      });
+
+      setQuestions(quizQuestions);
+      setStartTime(Date.now());
+    } catch (error) {
+      console.error('Failed to load demo quiz:', error);
     } finally {
       setLoading(false);
     }
@@ -149,6 +224,9 @@ function QuizPageContent() {
     } else {
       setIncorrectCount((prev) => prev + 1);
     }
+
+    // 데모 모드에서는 학습 기록 저장 스킵
+    if (isDemo) return;
 
     // 학습 기록 저장
     try {
@@ -190,7 +268,8 @@ function QuizPageContent() {
 
   // 퀴즈 완료
   const handleComplete = async () => {
-    if (sessionId) {
+    // 데모 모드에서는 세션 종료 스킵
+    if (!isDemo && sessionId) {
       try {
         await progressAPI.endSession({
           sessionId,
@@ -201,7 +280,7 @@ function QuizPageContent() {
         console.error('Failed to end session:', error);
       }
     }
-    router.push(`/review/quiz/result?correct=${correctCount}&total=${questions.length}`);
+    router.push(`/review/quiz/result?correct=${correctCount}&total=${questions.length}${isDemo ? '&demo=true' : ''}`);
   };
 
   // 로딩 상태
@@ -237,10 +316,27 @@ function QuizPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* 데모 모드 배너 */}
+      {isDemo && !user && (
+        <div className="bg-amber-50 border-b border-amber-200 sticky top-0 z-20">
+          <div className="container mx-auto px-4 py-2">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded font-bold text-xs shrink-0">체험</span>
+                <span className="text-amber-800 whitespace-nowrap">학습 기록이 저장되지 않습니다.</span>
+              </div>
+              <Link href="/auth/login" className="text-amber-900 font-medium underline hover:text-amber-700 whitespace-nowrap">
+                로그인하고 기록 저장하기
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 헤더 */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className={`bg-white border-b border-gray-200 sticky ${isDemo && !user ? 'top-10' : 'top-0'} z-10`}>
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <button onClick={() => router.back()} className="p-2 -ml-2">
+          <button onClick={() => router.push(isDemo ? '/' : '/review')} className="p-2 -ml-2">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <span className="text-sm text-gray-500">

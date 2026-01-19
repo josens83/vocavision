@@ -8,6 +8,7 @@ function ResultContent() {
   const searchParams = useSearchParams();
   const correct = parseInt(searchParams.get('correct') || '0');
   const total = parseInt(searchParams.get('total') || '0');
+  const isDemo = searchParams.get('demo') === 'true';
 
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
@@ -93,26 +94,49 @@ function ResultContent() {
         </div>
 
         {/* 버튼 */}
-        <div className="space-y-3">
-          <Link
-            href="/review/quiz"
-            className="block w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-pink-500/25"
-          >
-            다시 복습하기
-          </Link>
-          <Link
-            href="/review"
-            className="block w-full py-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition"
-          >
-            복습 페이지로 돌아가기
-          </Link>
-          <Link
-            href="/dashboard"
-            className="block w-full py-3 text-gray-500 font-medium hover:text-gray-700 transition"
-          >
-            대시보드로 이동
-          </Link>
-        </div>
+        {isDemo ? (
+          <div className="space-y-3">
+            <Link
+              href="/auth/register"
+              className="block w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-pink-500/25"
+            >
+              무료 회원가입하고 계속 학습하기
+            </Link>
+            <Link
+              href="/review/quiz?demo=true"
+              className="block w-full py-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition"
+            >
+              다시 체험하기
+            </Link>
+            <Link
+              href="/"
+              className="block w-full py-3 text-gray-500 font-medium hover:text-gray-700 transition"
+            >
+              메인으로 돌아가기
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <Link
+              href="/review/quiz"
+              className="block w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-pink-500/25"
+            >
+              다시 복습하기
+            </Link>
+            <Link
+              href="/review"
+              className="block w-full py-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition"
+            >
+              복습 페이지로 돌아가기
+            </Link>
+            <Link
+              href="/dashboard"
+              className="block w-full py-3 text-gray-500 font-medium hover:text-gray-700 transition"
+            >
+              대시보드로 이동
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
