@@ -29,17 +29,13 @@ interface ReviewWord {
   incorrectCount: number;
 }
 
-// Dashboard와 동일한 시험/레벨 정보
+// Dashboard와 동일한 시험/레벨 정보 (수능, TEPS만 - 향후 단품 구매 시 자동 추가)
 const examInfo: Record<string, { name: string; icon: string }> = {
-  all: { name: '전체', icon: '📋' },
   CSAT: { name: '수능', icon: '📝' },
-  TOEIC: { name: 'TOEIC', icon: '💼' },
-  TOEFL: { name: 'TOEFL', icon: '🌍' },
   TEPS: { name: 'TEPS', icon: '🎓' },
 };
 
 const levelInfo: Record<string, { name: string; description: string }> = {
-  all: { name: '전체', description: '모든 레벨' },
   L1: { name: '초급', description: '기초 필수 단어' },
   L2: { name: '중급', description: '핵심 심화 단어' },
   L3: { name: '고급', description: '고난도 단어' },
@@ -90,25 +86,17 @@ function ReviewPageContent() {
   const setActiveExam = useExamCourseStore((state) => state.setActiveExam);
   const setActiveLevel = useExamCourseStore((state) => state.setActiveLevel);
 
-  // 'all'을 기본값으로 사용 (복습에서는 전체 필터 허용)
-  const [selectedExam, setSelectedExam] = useState('all');
-  const [selectedLevel, setSelectedLevel] = useState('all');
+  // store 연동 (기본값: CSAT, L1)
+  const selectedExam = activeExam || 'CSAT';
+  const selectedLevel = activeLevel || 'L1';
 
-  // store 값으로 초기화 (마운트 시)
-  useEffect(() => {
-    if (activeExam) setSelectedExam(activeExam);
-    if (activeLevel) setSelectedLevel(activeLevel);
-  }, [activeExam, activeLevel]);
-
-  // 필터 변경 시 store도 업데이트 (all이 아닌 경우만)
+  // 필터 변경 시 store 업데이트
   const handleExamChange = (exam: string) => {
-    setSelectedExam(exam);
-    if (exam !== 'all') setActiveExam(exam as ExamType);
+    setActiveExam(exam as ExamType);
   };
 
   const handleLevelChange = (level: string) => {
-    setSelectedLevel(level);
-    if (level !== 'all') setActiveLevel(level as 'L1' | 'L2' | 'L3');
+    setActiveLevel(level as 'L1' | 'L2' | 'L3');
   };
 
   useEffect(() => {
@@ -134,9 +122,10 @@ function ReviewPageContent() {
   const loadReviewData = async () => {
     setLoading(true);
     try {
-      const params: { examCategory?: string; level?: string } = {};
-      if (selectedExam !== 'all') params.examCategory = selectedExam;
-      if (selectedLevel !== 'all') params.level = selectedLevel;
+      const params = {
+        examCategory: selectedExam,
+        level: selectedLevel,
+      };
 
       const [data, progressData] = await Promise.all([
         progressAPI.getDueReviews(params),
@@ -256,7 +245,7 @@ function ReviewPageContent() {
             </div>
             {stats.dueToday > 0 && (
               <Link
-                href={`/review/quiz${selectedExam !== 'all' ? `?exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `${selectedExam !== 'all' ? '&' : '?'}level=${selectedLevel}` : ''}`}
+                href={`/review/quiz?exam=${selectedExam}&level=${selectedLevel}`}
                 className="bg-white text-purple-600 px-8 py-4 rounded-xl font-bold text-center hover:bg-purple-50 transition shadow-lg whitespace-nowrap"
               >
                 복습 시작
@@ -270,19 +259,19 @@ function ReviewPageContent() {
           {/* 시험 선택 */}
           <div className="mb-4">
             <p className="text-sm text-gray-600 mb-2">시험 선택</p>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {Object.entries(examInfo).map(([key, info]) => (
                 <button
                   key={key}
                   onClick={() => handleExamChange(key)}
-                  className={`p-3 rounded-xl border-2 text-center transition ${
+                  className={`p-4 rounded-xl border-2 text-center transition ${
                     selectedExam === key
                       ? 'border-pink-500 bg-pink-50 text-pink-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
-                  <span className="text-lg mr-1">{info.icon}</span>
-                  <span className="font-medium text-sm">{info.name}</span>
+                  <span className="text-2xl mr-2">{info.icon}</span>
+                  <span className="font-bold">{info.name}</span>
                 </button>
               ))}
             </div>
@@ -291,19 +280,19 @@ function ReviewPageContent() {
           {/* 레벨 선택 */}
           <div>
             <p className="text-sm text-gray-600 mb-2">레벨 선택</p>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-3">
               {Object.entries(levelInfo).map(([key, info]) => (
                 <button
                   key={key}
                   onClick={() => handleLevelChange(key)}
-                  className={`p-3 rounded-xl border-2 text-center transition ${
+                  className={`p-4 rounded-xl border-2 text-center transition ${
                     selectedLevel === key
                       ? 'border-pink-500 bg-pink-50 text-pink-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
-                  <span className="font-bold text-sm">{key === 'all' ? '전체' : key}</span>
-                  <span className="text-xs text-gray-500 ml-1 hidden sm:inline">{info.name}</span>
+                  <span className="font-bold">{key}</span>
+                  <span className="text-xs text-gray-500 block mt-1">{info.name}</span>
                 </button>
               ))}
             </div>
@@ -323,7 +312,7 @@ function ReviewPageContent() {
             </div>
             <div>
               <p className="font-bold text-gray-900">
-                {selectedExam === 'all' ? '전체' : selectedExam === 'CSAT' ? '수능' : selectedExam} {selectedLevel === 'all' ? '' : selectedLevel}
+                {examInfo[selectedExam]?.name || selectedExam} {selectedLevel}
               </p>
               <p className="text-sm text-gray-500">복습 대기 단어 • 기억 강화</p>
             </div>
@@ -350,13 +339,13 @@ function ReviewPageContent() {
 
           <div className="grid grid-cols-2 gap-3">
             <Link
-              href={`/learn?mode=review${selectedExam !== 'all' ? `&exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `&level=${selectedLevel}` : ''}`}
+              href={`/learn?mode=review&exam=${selectedExam}&level=${selectedLevel}`}
               className="block bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-bold text-center transition"
             >
               📚 플래시카드
             </Link>
             <Link
-              href={`/review/quiz${selectedExam !== 'all' ? `?exam=${selectedExam}` : ''}${selectedLevel !== 'all' ? `${selectedExam !== 'all' ? '&' : '?'}level=${selectedLevel}` : ''}`}
+              href={`/review/quiz?exam=${selectedExam}&level=${selectedLevel}`}
               className="block bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 rounded-xl font-bold text-center transition shadow-lg shadow-pink-500/25"
             >
               🎯 4지선다 퀴즈
