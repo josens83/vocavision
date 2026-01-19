@@ -379,14 +379,16 @@ export async function updateUserStats(userId: string) {
 
     const daysDiff = Math.floor((todayKST.getTime() - lastActiveKST.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (daysDiff === 1) {
+    if (daysDiff === 0) {
+      // 같은 날 → 최소 1일 유지 (0이면 1로 변경)
+      newStreak = Math.max(newStreak, 1);
+    } else if (daysDiff === 1) {
       // 어제 학습 → 연속 +1
       newStreak += 1;
     } else if (daysDiff > 1) {
       // 2일 이상 공백 → 리셋
       newStreak = 1;
     }
-    // daysDiff === 0: 같은 날 → 변경 없음
   } else {
     // 첫 학습
     newStreak = 1;
