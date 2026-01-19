@@ -7,19 +7,19 @@
  */
 export const PLATFORM_STATS = {
   // 수능 단어 수 (기본 무료 제공)
-  totalWords: 3340,
+  totalWords: 2976,
 
   // 레벨별 단어 수 (CSAT 기준)
   levels: {
-    L1: 1113, // 기초
-    L2: 1114, // 중급
-    L3: 1113, // 고급
+    L1: 992, // 기초
+    L2: 992, // 중급
+    L3: 992, // 고급
   },
 
   // 시험 카테고리
   exams: {
-    CSAT: { name: '수능', words: 3340, active: true },
-    TEPS: { name: 'TEPS', words: 6278, active: true, premium: true },
+    CSAT: { name: '수능', words: 2976, active: true },
+    TEPS: { name: 'TEPS', words: 6598, active: true, premium: true },
     TOEFL: { name: 'TOEFL', words: 4, active: false },
     TOEIC: { name: 'TOEIC', words: 5, active: false },
     SAT: { name: 'SAT', words: 5, active: false },
@@ -27,7 +27,7 @@ export const PLATFORM_STATS = {
 
   // 프리미엄 통계
   premium: {
-    totalWords: 9618, // CSAT 3,340 + TEPS 6,278
+    totalWords: 9574, // CSAT 2,976 + TEPS 6,598
     exams: ['CSAT', 'TEPS'],
   },
 

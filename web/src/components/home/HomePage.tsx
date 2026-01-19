@@ -7,8 +7,12 @@ import HeroCarousel from "./HeroCarousel";
 import ProductPackageSection from "./ProductPackageSection";
 import PopularWordsSection from "./PopularWordsSection";
 import { LazySection } from "@/components/ui/LazySection";
+import { useAuthStore } from "@/lib/store";
 
 export default function HomePage() {
+  const { user } = useAuthStore();
+  const isLoggedIn = !!user;
+
   return (
     <div className="min-h-screen bg-white">
       <Hero />
@@ -16,22 +20,26 @@ export default function HomePage() {
       {/* D-Day 카운트다운 배너 */}
       <DDayBanner />
 
-      {/* 단품 패키지 섹션 - 나에게 딱 맞는 단어장 */}
-      <ProductPackageSection />
+      {/* 단품 패키지 섹션 - 나에게 딱 맞는 단어장 (비로그인 시에만) */}
+      {!isLoggedIn && <ProductPackageSection />}
 
-      {/* Hero Carousel - 프로모션/공지 슬라이드 */}
-      <section className="py-8 px-6">
-        <div className="max-w-7xl mx-auto">
-          <HeroCarousel />
-        </div>
-      </section>
+      {/* Hero Carousel - 프로모션/공지 슬라이드 (비로그인 시에만) */}
+      {!isLoggedIn && (
+        <section className="py-8 px-6">
+          <div className="max-w-7xl mx-auto">
+            <HeroCarousel />
+          </div>
+        </section>
+      )}
 
-      {/* 시험별 빠른 선택 (Fast Campus 스타일 아이콘 그리드) */}
-      <section className="py-12 px-6 bg-slate-50">
-        <div className="max-w-7xl mx-auto">
-          <ExamIconGrid />
-        </div>
-      </section>
+      {/* 시험별 빠른 선택 (비로그인 시에만) */}
+      {!isLoggedIn && (
+        <section className="py-12 px-6 bg-slate-50">
+          <div className="max-w-7xl mx-auto">
+            <ExamIconGrid />
+          </div>
+        </section>
+      )}
 
       {/* BEST/NEW 인기 단어 섹션 - Lazy Load */}
       <LazySection minHeight={400} fallback={<PopularWordsSkeleton />}>
