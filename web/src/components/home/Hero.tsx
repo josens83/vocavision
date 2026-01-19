@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PLATFORM_STATS } from "@/constants/stats";
-import { useAuthStore } from "@/lib/store";
+import { useAuthStore, useExamCourseStore } from "@/lib/store";
+import { progressAPI } from "@/lib/api";
 
 const Icons = {
   Play: () => (
@@ -46,6 +47,145 @@ const features = [
   { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템", href: "/review", demoHref: "/review?demo=true" },
   { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공", href: "/statistics", demoHref: "/statistics?demo=true" },
 ];
+
+// 로그인 사용자용 학습 현황 섹션
+function UserStatsSection() {
+  const [stats, setStats] = useState<{
+    currentStreak: number;
+    totalWordsLearned: number;
+    dueReviewCount: number;
+    accuracy: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const activeExam = useExamCourseStore((state) => state.activeExam) || 'CSAT';
+  const activeLevel = useExamCourseStore((state) => state.activeLevel) || 'L1';
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const [progressData, reviewData] = await Promise.all([
+        progressAPI.getUserProgress(),
+        progressAPI.getDueReviews(),
+      ]);
+      setStats({
+        currentStreak: progressData.stats?.currentStreak || 0,
+        totalWordsLearned: progressData.stats?.totalWordsLearned || 0,
+        dueReviewCount: reviewData.count || 0,
+        accuracy: reviewData.accuracy || 0,
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+      setStats({
+        currentStreak: 0,
+        totalWordsLearned: 0,
+        dueReviewCount: 0,
+        accuracy: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const dailyGoal = 20;
+  const todayProgress = Math.min(stats?.totalWordsLearned || 0, dailyGoal);
+  const progressPercent = Math.round((todayProgress / dailyGoal) * 100);
+
+  return (
+    <>
+      {/* 오늘의 학습 현황 카드 */}
+      <div className="card p-5 md:p-6 border border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-slate-900">오늘의 학습 현황</h3>
+          {!loading && stats && stats.currentStreak > 0 && (
+            <span className="text-orange-500 font-medium text-sm">🔥 {stats.currentStreak}일 연속 학습 중!</span>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="text-center">
+                <div className="h-8 w-12 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
+                <div className="h-4 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-2xl font-bold text-blue-600">{stats?.totalWordsLearned || 0}</p>
+              <p className="text-xs text-slate-500">학습한 단어</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-pink-500">{stats?.dueReviewCount || 0}</p>
+              <p className="text-xs text-slate-500">복습 대기</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-green-500">{stats?.accuracy || 0}%</p>
+              <p className="text-xs text-slate-500">정답률</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 빠른 액션 버튼 */}
+      <div className="card p-5 md:p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">빠른 액션</h3>
+        <div className="grid grid-cols-3 gap-3">
+          <Link
+            href={`/learn?exam=${activeExam.toLowerCase()}&level=${activeLevel}`}
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-blue-50 hover:bg-blue-100 transition group"
+          >
+            <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center group-hover:scale-110 transition">
+              <Icons.BookOpen />
+            </div>
+            <span className="text-sm font-medium text-slate-700">이어서 학습</span>
+          </Link>
+          <Link
+            href="/review"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-pink-50 hover:bg-pink-100 transition group"
+          >
+            <div className="w-10 h-10 rounded-full bg-pink-500 text-white flex items-center justify-center group-hover:scale-110 transition">
+              <Icons.Brain />
+            </div>
+            <span className="text-sm font-medium text-slate-700">복습하기</span>
+          </Link>
+          <Link
+            href="/quiz"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-purple-50 hover:bg-purple-100 transition group"
+          >
+            <div className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center group-hover:scale-110 transition">
+              <Icons.ChartBar />
+            </div>
+            <span className="text-sm font-medium text-slate-700">퀴즈</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* 오늘의 목표 진행률 */}
+      <div className="card p-5 md:p-6 bg-gradient-to-br from-brand-primary to-brand-primary/80 text-white">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold">오늘의 목표</h3>
+          <span className="text-white/80 text-sm">{todayProgress}/{dailyGoal}개</span>
+        </div>
+        <div className="w-full bg-white/20 rounded-full h-3 mb-3">
+          <div
+            className="bg-white h-3 rounded-full transition-all duration-500"
+            style={{ width: `${Math.min(progressPercent, 100)}%` }}
+          />
+        </div>
+        <p className="text-white/80 text-sm">
+          {progressPercent >= 100
+            ? '🎉 오늘 목표 달성! 추가로 더 학습해보세요!'
+            : `조금만 더 하면 오늘 목표 달성! (${100 - progressPercent}% 남음)`}
+        </p>
+      </div>
+    </>
+  );
+}
 
 export default function Hero() {
   const [isVisible, setIsVisible] = useState(false);
@@ -124,10 +264,18 @@ export default function Hero() {
           </div>
 
           <div className={`flex flex-col gap-5 md:gap-6 ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
-            {/* 섹션 안내 */}
-            <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
+            {/* 섹션 안내 - 비로그인 시에만 표시 */}
+            {!isLoggedIn && (
+              <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
+            )}
 
-            {features.map((feature, index) => (
+            {/* 로그인 사용자: 학습 현황 카드 */}
+            {isLoggedIn && (
+              <UserStatsSection />
+            )}
+
+            {/* 비로그인 사용자: 기능 체험 카드 */}
+            {!isLoggedIn && features.map((feature, index) => (
               <Link key={feature.title} href={isLoggedIn ? feature.href : feature.demoHref} className="block">
                 <div className="group card p-5 md:p-6 flex items-start gap-5 cursor-pointer
                                 hover:shadow-lg hover:scale-[1.02] hover:border-brand-primary/30
@@ -159,28 +307,14 @@ export default function Hero() {
               </Link>
             ))}
 
-            {/* 비로그인 시: 체험 유도 카드 / 로그인 시: 학습 목표 카드 */}
-            {!isLoggedIn ? (
+            {/* 비로그인 시: 체험 유도 카드 (로그인 시 UserStatsSection에서 목표 카드 표시) */}
+            {!isLoggedIn && (
               <div className="relative overflow-hidden card p-6 bg-gradient-to-br from-brand-primary to-brand-secondary text-white">
                 <div className="relative z-10">
                   <h4 className="text-lg font-semibold mb-2">60초 안에 체험해보세요!</h4>
                   <p className="text-white/80 mb-4">회원가입 없이 샘플 단어로 빠르게 체험</p>
                   <Link href="/learn?exam=CSAT&level=L1&demo=true" className="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
                     <span>맛보기 시작</span>
-                    <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </Link>
-                </div>
-                <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full" />
-              </div>
-            ) : (
-              <div className="relative overflow-hidden card p-6 bg-gradient-to-br from-brand-primary to-brand-primary/80 text-white">
-                <div className="relative z-10">
-                  <h4 className="text-lg font-semibold mb-2">오늘의 학습 목표</h4>
-                  <p className="text-white/80 mb-4">새로운 단어 10개를 학습하고 복습 퀴즈를 완료해보세요!</p>
-                  <Link href="/quiz" className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors group">
-                    <span>퀴즈 시작</span>
                     <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
