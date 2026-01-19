@@ -137,7 +137,22 @@ export const getDueReviews = async (
       orderBy: { nextReviewDate: 'asc' }
     });
 
-    res.json({ reviews: dueReviews, count: dueReviews.length });
+    // 전체 학습 기록에서 정답률 계산 (복습 대기와 무관하게)
+    const allProgress = await prisma.userProgress.findMany({
+      where: { userId, word: wordWhere },
+      select: { correctCount: true, incorrectCount: true }
+    });
+
+    let totalCorrect = 0;
+    let totalIncorrect = 0;
+    allProgress.forEach(p => {
+      totalCorrect += p.correctCount;
+      totalIncorrect += p.incorrectCount;
+    });
+    const totalAttempts = totalCorrect + totalIncorrect;
+    const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+
+    res.json({ reviews: dueReviews, count: dueReviews.length, accuracy });
   } catch (error) {
     next(error);
   }

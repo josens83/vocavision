@@ -89,8 +89,9 @@ function UserStatsSection() {
     }
   };
 
-  const dailyGoal = 20;
-  const todayProgress = Math.min(stats?.totalWordsLearned || 0, dailyGoal);
+  // 오늘의 목표 (기본 60개, 향후 사용자 설정 가능)
+  const dailyGoal = 60;
+  const todayProgress = stats?.totalWordsLearned || 0;
   const progressPercent = Math.round((todayProgress / dailyGoal) * 100);
 
   return (
@@ -225,31 +226,20 @@ export default function Hero() {
               <strong className="text-slate-800">적응형 퀴즈</strong>로 효율적인 어휘력 향상을 경험하세요.
             </p>
 
-            <div className="flex flex-wrap gap-4 pt-4">
-              {isLoggedIn ? (
-                <>
-                  <Link href="/dashboard" className="btn btn-primary group">
-                    <Icons.Play />
-                    <span>학습 시작하기</span>
-                  </Link>
-                  <Link href="/review?exam=CSAT" className="btn btn-outline text-brand-primary border-brand-primary hover:bg-brand-primary/5">
-                    <Icons.BookOpen />
-                    <span>복습하기</span>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link href="/learn?exam=CSAT&level=L1&demo=true" className="btn btn-primary group">
-                    <Icons.Play />
-                    <span>60초 맛보기</span>
-                  </Link>
-                  <Link href="/auth/login" className="btn btn-outline text-brand-primary border-brand-primary hover:bg-brand-primary/5">
-                    <Icons.Sparkles />
-                    <span>무료 회원가입</span>
-                  </Link>
-                </>
-              )}
-            </div>
+            {/* 로그인 시: 버튼 숨김 (오른쪽 빠른 액션으로 대체) */}
+            {/* 비로그인 시: 체험 버튼 */}
+            {!isLoggedIn && (
+              <div className="flex flex-wrap gap-4 pt-4">
+                <Link href="/learn?exam=CSAT&level=L1&demo=true" className="btn btn-primary group">
+                  <Icons.Play />
+                  <span>60초 맛보기</span>
+                </Link>
+                <Link href="/auth/login" className="btn btn-outline text-brand-primary border-brand-primary hover:bg-brand-primary/5">
+                  <Icons.Sparkles />
+                  <span>무료 회원가입</span>
+                </Link>
+              </div>
+            )}
 
             <div className="flex gap-8 pt-8 border-t border-slate-200">
               {stats.map((stat, index) => (
