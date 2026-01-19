@@ -12,31 +12,30 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 
 // 사용자 플랜에 따른 접근 가능 레벨 정의
 function getAccessibleLevels(user: any) {
-  if (!user) return { CSAT: ['L1'], TEPS: [] }; // 비로그인: CSAT L1만 (데모)
+  // 비로그인: 접근 불가 (로그인 유도)
+  if (!user) return { CSAT: [], TEPS: [] };
 
   const status = user.subscriptionStatus;
+  const plan = user.subscriptionPlan;
 
+  // 무료 회원: CSAT L1만
   if (status === 'FREE') {
     return { CSAT: ['L1'], TEPS: [] };
   }
 
-  // ACTIVE 상태일 때 (구독 중)
+  // 유료 회원 (ACTIVE)
   if (status === 'ACTIVE') {
-    // subscriptionPlan으로 세부 구분
-    const plan = user.subscriptionPlan;
+    // 베이직 (MONTHLY): CSAT 전체
+    if (plan === 'MONTHLY') {
+      return { CSAT: ['L1', 'L2', 'L3'], TEPS: [] };
+    }
+    // 프리미엄 (YEARLY/FAMILY): CSAT + TEPS 전체
     if (plan === 'YEARLY' || plan === 'FAMILY') {
-      // 프리미엄: 전체 접근
       return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'] };
     }
-    // MONTHLY (베이직): CSAT 전체만
-    return { CSAT: ['L1', 'L2', 'L3'], TEPS: [] };
   }
 
-  // TRIAL 상태
-  if (status === 'TRIAL') {
-    return { CSAT: ['L1', 'L2'], TEPS: [] };
-  }
-
+  // 기본값: CSAT L1만 (CANCELLED, EXPIRED 등)
   return { CSAT: ['L1'], TEPS: [] };
 }
 
@@ -97,6 +96,42 @@ function WordsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
+
+  // 비로그인 시 로그인 유도 화면
+  if (!user) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 lg:p-8 max-w-6xl mx-auto">
+          <div className="text-center py-20">
+            <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Lock className="w-10 h-10 text-indigo-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              로그인이 필요합니다
+            </h2>
+            <p className="text-gray-600 mb-6">
+              단어 탐색 기능은 회원만 이용할 수 있습니다.<br />
+              무료 회원가입 후 수능 L1 단어를 학습해보세요!
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Link
+                href="/auth/login"
+                className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition"
+              >
+                로그인
+              </Link>
+              <Link
+                href="/auth/register"
+                className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+              >
+                무료 회원가입
+              </Link>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   // 접근 가능 레벨 계산
   const accessibleLevels = getAccessibleLevels(user);

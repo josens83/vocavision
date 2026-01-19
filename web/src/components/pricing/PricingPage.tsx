@@ -64,12 +64,6 @@ export default function PricingPage() {
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto px-4">
           무료로 시작하고, 필요할 때 업그레이드하세요.
-          <br />
-          베이직 플랜 가입 시{" "}
-          <span className="text-indigo-600 font-semibold">
-            프리미엄 7일 무료 체험
-          </span>{" "}
-          제공!
         </p>
 
         {/* 결제 주기 토글 */}
@@ -190,10 +184,6 @@ export default function PricingPage() {
             >
               베이직 시작하기
             </button>
-
-            <p className="text-center text-xs text-indigo-600 mt-2">
-              프리미엄 7일 무료 체험 포함
-            </p>
 
             <ul className="mt-8 space-y-3">
               <li className="flex items-center gap-3 text-sm">
@@ -488,20 +478,6 @@ export default function PricingPage() {
                 네, 언제든지 플랜을 업그레이드하거나 다운그레이드할 수 있습니다.
                 업그레이드 시 즉시 적용되며, 다운그레이드는 현재 결제 기간이
                 끝난 후 적용됩니다.
-              </p>
-            </details>
-
-            <details className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 group">
-              <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center">
-                프리미엄 7일 무료 체험은 어떻게 작동하나요?
-                <span className="text-gray-400 group-open:rotate-180 transition-transform">
-                  ▼
-                </span>
-              </summary>
-              <p className="mt-4 text-gray-600">
-                베이직 플랜에 가입하시면 자동으로 7일간 프리미엄 기능을 무료로
-                체험하실 수 있습니다. 체험 기간이 끝나면 베이직 플랜으로 자동
-                전환됩니다.
               </p>
             </details>
 
