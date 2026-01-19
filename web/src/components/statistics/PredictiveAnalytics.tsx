@@ -106,37 +106,37 @@ export default function PredictiveAnalytics({ data }: PredictiveAnalyticsProps) 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl p-6 shadow-lg"
+        className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden"
       >
-        <h3 className="text-2xl font-bold text-gray-900 mb-4">📅 다가오는 복습</h3>
-        <p className="text-gray-600 text-sm mb-6">
+        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">📅 다가오는 복습</h3>
+        <p className="text-gray-600 text-sm mb-4 sm:mb-6">
           학습 데이터 기반으로 예측된 복습 일정입니다
         </p>
 
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {reviews.map((review, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition"
+              className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition"
             >
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl ${getDifficultyBg(review.difficulty)} flex items-center justify-center`}>
-                  <span className={`text-xl font-bold ${getDifficultyColor(review.difficulty)}`}>
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${getDifficultyBg(review.difficulty)} flex items-center justify-center shrink-0`}>
+                  <span className={`text-lg sm:text-xl font-bold ${getDifficultyColor(review.difficulty)}`}>
                     {review.count}
                   </span>
                 </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">{review.timeframe}</h4>
-                  <p className="text-sm text-gray-600">복습 예정 단어</p>
+                <div className="min-w-0">
+                  <h4 className="font-bold text-gray-900 text-sm sm:text-base">{review.timeframe}</h4>
+                  <p className="text-xs sm:text-sm text-gray-600">복습 예정</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center shrink-0 ml-2">
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyBg(
+                  className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyBg(
                     review.difficulty
                   )} ${getDifficultyColor(review.difficulty)}`}
                 >
@@ -165,10 +165,10 @@ export default function PredictiveAnalytics({ data }: PredictiveAnalyticsProps) 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl p-6 shadow-lg"
+          className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden"
         >
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">🎯 학습 진도 예측</h3>
-          <p className="text-gray-600 text-sm mb-6">
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">🎯 학습 진도 예측</h3>
+          <p className="text-gray-600 text-sm mb-4 sm:mb-6">
             현재 학습 속도로 모든 단어를 마스터하기까지{' '}
             <strong className="text-indigo-600">약 {mastery.estimatedDays}일</strong> 소요될
             것으로 예상됩니다
@@ -233,7 +233,7 @@ export default function PredictiveAnalytics({ data }: PredictiveAnalyticsProps) 
 
           {/* Donut Chart Visualization */}
           <div className="flex items-center justify-center">
-            <div className="relative w-48 h-48">
+            <div className="relative w-36 h-36 sm:w-48 sm:h-48">
               <svg viewBox="0 0 200 200" className="transform -rotate-90">
                 {/* Background circle */}
                 <circle cx="100" cy="100" r="80" fill="none" stroke="#e5e7eb" strokeWidth="20" />
@@ -279,10 +279,10 @@ export default function PredictiveAnalytics({ data }: PredictiveAnalyticsProps) 
 
               {/* Center text */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className="text-4xl font-bold text-gray-900">
+                <div className="text-2xl sm:text-4xl font-bold text-gray-900">
                   {Math.round((mastery.mastered / mastery.totalWords) * 100)}%
                 </div>
-                <div className="text-sm text-gray-600">완료</div>
+                <div className="text-xs sm:text-sm text-gray-600">완료</div>
               </div>
             </div>
           </div>
@@ -295,62 +295,61 @@ export default function PredictiveAnalytics({ data }: PredictiveAnalyticsProps) 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white rounded-2xl p-6 shadow-lg"
+          className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden"
         >
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">📊 학습 패턴 분석</h3>
-          <p className="text-gray-600 text-sm mb-6">
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">📊 학습 패턴 분석</h3>
+          <p className="text-gray-600 text-sm mb-4 sm:mb-6">
             AI가 분석한 당신의 학습 패턴과 최적화 제안입니다
           </p>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6">
             {/* Best Learning Time */}
-            <div className="p-4 bg-purple-50 rounded-xl">
-              <div className="text-4xl mb-2">⏰</div>
-              <h4 className="font-bold text-gray-900 mb-1">최적 학습 시간</h4>
-              <p className="text-2xl font-bold text-purple-600">{pattern.bestTime}</p>
-              <p className="text-sm text-gray-600 mt-1">가장 높은 집중도를 보이는 시간대</p>
+            <div className="p-3 sm:p-4 bg-purple-50 rounded-xl">
+              <div className="text-2xl sm:text-4xl mb-1 sm:mb-2">⏰</div>
+              <h4 className="font-bold text-gray-900 mb-1 text-sm sm:text-base">최적 학습 시간</h4>
+              <p className="text-lg sm:text-2xl font-bold text-purple-600">{pattern.bestTime}</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">가장 높은 집중도를 보이는 시간대</p>
             </div>
 
             {/* Average Session */}
-            <div className="p-4 bg-blue-50 rounded-xl">
-              <div className="text-4xl mb-2">⏱️</div>
-              <h4 className="font-bold text-gray-900 mb-1">평균 학습 시간</h4>
-              <p className="text-2xl font-bold text-blue-600">{pattern.avgSessionLength}분</p>
-              <p className="text-sm text-gray-600 mt-1">세션당 평균 소요 시간</p>
+            <div className="p-3 sm:p-4 bg-blue-50 rounded-xl">
+              <div className="text-2xl sm:text-4xl mb-1 sm:mb-2">⏱️</div>
+              <h4 className="font-bold text-gray-900 mb-1 text-sm sm:text-base">평균 학습 시간</h4>
+              <p className="text-lg sm:text-2xl font-bold text-blue-600">{pattern.avgSessionLength}분</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">세션당 평균 소요 시간</p>
             </div>
 
             {/* Words Per Session */}
-            <div className="p-4 bg-green-50 rounded-xl">
-              <div className="text-4xl mb-2">📚</div>
-              <h4 className="font-bold text-gray-900 mb-1">세션당 단어 수</h4>
-              <p className="text-2xl font-bold text-green-600">{pattern.avgWordsPerSession}개</p>
-              <p className="text-sm text-gray-600 mt-1">평균 학습 단어 수</p>
+            <div className="p-3 sm:p-4 bg-green-50 rounded-xl">
+              <div className="text-2xl sm:text-4xl mb-1 sm:mb-2">📚</div>
+              <h4 className="font-bold text-gray-900 mb-1 text-sm sm:text-base">세션당 단어 수</h4>
+              <p className="text-lg sm:text-2xl font-bold text-green-600">{pattern.avgWordsPerSession}개</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">평균 학습 단어 수</p>
             </div>
 
             {/* Average Accuracy */}
-            <div className="p-4 bg-orange-50 rounded-xl">
-              <div className="text-4xl mb-2">🎯</div>
-              <h4 className="font-bold text-gray-900 mb-1">평균 정확도</h4>
-              <p className="text-2xl font-bold text-orange-600">{pattern.avgAccuracy}%</p>
-              <p className="text-sm text-gray-600 mt-1">전체 학습 정확도</p>
+            <div className="p-3 sm:p-4 bg-orange-50 rounded-xl">
+              <div className="text-2xl sm:text-4xl mb-1 sm:mb-2">🎯</div>
+              <h4 className="font-bold text-gray-900 mb-1 text-sm sm:text-base">평균 정확도</h4>
+              <p className="text-lg sm:text-2xl font-bold text-orange-600">{pattern.avgAccuracy}%</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">전체 학습 정확도</p>
             </div>
           </div>
 
           {/* AI Recommendation */}
-          <div className="mt-6 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200">
-            <div className="flex items-start gap-4">
-              <div className="text-4xl">🤖</div>
-              <div className="flex-1">
-                <h4 className="font-bold text-indigo-900 mb-2">AI 추천 학습 목표</h4>
-                <p className="text-indigo-800 mb-3">
-                  현재 학습 패턴을 분석한 결과, 하루{' '}
+          <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="text-2xl sm:text-4xl shrink-0">🤖</div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-indigo-900 mb-2 text-sm sm:text-base">AI 추천 학습 목표</h4>
+                <p className="text-indigo-800 mb-2 sm:mb-3 text-sm">
+                  하루{' '}
                   <strong className="text-indigo-600">{pattern.recommendedDailyGoal}개</strong> 단어 학습을
                   추천합니다.
                 </p>
-                <ul className="text-sm text-indigo-700 space-y-1">
-                  <li>• 최적 학습 시간대({pattern.bestTime})에 집중 학습하세요</li>
-                  <li>• 15-20분 세션으로 나누면 집중도가 높아집니다</li>
-                  <li>• 복습은 학습 직후, 1일 후, 1주일 후가 효과적입니다</li>
+                <ul className="text-xs sm:text-sm text-indigo-700 space-y-1">
+                  <li>• {pattern.bestTime}에 집중 학습하세요</li>
+                  <li>• 15-20분 세션으로 나누면 효과적입니다</li>
                 </ul>
               </div>
             </div>

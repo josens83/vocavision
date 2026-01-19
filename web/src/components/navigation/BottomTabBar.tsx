@@ -38,14 +38,14 @@ const icons = {
 // Tab configurations
 const guestTabs = [
   { key: 'home', label: '홈', href: '/', icon: icons.home },
-  { key: 'learn', label: '수능', href: '/learn?exam=CSAT', icon: icons.learn },
+  { key: 'learn', label: '수능', href: '/dashboard', icon: icons.learn },
   { key: 'words', label: '단어', href: '/words', icon: icons.words },
   { key: 'login', label: '로그인', href: '/auth/login', icon: icons.user },
 ];
 
 const authTabs = [
   { key: 'home', label: '홈', href: '/', icon: icons.home },
-  { key: 'learn', label: '학습', href: '/learn?exam=CSAT', icon: icons.learn },
+  { key: 'learn', label: '학습', href: '/dashboard', icon: icons.learn },
   { key: 'review', label: '복습', href: '/review', icon: icons.review },
   { key: 'my', label: 'MY', href: '/my', icon: icons.user, showLoggedIn: true },
 ];
