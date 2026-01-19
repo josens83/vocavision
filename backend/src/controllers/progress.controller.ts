@@ -49,34 +49,59 @@ export const getUserProgress = async (
   try {
     const userId = req.userId!;
 
-    const progress = await prisma.userProgress.findMany({
-      where: { userId },
-      include: {
-        word: {
-          select: {
-            id: true,
-            word: true,
-            definition: true,
-            difficulty: true
-          }
-        }
-      },
-      orderBy: { nextReviewDate: 'asc' }
-    });
+    // 오늘 시작 시간 (00:00:00)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
 
-    const stats = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        totalWordsLearned: true,
-        currentStreak: true,
-        longestStreak: true,
-        lastActiveDate: true
-      }
-    });
+    const [progress, stats, todayLearned] = await Promise.all([
+      // 기존 progress 조회
+      prisma.userProgress.findMany({
+        where: { userId },
+        include: {
+          word: {
+            select: {
+              id: true,
+              word: true,
+              definition: true,
+              difficulty: true
+            }
+          }
+        },
+        orderBy: { nextReviewDate: 'asc' }
+      }),
+
+      // 기존 user stats 조회
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          totalWordsLearned: true,
+          currentStreak: true,
+          longestStreak: true,
+          lastActiveDate: true
+        }
+      }),
+
+      // 오늘 학습한 고유 단어 수 카운트
+      prisma.learningRecord.findMany({
+        where: {
+          userId,
+          createdAt: {
+            gte: todayStart
+          }
+        },
+        distinct: ['wordId'],
+        select: {
+          wordId: true
+        }
+      })
+    ]);
 
     res.json({
       progress,
-      stats
+      stats: {
+        ...stats,
+        todayWordsLearned: todayLearned.length
+      }
     });
   } catch (error) {
     next(error);
