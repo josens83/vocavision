@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import axios from 'axios';
@@ -35,22 +35,54 @@ interface Progress {
   };
 }
 
-export default function StatisticsPage() {
+// 데모 모드용 샘플 데이터
+const DEMO_STATS: UserStats = {
+  totalWordsLearned: 156,
+  currentStreak: 7,
+  longestStreak: 14,
+  lastActiveDate: new Date().toISOString(),
+};
+
+const DEMO_PROGRESS: Progress[] = [
+  { id: '1', wordId: 'w1', masteryLevel: 'MASTERED', correctCount: 5, incorrectCount: 0, totalReviews: 5, lastReviewDate: new Date().toISOString(), word: { word: 'abundant', difficulty: 'BEGINNER' } },
+  { id: '2', wordId: 'w2', masteryLevel: 'MASTERED', correctCount: 4, incorrectCount: 1, totalReviews: 5, lastReviewDate: new Date().toISOString(), word: { word: 'benevolent', difficulty: 'INTERMEDIATE' } },
+  { id: '3', wordId: 'w3', masteryLevel: 'FAMILIAR', correctCount: 3, incorrectCount: 1, totalReviews: 4, lastReviewDate: new Date().toISOString(), word: { word: 'comprehensive', difficulty: 'INTERMEDIATE' } },
+  { id: '4', wordId: 'w4', masteryLevel: 'FAMILIAR', correctCount: 2, incorrectCount: 1, totalReviews: 3, lastReviewDate: new Date().toISOString(), word: { word: 'diligent', difficulty: 'BEGINNER' } },
+  { id: '5', wordId: 'w5', masteryLevel: 'LEARNING', correctCount: 2, incorrectCount: 2, totalReviews: 4, lastReviewDate: new Date().toISOString(), word: { word: 'eloquent', difficulty: 'ADVANCED' } },
+  { id: '6', wordId: 'w6', masteryLevel: 'LEARNING', correctCount: 1, incorrectCount: 2, totalReviews: 3, lastReviewDate: new Date().toISOString(), word: { word: 'fluctuate', difficulty: 'ADVANCED' } },
+  { id: '7', wordId: 'w7', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 1, totalReviews: 1, lastReviewDate: new Date().toISOString(), word: { word: 'gratitude', difficulty: 'BEGINNER' } },
+  { id: '8', wordId: 'w8', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 0, totalReviews: 0, lastReviewDate: null, word: { word: 'hypothesis', difficulty: 'EXPERT' } },
+];
+
+function StatisticsPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isDemo = searchParams.get('demo') === 'true';
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
   const [stats, setStats] = useState<UserStats | null>(null);
   const [progress, setProgress] = useState<Progress[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!hasHydrated) return;
+
+    // 데모 모드일 경우 샘플 데이터 사용
+    if (isDemo && !user) {
+      setStats(DEMO_STATS);
+      setProgress(DEMO_PROGRESS);
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       router.push('/auth/login');
       return;
     }
 
     loadStatistics();
-  }, [user, router]);
+  }, [user, hasHydrated, router, isDemo]);
 
   const loadStatistics = async () => {
     try {
@@ -163,6 +195,24 @@ export default function StatisticsPage() {
   return (
     <DashboardLayout>
       <div className="p-4 lg:p-8 max-w-6xl mx-auto">
+        {/* 데모 모드 배너 */}
+        {isDemo && !user && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded font-bold text-xs">체험</span>
+                <span className="text-amber-800 text-sm">샘플 데이터로 학습 분석 기능을 미리 체험해보세요</span>
+              </div>
+              <Link
+                href="/auth/register"
+                className="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-600 transition whitespace-nowrap"
+              >
+                무료 회원가입
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* 페이지 헤더 */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">상세 통계</h1>
@@ -315,5 +365,36 @@ function StatCard({
         {suffix && <span className="text-lg ml-1">{suffix}</span>}
       </div>
     </div>
+  );
+}
+
+// Loading component for Suspense
+function StatisticsPageLoading() {
+  return (
+    <DashboardLayout>
+      <div className="p-4 lg:p-8 max-w-6xl mx-auto">
+        <div className="animate-pulse">
+          <div className="h-8 w-40 bg-gray-200 rounded mb-8" />
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 h-32" />
+            ))}
+          </div>
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="bg-white rounded-2xl p-6 h-64" />
+            <div className="bg-white rounded-2xl p-6 h-64" />
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
+
+// Suspense boundary로 감싸서 export
+export default function StatisticsPage() {
+  return (
+    <Suspense fallback={<StatisticsPageLoading />}>
+      <StatisticsPageContent />
+    </Suspense>
   );
 }
