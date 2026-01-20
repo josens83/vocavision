@@ -122,7 +122,7 @@ function UserStatsSection() {
 
   const todayProgress = stats?.todayWordsLearned || 0;
   const progressPercent = Math.round((todayProgress / dailyGoal) * 100);
-  const goalOptions = [20, 40, 60, 80, 100];
+  const goalOptions = [20, 40, 60, 80];
 
   // Exam display name
   const examDisplayName = lastStudy.exam === 'CSAT' ? '수능' : lastStudy.exam;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { useToast } from '@/components/ui/Toast';
@@ -10,8 +10,11 @@ import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+type TabType = 'profile' | 'password' | 'subscription';
+
 export default function SettingsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const logout = useAuthStore((state) => state.logout);
@@ -19,7 +22,9 @@ export default function SettingsPage() {
   const toast = useToast();
   const confirm = useConfirm();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'subscription'>('profile');
+  // Read initial tab from URL query param
+  const tabParam = searchParams.get('tab') as TabType | null;
+  const [activeTab, setActiveTab] = useState<TabType>(tabParam && ['profile', 'password', 'subscription'].includes(tabParam) ? tabParam : 'profile');
   const [loading, setLoading] = useState(false);
 
   // Profile
