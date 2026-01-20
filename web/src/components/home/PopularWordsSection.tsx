@@ -135,7 +135,7 @@ export default function PopularWordsSection() {
           </div>
 
           {/* 탭 버튼 */}
-          <div className="inline-flex bg-slate-100 rounded-xl p-1">
+          <div className="inline-flex bg-slate-100 rounded-lg p-1 w-fit">
             <TabButton
               active={activeTab === "best"}
               onClick={() => setActiveTab("best")}
@@ -232,7 +232,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={`
-        flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all
+        flex items-center gap-1.5 px-3 py-1.5 md:gap-2 md:px-4 md:py-2 rounded-lg text-sm font-semibold transition-all
         ${active ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}
       `}
     >
