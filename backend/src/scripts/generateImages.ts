@@ -38,20 +38,20 @@ const WORD_DELAY_MS = 1000; // 1 second between words
 // Visual type configurations
 const VISUAL_CONFIGS = {
   CONCEPT: {
-    style: 'cute 3D cartoon illustration, bright vibrant colors, soft lighting, friendly and approachable, educational',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle, realistic, photograph, dark, scary',
+    style: 'cartoon illustration, soft pastel colors, clean simple composition, white background',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle, 3D, realistic, photograph, dark, scary, cluttered',
     labelEn: 'Concept',
     labelKo: '의미',
   },
   MNEMONIC: {
-    style: 'cartoon illustration, cute, memorable, colorful',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle',
+    style: 'cartoon illustration, cute, memorable, colorful, white background',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle, 3D',
     labelEn: 'Mnemonic',
     labelKo: '연상',
   },
   RHYME: {
-    style: 'playful cartoon, humorous, bright colors',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle',
+    style: 'playful cartoon, humorous, bright colors, white background',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle, 3D',
     labelEn: 'Rhyme',
     labelKo: '라이밍',
   },
@@ -136,8 +136,73 @@ async function generateSmartContent(
   const client = getAnthropicClient();
 
   if (type === 'CONCEPT') {
+    // Claude를 사용해서 "상황 기반" 프롬프트 생성
+    try {
+      const message = await client.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 800,
+        system: `You are an expert at creating visual scenes for vocabulary learning images.
+
+CORE PRINCIPLE: "Don't explain the word. Create a situation where the word naturally comes to mind."
+
+RULES:
+1. Show the COMPLETED STATE, not the action in progress
+   - "persuade" → person nodding in agreement (result achieved)
+   - "fascinate" → person frozen in awe, surroundings faded
+
+2. For abstract words, show CONDITIONS that lead to the meaning
+   - "cause" → a cup being knocked over, water spilling
+   - "prior" → a locked door that must be unlocked first
+
+3. Avoid confusing with similar words
+   - "fascinate" ≠ "interested" → show TOTAL absorption
+   - "silly" ≠ "stupid" → show harmless fun, laughter
+
+4. Style: 2D cartoon illustration (NOT 3D)
+   - Soft pastel colors
+   - Clean, simple composition
+   - Plain white background
+   - No text, letters, numbers, symbols anywhere
+
+Always respond in JSON format.`,
+        messages: [{
+          role: 'user',
+          content: `Create an image prompt for the word "${wordData.word}" (${wordData.definition}).
+Korean meaning: ${wordData.definitionKo || 'N/A'}
+
+Think about:
+1. What specific situation would make someone instantly think of this word?
+2. What visual elements show the RESULT/STATE, not the process?
+3. How to distinguish this from similar words?
+
+Respond in JSON:
+{
+  "scene": "Brief description of the scene",
+  "imagePrompt": "Cartoon style illustration. [Detailed scene description]. Soft pastel colors with gentle lighting. Clean and simple composition. Plain white background. No text. No words. No letters. No numbers. No symbols. No labels. No captions. No titles. No icons. No speech bubbles. No signs. No watermarks. Square composition.",
+  "captionKo": "한국어 캡션 (결과 상태 중심)",
+  "captionEn": "English caption (result-focused)"
+}`
+        }],
+      });
+
+      const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        console.log(`    [Claude] Scene: ${parsed.scene}`);
+        return {
+          prompt: parsed.imagePrompt,
+          captionKo: parsed.captionKo || wordData.definitionKo || `${wordData.word}의 의미`,
+          captionEn: parsed.captionEn || wordData.definition,
+        };
+      }
+    } catch (error) {
+      console.error(`    [Claude] Error for CONCEPT:`, error);
+    }
+
+    // Fallback: 기존 방식 (Claude 실패 시)
     return {
-      prompt: `A 1:1 square cute 3D cartoon illustration showing the meaning of "${wordData.word}" which means "${wordData.definition}". Style: whimsical 3D animated style, bright vibrant colors, soft lighting, friendly character design, simple clean composition, white background, educational and memorable. The image should help language learners instantly understand and remember the word meaning. CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`,
+      prompt: `Cartoon style illustration. A simple scene showing the meaning of "${wordData.word}" (${wordData.definition}). Soft pastel colors with gentle lighting. Clean and simple composition. Plain white background. No text. No words. No letters. No numbers. No symbols. No labels. No captions. No titles. No icons. No speech bubbles. No signs. No watermarks. Square composition.`,
       captionKo: wordData.definitionKo || `${wordData.word}의 의미`,
       captionEn: wordData.definition,
     };
