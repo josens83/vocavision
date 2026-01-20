@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
 import { prisma } from '../index';
 
 const router = Router();
@@ -484,6 +484,73 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
  */
 router.get('/achievements', authenticateToken, (req, res) => {
   res.json({ message: 'User achievements endpoint' });
+});
+
+/**
+ * @swagger
+ * /users/daily-goal:
+ *   patch:
+ *     summary: Update daily goal
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               dailyGoal:
+ *                 type: integer
+ *                 minimum: 10
+ *                 maximum: 200
+ *     responses:
+ *       200:
+ *         description: Daily goal updated
+ */
+router.patch('/daily-goal', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as AuthRequest).userId;
+    const { dailyGoal } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Validation
+    if (!dailyGoal || typeof dailyGoal !== 'number') {
+      return res.status(400).json({
+        success: false,
+        error: 'dailyGoal is required and must be a number',
+      });
+    }
+
+    if (dailyGoal < 10 || dailyGoal > 200) {
+      return res.status(400).json({
+        success: false,
+        error: 'dailyGoal must be between 10 and 200',
+      });
+    }
+
+    // Update user
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { dailyGoal },
+      select: {
+        id: true,
+        dailyGoal: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error('[DailyGoal] Update failed:', error);
+    res.status(500).json({ error: 'Failed to update daily goal' });
+  }
 });
 
 export default router;

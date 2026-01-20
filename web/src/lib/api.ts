@@ -439,6 +439,14 @@ export const subscriptionAPI = {
   },
 };
 
+// User API
+export const userAPI = {
+  updateDailyGoal: async (dailyGoal: number) => {
+    const response = await api.patch('/users/daily-goal', { dailyGoal });
+    return response.data;
+  },
+};
+
 // Decks API - Anki-style custom deck system (Phase 2-1)
 export const decksAPI = {
   // Get all decks (user's own and public decks)

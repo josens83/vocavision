@@ -77,7 +77,8 @@ export const getUserProgress = async (
           totalWordsLearned: true,
           currentStreak: true,
           longestStreak: true,
-          lastActiveDate: true
+          lastActiveDate: true,
+          dailyGoal: true,
         }
       }),
 
