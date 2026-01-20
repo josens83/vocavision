@@ -318,18 +318,18 @@ function ReviewPageContent() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="text-center">
+          <div className="grid grid-cols-3 divide-x divide-gray-100 bg-gray-50 rounded-xl overflow-hidden mb-4">
+            <div className="text-center py-4">
               <p className="text-2xl font-bold text-pink-500">{stats.dueToday}</p>
-              <p className="text-xs text-gray-500">복습 대기</p>
+              <p className="text-xs text-gray-500 mt-1">복습 대기</p>
             </div>
-            <div className="text-center">
+            <div className="text-center py-4">
               <p className="text-2xl font-bold text-gray-800">{stats.completedToday || 0}</p>
-              <p className="text-xs text-gray-500">오늘 완료</p>
+              <p className="text-xs text-gray-500 mt-1">오늘 완료</p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-500">{stats.accuracy || 0}%</p>
-              <p className="text-xs text-gray-500">정답률</p>
+            <div className="text-center py-4">
+              <p className="text-2xl font-bold text-emerald-500">{stats.accuracy || 0}%</p>
+              <p className="text-xs text-gray-500 mt-1">정답률</p>
             </div>
           </div>
 
