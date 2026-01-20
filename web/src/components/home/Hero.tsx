@@ -33,6 +33,11 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
     </svg>
   ),
+  ChevronRight: () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    </svg>
+  ),
 };
 
 // Hero 섹션 통계 (실제 데이터 기반)
@@ -119,152 +124,152 @@ function UserStatsSection() {
   const progressPercent = Math.round((todayProgress / dailyGoal) * 100);
   const goalOptions = [20, 40, 60, 80, 100];
 
+  // Exam display name
+  const examDisplayName = lastStudy.exam === 'CSAT' ? '수능' : lastStudy.exam;
+  const levelDisplayName = lastStudy.level;
+
   return (
-    <>
-      {/* 오늘의 학습 현황 카드 */}
-      <div className="card p-5 md:p-6 border border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-900">오늘의 학습 현황</h3>
+    <div className="flex flex-col gap-4">
+      {/* 오늘의 학습 현황 카드 - 3분할 구분선 스타일 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <h3 className="text-base font-semibold text-slate-800">오늘의 학습 현황</h3>
           {!loading && stats && stats.currentStreak > 0 && (
-            <span className="text-orange-500 font-medium text-sm">🔥 {stats.currentStreak}일 연속 학습 중!</span>
+            <span className="text-orange-500 font-medium text-sm">🔥 {stats.currentStreak}일 연속!</span>
           )}
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 divide-x divide-slate-100">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="text-center">
-                <div className="h-8 w-12 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
+              <div key={i} className="text-center py-5">
+                <div className="h-8 w-12 bg-slate-200 rounded animate-pulse mx-auto mb-2" />
                 <div className="h-4 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
+          <div className="grid grid-cols-3 divide-x divide-slate-100">
+            <div className="text-center py-5">
               <p className="text-2xl font-bold text-blue-600">{stats?.totalWordsLearned || 0}</p>
-              <p className="text-xs text-slate-500">학습한 단어</p>
+              <p className="text-xs text-slate-500 mt-1">학습한 단어</p>
             </div>
-            <div>
+            <div className="text-center py-5">
               <p className="text-2xl font-bold text-pink-500">{stats?.dueReviewCount || 0}</p>
-              <p className="text-xs text-slate-500">복습 대기</p>
+              <p className="text-xs text-slate-500 mt-1">복습 대기</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-green-500">{stats?.accuracy || 0}%</p>
-              <p className="text-xs text-slate-500">정답률</p>
+            <div className="text-center py-5">
+              <p className="text-2xl font-bold text-emerald-500">{stats?.accuracy || 0}%</p>
+              <p className="text-xs text-slate-500 mt-1">정답률</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* 빠른 액션 버튼 */}
-      <div className="card p-5 md:p-6 border border-slate-200">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">빠른 액션</h3>
-        <div className="grid grid-cols-3 gap-3">
-          <Link
-            href={`/learn?exam=${lastStudy.exam.toLowerCase()}&level=${lastStudy.level}`}
-            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-blue-50 hover:bg-blue-100 transition group"
-          >
-            <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center group-hover:scale-110 transition">
-              <Icons.BookOpen />
-            </div>
-            <span className="text-sm font-medium text-slate-700">이어서 학습</span>
-          </Link>
-          <Link
-            href="/review"
-            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-pink-50 hover:bg-pink-100 transition group"
-          >
-            <div className="w-10 h-10 rounded-full bg-pink-500 text-white flex items-center justify-center group-hover:scale-110 transition">
-              <Icons.Brain />
-            </div>
-            <span className="text-sm font-medium text-slate-700">복습하기</span>
-          </Link>
-          <Link
-            href="/stats"
-            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-green-50 hover:bg-green-100 transition group"
-          >
-            <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center group-hover:scale-110 transition">
-              <Icons.ChartBar />
-            </div>
-            <span className="text-sm font-medium text-slate-700">학습 통계</span>
-          </Link>
+      {/* 빠른 액션 - 풀 너비 파스텔 카드 스타일 */}
+      <Link
+        href={`/learn?exam=${lastStudy.exam.toLowerCase()}&level=${lastStudy.level}`}
+        className="bg-emerald-50 hover:bg-emerald-100 rounded-2xl p-4 flex items-center gap-4 transition-all hover:shadow-md group"
+      >
+        <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition">
+          <Icons.BookOpen />
         </div>
-      </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-slate-800">학습하기</p>
+          <p className="text-sm text-slate-500 truncate">{examDisplayName} {levelDisplayName} 이어서 학습</p>
+        </div>
+        <div className="text-slate-400 group-hover:text-emerald-600 transition">
+          <Icons.ChevronRight />
+        </div>
+      </Link>
 
-      {/* 오늘의 목표 진행률 - 에너지 게이지 스타일 */}
-      <div className="card p-5 md:p-6 bg-white border border-slate-200 relative overflow-hidden">
-        {/* 배경 장식 */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/10 to-orange-500/5 rounded-full blur-2xl" />
+      <Link
+        href="/review"
+        className="bg-pink-50 hover:bg-pink-100 rounded-2xl p-4 flex items-center gap-4 transition-all hover:shadow-md group"
+      >
+        <div className="w-12 h-12 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center group-hover:scale-105 transition">
+          <Icons.Brain />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-slate-800">복습하기</p>
+          <p className="text-sm text-slate-500">{stats?.dueReviewCount || 0}개 복습 대기 중</p>
+        </div>
+        <div className="text-slate-400 group-hover:text-pink-600 transition">
+          <Icons.ChevronRight />
+        </div>
+      </Link>
 
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-              ⚡ 오늘의 목표
-            </h3>
-            <span className="text-slate-600 text-sm font-medium">
-              {progressPercent >= 100 ? `${progressPercent}% 달성 🎉` : `${progressPercent}% 달성`}
-            </span>
-          </div>
+      <Link
+        href="/stats"
+        className="bg-blue-50 hover:bg-blue-100 rounded-2xl p-4 flex items-center gap-4 transition-all hover:shadow-md group"
+      >
+        <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-105 transition">
+          <Icons.ChartBar />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-slate-800">학습 통계</p>
+          <p className="text-sm text-slate-500">나의 학습 현황 확인</p>
+        </div>
+        <div className="text-slate-400 group-hover:text-blue-600 transition">
+          <Icons.ChevronRight />
+        </div>
+      </Link>
 
-          {/* 에너지 게이지 바 */}
-          <div className="relative w-full h-4 bg-slate-200 rounded-full mb-3 overflow-hidden">
-            {/* 게이지 배경 그리드 */}
-            <div className="absolute inset-0 flex">
-              {[...Array(10)].map((_, i) => (
-                <div key={i} className="flex-1 border-r border-slate-300/50 last:border-r-0" />
-              ))}
-            </div>
-            {/* 게이지 채우기 - 그라데이션 + 글로우 */}
-            <div
-              className={`absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out ${
-                progressPercent >= 100
-                  ? 'bg-gradient-to-r from-green-400 via-emerald-500 to-green-400 shadow-[0_0_20px_rgba(52,211,153,0.5)]'
-                  : progressPercent >= 70
-                    ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400 shadow-[0_0_15px_rgba(251,191,36,0.4)]'
-                    : 'bg-gradient-to-r from-orange-400 via-orange-500 to-amber-400 shadow-[0_0_10px_rgba(251,146,60,0.3)]'
+      {/* 오늘의 목표 - 밝은 앰버 파스텔 톤 */}
+      <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+            ⚡ 오늘의 목표
+          </h3>
+          <span className={`text-sm font-medium ${progressPercent >= 100 ? 'text-emerald-600' : 'text-amber-600'}`}>
+            {progressPercent}% 달성 {progressPercent >= 100 && '🎉'}
+          </span>
+        </div>
+
+        {/* 진행바 */}
+        <div className="h-3 bg-amber-100 rounded-full overflow-hidden mb-3">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              progressPercent >= 100
+                ? 'bg-gradient-to-r from-emerald-400 to-emerald-500'
+                : 'bg-gradient-to-r from-amber-400 to-orange-500'
+            }`}
+            style={{ width: `${Math.min(progressPercent, 100)}%` }}
+          />
+        </div>
+
+        <p className="text-slate-600 text-sm mb-4">
+          {progressPercent >= 100
+            ? `목표 달성! 오늘 ${todayProgress}개 학습 완료!`
+            : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`}
+        </p>
+
+        {/* 목표 버튼들 */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-slate-500">하루 목표:</span>
+          {goalOptions.map((goal) => (
+            <button
+              key={goal}
+              onClick={async () => {
+                setDailyGoal(goal);
+                try {
+                  await userAPI.updateDailyGoal(goal);
+                } catch (error) {
+                  console.error('Failed to update daily goal:', error);
+                }
+              }}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                dailyGoal === goal
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'bg-white text-slate-600 hover:bg-amber-100 border border-amber-200'
               }`}
-              style={{ width: `${Math.min(progressPercent, 100)}%` }}
             >
-              {/* 반짝이는 효과 */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
-            </div>
-          </div>
-
-          <p className="text-slate-600 text-sm mb-4">
-            {progressPercent >= 100
-              ? `🎉 목표 달성! 오늘 ${todayProgress}개 학습 완료!`
-              : progressPercent >= 70
-                ? `거의 다 왔어요! ${dailyGoal - todayProgress}개 남음`
-                : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`}
-          </p>
-
-          {/* 목표 조정 버튼 그룹 */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 mr-1">하루 목표:</span>
-            {goalOptions.map((goal) => (
-              <button
-                key={goal}
-                onClick={async () => {
-                  setDailyGoal(goal);
-                  try {
-                    await userAPI.updateDailyGoal(goal);
-                  } catch (error) {
-                    console.error('Failed to update daily goal:', error);
-                  }
-                }}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                  dailyGoal === goal
-                    ? 'bg-slate-900 text-white shadow-lg'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {goal}개
-              </button>
-            ))}
-          </div>
+              {goal}개
+            </button>
+          ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
