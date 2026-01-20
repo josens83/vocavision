@@ -63,7 +63,9 @@ export const getUserProgress = async (
               id: true,
               word: true,
               definition: true,
-              difficulty: true
+              difficulty: true,
+              level: true,
+              examCategory: true,
             }
           }
         },

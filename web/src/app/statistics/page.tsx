@@ -32,6 +32,8 @@ interface Progress {
   word: {
     word: string;
     difficulty: string;
+    level?: string;
+    examCategory?: string;
   };
 }
 
@@ -44,14 +46,14 @@ const DEMO_STATS: UserStats = {
 };
 
 const DEMO_PROGRESS: Progress[] = [
-  { id: '1', wordId: 'w1', masteryLevel: 'MASTERED', correctCount: 5, incorrectCount: 0, totalReviews: 5, lastReviewDate: new Date().toISOString(), word: { word: 'abundant', difficulty: 'BEGINNER' } },
-  { id: '2', wordId: 'w2', masteryLevel: 'MASTERED', correctCount: 4, incorrectCount: 1, totalReviews: 5, lastReviewDate: new Date().toISOString(), word: { word: 'benevolent', difficulty: 'INTERMEDIATE' } },
-  { id: '3', wordId: 'w3', masteryLevel: 'FAMILIAR', correctCount: 3, incorrectCount: 1, totalReviews: 4, lastReviewDate: new Date().toISOString(), word: { word: 'comprehensive', difficulty: 'INTERMEDIATE' } },
-  { id: '4', wordId: 'w4', masteryLevel: 'FAMILIAR', correctCount: 2, incorrectCount: 1, totalReviews: 3, lastReviewDate: new Date().toISOString(), word: { word: 'diligent', difficulty: 'BEGINNER' } },
-  { id: '5', wordId: 'w5', masteryLevel: 'LEARNING', correctCount: 2, incorrectCount: 2, totalReviews: 4, lastReviewDate: new Date().toISOString(), word: { word: 'eloquent', difficulty: 'ADVANCED' } },
-  { id: '6', wordId: 'w6', masteryLevel: 'LEARNING', correctCount: 1, incorrectCount: 2, totalReviews: 3, lastReviewDate: new Date().toISOString(), word: { word: 'fluctuate', difficulty: 'ADVANCED' } },
-  { id: '7', wordId: 'w7', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 1, totalReviews: 1, lastReviewDate: new Date().toISOString(), word: { word: 'gratitude', difficulty: 'BEGINNER' } },
-  { id: '8', wordId: 'w8', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 0, totalReviews: 0, lastReviewDate: null, word: { word: 'hypothesis', difficulty: 'EXPERT' } },
+  { id: '1', wordId: 'w1', masteryLevel: 'MASTERED', correctCount: 5, incorrectCount: 0, totalReviews: 5, lastReviewDate: new Date().toISOString(), word: { word: 'abundant', difficulty: 'BEGINNER', level: 'L1', examCategory: 'CSAT' } },
+  { id: '2', wordId: 'w2', masteryLevel: 'MASTERED', correctCount: 4, incorrectCount: 1, totalReviews: 5, lastReviewDate: new Date().toISOString(), word: { word: 'benevolent', difficulty: 'INTERMEDIATE', level: 'L2', examCategory: 'CSAT' } },
+  { id: '3', wordId: 'w3', masteryLevel: 'FAMILIAR', correctCount: 3, incorrectCount: 1, totalReviews: 4, lastReviewDate: new Date().toISOString(), word: { word: 'comprehensive', difficulty: 'INTERMEDIATE', level: 'L2', examCategory: 'CSAT' } },
+  { id: '4', wordId: 'w4', masteryLevel: 'FAMILIAR', correctCount: 2, incorrectCount: 1, totalReviews: 3, lastReviewDate: new Date().toISOString(), word: { word: 'diligent', difficulty: 'BEGINNER', level: 'L1', examCategory: 'CSAT' } },
+  { id: '5', wordId: 'w5', masteryLevel: 'LEARNING', correctCount: 2, incorrectCount: 2, totalReviews: 4, lastReviewDate: new Date().toISOString(), word: { word: 'eloquent', difficulty: 'ADVANCED', level: 'L3', examCategory: 'CSAT' } },
+  { id: '6', wordId: 'w6', masteryLevel: 'LEARNING', correctCount: 1, incorrectCount: 2, totalReviews: 3, lastReviewDate: new Date().toISOString(), word: { word: 'fluctuate', difficulty: 'ADVANCED', level: 'L3', examCategory: 'CSAT' } },
+  { id: '7', wordId: 'w7', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 1, totalReviews: 1, lastReviewDate: new Date().toISOString(), word: { word: 'gratitude', difficulty: 'BEGINNER', level: 'L1', examCategory: 'CSAT' } },
+  { id: '8', wordId: 'w8', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 0, totalReviews: 0, lastReviewDate: null, word: { word: 'hypothesis', difficulty: 'EXPERT', level: 'L1', examCategory: 'TEPS' } },
 ];
 
 function StatisticsPageContent() {
@@ -64,6 +66,8 @@ function StatisticsPageContent() {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [progress, setProgress] = useState<Progress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedExam, setSelectedExam] = useState<string>('CSAT');
+  const [selectedLevel, setSelectedLevel] = useState<string>('all');
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -103,6 +107,21 @@ function StatisticsPageContent() {
     }
   };
 
+  // 필터링된 progress
+  const getFilteredProgress = () => {
+    return progress.filter((p) => {
+      // 시험 필터
+      if (p.word.examCategory && p.word.examCategory !== selectedExam) {
+        return false;
+      }
+      // 레벨 필터
+      if (selectedLevel !== 'all' && p.word.level !== selectedLevel) {
+        return false;
+      }
+      return true;
+    });
+  };
+
   const getMasteryDistribution = () => {
     const distribution = {
       NEW: 0,
@@ -111,23 +130,34 @@ function StatisticsPageContent() {
       MASTERED: 0,
     };
 
-    progress.forEach((p) => {
+    const filtered = getFilteredProgress();
+    filtered.forEach((p) => {
       distribution[p.masteryLevel as keyof typeof distribution]++;
     });
 
     return distribution;
   };
 
-  const getDifficultyDistribution = () => {
+  const getLevelDistribution = () => {
     const distribution = {
-      BEGINNER: 0,
-      INTERMEDIATE: 0,
-      ADVANCED: 0,
-      EXPERT: 0,
+      L1: 0,
+      L2: 0,
+      L3: 0,
     };
 
-    progress.forEach((p) => {
-      distribution[p.word.difficulty as keyof typeof distribution]++;
+    // 선택된 시험 기준으로 필터링
+    const filtered = progress.filter((p) => {
+      if (p.word.examCategory && p.word.examCategory !== selectedExam) {
+        return false;
+      }
+      return true;
+    });
+
+    filtered.forEach((p) => {
+      const level = p.word.level || 'L1';
+      if (distribution.hasOwnProperty(level)) {
+        distribution[level as keyof typeof distribution]++;
+      }
     });
 
     return distribution;
@@ -140,7 +170,7 @@ function StatisticsPageContent() {
   };
 
   const masteryDist = getMasteryDistribution();
-  const difficultyDist = getDifficultyDistribution();
+  const levelDist = getLevelDistribution();
   const accuracyRate = getAccuracyRate();
 
   const masteryColors = {
@@ -151,24 +181,22 @@ function StatisticsPageContent() {
   };
 
   const masteryLabels = {
-    NEW: '새로운',
-    LEARNING: '학습 중',
-    FAMILIAR: '익숙함',
-    MASTERED: '마스터',
+    NEW: '아직 안 본 단어',
+    LEARNING: '공부 중 (아직 어려움)',
+    FAMILIAR: '어느 정도 암기됨',
+    MASTERED: '완전히 암기 완료!',
   };
 
-  const difficultyColors = {
-    BEGINNER: 'bg-green-500',
-    INTERMEDIATE: 'bg-blue-500',
-    ADVANCED: 'bg-orange-500',
-    EXPERT: 'bg-red-500',
+  const levelColors = {
+    L1: 'bg-green-500',
+    L2: 'bg-blue-500',
+    L3: 'bg-orange-500',
   };
 
-  const difficultyLabels = {
-    BEGINNER: '초급',
-    INTERMEDIATE: '중급',
-    ADVANCED: '고급',
-    EXPERT: '전문가',
+  const levelLabels = {
+    L1: '초급 (L1)',
+    L2: '중급 (L2)',
+    L3: '고급 (L3)',
   };
 
   if (loading) {
@@ -252,7 +280,29 @@ function StatisticsPageContent() {
         <div className="grid md:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
           {/* Mastery Level Distribution */}
           <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
-            <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">숙련도 분포</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-bold">숙련도 분포</h2>
+              <div className="flex gap-2">
+                <select
+                  value={selectedExam}
+                  onChange={(e) => setSelectedExam(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                >
+                  <option value="CSAT">수능</option>
+                  <option value="TEPS">TEPS</option>
+                </select>
+                <select
+                  value={selectedLevel}
+                  onChange={(e) => setSelectedLevel(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                >
+                  <option value="all">전체</option>
+                  <option value="L1">L1 (초급)</option>
+                  <option value="L2">L2 (중급)</option>
+                  <option value="L3">L3 (고급)</option>
+                </select>
+              </div>
+            </div>
             <div className="space-y-4">
               {Object.entries(masteryDist).map(([level, count]) => {
                 const total = Object.values(masteryDist).reduce((a, b) => a + b, 0);
@@ -263,10 +313,10 @@ function StatisticsPageContent() {
                 return (
                   <div key={level}>
                     <div className="flex justify-between mb-2">
-                      <span className="font-medium">
+                      <span className="font-medium text-sm sm:text-base">
                         {masteryLabels[level as keyof typeof masteryLabels]}
                       </span>
-                      <span className="text-gray-600">
+                      <span className="text-gray-600 text-sm">
                         {safeCount}개 ({safePercentage}%)
                       </span>
                     </div>
@@ -284,12 +334,22 @@ function StatisticsPageContent() {
             </div>
           </div>
 
-          {/* Difficulty Distribution */}
+          {/* Level Distribution */}
           <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
-            <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">난이도 분포</h2>
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-bold">레벨별 학습 현황</h2>
+              <select
+                value={selectedExam}
+                onChange={(e) => setSelectedExam(e.target.value)}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
+              >
+                <option value="CSAT">수능</option>
+                <option value="TEPS">TEPS</option>
+              </select>
+            </div>
             <div className="space-y-4">
-              {Object.entries(difficultyDist).map(([level, count]) => {
-                const total = Object.values(difficultyDist).reduce((a, b) => a + b, 0);
+              {Object.entries(levelDist).map(([level, count]) => {
+                const total = Object.values(levelDist).reduce((a, b) => a + b, 0);
                 const percentage = total > 0 ? (count / total) * 100 : 0;
                 const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
                 const safeCount = isNaN(count) ? 0 : count;
@@ -298,7 +358,7 @@ function StatisticsPageContent() {
                   <div key={level}>
                     <div className="flex justify-between mb-2">
                       <span className="font-medium">
-                        {difficultyLabels[level as keyof typeof difficultyLabels]}
+                        {levelLabels[level as keyof typeof levelLabels]}
                       </span>
                       <span className="text-gray-600">
                         {safeCount}개 ({safePercentage}%)
@@ -307,7 +367,7 @@ function StatisticsPageContent() {
                     <div className="w-full bg-gray-200 rounded-full h-3">
                       <div
                         className={`${
-                          difficultyColors[level as keyof typeof difficultyColors]
+                          levelColors[level as keyof typeof levelColors]
                         } h-3 rounded-full transition-all duration-500`}
                         style={{ width: `${safePercentage}%` }}
                       />
