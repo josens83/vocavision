@@ -92,6 +92,7 @@ export default function DashboardSidebar() {
           <span className="font-bold text-xl">
             <span className="text-pink-500">Voca</span>
             <span className="text-gray-700">Vision</span>
+            <span className="text-gray-400 ml-1">AI</span>
           </span>
         </Link>
       </div>
