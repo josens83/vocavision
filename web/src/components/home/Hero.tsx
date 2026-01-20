@@ -336,7 +336,7 @@ export default function Hero() {
             )}
           </div>
 
-          <div className={`flex flex-col gap-5 md:gap-6 w-full max-w-md lg:max-w-none ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
+          <div className={`flex flex-col gap-5 md:gap-6 w-full max-w-md mx-auto lg:mx-0 lg:max-w-none ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
             {/* 섹션 안내 - 비로그인 시에만 표시 */}
             {!isLoggedIn && (
               <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
