@@ -35,10 +35,9 @@ export const guestNavigationItems: NavItem[] = [
     color: "text-blue-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
     children: [
-      { label: "L1 기초", href: "/learn?exam=CSAT&level=L1", count: PLATFORM_STATS.levels.L1, description: "수능 기본 필수 어휘" },
-      { label: "L2 중급", href: "/learn?exam=CSAT&level=L2", count: PLATFORM_STATS.levels.L2, description: "실력 향상 어휘" },
-      { label: "L3 고급", href: "/learn?exam=CSAT&level=L3", count: PLATFORM_STATS.levels.L3, description: "1등급 목표 어휘" },
-      { label: "전체 단어", href: "/words?exam=CSAT", count: PLATFORM_STATS.totalWords, description: "수능 어휘 전체 보기" },
+      { label: "L1 초급", href: "/learn?exam=CSAT&level=L1" },
+      { label: "L2 중급", href: "/learn?exam=CSAT&level=L2" },
+      { label: "L3 고급", href: "/learn?exam=CSAT&level=L3" },
     ],
   },
   {
@@ -67,12 +66,9 @@ export const authNavigationItems: NavItem[] = [
     color: "text-blue-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
     children: [
-      { label: "L1 기초", href: "/learn?exam=CSAT&level=L1", count: PLATFORM_STATS.levels.L1, description: "수능 기본 필수 어휘" },
-      { label: "L2 중급", href: "/learn?exam=CSAT&level=L2", count: PLATFORM_STATS.levels.L2, description: "실력 향상 어휘" },
-      { label: "L3 고급", href: "/learn?exam=CSAT&level=L3", count: PLATFORM_STATS.levels.L3, description: "1등급 목표 어휘" },
-      { label: "퀴즈 풀기", href: "/quiz?exam=CSAT", description: "수능 단어 퀴즈", badge: "추천" },
-      { label: "복습하기", href: "/review?exam=CSAT", description: "틀린 단어 복습" },
-      { label: "전체 보기", href: "/words?exam=CSAT", count: PLATFORM_STATS.totalWords, description: "수능 어휘 전체" },
+      { label: "L1 초급", href: "/learn?exam=CSAT&level=L1" },
+      { label: "L2 중급", href: "/learn?exam=CSAT&level=L2" },
+      { label: "L3 고급", href: "/learn?exam=CSAT&level=L3" },
     ],
   },
   {
@@ -80,9 +76,9 @@ export const authNavigationItems: NavItem[] = [
     color: "text-teal-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>,
     children: [
-      { label: "TEPS 단어 학습", href: "/learn?exam=TEPS", count: PLATFORM_STATS.exams.TEPS.words, description: "TEPS 필수 어휘", badge: "Premium" },
-      { label: "TEPS 퀴즈", href: "/quiz?exam=TEPS", description: "TEPS 단어 퀴즈" },
-      { label: "전체 보기", href: "/words?exam=TEPS", count: PLATFORM_STATS.exams.TEPS.words, description: "TEPS 어휘 전체" },
+      { label: "고급어휘 Lv.1", href: "/learn?exam=TEPS&level=L1" },
+      { label: "고급어휘 Lv.2", href: "/learn?exam=TEPS&level=L2" },
+      { label: "고급어휘 Lv.3", href: "/learn?exam=TEPS&level=L3" },
     ],
   },
   {
