@@ -228,39 +228,41 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Progress Info - 분모/분자 밀도 */}
-            <div className="bg-gray-50 rounded-xl p-4 mb-4">
-              <div className="grid grid-cols-3 gap-4 text-center mb-3">
-                <div>
+            {/* Progress Info - 3분할 구분선 스타일 */}
+            <div className="bg-gray-50 rounded-xl overflow-hidden mb-4">
+              <div className="grid grid-cols-3 divide-x divide-gray-200">
+                <div className="text-center py-4">
                   <p className="text-2xl font-bold text-blue-600">
                     {examLevelLoading ? (
                       <span className="inline-block w-8 h-6 bg-blue-200 rounded animate-pulse" />
                     ) : learnedWords}
                   </p>
-                  <p className="text-xs text-gray-500">학습 완료</p>
+                  <p className="text-xs text-gray-500 mt-1">학습 완료</p>
                 </div>
-                <div>
+                <div className="text-center py-4">
                   <p className="text-2xl font-bold text-gray-400">
                     {examLevelLoading ? (
                       <span className="inline-block w-8 h-6 bg-gray-200 rounded animate-pulse" />
                     ) : remainingWords}
                   </p>
-                  <p className="text-xs text-gray-500">남은 단어</p>
+                  <p className="text-xs text-gray-500 mt-1">남은 단어</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-green-500">
+                <div className="text-center py-4">
+                  <p className="text-2xl font-bold text-emerald-500">
                     {examLevelLoading ? (
-                      <span className="inline-block w-8 h-6 bg-green-200 rounded animate-pulse" />
+                      <span className="inline-block w-8 h-6 bg-emerald-200 rounded animate-pulse" />
                     ) : `${progressPercent}%`}
                   </p>
-                  <p className="text-xs text-gray-500">진행률</p>
+                  <p className="text-xs text-gray-500 mt-1">진행률</p>
                 </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className={`bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all ${examLevelLoading ? 'animate-pulse' : ''}`}
-                  style={{ width: examLevelLoading ? '0%' : `${progressPercent}%` }}
-                />
+              <div className="px-4 pb-4">
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all ${examLevelLoading ? 'animate-pulse' : ''}`}
+                    style={{ width: examLevelLoading ? '0%' : `${progressPercent}%` }}
+                  />
+                </div>
               </div>
             </div>
 
