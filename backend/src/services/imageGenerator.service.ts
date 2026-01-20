@@ -13,19 +13,19 @@ const STABILITY_API_URL = 'https://api.stability.ai/v1/generation';
 // Storage bucket name
 const STORAGE_BUCKET = 'word-images';
 
-// Visual type configurations
+// Visual type configurations (2D cartoon style - same as batch generation)
 const VISUAL_CONFIGS = {
   CONCEPT: {
-    style: 'cute 3D cartoon illustration, bright vibrant colors, soft lighting, friendly and approachable, educational',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle, realistic, photograph, dark, scary',
+    style: 'cartoon illustration, soft pastel colors, clean simple composition, white background',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, blurry, numbers, characters, font, handwriting, title, subtitle, 3D, realistic, photograph, dark, scary, cluttered',
   },
   MNEMONIC: {
-    style: 'cartoon illustration, cute, memorable, colorful',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle',
+    style: 'cartoon illustration, cute, memorable, colorful, white background',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle, 3D',
   },
   RHYME: {
-    style: 'playful cartoon, humorous, bright colors',
-    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle',
+    style: 'playful cartoon, humorous, bright colors, white background',
+    negativePrompt: 'text, words, letters, alphabet, typography, writing, captions, labels, watermark, signature, realistic, photograph, numbers, characters, font, handwriting, title, subtitle, 3D',
   },
 };
 
@@ -195,11 +195,8 @@ export async function generateAndUploadImage(
 // ---------------------------------------------
 
 export function generateConceptPrompt(definitionEn: string, word: string): string {
-  // Cute 3D cartoon style for intuitive understanding (no trademarked terms)
-  return `A 1:1 square cute 3D cartoon illustration showing the meaning of "${word}" which means "${definitionEn || word}".
-Style: whimsical 3D animated style, bright vibrant colors, soft lighting, friendly character design, simple clean composition, white background, educational and memorable.
-The image should help language learners instantly understand and remember the word meaning through clear visual storytelling.
-CRITICAL: Absolutely NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual illustration only.`;
+  // 2D cartoon style for intuitive understanding (consistent with batch generation)
+  return `Cartoon style illustration. A simple scene showing the meaning of "${word}" (${definitionEn || word}). Soft pastel colors with gentle lighting. Clean and simple composition. Plain white background. No text. No words. No letters. No numbers. No symbols. No labels. No captions. No titles. No icons. No speech bubbles. No signs. No watermarks. Square composition.`;
 }
 
 export function generateMnemonicPrompt(mnemonic: string, word: string): string {

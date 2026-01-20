@@ -2552,7 +2552,36 @@ export const regenerateWordImage = async (
     });
   } catch (error) {
     logger.error('[Admin/RegenerateImage] Error:', error);
-    next(error);
+
+    // Return descriptive error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
+    // Check for specific error types
+    if (errorMessage.includes('STABILITY_API_KEY')) {
+      return res.status(503).json({
+        success: false,
+        error: 'Image generation service not configured (missing API key)',
+      });
+    }
+
+    if (errorMessage.includes('Supabase')) {
+      return res.status(503).json({
+        success: false,
+        error: 'Image storage service not configured',
+      });
+    }
+
+    if (errorMessage.includes('Stability AI error')) {
+      return res.status(502).json({
+        success: false,
+        error: `Image generation API error: ${errorMessage}`,
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      error: `Image generation failed: ${errorMessage}`,
+    });
   }
 };
 
