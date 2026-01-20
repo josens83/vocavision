@@ -167,6 +167,15 @@ function LearnPageContent() {
     if (user) {
       startSession();
     }
+
+    // Save last study info to localStorage (for "이어서 학습" button)
+    if (examParam && levelParam && !isDemo && !isReviewMode) {
+      localStorage.setItem('lastStudy', JSON.stringify({
+        exam: examParam,
+        level: levelParam,
+        timestamp: Date.now(),
+      }));
+    }
   }, [user, hasHydrated, router, examParam, levelParam, isDemo]);
 
   const startSession = async () => {

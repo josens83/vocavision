@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PLATFORM_STATS } from "@/constants/stats";
-import { useAuthStore, useExamCourseStore } from "@/lib/store";
+import { useAuthStore } from "@/lib/store";
 import { progressAPI, userAPI } from "@/lib/api";
 
 const Icons = {
@@ -60,8 +60,23 @@ function UserStatsSection() {
   const [loading, setLoading] = useState(true);
   const [dailyGoal, setDailyGoal] = useState(20);
   const [showGoalOptions, setShowGoalOptions] = useState(false);
-  const activeExam = useExamCourseStore((state) => state.activeExam) || 'CSAT';
-  const activeLevel = useExamCourseStore((state) => state.activeLevel) || 'L1';
+
+  // Get last study info from localStorage (fallback to CSAT L1)
+  const [lastStudy, setLastStudy] = useState<{ exam: string; level: string }>({ exam: 'CSAT', level: 'L1' });
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('lastStudy');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.exam && parsed.level) {
+          setLastStudy({ exam: parsed.exam, level: parsed.level });
+        }
+      }
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+  }, []);
 
   useEffect(() => {
     loadStats();
@@ -147,7 +162,7 @@ function UserStatsSection() {
         <h3 className="text-lg font-semibold text-slate-900 mb-4">빠른 액션</h3>
         <div className="grid grid-cols-3 gap-3">
           <Link
-            href={`/learn?exam=${activeExam.toLowerCase()}&level=${activeLevel}`}
+            href={`/learn?exam=${lastStudy.exam.toLowerCase()}&level=${lastStudy.level}`}
             className="flex flex-col items-center gap-2 p-4 rounded-xl bg-blue-50 hover:bg-blue-100 transition group"
           >
             <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center group-hover:scale-110 transition">
@@ -321,7 +336,7 @@ export default function Hero() {
             )}
           </div>
 
-          <div className={`flex flex-col gap-5 md:gap-6 max-w-md mx-auto lg:mx-0 lg:max-w-none ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
+          <div className={`flex flex-col gap-5 md:gap-6 w-full max-w-sm sm:max-w-md mx-auto lg:mx-0 lg:max-w-none ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
             {/* 섹션 안내 - 비로그인 시에만 표시 */}
             {!isLoggedIn && (
               <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
