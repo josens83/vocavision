@@ -591,6 +591,12 @@ function LearnPageContent() {
           onPrevious={handlePrevious}
           hasPrevious={currentWordIndex > 0}
         />
+        {/* Swipe Hint */}
+        <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mt-4">
+          <span>←</span>
+          <span>스와이프하여 넘기기</span>
+          <span>→</span>
+        </div>
       </div>
     </div>
   );
