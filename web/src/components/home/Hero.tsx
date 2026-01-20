@@ -284,8 +284,8 @@ export default function Hero() {
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-level-intermediate/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-level-advanced/5 rounded-full blur-3xl" />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-12">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center justify-items-center lg:justify-items-start">
           <div className={`space-y-8 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
               <Icons.Sparkles />
@@ -336,7 +336,7 @@ export default function Hero() {
             )}
           </div>
 
-          <div className={`flex flex-col gap-5 md:gap-6 w-full max-w-sm sm:max-w-md mx-auto lg:mx-0 lg:max-w-none ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
+          <div className={`flex flex-col gap-5 md:gap-6 w-full max-w-md lg:max-w-none ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
             {/* 섹션 안내 - 비로그인 시에만 표시 */}
             {!isLoggedIn && (
               <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
