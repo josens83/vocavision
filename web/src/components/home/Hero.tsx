@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore, useExamCourseStore } from "@/lib/store";
-import { progressAPI } from "@/lib/api";
+import { progressAPI, userAPI } from "@/lib/api";
 
 const Icons = {
   Play: () => (
@@ -58,7 +58,7 @@ function UserStatsSection() {
     accuracy: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [dailyGoal, setDailyGoal] = useState(60);
+  const [dailyGoal, setDailyGoal] = useState(20);
   const [showGoalOptions, setShowGoalOptions] = useState(false);
   const activeExam = useExamCourseStore((state) => state.activeExam) || 'CSAT';
   const activeLevel = useExamCourseStore((state) => state.activeLevel) || 'L1';
@@ -73,6 +73,12 @@ function UserStatsSection() {
         progressAPI.getUserProgress(),
         progressAPI.getDueReviews(),
       ]);
+
+      // dailyGoal도 설정
+      if (progressData.stats?.dailyGoal) {
+        setDailyGoal(progressData.stats.dailyGoal);
+      }
+
       setStats({
         currentStreak: progressData.stats?.currentStreak || 0,
         totalWordsLearned: progressData.stats?.totalWordsLearned || 0,
@@ -223,7 +229,14 @@ function UserStatsSection() {
             {goalOptions.map((goal) => (
               <button
                 key={goal}
-                onClick={() => setDailyGoal(goal)}
+                onClick={async () => {
+                  setDailyGoal(goal);
+                  try {
+                    await userAPI.updateDailyGoal(goal);
+                  } catch (error) {
+                    console.error('Failed to update daily goal:', error);
+                  }
+                }}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                   dailyGoal === goal
                     ? 'bg-slate-900 text-white shadow-lg'

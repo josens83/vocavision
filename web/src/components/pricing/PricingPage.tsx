@@ -125,7 +125,7 @@ export default function PricingPage() {
             <ul className="mt-8 space-y-3">
               <li className="flex items-center gap-3 text-sm">
                 <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                <span>수능 L1 단어 (1,000+개)</span>
+                <span>수능 L1 단어 (800+개)</span>
               </li>
               <li className="flex items-center gap-3 text-sm">
                 <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -516,7 +516,7 @@ export default function PricingPage() {
               지금 바로 영어 단어 학습을 시작하세요!
             </h2>
             <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-              무료로 수능 L1 필수 단어 1,000개를 학습하고,
+              무료로 수능 L1 필수 단어 800개를 학습하고,
               <br />
               업그레이드하면 전체 3,300개+ 단어를 잠금 해제하세요.
             </p>
