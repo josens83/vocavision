@@ -43,6 +43,8 @@ import {
   uploadWordImage,
   deleteWordImage,
   batchRegenerateImages,
+  // Concept Image Regeneration by word names
+  regenerateConceptByWords,
   // Cloudinary → Supabase Migration
   getCloudinaryMigrationStatus,
   startCloudinaryMigration,
@@ -78,6 +80,27 @@ router.get('/image-generation/status', authOrSecretKey, getImageGenerationStatus
 router.post('/image-generation/batch', authOrSecretKey, startImageBatchGeneration);
 router.get('/image-generation/job/:jobId', authOrSecretKey, getImageGenerationJobStatus);
 router.post('/image-generation/stop/:jobId', authOrSecretKey, stopImageGeneration);
+
+/**
+ * @swagger
+ * /admin/regenerate-concept:
+ *   get:
+ *     summary: Regenerate concept images for specific words (by word names)
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: words
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Comma-separated word names (e.g., "principle,preliminary,proportion")
+ *     responses:
+ *       200:
+ *         description: Started regenerating concept images
+ */
+router.get('/regenerate-concept', authOrSecretKey, regenerateConceptByWords);
 
 /**
  * Admin authentication middleware
