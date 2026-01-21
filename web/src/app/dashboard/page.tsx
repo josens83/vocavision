@@ -159,18 +159,9 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="p-4 lg:p-8 max-w-5xl mx-auto">
-        {/* 모바일 헤더 */}
-        <div className="lg:hidden mb-6 flex items-center justify-between">
+        {/* 모바일 헤더 - 시험 선택은 아래 ExamLevelSelector에서 */}
+        <div className="lg:hidden mb-6">
           <h1 className="text-xl font-bold text-gray-900">대시보드</h1>
-          <select
-            value={selectedExam}
-            onChange={(e) => setActiveExam(e.target.value as ExamType)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white font-medium"
-          >
-            {Object.entries(examInfo).map(([key, info]) => (
-              <option key={key} value={key}>{info.name}</option>
-            ))}
-          </select>
         </div>
 
         {/* P0-2: 오늘의 학습 목표 Hero */}
