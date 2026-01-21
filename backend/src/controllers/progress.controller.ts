@@ -788,7 +788,7 @@ export const getWeakWordsCount = async (
         word: {
           examLevels: examCategory || level ? {
             some: {
-              ...(examCategory && { examCategory: examCategory as string }),
+              ...(examCategory && { examCategory: examCategory as ExamCategory }),
               ...(level && { level: level as string }),
             }
           } : undefined,
