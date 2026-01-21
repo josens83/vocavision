@@ -1,14 +1,31 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
+import { progressAPI } from '@/lib/api';
 import TabLayout from '@/components/layout/TabLayout';
+
+// ChevronRight 아이콘
+function ChevronRight({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
 
 export default function MyPage() {
   const router = useRouter();
   const { user, _hasHydrated, logout } = useAuthStore();
+  const [stats, setStats] = useState<{
+    totalWordsLearned: number;
+    currentStreak: number;
+    accuracy: number;
+    dueReviewCount: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -16,18 +33,44 @@ export default function MyPage() {
       router.push('/auth/login');
       return;
     }
+    loadStats();
   }, [user, _hasHydrated, router]);
+
+  const loadStats = async () => {
+    try {
+      const [progressData, reviewData] = await Promise.all([
+        progressAPI.getUserProgress(),
+        progressAPI.getDueReviews(),
+      ]);
+      setStats({
+        totalWordsLearned: progressData.stats?.totalWordsLearned || 0,
+        currentStreak: progressData.stats?.currentStreak || 0,
+        accuracy: reviewData.accuracy || 0,
+        dueReviewCount: reviewData.count || 0,
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+      setStats({
+        totalWordsLearned: 0,
+        currentStreak: 0,
+        accuracy: 0,
+        dueReviewCount: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
     router.push('/');
   };
 
-  if (!_hasHydrated) {
+  if (!_hasHydrated || loading) {
     return (
       <TabLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="animate-spin w-8 h-8 border-4 border-pink-500 border-t-transparent rounded-full" />
+        <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-4 border-[#FF6B9D] border-t-transparent rounded-full" />
         </div>
       </TabLayout>
     );
@@ -38,139 +81,174 @@ export default function MyPage() {
   }
 
   const subscriptionLabel = {
-    ACTIVE: { text: '프리미엄', color: 'bg-green-100 text-green-700' },
-    TRIAL: { text: '무료 체험', color: 'bg-blue-100 text-blue-700' },
-    FREE: { text: '무료', color: 'bg-gray-100 text-gray-600' },
+    ACTIVE: { text: '프리미엄', bgColor: 'bg-gradient-to-r from-[#FF6B9D] to-[#A855F7]', textColor: 'text-white' },
+    PREMIUM: { text: '프리미엄', bgColor: 'bg-gradient-to-r from-[#FF6B9D] to-[#A855F7]', textColor: 'text-white' },
+    TRIAL: { text: '무료 체험', bgColor: 'bg-[#EFF6FF]', textColor: 'text-[#3B82F6]' },
+    FREE: { text: '무료', bgColor: 'bg-[#F8F9FA]', textColor: 'text-[#767676]' },
   };
 
   const currentSub = subscriptionLabel[user.subscriptionStatus as keyof typeof subscriptionLabel] || subscriptionLabel.FREE;
 
   return (
     <TabLayout>
-      <div className="container mx-auto px-4 py-6 max-w-lg">
-        {/* 프로필 헤더 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-4">
-          <div className="flex items-center gap-4">
-            {user.avatar ? (
-              <img
-                src={user.avatar}
-                alt={user.name || '사용자'}
-                className="w-20 h-20 rounded-full object-cover border-4 border-gray-100"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                <span className="text-white font-bold text-3xl">
-                  {user.name?.charAt(0) || 'U'}
-                </span>
-              </div>
-            )}
-            <div className="flex-1">
-              <h1 className="text-xl font-bold text-gray-900">{user.name || '사용자'}</h1>
-              <p className="text-sm text-gray-500">{user.email}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className={`text-xs font-medium px-3 py-1 rounded-full ${currentSub.color}`}>
-                  {currentSub.text}
-                </span>
-                {user.provider && (
-                  <span className="text-xs text-gray-400">
-                    {user.provider === 'kakao' && '카카오 로그인'}
-                    {user.provider === 'google' && 'Google 로그인'}
-                    {user.provider === 'credentials' && '이메일 로그인'}
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+
+          {/* 프로필 카드 (은행 앱 스타일) */}
+          <section className="bg-white rounded-[20px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+            <div className="flex items-center gap-4">
+              {/* 프로필 이미지 */}
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name || '사용자'}
+                  className="w-[72px] h-[72px] rounded-full object-cover border-4 border-[#f5f5f5]"
+                />
+              ) : (
+                <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-[#FF6B9D] to-[#A855F7] flex items-center justify-center">
+                  <span className="text-white font-bold text-3xl">
+                    {user.name?.charAt(0) || '👤'}
                   </span>
-                )}
+                </div>
+              )}
+
+              {/* 유저 정보 */}
+              <div className="flex-1">
+                <h2 className="text-[20px] font-bold text-[#1c1c1e]">{user.name || '사용자'}</h2>
+                <p className="text-[14px] text-[#767676]">{user.email}</p>
+
+                <div className="flex items-center gap-2 mt-2">
+                  {/* 구독 배지 */}
+                  <span className={`text-[12px] font-semibold px-3 py-1 rounded-full ${currentSub.bgColor} ${currentSub.textColor}`}>
+                    {currentSub.text}
+                  </span>
+
+                  {user.provider && (
+                    <span className="text-[12px] text-[#999999]">
+                      {user.provider === 'kakao' && '카카오 로그인'}
+                      {user.provider === 'google' && 'Google 로그인'}
+                      {user.provider === 'credentials' && '이메일 로그인'}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* 계정 설정 */}
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4">
-          <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
-            <span className="text-xs font-semibold text-gray-500">계정 설정</span>
-          </div>
-          <Link
-            href="/settings?tab=profile"
-            className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xl">👤</span>
-              <span className="text-sm font-medium text-gray-700">프로필 설정</span>
-            </div>
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-          <Link
-            href="/settings?tab=password"
-            className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xl">🔒</span>
-              <span className="text-sm font-medium text-gray-700">비밀번호 변경</span>
-            </div>
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-          <Link
-            href="/settings?tab=subscription"
-            className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xl">💳</span>
-              <span className="text-sm font-medium text-gray-700">구독 관리</span>
-            </div>
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
+          {/* 학습 통계 요약 (은행 앱 스타일) */}
+          <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+            <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">내 학습 현황</h3>
 
-        {/* 기타 */}
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4">
-          <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
-            <span className="text-xs font-semibold text-gray-500">기타</span>
-          </div>
-          {user.subscriptionStatus !== 'ACTIVE' && (
-            <Link
-              href="/pricing"
-              className="flex items-center justify-between px-5 py-4 hover:bg-blue-50 transition-colors border-b border-gray-100"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xl">✨</span>
-                <span className="text-sm font-medium text-blue-600">프리미엄 업그레이드</span>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-[#EFF6FF] rounded-[14px] p-4 text-center">
+                <p className="text-[24px] font-bold text-[#3B82F6]">{stats?.totalWordsLearned || 0}</p>
+                <p className="text-[12px] text-[#767676]">학습한 단어</p>
               </div>
-              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              <div className="bg-[#FFF0F5] rounded-[14px] p-4 text-center">
+                <p className="text-[24px] font-bold text-[#FF6B9D]">{stats?.currentStreak || 0}일</p>
+                <p className="text-[12px] text-[#767676]">연속 학습</p>
+              </div>
+              <div className="bg-[#ECFDF5] rounded-[14px] p-4 text-center">
+                <p className="text-[24px] font-bold text-[#10B981]">{stats?.accuracy || 0}%</p>
+                <p className="text-[12px] text-[#767676]">정답률</p>
+              </div>
+              <div className="bg-[#FFF7ED] rounded-[14px] p-4 text-center">
+                <p className="text-[24px] font-bold text-[#F59E0B]">{stats?.dueReviewCount || 0}</p>
+                <p className="text-[12px] text-[#767676]">복습 대기</p>
+              </div>
+            </div>
+          </section>
+
+          {/* 계정 설정 메뉴 (은행 앱 스타일) */}
+          <section className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#f5f5f5]">
+              <h3 className="text-[13px] font-semibold text-[#767676]">계정 설정</h3>
+            </div>
+
+            <Link href="/settings?tab=profile">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">👤</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">프로필 설정</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
+              </div>
             </Link>
-          )}
-          <Link
-            href="/help"
-            className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xl">❓</span>
-              <span className="text-sm font-medium text-gray-700">도움말</span>
+
+            <Link href="/settings?tab=password">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">🔒</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">비밀번호 변경</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
+              </div>
+            </Link>
+
+            <Link href="/settings?tab=subscription">
+              <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">💳</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">구독 관리</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
+              </div>
+            </Link>
+          </section>
+
+          {/* 기타 메뉴 (은행 앱 스타일) */}
+          <section className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#f5f5f5]">
+              <h3 className="text-[13px] font-semibold text-[#767676]">기타</h3>
             </div>
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
+
+            {user.subscriptionStatus !== 'ACTIVE' && user.subscriptionStatus !== 'PREMIUM' && (
+              <Link href="/pricing">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#FFF0F5] transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">✨</span>
+                    <span className="text-[15px] font-medium text-[#FF6B9D]">프리미엄 업그레이드</span>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-[#FF6B9D]" />
+                </div>
+              </Link>
+            )}
+
+            <Link href="/statistics">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">📊</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">상세 통계</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
+              </div>
+            </Link>
+
+            <Link href="/help">
+              <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">❓</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">도움말</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
+              </div>
+            </Link>
+          </section>
+
+          {/* 로그아웃 버튼 (은행 앱 스타일) */}
+          <button
+            onClick={handleLogout}
+            className="w-full py-4 text-[#EF4444] font-semibold text-[15px] bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] hover:bg-[#FEF2F2] transition-colors"
+          >
+            로그아웃
+          </button>
+
+          {/* 앱 정보 */}
+          <p className="text-center text-[12px] text-[#999999] mt-4">
+            VocaVision AI v1.0.0
+          </p>
+
         </div>
-
-        {/* 로그아웃 버튼 */}
-        <button
-          onClick={handleLogout}
-          className="w-full bg-white rounded-2xl border border-gray-200 px-5 py-4 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
-        >
-          로그아웃
-        </button>
-
-        {/* 앱 정보 */}
-        <p className="text-center text-xs text-gray-400 mt-6">
-          VocaVision AI v1.0.0
-        </p>
       </div>
     </TabLayout>
   );
