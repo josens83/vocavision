@@ -766,3 +766,42 @@ export const getActivityHeatmap = async (
     next(error);
   }
 };
+
+/**
+ * 잘 모르는 단어 수 조회 (correctCount < 3 또는 masteryLevel이 NEW/LEARNING)
+ * GET /progress/weak-words/count
+ * Query: examCategory, level
+ */
+export const getWeakWordsCount = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId!;
+    const { examCategory, level } = req.query;
+
+    // 시험/레벨에 해당하는 단어 중 잘 모르는 단어 수 조회
+    const weakCount = await prisma.userProgress.count({
+      where: {
+        userId,
+        word: {
+          examLevels: examCategory || level ? {
+            some: {
+              ...(examCategory && { examCategory: examCategory as string }),
+              ...(level && { level: level as string }),
+            }
+          } : undefined,
+        },
+        OR: [
+          { correctCount: { lt: 3 } },
+          { masteryLevel: { in: ['NEW', 'LEARNING'] } }
+        ]
+      }
+    });
+
+    res.json({ count: weakCount });
+  } catch (error) {
+    next(error);
+  }
+};
