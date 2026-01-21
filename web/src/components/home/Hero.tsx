@@ -6,6 +6,29 @@ import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
 import { progressAPI, userAPI } from "@/lib/api";
 
+// ============================================
+// 브랜드 컬러 시스템 (은행 앱 스타일)
+// ============================================
+const brandColors = {
+  primary: '#FF6B9D',      // 핑크 (VocaVision 메인)
+  primaryLight: '#FFF0F5', // 연핑크 배경
+  secondary: '#A855F7',    // 보라 (복습)
+  secondaryLight: '#F3E8FF',
+  success: '#00C7AE',      // 민트 (완료)
+  warning: '#FFB300',      // 앰버
+
+  // 텍스트
+  textPrimary: '#1c1c1e',
+  textSecondary: '#767676',
+  textMuted: '#999999',
+
+  // 배경/보더
+  bgCard: '#F8F9FA',
+  bgWhite: '#FFFFFF',
+  border: '#f0f0f0',
+  borderLight: '#f5f5f5',
+};
+
 const Icons = {
   Play: () => (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,7 +58,7 @@ const Icons = {
   ),
   ChevronRight: () => (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
     </svg>
   ),
 };
@@ -53,7 +76,71 @@ const features = [
   { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공", href: "/statistics", demoHref: "/statistics?demo=true" },
 ];
 
+// ============================================
+// DashboardItem 컴포넌트 (은행 앱 스타일)
+// ============================================
+function DashboardItem({ value, label, color }: { value: string | number, label: string, color: string }) {
+  return (
+    <div className="flex-1 flex flex-col items-center gap-1">
+      <span
+        className="text-[22px] font-bold"
+        style={{ color }}
+      >
+        {value}
+      </span>
+      <span className="text-[12px] text-[#767676]">{label}</span>
+    </div>
+  );
+}
+
+// ============================================
+// ActionCard 컴포넌트 (MenuCard 스타일)
+// ============================================
+function ActionCard({
+  icon,
+  iconBg,
+  category,
+  title,
+  subtitle,
+  href,
+}: {
+  icon: React.ReactNode,
+  iconBg: string,
+  category: string,
+  title: string,
+  subtitle?: string,
+  href: string,
+}) {
+  return (
+    <Link
+      href={href}
+      className="bg-[#F8F9FA] active:bg-[#F0F0F0] transition-colors rounded-[20px] p-5 flex items-center justify-between cursor-pointer hover:shadow-sm"
+    >
+      <div className="flex items-center gap-[18px]">
+        {/* 아이콘 원형 배경 */}
+        <div className={`w-[48px] h-[48px] rounded-full flex items-center justify-center shadow-sm ${iconBg}`}>
+          {icon}
+        </div>
+        {/* 텍스트 */}
+        <div className="flex flex-col">
+          <span className="text-[12px] text-[#767676] font-medium mb-[2px]">{category}</span>
+          <span className="text-[16px] font-bold text-[#1c1c1e]">{title}</span>
+          {subtitle && (
+            <span className="text-[13px] text-[#999999] mt-0.5">{subtitle}</span>
+          )}
+        </div>
+      </div>
+      {/* 화살표 */}
+      <div className="text-[#C8C8C8]">
+        <Icons.ChevronRight />
+      </div>
+    </Link>
+  );
+}
+
+// ============================================
 // 로그인 사용자용 학습 현황 섹션
+// ============================================
 function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean }) {
   const [stats, setStats] = useState<{
     currentStreak: number;
@@ -64,7 +151,6 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [dailyGoal, setDailyGoal] = useState(20);
-  const [showGoalOptions, setShowGoalOptions] = useState(false);
 
   // Get last study info from localStorage (fallback to CSAT L1)
   const [lastStudy, setLastStudy] = useState<{ exam: string; level: string }>({ exam: 'CSAT', level: 'L1' });
@@ -129,126 +215,110 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
   const levelDisplayName = lastStudy.level;
 
   return (
-    <div className="flex flex-col gap-5 lg:gap-6">
-      {/* 오늘의 학습 현황 카드 - 모바일에서만 여기 표시 */}
+    <div className="flex flex-col gap-4">
+      {/* 오늘의 학습 현황 카드 - 모바일에서만 여기 표시 (은행 앱 스타일) */}
       {showStatsCard && (
-        <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-            <h3 className="text-base font-semibold text-slate-800">오늘의 학습 현황</h3>
+        <div className="lg:hidden bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+          {/* 헤더 */}
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 학습 현황</h3>
             {!loading && stats && stats.currentStreak > 0 && (
-              <span className="text-orange-500 font-medium text-sm">🔥 {stats.currentStreak}일 연속!</span>
+              <span className="text-[13px] text-[#FF6B9D] font-semibold flex items-center gap-1">
+                🔥 {stats.currentStreak}일 연속
+              </span>
             )}
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-3 divide-x divide-slate-100">
+            <div className="flex justify-between items-center">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="text-center py-5">
-                  <div className="h-8 w-12 bg-slate-200 rounded animate-pulse mx-auto mb-2" />
-                  <div className="h-4 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
+                <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                  <div className="h-6 w-12 bg-slate-200 rounded animate-pulse" />
+                  <div className="h-3 w-14 bg-slate-100 rounded animate-pulse" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-3 divide-x divide-slate-100">
-              <div className="text-center py-5">
-                <p className="text-2xl font-bold text-blue-600">{stats?.totalWordsLearned || 0}</p>
-                <p className="text-xs text-slate-500 mt-1">학습한 단어</p>
-              </div>
-              <div className="text-center py-5">
-                <p className="text-2xl font-bold text-pink-500">{stats?.dueReviewCount || 0}</p>
-                <p className="text-xs text-slate-500 mt-1">복습 대기</p>
-              </div>
-              <div className="text-center py-5">
-                <p className="text-2xl font-bold text-emerald-500">{stats?.accuracy || 0}%</p>
-                <p className="text-xs text-slate-500 mt-1">정답률</p>
-              </div>
+            <div className="flex justify-between items-center">
+              <DashboardItem
+                value={stats?.totalWordsLearned || 0}
+                label="학습한 단어"
+                color="#3B82F6"
+              />
+              <div className="w-[1px] h-10 bg-[#f0f0f0]" />
+              <DashboardItem
+                value={stats?.dueReviewCount || 0}
+                label="복습 대기"
+                color="#F59E0B"
+              />
+              <div className="w-[1px] h-10 bg-[#f0f0f0]" />
+              <DashboardItem
+                value={`${stats?.accuracy || 0}%`}
+                label="정답률"
+                color="#10B981"
+              />
             </div>
           )}
         </div>
       )}
 
-      {/* 빠른 액션 - 더 크게, 간격 넓게 */}
-      <Link
+      {/* 빠른 액션 카드들 (MenuCard 스타일) */}
+      <ActionCard
+        icon={<Icons.BookOpen />}
+        iconBg="bg-[#FF6B9D] text-white"
+        category="학습하기"
+        title={`${examDisplayName} ${levelDisplayName} 이어서 학습`}
         href={`/learn?exam=${lastStudy.exam.toLowerCase()}&level=${lastStudy.level}`}
-        className="bg-emerald-50 hover:bg-emerald-100 rounded-2xl p-5 lg:p-6 flex items-center gap-4 lg:gap-5 transition-all hover:shadow-md group"
-      >
-        <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition">
-          <Icons.BookOpen />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-800 lg:text-lg">학습하기</p>
-          <p className="text-sm lg:text-base text-slate-500 truncate">{examDisplayName} {levelDisplayName} 이어서 학습</p>
-        </div>
-        <div className="text-slate-400 group-hover:text-emerald-600 transition">
-          <Icons.ChevronRight />
-        </div>
-      </Link>
+      />
 
-      <Link
+      <ActionCard
+        icon={<Icons.Brain />}
+        iconBg="bg-[#A855F7] text-white"
+        category="복습하기"
+        title={`${stats?.dueReviewCount || 0}개 복습 대기 중`}
         href={`/review/quiz?exam=${lastStudy.exam}&level=${lastStudy.level}`}
-        className="bg-pink-50 hover:bg-pink-100 rounded-2xl p-5 lg:p-6 flex items-center gap-4 lg:gap-5 transition-all hover:shadow-md group"
-      >
-        <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center group-hover:scale-105 transition">
-          <Icons.Brain />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-800 lg:text-lg">복습하기</p>
-          <p className="text-sm lg:text-base text-slate-500">{stats?.dueReviewCount || 0}개 복습 대기 중</p>
-        </div>
-        <div className="text-slate-400 group-hover:text-pink-600 transition">
-          <Icons.ChevronRight />
-        </div>
-      </Link>
+      />
 
-      <Link
+      <ActionCard
+        icon={<Icons.ChartBar />}
+        iconBg="bg-[#3B82F6] text-white"
+        category="학습 통계"
+        title="나의 학습 현황 확인"
         href="/stats"
-        className="bg-blue-50 hover:bg-blue-100 rounded-2xl p-5 lg:p-6 flex items-center gap-4 lg:gap-5 transition-all hover:shadow-md group"
-      >
-        <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-105 transition">
-          <Icons.ChartBar />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-800 lg:text-lg">학습 통계</p>
-          <p className="text-sm lg:text-base text-slate-500">나의 학습 현황 확인</p>
-        </div>
-        <div className="text-slate-400 group-hover:text-blue-600 transition">
-          <Icons.ChevronRight />
-        </div>
-      </Link>
+      />
 
-      {/* 오늘의 목표 - 밝은 앰버 파스텔 톤, 더 크게 */}
-      <div className="bg-amber-50 rounded-2xl p-5 lg:p-6 border border-amber-100">
-        <div className="flex items-center justify-between mb-3 lg:mb-4">
-          <h3 className="font-semibold text-slate-800 lg:text-lg flex items-center gap-2">
-            ⚡ 오늘의 목표
-          </h3>
-          <span className={`text-sm lg:text-base font-medium ${progressPercent >= 100 ? 'text-emerald-600' : 'text-amber-600'}`}>
-            {progressPercent}% 달성 {progressPercent >= 100 && '🎉'}
+      {/* 오늘의 목표 카드 (은행 앱 스타일) */}
+      <div className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">⚡</span>
+            <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 목표</h3>
+          </div>
+          <span className="text-[13px] text-[#FF6B9D] font-semibold">
+            {progressPercent >= 100 ? '🎉 ' : ''}{progressPercent}% 달성
           </span>
         </div>
 
-        {/* 진행바 */}
-        <div className="h-3 lg:h-4 bg-amber-100 rounded-full overflow-hidden mb-3 lg:mb-4">
+        {/* 프로그레스 바 */}
+        <div className="w-full h-2 bg-[#f0f0f0] rounded-full mb-4 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               progressPercent >= 100
-                ? 'bg-gradient-to-r from-emerald-400 to-emerald-500'
-                : 'bg-gradient-to-r from-amber-400 to-orange-500'
+                ? 'bg-gradient-to-r from-[#10B981] to-[#059669]'
+                : 'bg-gradient-to-r from-[#FF6B9D] to-[#A855F7]'
             }`}
             style={{ width: `${Math.min(progressPercent, 100)}%` }}
           />
         </div>
 
-        <p className="text-slate-600 text-sm lg:text-base mb-4">
+        <p className="text-[14px] text-[#767676] mb-4">
           {progressPercent >= 100
             ? `목표 달성! 오늘 ${todayProgress}개 학습 완료!`
             : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`}
         </p>
 
-        {/* 목표 버튼들 */}
-        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-          <span className="text-xs lg:text-sm text-slate-500">하루 목표:</span>
+        {/* 목표 선택 버튼들 */}
+        <div className="flex gap-2">
           {goalOptions.map((goal) => (
             <button
               key={goal}
@@ -260,10 +330,10 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
                   console.error('Failed to update daily goal:', error);
                 }
               }}
-              className={`px-3 lg:px-4 py-1.5 lg:py-2 rounded-full text-xs lg:text-sm font-medium transition-all ${
+              className={`flex-1 py-2.5 rounded-[12px] text-[14px] font-semibold transition-all ${
                 dailyGoal === goal
-                  ? 'bg-amber-500 text-white shadow-sm'
-                  : 'bg-white text-slate-600 hover:bg-amber-100 border border-amber-200'
+                  ? 'bg-[#FF6B9D] text-white shadow-sm'
+                  : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
               }`}
             >
               {goal}개
@@ -275,7 +345,9 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
   );
 }
 
-// 데스크톱 왼쪽 열용 학습 현황 카드 (별도 컴포넌트)
+// ============================================
+// 데스크톱 왼쪽 열용 학습 현황 카드 (은행 앱 스타일)
+// ============================================
 function DesktopStatsCard() {
   const [stats, setStats] = useState<{
     currentStreak: number;
@@ -316,43 +388,54 @@ function DesktopStatsCard() {
   };
 
   return (
-    <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-        <h3 className="text-base font-semibold text-slate-800">오늘의 학습 현황</h3>
+    <div className="hidden lg:block bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 학습 현황</h3>
         {!loading && stats && stats.currentStreak > 0 && (
-          <span className="text-orange-500 font-medium text-sm">🔥 {stats.currentStreak}일 연속!</span>
+          <span className="text-[13px] text-[#FF6B9D] font-semibold flex items-center gap-1">
+            🔥 {stats.currentStreak}일 연속
+          </span>
         )}
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-3 divide-x divide-slate-100">
+        <div className="flex justify-between items-center">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="text-center py-6">
-              <div className="h-9 w-14 bg-slate-200 rounded animate-pulse mx-auto mb-2" />
-              <div className="h-4 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
+            <div key={i} className="flex-1 flex flex-col items-center gap-2">
+              <div className="h-7 w-14 bg-slate-200 rounded animate-pulse" />
+              <div className="h-3 w-16 bg-slate-100 rounded animate-pulse" />
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-3 divide-x divide-slate-100">
-          <div className="text-center py-6">
-            <p className="text-3xl font-bold text-blue-600">{stats?.totalWordsLearned || 0}</p>
-            <p className="text-sm text-slate-500 mt-1">학습한 단어</p>
-          </div>
-          <div className="text-center py-6">
-            <p className="text-3xl font-bold text-pink-500">{stats?.dueReviewCount || 0}</p>
-            <p className="text-sm text-slate-500 mt-1">복습 대기</p>
-          </div>
-          <div className="text-center py-6">
-            <p className="text-3xl font-bold text-emerald-500">{stats?.accuracy || 0}%</p>
-            <p className="text-sm text-slate-500 mt-1">정답률</p>
-          </div>
+        <div className="flex justify-between items-center">
+          <DashboardItem
+            value={stats?.totalWordsLearned || 0}
+            label="학습한 단어"
+            color="#3B82F6"
+          />
+          <div className="w-[1px] h-10 bg-[#f0f0f0]" />
+          <DashboardItem
+            value={stats?.dueReviewCount || 0}
+            label="복습 대기"
+            color="#F59E0B"
+          />
+          <div className="w-[1px] h-10 bg-[#f0f0f0]" />
+          <DashboardItem
+            value={`${stats?.accuracy || 0}%`}
+            label="정답률"
+            color="#10B981"
+          />
         </div>
       )}
     </div>
   );
 }
 
+// ============================================
+// 메인 Hero 컴포넌트
+// ============================================
 export default function Hero() {
   const [isVisible, setIsVisible] = useState(false);
   const { user, _hasHydrated } = useAuthStore();
@@ -426,7 +509,7 @@ export default function Hero() {
           </div>
 
           {/* 오른쪽 열: 액션 카드들 */}
-          <div className={`flex flex-col gap-5 md:gap-6 w-full max-w-md mx-auto lg:mx-0 lg:max-w-lg ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
+          <div className={`flex flex-col gap-4 w-full max-w-md mx-auto lg:mx-0 lg:max-w-lg ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
             {/* 섹션 안내 - 비로그인 시에만 표시 */}
             {!isLoggedIn && (
               <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
