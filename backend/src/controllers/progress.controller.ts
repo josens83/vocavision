@@ -54,7 +54,7 @@ export const getUserProgress = async (
     todayStart.setHours(0, 0, 0, 0);
 
     const [progress, stats, todayLearned] = await Promise.all([
-      // 기존 progress 조회
+      // 기존 progress 조회 (examLevels 포함)
       prisma.userProgress.findMany({
         where: { userId },
         include: {
@@ -66,6 +66,12 @@ export const getUserProgress = async (
               difficulty: true,
               level: true,
               examCategory: true,
+              examLevels: {
+                select: {
+                  examCategory: true,
+                  level: true,
+                }
+              }
             }
           }
         },
@@ -414,7 +420,8 @@ export async function updateUserStats(userId: string) {
 
   if (!user) return;
 
-  let newStreak = user.currentStreak;
+  // null/undefined 방지: 기본값 0으로 시작
+  let newStreak = user.currentStreak ?? 0;
 
   if (user.lastActiveDate) {
     const lastActiveKST = toKSTDate(new Date(user.lastActiveDate));
@@ -425,14 +432,15 @@ export async function updateUserStats(userId: string) {
       // 같은 날 → 최소 1일 유지 (0이면 1로 변경)
       newStreak = Math.max(newStreak, 1);
     } else if (daysDiff === 1) {
-      // 어제 학습 → 연속 +1
-      newStreak += 1;
+      // 어제 학습 → 오늘이 연속 학습이므로 +1
+      // (어제 1일 + 오늘 1일 = 2일 연속)
+      newStreak = newStreak + 1;
     } else if (daysDiff > 1) {
-      // 2일 이상 공백 → 리셋
+      // 2일 이상 공백 → 리셋 (오늘 학습했으므로 1일)
       newStreak = 1;
     }
   } else {
-    // 첫 학습
+    // 첫 학습 → 1일 연속
     newStreak = 1;
   }
 
@@ -583,6 +591,87 @@ export const getReviewQuiz = async (
       questions,
       count: questions.length,
       totalDue: dueReviews.length
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 숙련도 분포 API (전체 단어 수 포함)
+export const getMasteryDistribution = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId!;
+    const { examCategory = 'CSAT', level = 'all' } = req.query;
+
+    // 1. 해당 시험/레벨의 전체 단어 수 조회
+    const totalWordCountQuery: any = {
+      examCategory: examCategory as string,
+    };
+    if (level && level !== 'all') {
+      totalWordCountQuery.level = level as string;
+    }
+
+    const totalWords = await prisma.wordExamLevel.count({
+      where: totalWordCountQuery,
+    });
+
+    // 2. 사용자가 학습한 단어의 masteryLevel 분포 조회
+    const userProgressWhere: any = {
+      userId,
+      word: {
+        examLevels: {
+          some: totalWordCountQuery,
+        }
+      }
+    };
+
+    const progressByMastery = await prisma.userProgress.groupBy({
+      by: ['masteryLevel'],
+      where: userProgressWhere,
+      _count: {
+        _all: true,
+      }
+    });
+
+    // 3. 분포 계산
+    const distribution: Record<string, number> = {
+      NEW: 0,
+      LEARNING: 0,
+      FAMILIAR: 0,
+      MASTERED: 0,
+    };
+
+    let totalLearned = 0;
+    progressByMastery.forEach((item) => {
+      const count = item._count._all;
+      distribution[item.masteryLevel] = count;
+      totalLearned += count;
+    });
+
+    // "아직 안 본 단어" = 전체 - 학습한 단어
+    const notSeen = Math.max(0, totalWords - totalLearned);
+
+    res.json({
+      examCategory,
+      level,
+      totalWords,
+      distribution: {
+        notSeen,
+        learning: distribution.NEW + distribution.LEARNING, // NEW도 공부 중에 포함
+        familiar: distribution.FAMILIAR,
+        mastered: distribution.MASTERED,
+      },
+      // 상세 분포 (개별 masteryLevel)
+      detailedDistribution: {
+        NEW: notSeen, // 아직 안 본 단어
+        LEARNING: distribution.NEW + distribution.LEARNING,
+        FAMILIAR: distribution.FAMILIAR,
+        MASTERED: distribution.MASTERED,
+      }
     });
   } catch (error) {
     next(error);
