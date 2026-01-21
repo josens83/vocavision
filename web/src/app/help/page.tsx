@@ -33,37 +33,40 @@ const features = [
   {
     icon: '📝',
     title: '단어',
-    description: '핵심 영어 단어',
+    description: '학습할 영어 단어',
     color: 'from-blue-500 to-blue-600',
     bgColor: 'bg-blue-50',
   },
   {
-    icon: '🖼️',
+    icon: '🎨',
     title: 'AI 이미지',
-    description: 'Concept + Situation',
+    description: 'Concept · Mnemonic · Rhyme',
     color: 'from-purple-500 to-purple-600',
     bgColor: 'bg-purple-50',
+    badge: 'AI',
   },
   {
     icon: '🎤',
     title: '발음',
-    description: 'IPA + 한국어 발음',
+    description: 'IPA · 한국어 · 강세',
     color: 'from-green-500 to-green-600',
     bgColor: 'bg-green-50',
   },
   {
     icon: '🌳',
-    title: '어원',
+    title: '어원 분석',
     description: '접두사/어근/접미사',
     color: 'from-amber-500 to-amber-600',
     bgColor: 'bg-amber-50',
+    badge: 'AI',
   },
   {
     icon: '💡',
-    title: '암기법',
-    description: '한국어 기반 연상',
+    title: '창의적 암기법',
+    description: '한글 기반 연상법',
     color: 'from-pink-500 to-pink-600',
     bgColor: 'bg-pink-50',
+    badge: 'AI',
   },
   {
     icon: '🎵',
@@ -71,20 +74,23 @@ const features = [
     description: '운율로 암기',
     color: 'from-indigo-500 to-indigo-600',
     bgColor: 'bg-indigo-50',
+    badge: 'AI',
   },
   {
     icon: '🔗',
     title: 'Collocation',
-    description: '자주 쓰는 조합',
+    description: '연어 표현 3~5개',
     color: 'from-teal-500 to-teal-600',
     bgColor: 'bg-teal-50',
+    badge: 'AI',
   },
   {
-    icon: '😄',
+    icon: '📖',
     title: '예문',
-    description: '재미있는 문장',
+    description: '재미있는 예문 3개',
     color: 'from-orange-500 to-orange-600',
     bgColor: 'bg-orange-50',
+    badge: 'AI',
   },
 ];
 
@@ -94,25 +100,30 @@ const features = [
 const featureDetails = [
   {
     id: 'images',
-    icon: '🖼️',
-    title: 'AI 생성 이미지',
+    icon: '🎨',
+    title: 'AI 생성 이미지 (3가지)',
     subtitle: '시각적 학습으로 기억력 향상',
     content: (
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-4 text-center">
-            <div className="text-3xl mb-2">🎨</div>
-            <h4 className="font-semibold text-blue-800">Concept</h4>
-            <p className="text-sm text-blue-600">핵심 개념을 시각화</p>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-3 text-center">
+            <div className="text-2xl mb-1">🎨</div>
+            <h4 className="font-semibold text-purple-800 text-sm">Concept</h4>
+            <p className="text-xs text-purple-600">핵심 개념 시각화</p>
           </div>
-          <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-4 text-center">
-            <div className="text-3xl mb-2">🎬</div>
-            <h4 className="font-semibold text-purple-800">Situation</h4>
-            <p className="text-sm text-purple-600">실제 사용 상황 표현</p>
+          <div className="bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl p-3 text-center">
+            <div className="text-2xl mb-1">💡</div>
+            <h4 className="font-semibold text-pink-800 text-sm">Mnemonic</h4>
+            <p className="text-xs text-pink-600">암기법 시각화</p>
+          </div>
+          <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-3 text-center">
+            <div className="text-2xl mb-1">🎵</div>
+            <h4 className="font-semibold text-indigo-800 text-sm">Rhyme</h4>
+            <p className="text-xs text-indigo-600">라임 표현 이미지</p>
           </div>
         </div>
         <ul className="text-sm text-gray-600 space-y-1">
-          <li>• AI가 단어의 의미를 이미지로 표현</li>
+          <li>• AI가 단어마다 3가지 이미지 자동 생성</li>
           <li>• 시각적 기억으로 장기 암기 효과</li>
           <li>• 추상적 단어도 쉽게 이해</li>
         </ul>
@@ -170,7 +181,7 @@ const featureDetails = [
     id: 'mnemonic',
     icon: '💡',
     title: '창의적 암기법',
-    subtitle: 'AI가 만든 재미있는 연상',
+    subtitle: 'AI가 만든 한글 기반 언어유희',
     content: (
       <div className="space-y-4">
         <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 text-center">
@@ -416,21 +427,21 @@ export default function HelpPage() {
           <div className="relative max-w-lg mx-auto text-center">
             <div className="text-5xl mb-4">📚</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              VocaVision 학습 가이드
+              VocaVision AI 학습 가이드
             </h1>
             <p className="text-lg text-gray-600 mb-2">
-              AI 기반 <span className="text-blue-600 font-semibold">8섹션 학습법</span>으로
+              AI가 생성한 이미지, 어원 분석, 창의적 암기법으로
             </p>
             <p className="text-lg text-gray-600 mb-8">
-              영어 단어를 완벽하게 암기하세요
+              <span className="text-blue-600 font-semibold">8섹션 학습법</span>을 경험하세요
             </p>
-            <button
-              onClick={() => scrollToSection('features')}
+            <Link
+              href="/dashboard"
               className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
             >
-              시작하기
-              <Icons.ChevronDown />
-            </button>
+              학습 시작하기
+              <Icons.ChevronRight />
+            </Link>
           </div>
         </section>
 
@@ -442,7 +453,7 @@ export default function HelpPage() {
             <div className="max-w-2xl mx-auto">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  🎯 VocaVision만의 8섹션 학습법
+                  🎯 VocaVision AI의 8섹션 학습법
                 </h2>
                 <p className="text-gray-500">
                   단어 하나를 8가지 방법으로 완벽하게 암기
@@ -454,9 +465,14 @@ export default function HelpPage() {
                   <button
                     key={feature.title}
                     onClick={() => scrollToSection('details')}
-                    className="group bg-white rounded-xl p-4 text-center shadow-sm hover:shadow-md transition-all hover:-translate-y-1 border border-gray-100"
+                    className="group relative bg-white rounded-xl p-4 text-center shadow-sm hover:shadow-md transition-all hover:-translate-y-1 border border-gray-100"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
+                    {feature.badge && (
+                      <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                        {feature.badge}
+                      </span>
+                    )}
                     <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">
                       {feature.icon}
                     </div>
@@ -629,7 +645,7 @@ export default function HelpPage() {
                 지금 바로 시작하세요!
               </h2>
               <p className="text-gray-500 mb-8">
-                VocaVision과 함께 영어 단어를 정복하세요
+                VocaVision AI와 함께 영어 단어를 정복하세요
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
