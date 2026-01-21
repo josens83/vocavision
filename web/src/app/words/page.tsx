@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, Lock } from 'lucide-react';
+import { Lock, Search } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { wordsAPI } from '@/lib/api';
 import { EmptySearchResults } from '@/components/ui/EmptyState';
@@ -78,13 +78,14 @@ export default function WordsPage() {
 function WordsPageLoading() {
   return (
     <DashboardLayout>
-      <div className="p-4 lg:p-8 max-w-6xl mx-auto">
-        <div className="animate-pulse">
-          <div className="h-8 w-32 bg-gray-200 rounded mb-6" />
-          <div className="bg-white rounded-xl p-6 mb-6 h-40" />
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <SkeletonWordCard key={i} />
+      <div className="p-4 lg:p-8 max-w-5xl mx-auto">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 w-32 bg-gray-200 rounded mb-4" />
+          <div className="h-14 bg-[#F8F9FA] rounded-[14px] mb-6" />
+          <div className="bg-white rounded-[20px] p-5 h-40 mb-6" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-[20px] p-5 h-32" />
             ))}
           </div>
         </div>
@@ -102,28 +103,28 @@ function WordsPageContent() {
   if (!user) {
     return (
       <DashboardLayout>
-        <div className="p-4 lg:p-8 max-w-6xl mx-auto">
+        <div className="p-4 lg:p-8 max-w-5xl mx-auto">
           <div className="text-center py-20">
-            <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Lock className="w-10 h-10 text-indigo-500" />
+            <div className="w-20 h-20 bg-[#FFF0F5] rounded-full flex items-center justify-center mx-auto mb-6">
+              <Lock className="w-10 h-10 text-[#FF6B9D]" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+            <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-3">
               로그인이 필요합니다
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-[14px] text-[#767676] mb-6">
               단어 탐색 기능은 회원만 이용할 수 있습니다.<br />
               무료 회원가입 후 수능 L1 단어를 학습해보세요!
             </p>
             <div className="flex gap-3 justify-center">
               <Link
                 href="/auth/login"
-                className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition"
+                className="px-6 py-3 bg-[#FF6B9D] text-white font-bold rounded-[14px] hover:bg-[#e85a8a] transition"
               >
                 로그인
               </Link>
               <Link
                 href="/auth/register"
-                className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+                className="px-6 py-3 bg-[#F8F9FA] text-[#767676] font-medium rounded-[14px] hover:bg-[#f0f0f0] transition"
               >
                 무료 회원가입
               </Link>
@@ -147,6 +148,7 @@ function WordsPageContent() {
   const [level, setLevel] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   // Initial load with URL search param
@@ -174,6 +176,7 @@ function WordsPageContent() {
       });
       setWords(data.words);
       setTotalPages(data.pagination.totalPages);
+      setTotalCount(data.pagination.total || data.words.length);
     } catch (error) {
       console.error('Failed to load words:', error);
     } finally {
@@ -187,136 +190,154 @@ function WordsPageContent() {
     loadWords();
   };
 
-  const difficultyColors = {
-    BEGINNER: 'bg-green-100 text-green-700',
-    INTERMEDIATE: 'bg-blue-100 text-blue-700',
-    ADVANCED: 'bg-orange-100 text-orange-700',
-    EXPERT: 'bg-red-100 text-red-700',
-  };
-
-  const difficultyLabels = {
-    BEGINNER: '초급',
-    INTERMEDIATE: '중급',
-    ADVANCED: '고급',
-    EXPERT: '전문가',
+  // Exam + Level 배지 라벨
+  const examLevelLabels: Record<string, Record<string, string>> = {
+    CSAT: {
+      L1: '수능 L1',
+      L2: '수능 L2',
+      L3: '수능 L3',
+    },
+    TEPS: {
+      L1: 'TEPS L1',
+      L2: 'TEPS L2',
+      L3: 'TEPS L3',
+    },
   };
 
   return (
     <DashboardLayout>
-      <div className="p-4 lg:p-8 max-w-6xl mx-auto">
+      <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4">
         {/* 페이지 헤더 */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">단어 탐색</h1>
-          <p className="text-gray-500 text-sm mt-1">학습하고 싶은 단어를 찾아보세요</p>
-        </div>
+        <header className="mb-2">
+          <h1 className="text-[22px] font-bold text-[#1c1c1e] mb-4">단어 찾기</h1>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-xl p-4 md:p-6 mb-6 shadow-sm">
-          <form onSubmit={handleSearch} className="mb-4">
-            <div className="flex gap-2">
+          {/* 검색바 */}
+          <form onSubmit={handleSearch}>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#999999]" />
               <input
                 type="text"
+                placeholder="단어 검색..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="단어 검색..."
-                className="flex-1 min-w-0 px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm md:text-base"
+                className="w-full bg-[#F8F9FA] border-none rounded-[14px] py-4 pl-12 pr-4 text-[15px] text-[#1c1c1e] placeholder-[#999999] focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
               />
-              <button
-                type="submit"
-                className="bg-indigo-600 text-white px-4 md:px-8 py-2.5 md:py-3 rounded-lg font-semibold hover:bg-indigo-700 transition shrink-0"
-              >
-                <span className="hidden sm:inline">검색</span>
-                <svg className="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
             </div>
           </form>
+        </header>
 
+        {/* 필터 섹션 */}
+        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
           {/* 시험 필터 */}
-          <div className="space-y-3">
-            <div>
-              <span className="text-sm text-gray-500 mr-3">시험</span>
-              <div className="inline-flex gap-2 flex-wrap">
-                {[
-                  { value: '', label: '전체' },
-                  { value: 'CSAT', label: '수능' },
-                  { value: 'TEPS', label: 'TEPS' },
-                ].map(({ value, label }) => {
-                  const locked = isExamLocked(accessibleLevels, value);
-                  return (
-                    <button
-                      key={value}
-                      onClick={() => {
-                        if (locked) {
-                          router.push('/pricing');
-                          return;
-                        }
-                        setExamCategory(value);
-                        setLevel(''); // 시험 변경 시 레벨 초기화
-                        setPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
-                        locked
-                          ? 'bg-gray-100 text-gray-400 cursor-pointer hover:bg-gray-200'
-                          : examCategory === value
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {locked && <Lock className="w-3 h-3" />}
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 레벨 필터 */}
-            <div>
-              <span className="text-sm text-gray-500 mr-3">레벨</span>
-              <div className="inline-flex gap-2 flex-wrap">
-                {[
-                  { value: '', label: '전체' },
-                  { value: 'L1', label: '초급' },
-                  { value: 'L2', label: '중급' },
-                  { value: 'L3', label: '고급' },
-                ].map(({ value, label }) => {
-                  // 현재 선택된 시험에서 해당 레벨이 잠겨있는지 확인
-                  const locked = value !== '' && examCategory && isLevelLocked(accessibleLevels, examCategory, value);
-                  return (
-                    <button
-                      key={value}
-                      onClick={() => {
-                        if (locked) {
-                          router.push('/pricing');
-                          return;
-                        }
-                        setLevel(value);
-                        setPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
-                        locked
-                          ? 'bg-gray-100 text-gray-400 cursor-pointer hover:bg-gray-200'
-                          : level === value
-                            ? 'bg-pink-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {locked && <Lock className="w-3 h-3" />}
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
+          <div className="mb-4">
+            <h4 className="text-[13px] text-[#767676] font-medium mb-2">시험</h4>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => {
+                  setExamCategory('');
+                  setLevel('');
+                  setPage(1);
+                }}
+                className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all ${
+                  examCategory === ''
+                    ? 'bg-[#1c1c1e] text-white'
+                    : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
+                }`}
+              >
+                전체
+              </button>
+              <button
+                onClick={() => {
+                  const locked = isExamLocked(accessibleLevels, 'CSAT');
+                  if (locked) {
+                    router.push('/pricing');
+                    return;
+                  }
+                  setExamCategory('CSAT');
+                  setLevel('');
+                  setPage(1);
+                }}
+                className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
+                  isExamLocked(accessibleLevels, 'CSAT')
+                    ? 'bg-[#F8F9FA] text-[#999999] cursor-pointer'
+                    : examCategory === 'CSAT'
+                      ? 'bg-[#FF6B9D] text-white'
+                      : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
+                }`}
+              >
+                {isExamLocked(accessibleLevels, 'CSAT') && <Lock className="w-3 h-3" />}
+                수능
+              </button>
+              <button
+                onClick={() => {
+                  const locked = isExamLocked(accessibleLevels, 'TEPS');
+                  if (locked) {
+                    router.push('/pricing');
+                    return;
+                  }
+                  setExamCategory('TEPS');
+                  setLevel('');
+                  setPage(1);
+                }}
+                className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
+                  isExamLocked(accessibleLevels, 'TEPS')
+                    ? 'bg-[#F8F9FA] text-[#999999] cursor-pointer'
+                    : examCategory === 'TEPS'
+                      ? 'bg-[#A855F7] text-white'
+                      : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
+                }`}
+              >
+                {isExamLocked(accessibleLevels, 'TEPS') && <Lock className="w-3 h-3" />}
+                TEPS
+              </button>
             </div>
           </div>
+
+          {/* 레벨 필터 */}
+          <div>
+            <h4 className="text-[13px] text-[#767676] font-medium mb-2">레벨</h4>
+            <div className="flex gap-2 flex-wrap">
+              {['', 'L1', 'L2', 'L3'].map((lvl) => {
+                const locked = lvl !== '' && examCategory && isLevelLocked(accessibleLevels, examCategory, lvl);
+                return (
+                  <button
+                    key={lvl}
+                    onClick={() => {
+                      if (locked) {
+                        router.push('/pricing');
+                        return;
+                      }
+                      setLevel(lvl);
+                      setPage(1);
+                    }}
+                    className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
+                      locked
+                        ? 'bg-[#F8F9FA] text-[#999999] cursor-pointer'
+                        : level === lvl
+                          ? 'bg-[#3B82F6] text-white'
+                          : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
+                    }`}
+                  >
+                    {locked && <Lock className="w-3 h-3" />}
+                    {lvl === '' ? '전체' : lvl}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* 결과 카운트 */}
+        <div className="flex items-center justify-between">
+          <p className="text-[14px] text-[#767676]">
+            총 <span className="font-semibold text-[#1c1c1e]">{totalCount}</span>개 단어
+          </p>
         </div>
 
-        {/* Words Grid */}
+        {/* 단어 목록 */}
         {loading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
               <SkeletonWordCard key={i} />
             ))}
           </div>
@@ -333,29 +354,33 @@ function WordsPageContent() {
           />
         ) : (
           <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="space-y-3">
               {words.map((word) => (
-                <WordCard key={word.id} word={word} difficultyColors={difficultyColors} difficultyLabels={difficultyLabels} />
+                <WordCard
+                  key={word.id}
+                  word={word}
+                  examLevelLabels={examLevelLabels}
+                />
               ))}
             </div>
 
-            {/* Pagination */}
+            {/* 페이지네이션 */}
             {totalPages > 1 && (
-              <div className="flex justify-center gap-2">
+              <div className="flex justify-center items-center gap-2 pt-4">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="px-4 py-2.5 bg-[#F8F9FA] text-[#767676] font-semibold rounded-[10px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f0f0f0] transition"
                 >
                   이전
                 </button>
-                <div className="flex items-center px-4 py-2">
+                <div className="px-4 py-2.5 text-[14px] text-[#1c1c1e] font-medium">
                   {page} / {totalPages}
                 </div>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="px-4 py-2.5 bg-[#F8F9FA] text-[#767676] font-semibold rounded-[10px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f0f0f0] transition"
                 >
                   다음
                 </button>
@@ -371,78 +396,53 @@ function WordsPageContent() {
 // 서비스 중인 시험만 표시 (CSAT, TEPS - 나머지는 준비중)
 const ACTIVE_EXAM_CATEGORIES = ['CSAT', 'TEPS'];
 
-// Exam + Level 배지 라벨 (예: "수능 L1 (초급)")
-const examLevelLabels: Record<string, Record<string, string>> = {
-  CSAT: {
-    L1: '수능 L1 (초급)',
-    L2: '수능 L2 (중급)',
-    L3: '수능 L3 (고급)',
-  },
-  TEPS: {
-    L1: 'TEPS Lv.1',
-    L2: 'TEPS Lv.2',
-    L3: 'TEPS Lv.3',
-  },
-};
-
-// Exam colors for badges (서비스 중인 시험만)
-const examBadgeColors: Record<string, string> = {
-  CSAT: 'bg-blue-100 text-blue-600',
-  TEPS: 'bg-purple-100 text-purple-600',
-};
-
 function WordCard({
   word,
-  difficultyColors,
-  difficultyLabels,
+  examLevelLabels,
 }: {
   word: Word;
-  difficultyColors: any;
-  difficultyLabels: any;
+  examLevelLabels: Record<string, Record<string, string>>;
 }) {
   // 서비스 중인 시험(CSAT, TEPS)만 배지로 표시
   const isActiveExam = word.examCategory && ACTIVE_EXAM_CATEGORIES.includes(word.examCategory);
   const badgeLabel = isActiveExam && word.level
     ? examLevelLabels[word.examCategory!]?.[word.level] || `${word.examCategory} ${word.level}`
     : null;
-  const badgeColor = isActiveExam ? examBadgeColors[word.examCategory!] : '';
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer">
-      <div className="flex justify-between items-start mb-4">
+    <Link
+      href={`/words/${word.id}`}
+      className="block bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] hover:shadow-md transition-shadow"
+    >
+      <div className="flex items-start justify-between mb-2">
         <div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-1">{word.word}</h3>
+          <h3 className="text-[18px] font-bold text-[#1c1c1e]">{word.word}</h3>
           {word.pronunciation && (
-            <p className="text-sm text-gray-500">{word.pronunciation}</p>
+            <p className="text-[13px] text-[#767676]">{word.pronunciation}</p>
           )}
         </div>
-        {/* Exam + Level Badge - 서비스 중인 시험(CSAT, TEPS)만 표시 */}
-        <div className="flex flex-col gap-1 items-end">
-          {isActiveExam && badgeLabel ? (
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeColor}`}>
+
+        {/* 배지 */}
+        <div className="flex gap-1.5">
+          {isActiveExam && badgeLabel && (
+            <span className={`text-[11px] px-2 py-1 rounded-full font-medium ${
+              word.examCategory === 'CSAT'
+                ? 'bg-[#FFF0F5] text-[#FF6B9D]'
+                : 'bg-[#F3E8FF] text-[#A855F7]'
+            }`}>
               {badgeLabel}
             </span>
-          ) : (
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                difficultyColors[word.difficulty]
-              }`}
-            >
-              {difficultyLabels[word.difficulty]}
-            </span>
           )}
         </div>
       </div>
-      <p className="text-gray-700 mb-3">{word.definitionKo || word.definition}</p>
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">{word.partOfSpeech}</span>
-        <Link
-          href={`/words/${word.id}`}
-          className="text-blue-600 hover:text-blue-700 font-medium text-sm inline-flex items-center gap-1"
-        >
-          자세히 보기 <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
+
+      <p className="text-[15px] text-[#1c1c1e]">{word.definitionKo || word.definition}</p>
+
+      {/* 품사 */}
+      <div className="flex items-center justify-between mt-3">
+        <span className="text-[12px] text-[#999999]">{word.partOfSpeech}</span>
+        <span className="text-[13px] text-[#FF6B9D] font-medium">자세히 보기 →</span>
       </div>
-    </div>
+    </Link>
   );
 }
