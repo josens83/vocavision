@@ -56,33 +56,33 @@ const levelNames: Record<string, string> = {
 // Loading fallback component
 function LearnPageLoading() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAFAFA]">
       {/* Skeleton Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white border-b border-[#f5f5f5] sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="h-6 w-20 bg-gray-200 rounded animate-pulse" />
-            <div className="h-5 w-24 bg-gray-200 rounded animate-pulse" />
-            <div className="h-10 w-20 bg-gray-200 rounded animate-pulse" />
+            <div className="h-6 w-20 bg-[#F8F9FA] rounded-[10px] animate-pulse" />
+            <div className="h-5 w-24 bg-[#F8F9FA] rounded-[10px] animate-pulse" />
+            <div className="h-10 w-20 bg-[#F8F9FA] rounded-[10px] animate-pulse" />
           </div>
           <div className="mt-3">
             <div className="flex items-center justify-between mb-1">
-              <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-12 bg-[#F8F9FA] rounded-[8px] animate-pulse" />
+              <div className="h-4 w-16 bg-[#F8F9FA] rounded-[8px] animate-pulse" />
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2" />
+            <div className="w-full bg-[#F8F9FA] rounded-full h-2" />
           </div>
         </div>
       </div>
       {/* Skeleton Card */}
       <div className="container mx-auto px-4 py-6 max-w-2xl">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <div className="h-12 w-48 bg-gray-200 rounded animate-pulse mx-auto mb-4" />
-          <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mx-auto mb-6" />
-          <div className="h-24 w-full bg-gray-100 rounded-xl animate-pulse mb-6" />
+        <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-6">
+          <div className="h-12 w-48 bg-[#F8F9FA] rounded-[12px] animate-pulse mx-auto mb-4" />
+          <div className="h-6 w-32 bg-[#F8F9FA] rounded-[10px] animate-pulse mx-auto mb-6" />
+          <div className="h-24 w-full bg-[#F8F9FA] rounded-[14px] animate-pulse mb-6" />
           <div className="flex gap-3 justify-center">
-            <div className="h-12 w-24 bg-gray-200 rounded-xl animate-pulse" />
-            <div className="h-12 w-24 bg-gray-200 rounded-xl animate-pulse" />
+            <div className="h-12 w-24 bg-[#F8F9FA] rounded-[14px] animate-pulse" />
+            <div className="h-12 w-24 bg-[#F8F9FA] rounded-[14px] animate-pulse" />
           </div>
         </div>
       </div>
@@ -404,11 +404,11 @@ function LearnPageContent() {
   // 비로그인 사용자가 이미 체험을 완료한 경우 (2회 완료)
   if (demoBlocked && !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-primary/5 to-brand-secondary/5 p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
+        <div className="bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">체험이 완료되었습니다!</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">체험이 완료되었습니다!</h2>
+          <p className="text-[14px] text-[#767676] mb-6 leading-relaxed">
             2회 무료 체험을 모두 사용하셨습니다.<br />
             VocaVision AI의 모든 기능을 이용하려면<br />
             무료 회원가입을 해주세요.
@@ -416,19 +416,19 @@ function LearnPageContent() {
           <div className="space-y-3">
             <a
               href="/auth/register"
-              className="block w-full py-3 px-4 bg-brand-primary text-white font-bold rounded-xl hover:bg-brand-primary/90 transition"
+              className="block w-full py-3.5 px-4 bg-[#FF6B9D] text-white font-bold text-[14px] rounded-[14px] hover:bg-[#FF5288] transition shadow-[0_4px_12px_rgba(255,107,157,0.3)]"
             >
               무료 회원가입
             </a>
             <a
               href="/auth/login"
-              className="block w-full py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+              className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-[#767676] font-semibold text-[14px] rounded-[14px] hover:bg-[#F8F9FA] transition"
             >
               이미 계정이 있으신가요? 로그인
             </a>
             <button
               onClick={() => router.push('/')}
-              className="block w-full py-2 text-gray-500 text-sm hover:text-gray-700 transition"
+              className="block w-full py-2 text-[#999999] text-[13px] hover:text-[#767676] transition"
             >
               메인으로 돌아가기
             </button>
@@ -440,7 +440,7 @@ function LearnPageContent() {
 
   if (reviews.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
         <EmptyFirstTime type="words" />
       </div>
     );
@@ -454,7 +454,7 @@ function LearnPageContent() {
     const hasMoreWords = totalWordsInLevel > 0 && (totalLearnedInLevel + wordsStudied) < totalWordsInLevel;
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
         <CelebrateCompletion
           score={wordsCorrect}
           total={wordsStudied}
@@ -484,17 +484,17 @@ function LearnPageContent() {
   const accuracyPercent = wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
       {/* Demo Mode Banner for Guests */}
       {!user && (
-        <div className="bg-amber-50 border-b border-amber-200 sticky top-0 z-20">
+        <div className="bg-[#FFF7ED] border-b border-[#FDBA74] sticky top-0 z-20">
           <div className="container mx-auto px-4 py-2">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[13px]">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded font-bold text-xs shrink-0">체험</span>
-                <span className="text-amber-800 whitespace-nowrap">학습 기록이 저장되지 않습니다.</span>
+                <span className="px-2.5 py-0.5 bg-[#F59E0B] text-white rounded-full font-bold text-[11px] shrink-0">체험</span>
+                <span className="text-[#92400E] whitespace-nowrap">학습 기록이 저장되지 않습니다.</span>
               </div>
-              <a href="/auth/login" className="text-amber-900 font-medium underline hover:text-amber-700 whitespace-nowrap">
+              <a href="/auth/login" className="text-[#78350F] font-semibold underline hover:text-[#92400E] whitespace-nowrap">
                 로그인하고 기록 저장하기
               </a>
             </div>
@@ -503,33 +503,33 @@ function LearnPageContent() {
       )}
 
       {/* Fixed Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white border-b border-[#f5f5f5] sticky top-0 z-10 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-2">
             {/* Back Button */}
             <button
               onClick={() => router.push(user ? '/dashboard' : '/')}
-              className="flex items-center gap-1 text-gray-600 hover:text-gray-900 transition shrink-0"
+              className="flex items-center gap-1 text-[#767676] hover:text-[#1c1c1e] transition shrink-0"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="font-medium text-sm">나가기</span>
+              <span className="font-medium text-[13px]">나가기</span>
             </button>
 
             {/* Center - Course Info (데모 모드에서는 숨김) */}
             <div className="text-center flex-1 min-w-0">
               {examParam && !isDemo && (
-                <span className="text-base font-bold text-gray-900">
-                  {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {levelNames[levelParam] || levelParam}</span>}
+                <span className="text-[15px] font-bold text-[#1c1c1e]">
+                  {examNames[examParam]} {levelParam && <span className="text-[#767676] font-normal">· {levelNames[levelParam] || levelParam}</span>}
                 </span>
               )}
             </div>
 
             {/* Right - Stats (compact on mobile) */}
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="text-xs text-gray-500 hidden sm:inline">정확도</span>
-              <span className="text-sm font-bold text-green-600">{accuracyPercent}%</span>
+            <div className="flex items-center gap-1.5 shrink-0 bg-[#ECFDF5] px-3 py-1.5 rounded-full">
+              <span className="text-[11px] text-[#059669] hidden sm:inline">정확도</span>
+              <span className="text-[13px] font-bold text-[#10B981]">{accuracyPercent}%</span>
             </div>
           </div>
 
@@ -540,23 +540,23 @@ function LearnPageContent() {
               <button
                 onClick={handlePrevious}
                 disabled={currentWordIndex === 0}
-                className={`flex items-center gap-1 px-2 py-1 rounded text-sm font-medium transition shrink-0 ${
+                className={`flex items-center gap-1 px-2 py-1.5 rounded-[10px] text-[13px] font-medium transition shrink-0 ${
                   currentWordIndex === 0
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    ? 'text-[#E8E8E8] cursor-not-allowed'
+                    : 'text-[#767676] hover:text-[#1c1c1e] hover:bg-[#F8F9FA]'
                 }`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
                 </svg>
                 <span className="hidden sm:inline">이전</span>
               </button>
 
               {/* Progress Bar */}
               <div className="flex-1">
-                <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="w-full bg-[#F8F9FA] rounded-full h-2.5">
                   <div
-                    className="bg-pink-500 h-2 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] h-2.5 rounded-full transition-all duration-300"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
@@ -566,27 +566,27 @@ function LearnPageContent() {
               {currentWordIndex >= reviews.length - 1 ? (
                 <button
                   onClick={handleNext}
-                  className="flex items-center gap-1 px-3 py-1 rounded text-sm font-bold transition shrink-0 bg-pink-500 text-white hover:bg-pink-600"
+                  className="flex items-center gap-1 px-4 py-1.5 rounded-[10px] text-[13px] font-bold transition shrink-0 bg-[#FF6B9D] text-white hover:bg-[#FF5288] shadow-[0_2px_8px_rgba(255,107,157,0.3)]"
                 >
                   <span>완료</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </button>
               ) : (
                 <button
                   onClick={handleNext}
-                  className="flex items-center gap-1 px-2 py-1 rounded text-sm font-medium transition shrink-0 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-[10px] text-[13px] font-medium transition shrink-0 text-[#767676] hover:text-[#1c1c1e] hover:bg-[#F8F9FA]"
                 >
                   <span className="hidden sm:inline">다음</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               )}
 
               {/* Progress Count */}
-              <span className="text-sm font-medium text-pink-600 shrink-0">{currentWordIndex + 1}/{reviews.length}</span>
+              <span className="text-[13px] font-bold text-[#FF6B9D] shrink-0">{currentWordIndex + 1}/{reviews.length}</span>
             </div>
           </div>
         </div>
@@ -601,7 +601,7 @@ function LearnPageContent() {
           hasPrevious={currentWordIndex > 0}
         />
         {/* Swipe Hint */}
-        <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mt-4">
+        <div className="flex items-center justify-center gap-2 text-[#C8C8C8] text-[12px] mt-4">
           <span>←</span>
           <span>스와이프하여 넘기기</span>
           <span>→</span>

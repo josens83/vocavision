@@ -12,6 +12,15 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 type TabType = 'profile' | 'password' | 'subscription';
 
+// ChevronRight 아이콘
+function ChevronRight({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
 function SettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -161,91 +170,100 @@ function SettingsContent() {
 
   if (!hasHydrated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">로딩 중...</div>
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-[#FF6B9D] border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-[#FAFAFA]">
+      {/* Header (은행 앱 스타일) */}
+      <header className="bg-white border-b border-[#f0f0f0] sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+            <Link href="/dashboard" className="text-[#767676] hover:text-[#1c1c1e] transition-colors">
               ← 대시보드
             </Link>
-            <h1 className="text-2xl font-bold text-blue-600">설정</h1>
+            <h1 className="text-[20px] font-bold text-[#1c1c1e]">설정</h1>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          {/* Tabs */}
-          <div className="flex border-b">
+      <main className="max-w-4xl mx-auto px-4 py-6">
+        <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
+          {/* Tabs (은행 앱 스타일) */}
+          <div className="flex border-b border-[#f0f0f0]">
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex-1 py-4 px-6 font-medium transition ${
+              className={`flex-1 py-4 px-6 text-[15px] font-medium transition-all relative ${
                 activeTab === 'profile'
-                  ? 'bg-white border-b-2 border-blue-600 text-blue-600'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  ? 'text-[#FF6B9D]'
+                  : 'text-[#767676] hover:bg-[#F8F9FA]'
               }`}
             >
               프로필
+              {activeTab === 'profile' && (
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#FF6B9D]" />
+              )}
             </button>
             <button
               onClick={() => setActiveTab('password')}
-              className={`flex-1 py-4 px-6 font-medium transition ${
+              className={`flex-1 py-4 px-6 text-[15px] font-medium transition-all relative ${
                 activeTab === 'password'
-                  ? 'bg-white border-b-2 border-blue-600 text-blue-600'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  ? 'text-[#FF6B9D]'
+                  : 'text-[#767676] hover:bg-[#F8F9FA]'
               }`}
             >
               비밀번호
+              {activeTab === 'password' && (
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#FF6B9D]" />
+              )}
             </button>
             <button
               onClick={() => setActiveTab('subscription')}
-              className={`flex-1 py-4 px-6 font-medium transition ${
+              className={`flex-1 py-4 px-6 text-[15px] font-medium transition-all relative ${
                 activeTab === 'subscription'
-                  ? 'bg-white border-b-2 border-blue-600 text-blue-600'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  ? 'text-[#FF6B9D]'
+                  : 'text-[#767676] hover:bg-[#F8F9FA]'
               }`}
             >
               구독 관리
+              {activeTab === 'subscription' && (
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#FF6B9D]" />
+              )}
             </button>
           </div>
 
           {/* Tab Content */}
-          <div className="p-8">
+          <div className="p-6 lg:p-8">
             {activeTab === 'profile' && (
               <form onSubmit={handleUpdateProfile} className="space-y-6">
-                <h3 className="text-2xl font-bold mb-6">프로필 정보</h3>
+                <h3 className="text-[20px] font-bold text-[#1c1c1e] mb-6">프로필 정보</h3>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-[14px] font-medium text-[#1c1c1e] mb-2">
                     이름
                   </label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3.5 bg-[#F8F9FA] border-none rounded-[14px] text-[15px] text-[#1c1c1e] focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-[14px] font-medium text-[#1c1c1e] mb-2">
                     이메일
                   </label>
                   <input
                     type="email"
                     value={email}
                     disabled
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                    className="w-full px-4 py-3.5 bg-[#F8F9FA] border-none rounded-[14px] text-[15px] text-[#999999]"
                   />
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-[13px] text-[#999999] mt-2">
                     이메일은 변경할 수 없습니다
                   </p>
                 </div>
@@ -253,7 +271,7 @@ function SettingsContent() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                  className="bg-[#FF6B9D] text-white px-6 py-3.5 rounded-[14px] font-semibold text-[15px] hover:bg-[#E91E6E] transition disabled:opacity-50"
                 >
                   {loading ? '저장 중...' : '변경사항 저장'}
                 </button>
@@ -262,10 +280,10 @@ function SettingsContent() {
 
             {activeTab === 'password' && (
               <form onSubmit={handleChangePassword} className="space-y-6">
-                <h3 className="text-2xl font-bold mb-6">비밀번호 변경</h3>
+                <h3 className="text-[20px] font-bold text-[#1c1c1e] mb-6">비밀번호 변경</h3>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-[14px] font-medium text-[#1c1c1e] mb-2">
                     현재 비밀번호
                   </label>
                   <input
@@ -273,12 +291,12 @@ function SettingsContent() {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3.5 bg-[#F8F9FA] border-none rounded-[14px] text-[15px] text-[#1c1c1e] focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-[14px] font-medium text-[#1c1c1e] mb-2">
                     새 비밀번호
                   </label>
                   <input
@@ -287,15 +305,15 @@ function SettingsContent() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     minLength={8}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3.5 bg-[#F8F9FA] border-none rounded-[14px] text-[15px] text-[#1c1c1e] focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
                   />
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-[13px] text-[#999999] mt-2">
                     8자 이상 입력해주세요
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-[14px] font-medium text-[#1c1c1e] mb-2">
                     새 비밀번호 확인
                   </label>
                   <input
@@ -304,14 +322,14 @@ function SettingsContent() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     minLength={8}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3.5 bg-[#F8F9FA] border-none rounded-[14px] text-[15px] text-[#1c1c1e] focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                  className="bg-[#FF6B9D] text-white px-6 py-3.5 rounded-[14px] font-semibold text-[15px] hover:bg-[#E91E6E] transition disabled:opacity-50"
                 >
                   {loading ? '변경 중...' : '비밀번호 변경'}
                 </button>
@@ -320,24 +338,35 @@ function SettingsContent() {
 
             {activeTab === 'subscription' && (
               <div className="space-y-6">
-                <h3 className="text-2xl font-bold mb-6">구독 관리</h3>
+                <h3 className="text-[20px] font-bold text-[#1c1c1e] mb-6">구독 관리</h3>
 
                 {subscription ? (
                   <div className="space-y-4">
-                    <div className="bg-gray-50 p-6 rounded-xl">
+                    <div className="bg-[#F8F9FA] p-5 rounded-[14px]">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <div className="text-sm text-gray-600 mb-1">구독 상태</div>
-                          <div className="text-lg font-semibold">
-                            {subscription.subscriptionStatus === 'ACTIVE' && '활성 🟢'}
-                            {subscription.subscriptionStatus === 'TRIAL' && '무료 체험 🎁'}
-                            {subscription.subscriptionStatus === 'CANCELLED' && '취소됨 ⭕'}
-                            {subscription.subscriptionStatus === 'FREE' && '무료 플랜 🆓'}
+                          <div className="text-[13px] text-[#767676] mb-1">구독 상태</div>
+                          <div className="text-[16px] font-semibold text-[#1c1c1e]">
+                            {subscription.subscriptionStatus === 'ACTIVE' && (
+                              <span className="text-[#10B981]">활성</span>
+                            )}
+                            {subscription.subscriptionStatus === 'PREMIUM' && (
+                              <span className="text-[#A855F7]">프리미엄</span>
+                            )}
+                            {subscription.subscriptionStatus === 'TRIAL' && (
+                              <span className="text-[#3B82F6]">무료 체험</span>
+                            )}
+                            {subscription.subscriptionStatus === 'CANCELLED' && (
+                              <span className="text-[#F59E0B]">취소됨</span>
+                            )}
+                            {subscription.subscriptionStatus === 'FREE' && (
+                              <span className="text-[#767676]">무료 플랜</span>
+                            )}
                           </div>
                         </div>
                         <div>
-                          <div className="text-sm text-gray-600 mb-1">플랜</div>
-                          <div className="text-lg font-semibold">
+                          <div className="text-[13px] text-[#767676] mb-1">플랜</div>
+                          <div className="text-[16px] font-semibold text-[#1c1c1e]">
                             {subscription.subscriptionPlan === 'MONTHLY' && '월간 구독'}
                             {subscription.subscriptionPlan === 'YEARLY' && '연간 구독'}
                             {!subscription.subscriptionPlan && '없음'}
@@ -346,19 +375,19 @@ function SettingsContent() {
                       </div>
 
                       {subscription.subscriptionEnd && (
-                        <div className="mt-4">
-                          <div className="text-sm text-gray-600 mb-1">만료일</div>
-                          <div className="text-lg font-semibold">
+                        <div className="mt-4 pt-4 border-t border-[#f0f0f0]">
+                          <div className="text-[13px] text-[#767676] mb-1">만료일</div>
+                          <div className="text-[16px] font-semibold text-[#1c1c1e]">
                             {new Date(subscription.subscriptionEnd).toLocaleDateString('ko-KR')}
                           </div>
                         </div>
                       )}
                     </div>
 
-                    {subscription.subscriptionStatus === 'ACTIVE' && (
+                    {(subscription.subscriptionStatus === 'ACTIVE' || subscription.subscriptionStatus === 'PREMIUM') && (
                       <button
                         onClick={handleCancelSubscription}
-                        className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+                        className="bg-[#FEF2F2] text-[#EF4444] px-6 py-3.5 rounded-[14px] font-semibold text-[15px] hover:bg-[#FEE2E2] transition"
                       >
                         구독 취소
                       </button>
@@ -367,23 +396,24 @@ function SettingsContent() {
                     {(subscription.subscriptionStatus === 'FREE' || subscription.subscriptionStatus === 'CANCELLED') && (
                       <Link
                         href="/pricing"
-                        className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                        className="inline-block bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] text-white px-6 py-3.5 rounded-[14px] font-semibold text-[15px] hover:shadow-md transition"
                       >
                         프리미엄 구독하기
                       </Link>
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    구독 정보를 불러오는 중...
+                  <div className="text-center py-8">
+                    <div className="animate-spin w-6 h-6 border-4 border-[#FF6B9D] border-t-transparent rounded-full mx-auto" />
+                    <p className="text-[#767676] mt-3 text-[14px]">구독 정보를 불러오는 중...</p>
                   </div>
                 )}
 
-                <div className="border-t pt-6 mt-6">
-                  <h4 className="font-semibold mb-4 text-red-600">위험 영역</h4>
+                <div className="border-t border-[#f0f0f0] pt-6 mt-6">
+                  <h4 className="font-semibold text-[15px] mb-4 text-[#EF4444]">위험 영역</h4>
                   <button
                     onClick={handleLogout}
-                    className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+                    className="bg-[#F8F9FA] text-[#767676] px-6 py-3.5 rounded-[14px] font-semibold text-[15px] hover:bg-[#f0f0f0] transition"
                   >
                     로그아웃
                   </button>
@@ -400,8 +430,8 @@ function SettingsContent() {
 export default function SettingsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-[#FF6B9D] border-t-transparent rounded-full" />
       </div>
     }>
       <SettingsContent />
