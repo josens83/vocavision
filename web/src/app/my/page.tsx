@@ -1,24 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
-import { progressAPI } from '@/lib/api';
 import TabLayout from '@/components/layout/TabLayout';
-
-interface UserStats {
-  totalWordsLearned: number;
-  currentStreak: number;
-  longestStreak: number;
-  lastActiveDate?: string;
-}
 
 export default function MyPage() {
   const router = useRouter();
   const { user, _hasHydrated, logout } = useAuthStore();
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -26,26 +16,14 @@ export default function MyPage() {
       router.push('/auth/login');
       return;
     }
-    loadStats();
   }, [user, _hasHydrated, router]);
-
-  const loadStats = async () => {
-    try {
-      const data = await progressAPI.getUserProgress();
-      setStats(data.stats);
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogout = () => {
     logout();
     router.push('/');
   };
 
-  if (!_hasHydrated || loading) {
+  if (!_hasHydrated) {
     return (
       <TabLayout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -101,25 +79,6 @@ export default function MyPage() {
                   </span>
                 )}
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 학습 통계 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-4">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">학습 현황</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">{stats?.totalWordsLearned || 0}</p>
-              <p className="text-xs text-gray-500 mt-1">학습한 단어</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-orange-500">{stats?.currentStreak || 0}</p>
-              <p className="text-xs text-gray-500 mt-1">연속 학습일</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">{stats?.longestStreak || 0}</p>
-              <p className="text-xs text-gray-500 mt-1">최장 스트릭</p>
             </div>
           </div>
         </div>
