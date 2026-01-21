@@ -299,7 +299,8 @@ function StatisticsPageContent() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 lg:p-8 max-w-6xl mx-auto">
+      {/* 최상위 컨테이너: overflow-x 방지 */}
+      <div className="p-4 lg:p-8 max-w-6xl mx-auto w-full overflow-x-hidden">
         {/* 데모 모드 배너 */}
         {isDemo && !user && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
@@ -354,9 +355,9 @@ function StatisticsPageContent() {
           />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8 w-full max-w-full">
           {/* Mastery Level Distribution */}
-          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm w-full max-w-full overflow-hidden">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl font-bold">숙련도 분포</h2>
               <div className="flex gap-2 flex-shrink-0">
@@ -380,7 +381,7 @@ function StatisticsPageContent() {
                 </select>
               </div>
             </div>
-            <div className="space-y-4 min-w-0">
+            <div className="space-y-4 w-full">
               {Object.entries(masteryDistData).map(([level, count]) => {
                 const total = Object.values(masteryDistData).reduce((a, b) => a + b, 0);
                 const percentage = total > 0 ? (count / total) * 100 : 0;
@@ -388,21 +389,23 @@ function StatisticsPageContent() {
                 const safeCount = isNaN(count) ? 0 : count;
 
                 return (
-                  <div key={level} className="min-w-0">
-                    <div className="flex justify-between items-center gap-2 mb-2">
-                      <span className="font-medium text-xs sm:text-sm truncate min-w-0">
+                  <div key={level} className="w-full">
+                    {/* 라벨 + 수치: 위에 배치 */}
+                    <div className="flex justify-between items-center gap-2 mb-1.5">
+                      <span className="font-medium text-xs sm:text-sm text-slate-700 truncate flex-1 min-w-0">
                         {masteryLabels[level as keyof typeof masteryLabels]}
                       </span>
-                      <span className="text-gray-600 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
+                      <span className="text-slate-600 text-xs sm:text-sm whitespace-nowrap font-medium">
                         {safeCount}개 ({safePercentage}%)
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
+                    {/* 프로그레스 바: 전체 너비 */}
+                    <div className="w-full bg-slate-100 rounded-full h-2 sm:h-2.5 overflow-hidden">
                       <div
                         className={`${
                           masteryColors[level as keyof typeof masteryColors]
-                        } h-2 sm:h-3 rounded-full transition-all duration-500`}
-                        style={{ width: `${safePercentage}%` }}
+                        } h-full rounded-full transition-all duration-500`}
+                        style={{ width: `${Math.max(safePercentage, 0)}%` }}
                       />
                     </div>
                   </div>
@@ -412,7 +415,7 @@ function StatisticsPageContent() {
           </div>
 
           {/* Level Distribution */}
-          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm w-full max-w-full overflow-hidden">
             <div className="flex justify-between items-center gap-2 mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl font-bold truncate">레벨별 학습 현황</h2>
               <select
@@ -424,7 +427,7 @@ function StatisticsPageContent() {
                 <option value="TEPS">TEPS</option>
               </select>
             </div>
-            <div className="space-y-4 min-w-0">
+            <div className="space-y-4 w-full">
               {Object.entries(levelDist).map(([level, count]) => {
                 const total = Object.values(levelDist).reduce((a, b) => a + b, 0);
                 const percentage = total > 0 ? (count / total) * 100 : 0;
@@ -432,21 +435,23 @@ function StatisticsPageContent() {
                 const safeCount = isNaN(count) ? 0 : count;
 
                 return (
-                  <div key={level} className="min-w-0">
-                    <div className="flex justify-between items-center gap-2 mb-2">
-                      <span className="font-medium text-xs sm:text-sm">
+                  <div key={level} className="w-full">
+                    {/* 라벨 + 수치: 위에 배치 */}
+                    <div className="flex justify-between items-center gap-2 mb-1.5">
+                      <span className="font-medium text-xs sm:text-sm text-slate-700">
                         {levelLabels[level as keyof typeof levelLabels]}
                       </span>
-                      <span className="text-gray-600 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
+                      <span className="text-slate-600 text-xs sm:text-sm whitespace-nowrap font-medium">
                         {safeCount}개 ({safePercentage}%)
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
+                    {/* 프로그레스 바: 전체 너비 */}
+                    <div className="w-full bg-slate-100 rounded-full h-2 sm:h-2.5 overflow-hidden">
                       <div
                         className={`${
                           levelColors[level as keyof typeof levelColors]
-                        } h-2 sm:h-3 rounded-full transition-all duration-500`}
-                        style={{ width: `${safePercentage}%` }}
+                        } h-full rounded-full transition-all duration-500`}
+                        style={{ width: `${Math.max(safePercentage, 0)}%` }}
                       />
                     </div>
                   </div>
@@ -457,7 +462,7 @@ function StatisticsPageContent() {
         </div>
 
         {/* NEW: Learning Heatmap - Phase 2-2 */}
-        <div className="mb-8">
+        <div className="mb-8 w-full max-w-full overflow-x-auto">
           <LearningHeatmap
             data={heatmapData.length > 0 ? heatmapData : undefined}
             currentStreakOverride={stats?.currentStreak || 0}
@@ -466,7 +471,7 @@ function StatisticsPageContent() {
         </div>
 
         {/* NEW: Predictive Analytics - Phase 2-2 */}
-        <div className="mb-8">
+        <div className="mb-8 w-full max-w-full overflow-hidden">
           <PredictiveAnalytics />
         </div>
       </div>
