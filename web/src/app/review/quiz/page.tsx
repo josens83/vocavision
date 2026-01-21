@@ -280,7 +280,7 @@ function QuizPageContent() {
         console.error('Failed to end session:', error);
       }
     }
-    router.push(`/review/quiz/result?correct=${correctCount}&total=${questions.length}${isDemo ? '&demo=true' : ''}`);
+    router.push(`/review/quiz/result?correct=${correctCount}&total=${questions.length}${examParam ? `&exam=${examParam}` : ''}${levelParam ? `&level=${levelParam}` : ''}${isDemo ? '&demo=true' : ''}`);
   };
 
   // 로딩 상태

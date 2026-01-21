@@ -9,6 +9,8 @@ function ResultContent() {
   const correct = parseInt(searchParams.get('correct') || '0');
   const total = parseInt(searchParams.get('total') || '0');
   const isDemo = searchParams.get('demo') === 'true';
+  const exam = searchParams.get('exam') || 'CSAT';
+  const level = searchParams.get('level') || 'L1';
 
   const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
@@ -118,10 +120,10 @@ function ResultContent() {
         ) : (
           <div className="space-y-3">
             <Link
-              href="/review/quiz"
+              href={`/review/quiz?exam=${exam}&level=${level}`}
               className="block w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-pink-500/25"
             >
-              다시 복습하기
+              다음 10개 복습하기
             </Link>
             <Link
               href="/review"
