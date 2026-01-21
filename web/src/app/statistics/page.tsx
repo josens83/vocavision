@@ -81,8 +81,13 @@ function StatisticsPageContent() {
   const [masteryDist, setMasteryDist] = useState<MasteryDistribution | null>(null);
   const [heatmapData, setHeatmapData] = useState<Array<{ date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }>>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedExam, setSelectedExam] = useState<string>('CSAT');
-  const [selectedLevel, setSelectedLevel] = useState<string>('all');
+
+  // 숙련도 분포 필터 (독립적)
+  const [masteryExam, setMasteryExam] = useState<string>('CSAT');
+  const [masteryLevel, setMasteryLevel] = useState<string>('all');
+
+  // 레벨별 학습 현황 필터 (독립적)
+  const [levelProgressExam, setLevelProgressExam] = useState<string>('CSAT');
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -126,7 +131,7 @@ function StatisticsPageContent() {
     }
   };
 
-  // 숙련도 분포 로드 (시험/레벨 변경 시)
+  // 숙련도 분포 로드 (시험/레벨 변경 시 - 독립적)
   useEffect(() => {
     if (!hasHydrated || !user || isDemo) return;
 
@@ -135,7 +140,7 @@ function StatisticsPageContent() {
         const token = localStorage.getItem('authToken');
         const response = await axios.get(`${API_URL}/progress/mastery`, {
           headers: { Authorization: `Bearer ${token}` },
-          params: { examCategory: selectedExam, level: selectedLevel },
+          params: { examCategory: masteryExam, level: masteryLevel },
         });
         setMasteryDist(response.data);
       } catch (error) {
@@ -144,25 +149,25 @@ function StatisticsPageContent() {
     };
 
     loadMasteryDistribution();
-  }, [selectedExam, selectedLevel, user, hasHydrated, isDemo]);
+  }, [masteryExam, masteryLevel, user, hasHydrated, isDemo]);
 
-  // 필터링된 progress (examLevels 기반)
+  // 필터링된 progress (examLevels 기반) - 숙련도 분포용
   const getFilteredProgress = () => {
     return progress.filter((p) => {
       // examLevels 관계 사용
       if (p.word.examLevels && p.word.examLevels.length > 0) {
         const hasMatchingExamLevel = p.word.examLevels.some((el) => {
-          const examMatch = el.examCategory === selectedExam;
-          const levelMatch = selectedLevel === 'all' || el.level === selectedLevel;
+          const examMatch = el.examCategory === masteryExam;
+          const levelMatch = masteryLevel === 'all' || el.level === masteryLevel;
           return examMatch && levelMatch;
         });
         return hasMatchingExamLevel;
       }
       // fallback: 기존 필드 사용
-      if (p.word.examCategory && p.word.examCategory !== selectedExam) {
+      if (p.word.examCategory && p.word.examCategory !== masteryExam) {
         return false;
       }
-      if (selectedLevel !== 'all' && p.word.level !== selectedLevel) {
+      if (masteryLevel !== 'all' && p.word.level !== masteryLevel) {
         return false;
       }
       return true;
@@ -197,6 +202,7 @@ function StatisticsPageContent() {
     return distribution;
   };
 
+  // 레벨별 학습 현황 (독립적 필터)
   const getLevelDistribution = () => {
     const distribution = {
       L1: 0,
@@ -204,16 +210,28 @@ function StatisticsPageContent() {
       L3: 0,
     };
 
-    // 선택된 시험 기준으로 필터링
+    // 선택된 시험 기준으로 필터링 (레벨별 학습 현황 전용)
     const filtered = progress.filter((p) => {
-      if (p.word.examCategory && p.word.examCategory !== selectedExam) {
+      // examLevels 관계 사용
+      if (p.word.examLevels && p.word.examLevels.length > 0) {
+        return p.word.examLevels.some((el) => el.examCategory === levelProgressExam);
+      }
+      // fallback: 기존 필드 사용
+      if (p.word.examCategory && p.word.examCategory !== levelProgressExam) {
         return false;
       }
       return true;
     });
 
     filtered.forEach((p) => {
-      const level = p.word.level || 'L1';
+      // examLevels에서 레벨 가져오기
+      let level = 'L1';
+      if (p.word.examLevels && p.word.examLevels.length > 0) {
+        const matchingExamLevel = p.word.examLevels.find((el) => el.examCategory === levelProgressExam);
+        level = matchingExamLevel?.level || p.word.level || 'L1';
+      } else {
+        level = p.word.level || 'L1';
+      }
       if (distribution.hasOwnProperty(level)) {
         distribution[level as keyof typeof distribution]++;
       }
@@ -343,16 +361,16 @@ function StatisticsPageContent() {
               <h2 className="text-lg sm:text-xl font-bold">숙련도 분포</h2>
               <div className="flex gap-2 flex-shrink-0">
                 <select
-                  value={selectedExam}
-                  onChange={(e) => setSelectedExam(e.target.value)}
+                  value={masteryExam}
+                  onChange={(e) => setMasteryExam(e.target.value)}
                   className="text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
                 >
                   <option value="CSAT">수능</option>
                   <option value="TEPS">TEPS</option>
                 </select>
                 <select
-                  value={selectedLevel}
-                  onChange={(e) => setSelectedLevel(e.target.value)}
+                  value={masteryLevel}
+                  onChange={(e) => setMasteryLevel(e.target.value)}
                   className="text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
                 >
                   <option value="all">전체</option>
@@ -398,8 +416,8 @@ function StatisticsPageContent() {
             <div className="flex justify-between items-center gap-2 mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl font-bold truncate">레벨별 학습 현황</h2>
               <select
-                value={selectedExam}
-                onChange={(e) => setSelectedExam(e.target.value)}
+                value={levelProgressExam}
+                onChange={(e) => setLevelProgressExam(e.target.value)}
                 className="text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500 flex-shrink-0"
               >
                 <option value="CSAT">수능</option>
