@@ -687,3 +687,80 @@ function shuffleArray<T>(array: T[]): T[] {
   }
   return shuffled;
 }
+
+/**
+ * 학습 활동 히트맵 데이터 조회
+ * GET /progress/activity
+ * 최근 1년(365일)간의 일별 학습 활동 데이터 반환
+ */
+export const getActivityHeatmap = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId!;
+    const weeks = parseInt(req.query.weeks as string) || 52;
+    const daysToFetch = weeks * 7;
+
+    // 시작 날짜 계산 (오늘 - daysToFetch일)
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysToFetch);
+    startDate.setHours(0, 0, 0, 0);
+
+    // 일별 학습 단어 수 쿼리 (UserProgress.updatedAt 또는 createdAt 기준)
+    const dailyActivity = await prisma.$queryRaw<Array<{ date: Date; count: bigint }>>`
+      SELECT
+        DATE("updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') as date,
+        COUNT(DISTINCT "wordId")::bigint as count
+      FROM "UserProgress"
+      WHERE "userId" = ${userId}
+        AND "updatedAt" >= ${startDate}
+      GROUP BY DATE("updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')
+      ORDER BY date
+    `;
+
+    // 날짜별 Map 생성
+    const activityMap = new Map<string, number>();
+    for (const row of dailyActivity) {
+      const dateStr = new Date(row.date).toISOString().split('T')[0];
+      activityMap.set(dateStr, Number(row.count));
+    }
+
+    // 모든 날짜에 대해 데이터 생성 (없는 날은 0)
+    const heatmapData: Array<{ date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }> = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = daysToFetch - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const count = activityMap.get(dateStr) || 0;
+
+      // 레벨 결정 (학습량에 따라)
+      let level: 0 | 1 | 2 | 3 | 4 = 0;
+      if (count === 0) level = 0;
+      else if (count < 10) level = 1;
+      else if (count < 20) level = 2;
+      else if (count < 30) level = 3;
+      else level = 4;
+
+      heatmapData.push({ date: dateStr, count, level });
+    }
+
+    // 통계 계산
+    const totalDays = heatmapData.filter(d => d.count > 0).length;
+    const totalWords = heatmapData.reduce((sum, d) => sum + d.count, 0);
+
+    res.json({
+      heatmapData,
+      stats: {
+        totalDays,
+        totalWords,
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
