@@ -184,7 +184,7 @@ function UserStatsSection() {
       </Link>
 
       <Link
-        href="/review"
+        href={`/review/quiz?exam=${lastStudy.exam}&level=${lastStudy.level}`}
         className="bg-pink-50 hover:bg-pink-100 rounded-2xl p-4 flex items-center gap-4 transition-all hover:shadow-md group"
       >
         <div className="w-12 h-12 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center group-hover:scale-105 transition">
