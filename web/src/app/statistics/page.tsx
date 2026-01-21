@@ -34,6 +34,19 @@ interface Progress {
     difficulty: string;
     level?: string;
     examCategory?: string;
+    examLevels?: { examCategory: string; level: string }[];
+  };
+}
+
+interface MasteryDistribution {
+  examCategory: string;
+  level: string;
+  totalWords: number;
+  distribution: {
+    notSeen: number;
+    learning: number;
+    familiar: number;
+    mastered: number;
   };
 }
 
@@ -65,6 +78,7 @@ function StatisticsPageContent() {
 
   const [stats, setStats] = useState<UserStats | null>(null);
   const [progress, setProgress] = useState<Progress[]>([]);
+  const [masteryDist, setMasteryDist] = useState<MasteryDistribution | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedExam, setSelectedExam] = useState<string>('CSAT');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
@@ -107,14 +121,42 @@ function StatisticsPageContent() {
     }
   };
 
-  // 필터링된 progress
+  // 숙련도 분포 로드 (시험/레벨 변경 시)
+  useEffect(() => {
+    if (!hasHydrated || !user || isDemo) return;
+
+    const loadMasteryDistribution = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get(`${API_URL}/progress/mastery`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { examCategory: selectedExam, level: selectedLevel },
+        });
+        setMasteryDist(response.data);
+      } catch (error) {
+        console.error('Failed to load mastery distribution:', error);
+      }
+    };
+
+    loadMasteryDistribution();
+  }, [selectedExam, selectedLevel, user, hasHydrated, isDemo]);
+
+  // 필터링된 progress (examLevels 기반)
   const getFilteredProgress = () => {
     return progress.filter((p) => {
-      // 시험 필터
+      // examLevels 관계 사용
+      if (p.word.examLevels && p.word.examLevels.length > 0) {
+        const hasMatchingExamLevel = p.word.examLevels.some((el) => {
+          const examMatch = el.examCategory === selectedExam;
+          const levelMatch = selectedLevel === 'all' || el.level === selectedLevel;
+          return examMatch && levelMatch;
+        });
+        return hasMatchingExamLevel;
+      }
+      // fallback: 기존 필드 사용
       if (p.word.examCategory && p.word.examCategory !== selectedExam) {
         return false;
       }
-      // 레벨 필터
       if (selectedLevel !== 'all' && p.word.level !== selectedLevel) {
         return false;
       }
@@ -122,7 +164,19 @@ function StatisticsPageContent() {
     });
   };
 
-  const getMasteryDistribution = () => {
+  // API에서 가져온 숙련도 분포 사용 (데모 모드에서는 로컬 계산)
+  const getMasteryDistributionData = () => {
+    // API 데이터가 있으면 사용
+    if (masteryDist && !isDemo) {
+      return {
+        NEW: masteryDist.distribution.notSeen,
+        LEARNING: masteryDist.distribution.learning,
+        FAMILIAR: masteryDist.distribution.familiar,
+        MASTERED: masteryDist.distribution.mastered,
+      };
+    }
+
+    // 데모 모드 또는 API 데이터 없을 때: 로컬 계산
     const distribution = {
       NEW: 0,
       LEARNING: 0,
@@ -169,7 +223,7 @@ function StatisticsPageContent() {
     return total > 0 ? Math.round((correct / total) * 100) : 0;
   };
 
-  const masteryDist = getMasteryDistribution();
+  const masteryDistData = getMasteryDistributionData();
   const levelDist = getLevelDistribution();
   const accuracyRate = getAccuracyRate();
 
@@ -304,8 +358,8 @@ function StatisticsPageContent() {
               </div>
             </div>
             <div className="space-y-4">
-              {Object.entries(masteryDist).map(([level, count]) => {
-                const total = Object.values(masteryDist).reduce((a, b) => a + b, 0);
+              {Object.entries(masteryDistData).map(([level, count]) => {
+                const total = Object.values(masteryDistData).reduce((a, b) => a + b, 0);
                 const percentage = total > 0 ? (count / total) * 100 : 0;
                 const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
                 const safeCount = isNaN(count) ? 0 : count;

@@ -6,7 +6,8 @@ import {
   startStudySession,
   endStudySession,
   getReviewHistory,
-  getReviewQuiz
+  getReviewQuiz,
+  getMasteryDistribution
 } from '../controllers/progress.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 
@@ -109,6 +110,35 @@ router.get('/due', authenticateToken, getDueReviews);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/quiz', authenticateToken, getReviewQuiz);
+
+/**
+ * @swagger
+ * /progress/mastery:
+ *   get:
+ *     summary: 숙련도 분포 조회 (전체 단어 수 포함)
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: examCategory
+ *         schema:
+ *           type: string
+ *           default: CSAT
+ *         description: 시험 카테고리
+ *       - in: query
+ *         name: level
+ *         schema:
+ *           type: string
+ *           default: all
+ *         description: 레벨 (L1, L2, L3, all)
+ *     responses:
+ *       200:
+ *         description: 숙련도 분포
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/mastery', authenticateToken, getMasteryDistribution);
 
 /**
  * @swagger
