@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 // Benchmarking: GitHub-style activity heatmap
-// Phase 2-2: 학습 활동 시각화 - 히트맵
+// Phase 2-2: 학습 활동 시각화 - 히트맵 (은행 앱 스타일)
 
 interface DayData {
   date: string;
@@ -127,21 +127,21 @@ export default function LearningHeatmap({
 
   const weeksData = groupByWeek();
 
-  // Color scheme based on level
+  // Color scheme based on level (핑크 계열 - VocaVision 브랜드)
   const getColor = (level: 0 | 1 | 2 | 3 | 4) => {
     switch (level) {
       case 0:
-        return 'bg-gray-100';
+        return 'bg-[#f0f0f0]';
       case 1:
-        return 'bg-green-200';
+        return 'bg-[#FFE4EC]';
       case 2:
-        return 'bg-green-400';
+        return 'bg-[#FFB8CD]';
       case 3:
-        return 'bg-green-600';
+        return 'bg-[#FF8CAE]';
       case 4:
-        return 'bg-green-800';
+        return 'bg-[#FF6B9D]';
       default:
-        return 'bg-gray-100';
+        return 'bg-[#f0f0f0]';
     }
   };
 
@@ -202,26 +202,21 @@ export default function LearningHeatmap({
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg overflow-hidden">
-      <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">학습 활동</h3>
+    <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-[15px] font-bold text-[#1c1c1e]">학습 활동</h3>
+        <span className="text-[13px] text-[#767676]">최근 52주</span>
+      </div>
 
-      {/* Stats Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        <div className="text-center p-2 sm:p-0">
-          <div className="text-xl sm:text-2xl font-bold text-indigo-600">{totalDays}</div>
-          <div className="text-xs text-gray-600">활동한 날</div>
+      {/* 요약 통계 */}
+      <div className="flex gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-sm bg-[#FF6B9D]" />
+          <span className="text-[12px] text-[#767676]">{totalDays}일 학습</span>
         </div>
-        <div className="text-center p-2 sm:p-0">
-          <div className="text-xl sm:text-2xl font-bold text-green-600">{totalWords}</div>
-          <div className="text-xs text-gray-600">총 학습 단어</div>
-        </div>
-        <div className="text-center p-2 sm:p-0">
-          <div className="text-xl sm:text-2xl font-bold text-orange-600">{currentStreak}</div>
-          <div className="text-xs text-gray-600">현재 스트릭</div>
-        </div>
-        <div className="text-center p-2 sm:p-0">
-          <div className="text-xl sm:text-2xl font-bold text-purple-600">{longestStreak}</div>
-          <div className="text-xs text-gray-600">최장 스트릭</div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-sm bg-[#3B82F6]" />
+          <span className="text-[12px] text-[#767676]">{totalWords}개 단어</span>
         </div>
       </div>
 
@@ -231,7 +226,7 @@ export default function LearningHeatmap({
           {/* Month labels */}
           <div className="flex mb-2 ml-8">
             {Array.from({ length: Math.ceil(weeks / 4) }).map((_, i) => (
-              <div key={i} className="text-xs text-gray-500" style={{ width: `${4 * 16}px` }}>
+              <div key={i} className="text-[10px] text-[#999999]" style={{ width: `${4 * 16}px` }}>
                 {new Date(
                   new Date().getFullYear(),
                   new Date().getMonth() - Math.ceil(weeks / 4) + i + 1,
@@ -243,7 +238,7 @@ export default function LearningHeatmap({
 
           <div className="flex">
             {/* Day labels */}
-            <div className="flex flex-col justify-between text-xs text-gray-500 pr-2">
+            <div className="flex flex-col justify-between text-[10px] text-[#999999] pr-2">
               <div>일</div>
               <div>월</div>
               <div>화</div>
@@ -274,15 +269,13 @@ export default function LearningHeatmap({
             </div>
           </div>
 
-          {/* Legend */}
-          <div className="flex items-center gap-2 mt-4 justify-end text-xs text-gray-600">
-            <span>적음</span>
-            <div className="flex gap-1">
-              {([0, 1, 2, 3, 4] as const).map((level) => (
-                <div key={level} className={`w-3 h-3 rounded-sm ${getColor(level)}`} />
-              ))}
-            </div>
-            <span>많음</span>
+          {/* 범례 */}
+          <div className="flex items-center justify-end gap-1 mt-3">
+            <span className="text-[10px] text-[#999999]">적음</span>
+            {([0, 1, 2, 3, 4] as const).map((level) => (
+              <div key={level} className={`w-3 h-3 rounded-sm ${getColor(level)}`} />
+            ))}
+            <span className="text-[10px] text-[#999999]">많음</span>
           </div>
         </div>
       </div>
@@ -292,34 +285,34 @@ export default function LearningHeatmap({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed z-50 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm pointer-events-none"
+          className="fixed z-50 bg-[#1c1c1e] text-white px-3 py-2 rounded-[10px] text-sm pointer-events-none"
           style={{
             left: hoveredPosition.x + 10,
             top: hoveredPosition.y - 40,
           }}
         >
-          <div className="font-semibold">
+          <div className="font-semibold text-[13px]">
             {new Date(hoveredDay.date).toLocaleDateString('ko-KR', {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
             })}
           </div>
-          <div className="text-green-400">
-            {hoveredDay.count} {hoveredDay.count === 1 ? 'word' : 'words'} studied
+          <div className="text-[#FF6B9D] text-[12px]">
+            {hoveredDay.count}개 단어 학습
           </div>
         </motion.div>
       )}
 
-      {/* Encouragement Message */}
-      <div className="mt-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
-        <p className="text-sm text-gray-700">
+      {/* 격려 메시지 */}
+      <div className="mt-4 p-4 bg-[#FFF0F5] rounded-[14px]">
+        <p className="text-[13px] text-[#1c1c1e]">
           💡 <strong>꾸준함이 핵심입니다!</strong>{' '}
           {currentStreak > 0
             ? `현재 ${currentStreak}일 연속 학습 중입니다. 계속 유지하세요!`
             : '오늘 학습을 시작해서 스트릭을 쌓아보세요!'}
         </p>
       </div>
-    </div>
+    </section>
   );
 }

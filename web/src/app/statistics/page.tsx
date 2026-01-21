@@ -250,24 +250,26 @@ function StatisticsPageContent() {
   const levelDist = getLevelDistribution();
   const accuracyRate = getAccuracyRate();
 
+  // 숙련도 색상 (은행 앱 스타일)
   const masteryColors = {
-    NEW: 'bg-gray-500',
-    LEARNING: 'bg-yellow-500',
-    FAMILIAR: 'bg-blue-500',
-    MASTERED: 'bg-green-500',
+    NEW: 'bg-[#D1D5DB]',      // 회색 - 아직 안 본
+    LEARNING: 'bg-[#F59E0B]', // 앰버 - 공부 중
+    FAMILIAR: 'bg-[#3B82F6]', // 파랑 - 어느 정도 암기
+    MASTERED: 'bg-[#10B981]', // 그린 - 완전 암기
   };
 
   const masteryLabels = {
     NEW: '아직 안 본 단어',
-    LEARNING: '공부 중 (아직 어려움)',
-    FAMILIAR: '어느 정도 암기됨',
-    MASTERED: '완전히 암기 완료!',
+    LEARNING: '공부 중',
+    FAMILIAR: '어느 정도 암기',
+    MASTERED: '완전 암기',
   };
 
+  // 레벨별 배경색 (은행 앱 스타일)
   const levelColors = {
-    L1: 'bg-green-500',
-    L2: 'bg-blue-500',
-    L3: 'bg-orange-500',
+    L1: 'bg-[#10B981]',  // 초급 - 그린
+    L2: 'bg-[#3B82F6]',  // 중급 - 파랑
+    L3: 'bg-[#A855F7]',  // 고급 - 보라
   };
 
   const levelLabels = {
@@ -276,21 +278,25 @@ function StatisticsPageContent() {
     L3: '고급 (L3)',
   };
 
+  const levelNames = {
+    L1: '초급',
+    L2: '중급',
+    L3: '고급',
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-4 lg:p-8 max-w-6xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 w-40 bg-gray-200 rounded mb-8" />
-            <div className="grid md:grid-cols-4 gap-6 mb-8">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white rounded-2xl p-6 h-32" />
+        <div className="p-4 lg:p-8 max-w-5xl mx-auto">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 w-40 bg-gray-200 rounded mb-6" />
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {[1, 2].map((i) => (
+                <div key={i} className="bg-white rounded-[20px] p-5 h-32" />
               ))}
             </div>
-            <div className="grid md:grid-cols-2 gap-8 mb-8">
-              <div className="bg-white rounded-2xl p-6 h-64" />
-              <div className="bg-white rounded-2xl p-6 h-64" />
-            </div>
+            <div className="bg-white rounded-[20px] p-5 h-64 mb-6" />
+            <div className="bg-white rounded-[20px] p-5 h-64" />
           </div>
         </div>
       </DashboardLayout>
@@ -300,18 +306,18 @@ function StatisticsPageContent() {
   return (
     <DashboardLayout>
       {/* 최상위 컨테이너: overflow-x 방지 */}
-      <div className="p-4 lg:p-8 max-w-6xl mx-auto w-full overflow-x-hidden">
+      <div className="p-4 lg:p-8 max-w-5xl mx-auto w-full overflow-x-hidden space-y-4">
         {/* 데모 모드 배너 */}
         {isDemo && !user && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+          <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-[14px] p-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded font-bold text-xs">체험</span>
-                <span className="text-amber-800 text-sm">샘플 데이터로 학습 분석 기능을 미리 체험해보세요</span>
+                <span className="px-2 py-0.5 bg-[#F59E0B] text-white rounded font-bold text-xs">체험</span>
+                <span className="text-[#92400E] text-sm">샘플 데이터로 학습 분석 기능을 미리 체험해보세요</span>
               </div>
               <Link
                 href="/auth/register"
-                className="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-600 transition whitespace-nowrap"
+                className="bg-[#F59E0B] text-white px-4 py-2 rounded-[10px] text-sm font-bold hover:bg-[#D97706] transition whitespace-nowrap"
               >
                 무료 회원가입
               </Link>
@@ -320,149 +326,163 @@ function StatisticsPageContent() {
         )}
 
         {/* 페이지 헤더 */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">상세 통계</h1>
-          <p className="text-gray-500 text-sm mt-1">학습 진행 상황과 패턴을 분석합니다</p>
-        </div>
-        {/* Overview Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <StatCard
-            icon="📚"
-            title="학습한 단어"
-            value={stats?.totalWordsLearned || 0}
-            color="blue"
-          />
-          <StatCard
-            icon="🔥"
-            title="현재 연속"
-            value={stats?.currentStreak || 0}
-            suffix="일"
-            color="orange"
-          />
-          <StatCard
-            icon="🏆"
-            title="최장 연속"
-            value={stats?.longestStreak || 0}
-            suffix="일"
-            color="purple"
-          />
-          <StatCard
-            icon="✅"
-            title="정확도"
-            value={accuracyRate}
-            suffix="%"
-            color="green"
-          />
-        </div>
+        <header className="mb-2">
+          <h1 className="text-[22px] font-bold text-[#1c1c1e]">상세 통계</h1>
+          <p className="text-[14px] text-[#767676] mt-1">학습 진행 상황과 패턴을 분석합니다</p>
+        </header>
 
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8 w-full max-w-full">
-          {/* Mastery Level Distribution */}
-          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm w-full max-w-full overflow-hidden">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-bold">숙련도 분포</h2>
-              <div className="flex gap-2 flex-shrink-0">
-                <select
-                  value={masteryExam}
-                  onChange={(e) => setMasteryExam(e.target.value)}
-                  className="text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                >
-                  <option value="CSAT">수능</option>
-                  <option value="TEPS">TEPS</option>
-                </select>
-                <select
-                  value={masteryLevel}
-                  onChange={(e) => setMasteryLevel(e.target.value)}
-                  className="text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                >
-                  <option value="all">전체</option>
-                  <option value="L1">L1</option>
-                  <option value="L2">L2</option>
-                  <option value="L3">L3</option>
-                </select>
-              </div>
+        {/* 요약 통계 카드들 (은행 앱 스타일) */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* 학습한 단어 */}
+          <div className="bg-[#EFF6FF] rounded-[20px] p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-2xl">📚</span>
+              <span className="text-[12px] text-[#3B82F6] font-medium">학습한 단어</span>
             </div>
-            <div className="space-y-4 w-full">
-              {Object.entries(masteryDistData).map(([level, count]) => {
-                const total = Object.values(masteryDistData).reduce((a, b) => a + b, 0);
-                const percentage = total > 0 ? (count / total) * 100 : 0;
-                const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
-                const safeCount = isNaN(count) ? 0 : count;
-
-                return (
-                  <div key={level} className="w-full">
-                    {/* 라벨 + 수치: 위에 배치 */}
-                    <div className="flex justify-between items-center gap-2 mb-1.5">
-                      <span className="font-medium text-xs sm:text-sm text-slate-700 truncate flex-1 min-w-0">
-                        {masteryLabels[level as keyof typeof masteryLabels]}
-                      </span>
-                      <span className="text-slate-600 text-xs sm:text-sm whitespace-nowrap font-medium">
-                        {safeCount}개 ({safePercentage}%)
-                      </span>
-                    </div>
-                    {/* 프로그레스 바: 전체 너비 */}
-                    <div className="w-full bg-slate-100 rounded-full h-2 sm:h-2.5 overflow-hidden">
-                      <div
-                        className={`${
-                          masteryColors[level as keyof typeof masteryColors]
-                        } h-full rounded-full transition-all duration-500`}
-                        style={{ width: `${Math.max(safePercentage, 0)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <p className="text-[28px] font-bold text-[#3B82F6]">{stats?.totalWordsLearned || 0}</p>
           </div>
 
-          {/* Level Distribution */}
-          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm w-full max-w-full overflow-hidden">
-            <div className="flex justify-between items-center gap-2 mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-bold truncate">레벨별 학습 현황</h2>
+          {/* 최장 연속 */}
+          <div className="bg-[#FFF7ED] rounded-[20px] p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-2xl">🏆</span>
+              <span className="text-[12px] text-[#F59E0B] font-medium">최장 연속</span>
+            </div>
+            <p className="text-[28px] font-bold text-[#F59E0B]">{stats?.longestStreak || 0}일</p>
+          </div>
+        </div>
+
+        {/* 추가 통계 (현재 연속, 정확도) */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* 현재 연속 */}
+          <div className="bg-[#FFF0F5] rounded-[20px] p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-2xl">🔥</span>
+              <span className="text-[12px] text-[#FF6B9D] font-medium">현재 연속</span>
+            </div>
+            <p className="text-[28px] font-bold text-[#FF6B9D]">{stats?.currentStreak || 0}일</p>
+          </div>
+
+          {/* 정확도 */}
+          <div className="bg-[#ECFDF5] rounded-[20px] p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-2xl">✅</span>
+              <span className="text-[12px] text-[#10B981] font-medium">정확도</span>
+            </div>
+            <p className="text-[28px] font-bold text-[#10B981]">{accuracyRate}%</p>
+          </div>
+        </div>
+
+        {/* 숙련도 분포 카드 (은행 앱 스타일) */}
+        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+            <h3 className="text-[15px] font-bold text-[#1c1c1e]">숙련도 분포</h3>
+
+            {/* 필터 */}
+            <div className="flex gap-2">
               <select
-                value={levelProgressExam}
-                onChange={(e) => setLevelProgressExam(e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500 flex-shrink-0"
+                value={masteryExam}
+                onChange={(e) => setMasteryExam(e.target.value)}
+                className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
               >
                 <option value="CSAT">수능</option>
                 <option value="TEPS">TEPS</option>
               </select>
-            </div>
-            <div className="space-y-4 w-full">
-              {Object.entries(levelDist).map(([level, count]) => {
-                const total = Object.values(levelDist).reduce((a, b) => a + b, 0);
-                const percentage = total > 0 ? (count / total) * 100 : 0;
-                const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
-                const safeCount = isNaN(count) ? 0 : count;
-
-                return (
-                  <div key={level} className="w-full">
-                    {/* 라벨 + 수치: 위에 배치 */}
-                    <div className="flex justify-between items-center gap-2 mb-1.5">
-                      <span className="font-medium text-xs sm:text-sm text-slate-700">
-                        {levelLabels[level as keyof typeof levelLabels]}
-                      </span>
-                      <span className="text-slate-600 text-xs sm:text-sm whitespace-nowrap font-medium">
-                        {safeCount}개 ({safePercentage}%)
-                      </span>
-                    </div>
-                    {/* 프로그레스 바: 전체 너비 */}
-                    <div className="w-full bg-slate-100 rounded-full h-2 sm:h-2.5 overflow-hidden">
-                      <div
-                        className={`${
-                          levelColors[level as keyof typeof levelColors]
-                        } h-full rounded-full transition-all duration-500`}
-                        style={{ width: `${Math.max(safePercentage, 0)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+              <select
+                value={masteryLevel}
+                onChange={(e) => setMasteryLevel(e.target.value)}
+                className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
+              >
+                <option value="all">전체</option>
+                <option value="L1">L1</option>
+                <option value="L2">L2</option>
+                <option value="L3">L3</option>
+              </select>
             </div>
           </div>
-        </div>
 
-        {/* NEW: Learning Heatmap - Phase 2-2 */}
-        <div className="mb-8 w-full max-w-full overflow-x-auto">
+          {/* 프로그레스 바들 */}
+          <div className="space-y-4">
+            {Object.entries(masteryDistData).map(([level, count]) => {
+              const total = Object.values(masteryDistData).reduce((a, b) => a + b, 0);
+              const percentage = total > 0 ? (count / total) * 100 : 0;
+              const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
+              const safeCount = isNaN(count) ? 0 : count;
+
+              return (
+                <div key={level} className="w-full">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-[13px] text-[#767676]">
+                      {masteryLabels[level as keyof typeof masteryLabels]}
+                    </span>
+                    <span className="text-[13px] font-semibold text-[#1c1c1e]">
+                      {safeCount}개 ({safePercentage}%)
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${masteryColors[level as keyof typeof masteryColors]}`}
+                      style={{ width: `${Math.max(safePercentage, 0)}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* 레벨별 학습 현황 카드 (은행 앱 스타일) */}
+        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[15px] font-bold text-[#1c1c1e]">레벨별 학습 현황</h3>
+
+            <select
+              value={levelProgressExam}
+              onChange={(e) => setLevelProgressExam(e.target.value)}
+              className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
+            >
+              <option value="CSAT">수능</option>
+              <option value="TEPS">TEPS</option>
+            </select>
+          </div>
+
+          <div className="space-y-3">
+            {Object.entries(levelDist).map(([level, count]) => {
+              const total = Object.values(levelDist).reduce((a, b) => a + b, 0);
+              const percentage = total > 0 ? (count / total) * 100 : 0;
+              const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
+              const safeCount = isNaN(count) ? 0 : count;
+
+              return (
+                <div
+                  key={level}
+                  className="flex items-center justify-between p-4 bg-[#F8F9FA] rounded-[14px]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-[40px] h-[40px] rounded-full flex items-center justify-center ${levelColors[level as keyof typeof levelColors]}`}>
+                      <span className="text-white font-bold text-[14px]">{level}</span>
+                    </div>
+                    <div>
+                      <p className="text-[14px] font-semibold text-[#1c1c1e]">
+                        {levelNames[level as keyof typeof levelNames]}
+                      </p>
+                      <p className="text-[12px] text-[#767676]">
+                        {levelLabels[level as keyof typeof levelLabels]}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[16px] font-bold text-[#1c1c1e]">{safeCount}개</p>
+                    <p className="text-[12px] text-[#767676]">{safePercentage}% 학습</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* 학습 활동 히트맵 (은행 앱 스타일) */}
+        <div className="w-full max-w-full overflow-x-auto">
           <LearningHeatmap
             data={heatmapData.length > 0 ? heatmapData : undefined}
             currentStreakOverride={stats?.currentStreak || 0}
@@ -470,8 +490,8 @@ function StatisticsPageContent() {
           />
         </div>
 
-        {/* NEW: Predictive Analytics - Phase 2-2 */}
-        <div className="mb-8 w-full max-w-full overflow-hidden">
+        {/* AI 학습 예측 (은행 앱 스타일) */}
+        <div className="w-full max-w-full overflow-hidden">
           <PredictiveAnalytics />
         </div>
       </div>
@@ -479,54 +499,20 @@ function StatisticsPageContent() {
   );
 }
 
-function StatCard({
-  icon,
-  title,
-  value,
-  suffix = '',
-  color,
-}: {
-  icon: string;
-  title: string;
-  value: number;
-  suffix?: string;
-  color: string;
-}) {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    orange: 'bg-orange-50 text-orange-600',
-    purple: 'bg-purple-50 text-purple-600',
-    green: 'bg-green-50 text-green-600',
-  }[color];
-
-  return (
-    <div className={`${colorClasses} rounded-2xl p-3 sm:p-6`}>
-      <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">{icon}</div>
-      <div className="text-xs sm:text-sm opacity-80 mb-1">{title}</div>
-      <div className="text-xl sm:text-3xl font-bold">
-        {value}
-        {suffix && <span className="text-sm sm:text-lg ml-1">{suffix}</span>}
-      </div>
-    </div>
-  );
-}
-
 // Loading component for Suspense
 function StatisticsPageLoading() {
   return (
     <DashboardLayout>
-      <div className="p-4 lg:p-8 max-w-6xl mx-auto">
-        <div className="animate-pulse">
-          <div className="h-8 w-40 bg-gray-200 rounded mb-8" />
-          <div className="grid md:grid-cols-4 gap-6 mb-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 h-32" />
+      <div className="p-4 lg:p-8 max-w-5xl mx-auto">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 w-40 bg-gray-200 rounded mb-6" />
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white rounded-[20px] p-5 h-32" />
             ))}
           </div>
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <div className="bg-white rounded-2xl p-6 h-64" />
-            <div className="bg-white rounded-2xl p-6 h-64" />
-          </div>
+          <div className="bg-white rounded-[20px] p-5 h-64 mb-6" />
+          <div className="bg-white rounded-[20px] p-5 h-64" />
         </div>
       </div>
     </DashboardLayout>
