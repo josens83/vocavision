@@ -244,15 +244,19 @@ export const submitReview = async (
     const nextReviewDate = new Date();
     nextReviewDate.setDate(nextReviewDate.getDate() + interval);
 
-    // Determine mastery level
+    // Determine mastery level based on correctCount (더 직관적인 기준)
+    // 새로운 correctCount 계산 (업데이트 전에 미리 계산)
+    const newCorrectCount = rating >= 3 ? progress.correctCount + 1 : progress.correctCount;
+
     let masteryLevel = progress.masteryLevel;
-    if (repetitions >= 5 && easeFactor >= 2.5) {
-      masteryLevel = 'MASTERED';
-    } else if (repetitions >= 3) {
-      masteryLevel = 'FAMILIAR';
-    } else if (repetitions >= 1) {
-      masteryLevel = 'LEARNING';
+    if (newCorrectCount >= 6) {
+      masteryLevel = 'MASTERED';    // 6회 이상 정답 → 완전히 암기 완료
+    } else if (newCorrectCount >= 3) {
+      masteryLevel = 'FAMILIAR';     // 3~5회 정답 → 어느 정도 암기됨
+    } else if (newCorrectCount >= 1) {
+      masteryLevel = 'LEARNING';     // 1~2회 정답 → 공부 중
     }
+    // correctCount 0이면 NEW 유지
 
     // Update progress
     const updatedProgress = await prisma.userProgress.update({
