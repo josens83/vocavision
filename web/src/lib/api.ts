@@ -418,6 +418,19 @@ export const progressAPI = {
       return { words: [] };
     }
   },
+  // 잘 모르는 단어 수 조회
+  getWeakWordsCount: async (params?: { examCategory?: string; level?: string }) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.examCategory) queryParams.set('examCategory', params.examCategory);
+      if (params?.level) queryParams.set('level', params.level);
+      const queryString = queryParams.toString();
+      const response = await api.get(`/progress/weak-words/count${queryString ? `?${queryString}` : ''}`);
+      return response.data;
+    } catch {
+      return { count: 0 };
+    }
+  },
 };
 
 // Subscription API

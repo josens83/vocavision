@@ -57,6 +57,7 @@ export default function DashboardPage() {
   const [examLevelTotalWords, setExamLevelTotalWords] = useState(0);
   const [examLevelLearnedWords, setExamLevelLearnedWords] = useState(0);
   const [examLevelLoading, setExamLevelLoading] = useState(false);
+  const [weakWordCount, setWeakWordCount] = useState(0);
 
   // Calendar data
   const today = new Date();
@@ -100,13 +101,14 @@ export default function DashboardPage() {
     setExamLevelLoading(true);
     setExamLevelLearnedWords(0);
     setExamLevelTotalWords(0);
+    setWeakWordCount(0);
 
     try {
       const examCategory = activeExam || 'CSAT';
       const level = activeLevel || 'L1';
 
       // 병렬 호출로 성능 개선 (5-8초 → 2-3초)
-      const [totalData, unlearnedData] = await Promise.all([
+      const [totalData, unlearnedData, weakData] = await Promise.all([
         wordsAPI.getWords({
           examCategory,
           level,
@@ -118,6 +120,7 @@ export default function DashboardPage() {
           limit: 1,
           excludeLearned: true,
         }),
+        progressAPI.getWeakWordsCount({ examCategory, level }),
       ]);
 
       const totalWords = totalData.pagination?.total || 0;
@@ -125,6 +128,7 @@ export default function DashboardPage() {
 
       setExamLevelTotalWords(totalWords);
       setExamLevelLearnedWords(totalWords - unlearnedWords);
+      setWeakWordCount(weakData.count || 0);
     } catch (error) {
       console.error('Failed to load exam/level progress:', error);
     } finally {
@@ -142,6 +146,9 @@ export default function DashboardPage() {
   const learnedWords = examLevelLearnedWords;
   const remainingWords = Math.max(totalWords - learnedWords, 0);
   const progressPercent = totalWords > 0 ? Math.min(Math.round((learnedWords / totalWords) * 100), 100) : 0;
+
+  // 학습 완료 여부
+  const isCompleted = remainingWords === 0 && totalWords > 0;
 
   // 오늘의 학습 목표
   const dailyGoal = 20;
@@ -165,33 +172,72 @@ export default function DashboardPage() {
         </div>
 
         {/* P0-2: 오늘의 학습 목표 Hero */}
-        <div className="bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl p-6 mb-6 text-white shadow-lg shadow-pink-500/25">
+        <div className={`rounded-2xl p-6 mb-6 text-white shadow-lg ${
+          isCompleted
+            ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-emerald-500/25'
+            : 'bg-gradient-to-r from-pink-500 to-pink-600 shadow-pink-500/25'
+        }`}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <p className="text-pink-100 text-sm mb-1">오늘의 학습 목표</p>
-              <h2 className="text-2xl md:text-3xl font-bold mb-2">
-                {todayRemaining > 0 ? (
-                  <>다음 학습할 단어 <span className="text-yellow-300">{todayRemaining}개</span></>
-                ) : (
-                  <>축하합니다! 오늘 목표 달성! 🎉</>
-                )}
-              </h2>
-              {todayRemaining > 0 ? (
-                <p className="text-pink-100">
-                  지금 시작하면 <strong className="text-white">{estimatedMinutes}분</strong>이면 끝나요
-                </p>
+              {isCompleted ? (
+                <>
+                  <p className="text-emerald-100 text-sm mb-1">🎉 {exam.name} {level.name} 학습 완료!</p>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2">
+                    총 <span className="text-yellow-300">{totalWords}개</span> 단어를 마스터했어요
+                  </h2>
+                  <p className="text-emerald-100">
+                    {weakWordCount > 0
+                      ? `잘 모르는 단어 ${weakWordCount}개를 복습해보세요!`
+                      : '완벽하게 암기했어요! 다음 레벨에 도전해보세요.'}
+                  </p>
+                </>
               ) : (
-                <p className="text-pink-100">
-                  오늘 학습을 완료했어요! 추가로 더 학습하시겠어요?
-                </p>
+                <>
+                  <p className="text-pink-100 text-sm mb-1">오늘의 학습 목표</p>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2">
+                    {todayRemaining > 0 ? (
+                      <>다음 학습할 단어 <span className="text-yellow-300">{todayRemaining}개</span></>
+                    ) : (
+                      <>축하합니다! 오늘 목표 달성! 🎉</>
+                    )}
+                  </h2>
+                  {todayRemaining > 0 ? (
+                    <p className="text-pink-100">
+                      지금 시작하면 <strong className="text-white">{estimatedMinutes}분</strong>이면 끝나요
+                    </p>
+                  ) : (
+                    <p className="text-pink-100">
+                      오늘 학습을 완료했어요! 추가로 더 학습하시겠어요?
+                    </p>
+                  )}
+                </>
               )}
             </div>
-            <Link
-              href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
-              className="bg-white text-pink-600 px-8 py-4 rounded-xl font-bold text-center hover:bg-pink-50 transition shadow-lg whitespace-nowrap"
-            >
-              {todayRemaining > 0 ? '이어서 학습' : '추가 학습'}
-            </Link>
+            {isCompleted ? (
+              <div className="flex flex-col gap-2">
+                <Link
+                  href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&restart=true`}
+                  className="bg-white text-emerald-600 px-6 py-3 rounded-xl font-bold text-center hover:bg-emerald-50 transition shadow-lg whitespace-nowrap"
+                >
+                  처음부터 다시 학습
+                </Link>
+                {weakWordCount > 0 && (
+                  <Link
+                    href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&mode=weak`}
+                    className="bg-emerald-400/30 text-white px-6 py-3 rounded-xl font-bold text-center hover:bg-emerald-400/40 transition whitespace-nowrap"
+                  >
+                    잘 모르는 {weakWordCount}개만 학습
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <Link
+                href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
+                className="bg-white text-pink-600 px-8 py-4 rounded-xl font-bold text-center hover:bg-pink-50 transition shadow-lg whitespace-nowrap"
+              >
+                {todayRemaining > 0 ? '이어서 학습' : '추가 학습'}
+              </Link>
+            )}
           </div>
         </div>
 
@@ -263,12 +309,40 @@ export default function DashboardPage() {
               <span>오늘 목표: 20개</span>
             </div>
 
-            <Link
-              href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
-              className="block w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-xl font-bold text-center transition"
-            >
-              이어서 학습
-            </Link>
+            {isCompleted ? (
+              <div className="space-y-3">
+                {/* 완료 배지 */}
+                <div className="flex items-center justify-center gap-2 py-3 bg-emerald-50 rounded-xl">
+                  <span className="text-2xl">✅</span>
+                  <span className="text-lg font-semibold text-emerald-600">학습 완료!</span>
+                </div>
+
+                {/* 처음부터 다시 학습 */}
+                <Link
+                  href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&restart=true`}
+                  className="block w-full py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-700 font-bold text-center transition"
+                >
+                  처음부터 다시 학습
+                </Link>
+
+                {/* 잘 모르는 단어만 학습 */}
+                {weakWordCount > 0 && (
+                  <Link
+                    href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&mode=weak`}
+                    className="block w-full py-3 bg-amber-50 hover:bg-amber-100 rounded-xl text-amber-700 font-bold text-center transition"
+                  >
+                    잘 모르는 단어 {weakWordCount}개만 학습
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <Link
+                href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
+                className="block w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-xl font-bold text-center transition"
+              >
+                이어서 학습
+              </Link>
+            )}
           </div>
 
           {/* P0-4: 연속 학습일 + 캘린더 */}

@@ -8,7 +8,8 @@ import {
   getReviewHistory,
   getReviewQuiz,
   getMasteryDistribution,
-  getActivityHeatmap
+  getActivityHeatmap,
+  getWeakWordsCount
 } from '../controllers/progress.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 
@@ -188,6 +189,40 @@ router.get('/mastery', authenticateToken, getMasteryDistribution);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/activity', authenticateToken, getActivityHeatmap);
+
+/**
+ * @swagger
+ * /progress/weak-words/count:
+ *   get:
+ *     summary: 잘 모르는 단어 수 조회
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: examCategory
+ *         schema:
+ *           type: string
+ *         description: 시험 카테고리 (CSAT, TEPS 등)
+ *       - in: query
+ *         name: level
+ *         schema:
+ *           type: string
+ *         description: 레벨 (L1, L2, L3)
+ *     responses:
+ *       200:
+ *         description: 잘 모르는 단어 수
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 count:
+ *                   type: integer
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/weak-words/count', authenticateToken, getWeakWordsCount);
 
 /**
  * @swagger
