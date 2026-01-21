@@ -54,7 +54,7 @@ const features = [
 ];
 
 // 로그인 사용자용 학습 현황 섹션
-function UserStatsSection() {
+function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean }) {
   const [stats, setStats] = useState<{
     currentStreak: number;
     totalWordsLearned: number;
@@ -129,54 +129,56 @@ function UserStatsSection() {
   const levelDisplayName = lastStudy.level;
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* 오늘의 학습 현황 카드 - 3분할 구분선 스타일 */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <h3 className="text-base font-semibold text-slate-800">오늘의 학습 현황</h3>
-          {!loading && stats && stats.currentStreak > 0 && (
-            <span className="text-orange-500 font-medium text-sm">🔥 {stats.currentStreak}일 연속!</span>
+    <div className="flex flex-col gap-5 lg:gap-6">
+      {/* 오늘의 학습 현황 카드 - 모바일에서만 여기 표시 */}
+      {showStatsCard && (
+        <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <h3 className="text-base font-semibold text-slate-800">오늘의 학습 현황</h3>
+            {!loading && stats && stats.currentStreak > 0 && (
+              <span className="text-orange-500 font-medium text-sm">🔥 {stats.currentStreak}일 연속!</span>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-3 divide-x divide-slate-100">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="text-center py-5">
+                  <div className="h-8 w-12 bg-slate-200 rounded animate-pulse mx-auto mb-2" />
+                  <div className="h-4 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 divide-x divide-slate-100">
+              <div className="text-center py-5">
+                <p className="text-2xl font-bold text-blue-600">{stats?.totalWordsLearned || 0}</p>
+                <p className="text-xs text-slate-500 mt-1">학습한 단어</p>
+              </div>
+              <div className="text-center py-5">
+                <p className="text-2xl font-bold text-pink-500">{stats?.dueReviewCount || 0}</p>
+                <p className="text-xs text-slate-500 mt-1">복습 대기</p>
+              </div>
+              <div className="text-center py-5">
+                <p className="text-2xl font-bold text-emerald-500">{stats?.accuracy || 0}%</p>
+                <p className="text-xs text-slate-500 mt-1">정답률</p>
+              </div>
+            </div>
           )}
         </div>
+      )}
 
-        {loading ? (
-          <div className="grid grid-cols-3 divide-x divide-slate-100">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="text-center py-5">
-                <div className="h-8 w-12 bg-slate-200 rounded animate-pulse mx-auto mb-2" />
-                <div className="h-4 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 divide-x divide-slate-100">
-            <div className="text-center py-5">
-              <p className="text-2xl font-bold text-blue-600">{stats?.totalWordsLearned || 0}</p>
-              <p className="text-xs text-slate-500 mt-1">학습한 단어</p>
-            </div>
-            <div className="text-center py-5">
-              <p className="text-2xl font-bold text-pink-500">{stats?.dueReviewCount || 0}</p>
-              <p className="text-xs text-slate-500 mt-1">복습 대기</p>
-            </div>
-            <div className="text-center py-5">
-              <p className="text-2xl font-bold text-emerald-500">{stats?.accuracy || 0}%</p>
-              <p className="text-xs text-slate-500 mt-1">정답률</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 빠른 액션 - 풀 너비 파스텔 카드 스타일 */}
+      {/* 빠른 액션 - 더 크게, 간격 넓게 */}
       <Link
         href={`/learn?exam=${lastStudy.exam.toLowerCase()}&level=${lastStudy.level}`}
-        className="bg-emerald-50 hover:bg-emerald-100 rounded-2xl p-4 flex items-center gap-4 transition-all hover:shadow-md group"
+        className="bg-emerald-50 hover:bg-emerald-100 rounded-2xl p-5 lg:p-6 flex items-center gap-4 lg:gap-5 transition-all hover:shadow-md group"
       >
-        <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition">
+        <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition">
           <Icons.BookOpen />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-800">학습하기</p>
-          <p className="text-sm text-slate-500 truncate">{examDisplayName} {levelDisplayName} 이어서 학습</p>
+          <p className="font-semibold text-slate-800 lg:text-lg">학습하기</p>
+          <p className="text-sm lg:text-base text-slate-500 truncate">{examDisplayName} {levelDisplayName} 이어서 학습</p>
         </div>
         <div className="text-slate-400 group-hover:text-emerald-600 transition">
           <Icons.ChevronRight />
@@ -185,14 +187,14 @@ function UserStatsSection() {
 
       <Link
         href={`/review/quiz?exam=${lastStudy.exam}&level=${lastStudy.level}`}
-        className="bg-pink-50 hover:bg-pink-100 rounded-2xl p-4 flex items-center gap-4 transition-all hover:shadow-md group"
+        className="bg-pink-50 hover:bg-pink-100 rounded-2xl p-5 lg:p-6 flex items-center gap-4 lg:gap-5 transition-all hover:shadow-md group"
       >
-        <div className="w-12 h-12 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center group-hover:scale-105 transition">
+        <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center group-hover:scale-105 transition">
           <Icons.Brain />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-800">복습하기</p>
-          <p className="text-sm text-slate-500">{stats?.dueReviewCount || 0}개 복습 대기 중</p>
+          <p className="font-semibold text-slate-800 lg:text-lg">복습하기</p>
+          <p className="text-sm lg:text-base text-slate-500">{stats?.dueReviewCount || 0}개 복습 대기 중</p>
         </div>
         <div className="text-slate-400 group-hover:text-pink-600 transition">
           <Icons.ChevronRight />
@@ -201,33 +203,33 @@ function UserStatsSection() {
 
       <Link
         href="/stats"
-        className="bg-blue-50 hover:bg-blue-100 rounded-2xl p-4 flex items-center gap-4 transition-all hover:shadow-md group"
+        className="bg-blue-50 hover:bg-blue-100 rounded-2xl p-5 lg:p-6 flex items-center gap-4 lg:gap-5 transition-all hover:shadow-md group"
       >
-        <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-105 transition">
+        <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-105 transition">
           <Icons.ChartBar />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-800">학습 통계</p>
-          <p className="text-sm text-slate-500">나의 학습 현황 확인</p>
+          <p className="font-semibold text-slate-800 lg:text-lg">학습 통계</p>
+          <p className="text-sm lg:text-base text-slate-500">나의 학습 현황 확인</p>
         </div>
         <div className="text-slate-400 group-hover:text-blue-600 transition">
           <Icons.ChevronRight />
         </div>
       </Link>
 
-      {/* 오늘의 목표 - 밝은 앰버 파스텔 톤 */}
-      <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+      {/* 오늘의 목표 - 밝은 앰버 파스텔 톤, 더 크게 */}
+      <div className="bg-amber-50 rounded-2xl p-5 lg:p-6 border border-amber-100">
+        <div className="flex items-center justify-between mb-3 lg:mb-4">
+          <h3 className="font-semibold text-slate-800 lg:text-lg flex items-center gap-2">
             ⚡ 오늘의 목표
           </h3>
-          <span className={`text-sm font-medium ${progressPercent >= 100 ? 'text-emerald-600' : 'text-amber-600'}`}>
+          <span className={`text-sm lg:text-base font-medium ${progressPercent >= 100 ? 'text-emerald-600' : 'text-amber-600'}`}>
             {progressPercent}% 달성 {progressPercent >= 100 && '🎉'}
           </span>
         </div>
 
         {/* 진행바 */}
-        <div className="h-3 bg-amber-100 rounded-full overflow-hidden mb-3">
+        <div className="h-3 lg:h-4 bg-amber-100 rounded-full overflow-hidden mb-3 lg:mb-4">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               progressPercent >= 100
@@ -238,15 +240,15 @@ function UserStatsSection() {
           />
         </div>
 
-        <p className="text-slate-600 text-sm mb-4">
+        <p className="text-slate-600 text-sm lg:text-base mb-4">
           {progressPercent >= 100
             ? `목표 달성! 오늘 ${todayProgress}개 학습 완료!`
             : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`}
         </p>
 
         {/* 목표 버튼들 */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-500">하루 목표:</span>
+        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+          <span className="text-xs lg:text-sm text-slate-500">하루 목표:</span>
           {goalOptions.map((goal) => (
             <button
               key={goal}
@@ -258,7 +260,7 @@ function UserStatsSection() {
                   console.error('Failed to update daily goal:', error);
                 }
               }}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              className={`px-3 lg:px-4 py-1.5 lg:py-2 rounded-full text-xs lg:text-sm font-medium transition-all ${
                 dailyGoal === goal
                   ? 'bg-amber-500 text-white shadow-sm'
                   : 'bg-white text-slate-600 hover:bg-amber-100 border border-amber-200'
@@ -269,6 +271,84 @@ function UserStatsSection() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// 데스크톱 왼쪽 열용 학습 현황 카드 (별도 컴포넌트)
+function DesktopStatsCard() {
+  const [stats, setStats] = useState<{
+    currentStreak: number;
+    totalWordsLearned: number;
+    dueReviewCount: number;
+    accuracy: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const [progressData, reviewData] = await Promise.all([
+        progressAPI.getUserProgress(),
+        progressAPI.getDueReviews(),
+      ]);
+
+      setStats({
+        currentStreak: progressData.stats?.currentStreak || 0,
+        totalWordsLearned: progressData.stats?.totalWordsLearned || 0,
+        dueReviewCount: reviewData.count || 0,
+        accuracy: reviewData.accuracy || 0,
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+      setStats({
+        currentStreak: 0,
+        totalWordsLearned: 0,
+        dueReviewCount: 0,
+        accuracy: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <h3 className="text-base font-semibold text-slate-800">오늘의 학습 현황</h3>
+        {!loading && stats && stats.currentStreak > 0 && (
+          <span className="text-orange-500 font-medium text-sm">🔥 {stats.currentStreak}일 연속!</span>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="grid grid-cols-3 divide-x divide-slate-100">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="text-center py-6">
+              <div className="h-9 w-14 bg-slate-200 rounded animate-pulse mx-auto mb-2" />
+              <div className="h-4 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 divide-x divide-slate-100">
+          <div className="text-center py-6">
+            <p className="text-3xl font-bold text-blue-600">{stats?.totalWordsLearned || 0}</p>
+            <p className="text-sm text-slate-500 mt-1">학습한 단어</p>
+          </div>
+          <div className="text-center py-6">
+            <p className="text-3xl font-bold text-pink-500">{stats?.dueReviewCount || 0}</p>
+            <p className="text-sm text-slate-500 mt-1">복습 대기</p>
+          </div>
+          <div className="text-center py-6">
+            <p className="text-3xl font-bold text-emerald-500">{stats?.accuracy || 0}%</p>
+            <p className="text-sm text-slate-500 mt-1">정답률</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -290,7 +370,8 @@ export default function Hero() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-level-advanced/5 rounded-full blur-3xl" />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-12">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center justify-items-center lg:justify-items-start">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start justify-items-center lg:justify-items-start">
+          {/* 왼쪽 열: 히어로 텍스트 + 데스크톱에서 학습 현황 */}
           <div className={`space-y-8 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
               <Icons.Sparkles />
@@ -339,15 +420,19 @@ export default function Hero() {
                 ))}
               </div>
             )}
+
+            {/* 로그인 사용자: 데스크톱에서 왼쪽 아래에 학습 현황 카드 */}
+            {isLoggedIn && <DesktopStatsCard />}
           </div>
 
-          <div className={`flex flex-col gap-5 md:gap-6 w-full max-w-md mx-auto lg:mx-0 lg:max-w-none ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
+          {/* 오른쪽 열: 액션 카드들 */}
+          <div className={`flex flex-col gap-5 md:gap-6 w-full max-w-md mx-auto lg:mx-0 lg:max-w-lg ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
             {/* 섹션 안내 - 비로그인 시에만 표시 */}
             {!isLoggedIn && (
               <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
             )}
 
-            {/* 로그인 사용자: 학습 현황 카드 */}
+            {/* 로그인 사용자: 학습 현황 카드 (모바일) + 액션 버튼들 */}
             {isLoggedIn && (
               <UserStatsSection />
             )}
