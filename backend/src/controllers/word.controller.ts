@@ -4,6 +4,9 @@ import { ExamCategory } from '@prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
 
+// 현재 서비스 중인 시험 카테고리 (CSAT, TEPS만 - 나머지는 준비중)
+const ACTIVE_EXAM_CATEGORIES: ExamCategory[] = ['CSAT', 'TEPS'];
+
 export const getWords = async (
   req: Request,
   res: Response,
@@ -38,19 +41,22 @@ export const getWords = async (
     }
 
     // examCategory 또는 level이 지정된 경우 WordExamLevel 테이블을 통해 필터링
-    // CSAT_ARCHIVE는 관리자 전용이므로 공개 API에서 항상 제외
+    // 현재 서비스 중인 시험(CSAT, TEPS)만 표시, 준비중인 시험(SAT, TOEFL 등)은 제외
     // Note: Word.status로 이미 PUBLISHED 필터링하므로 examLevels에서는 status 제외
     if (examCategory || level) {
       const examLevelFilter: any = {};
 
       if (examCategory) {
-        // CSAT_ARCHIVE는 명시적으로 요청하지 않는 한 제외
-        if (examCategory === 'CSAT_ARCHIVE') {
-          // 관리자가 명시적으로 CSAT_ARCHIVE 요청 시에만 허용 (실제로는 여기 도달 안 함)
-          examLevelFilter.examCategory = 'CSAT_ARCHIVE';
+        // 서비스 중인 시험만 허용 (CSAT, TEPS)
+        if (ACTIVE_EXAM_CATEGORIES.includes(examCategory as ExamCategory)) {
+          examLevelFilter.examCategory = examCategory;
         } else {
+          // 준비중인 시험 요청 시 빈 결과 반환
           examLevelFilter.examCategory = examCategory;
         }
+      } else {
+        // examCategory가 지정되지 않았지만 level만 지정된 경우 - 서비스 중인 시험만
+        examLevelFilter.examCategory = { in: ACTIVE_EXAM_CATEGORIES };
       }
 
       if (level) {
@@ -61,10 +67,10 @@ export const getWords = async (
         some: examLevelFilter,
       };
     } else {
-      // examCategory/level 없이 전체 조회 시에도 CSAT_ARCHIVE 제외
+      // examCategory/level 없이 전체 조회 시 서비스 중인 시험(CSAT, TEPS)만 표시
       where.examLevels = {
-        none: {
-          examCategory: 'CSAT_ARCHIVE',
+        some: {
+          examCategory: { in: ACTIVE_EXAM_CATEGORIES },
         },
       };
     }
@@ -101,7 +107,12 @@ export const getWords = async (
       etymology: true,
       collocations: { take: 5 },
       visuals: { orderBy: { order: 'asc' } as const },
-      examLevels: true,
+      // 서비스 중인 시험(CSAT, TEPS)의 배지만 표시
+      examLevels: {
+        where: {
+          examCategory: { in: ACTIVE_EXAM_CATEGORIES },
+        },
+      },
     };
 
     // If shuffle is requested, fetch more and randomize
@@ -246,13 +257,21 @@ export const getRandomWords = async (
       where.difficulty = difficulty;
     }
 
-    // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
+    // WordExamLevel 테이블을 통해 필터링 (서비스 중인 시험만: CSAT, TEPS)
     // Note: Word.status로 이미 PUBLISHED 필터링하므로 examLevels에서는 status 제외
     if (examCategory || level) {
       const examLevelFilter: any = {};
 
       if (examCategory) {
-        examLevelFilter.examCategory = examCategory as ExamCategory;
+        // 서비스 중인 시험만 허용 (CSAT, TEPS)
+        if (ACTIVE_EXAM_CATEGORIES.includes(examCategory as ExamCategory)) {
+          examLevelFilter.examCategory = examCategory as ExamCategory;
+        } else {
+          examLevelFilter.examCategory = examCategory as ExamCategory;
+        }
+      } else {
+        // examCategory가 지정되지 않았지만 level만 지정된 경우 - 서비스 중인 시험만
+        examLevelFilter.examCategory = { in: ACTIVE_EXAM_CATEGORIES };
       }
 
       if (level) {
@@ -263,10 +282,10 @@ export const getRandomWords = async (
         some: examLevelFilter,
       };
     } else {
-      // examCategory/level 없이 조회 시에도 CSAT_ARCHIVE 제외
+      // examCategory/level 없이 조회 시 서비스 중인 시험(CSAT, TEPS)만
       where.examLevels = {
-        none: {
-          examCategory: 'CSAT_ARCHIVE',
+        some: {
+          examCategory: { in: ACTIVE_EXAM_CATEGORIES },
         },
       };
     }
@@ -299,11 +318,9 @@ export const getWordCountsByExam = async (
   next: NextFunction
 ) => {
   try {
-    // Get counts for each exam category (only PUBLISHED words)
-    const examCategories: ExamCategory[] = ['CSAT', 'SAT', 'TOEFL', 'TOEIC', 'TEPS'];
-
+    // Get counts for each exam category (only PUBLISHED words, 서비스 중인 시험만)
     const counts = await Promise.all(
-      examCategories.map(async (exam) => {
+      ACTIVE_EXAM_CATEGORIES.map(async (exam) => {
         const count = await prisma.word.count({
           where: {
             examCategory: exam,
@@ -565,13 +582,21 @@ export const getPublicWords = async (
       where.difficulty = difficulty;
     }
 
-    // WordExamLevel 테이블을 통해 필터링 (CSAT_ARCHIVE 제외)
+    // WordExamLevel 테이블을 통해 필터링 (서비스 중인 시험만: CSAT, TEPS)
     // Note: Word.status로 이미 PUBLISHED 필터링하므로 examLevels에서는 status 제외
     if (examCategory || level) {
       const examLevelFilter: any = {};
 
       if (examCategory) {
-        examLevelFilter.examCategory = examCategory as ExamCategory;
+        // 서비스 중인 시험만 허용 (CSAT, TEPS)
+        if (ACTIVE_EXAM_CATEGORIES.includes(examCategory as ExamCategory)) {
+          examLevelFilter.examCategory = examCategory as ExamCategory;
+        } else {
+          examLevelFilter.examCategory = examCategory as ExamCategory;
+        }
+      } else {
+        // examCategory가 지정되지 않았지만 level만 지정된 경우 - 서비스 중인 시험만
+        examLevelFilter.examCategory = { in: ACTIVE_EXAM_CATEGORIES };
       }
 
       if (level) {
@@ -582,10 +607,10 @@ export const getPublicWords = async (
         some: examLevelFilter,
       };
     } else {
-      // examCategory/level 없이 조회 시에도 CSAT_ARCHIVE 제외
+      // examCategory/level 없이 조회 시 서비스 중인 시험(CSAT, TEPS)만
       where.examLevels = {
-        none: {
-          examCategory: 'CSAT_ARCHIVE',
+        some: {
+          examCategory: { in: ACTIVE_EXAM_CATEGORIES },
         },
       };
     }
