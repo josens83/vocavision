@@ -7,7 +7,8 @@ import {
   endStudySession,
   getReviewHistory,
   getReviewQuiz,
-  getMasteryDistribution
+  getMasteryDistribution,
+  getActivityHeatmap
 } from '../controllers/progress.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 
@@ -139,6 +140,54 @@ router.get('/quiz', authenticateToken, getReviewQuiz);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/mastery', authenticateToken, getMasteryDistribution);
+
+/**
+ * @swagger
+ * /progress/activity:
+ *   get:
+ *     summary: 학습 활동 히트맵 데이터 조회
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: weeks
+ *         schema:
+ *           type: integer
+ *           default: 52
+ *         description: 조회할 주 수 (기본 52주 = 1년)
+ *     responses:
+ *       200:
+ *         description: 일별 학습 활동 데이터
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 heatmapData:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       count:
+ *                         type: integer
+ *                       level:
+ *                         type: integer
+ *                         enum: [0, 1, 2, 3, 4]
+ *                 stats:
+ *                   type: object
+ *                   properties:
+ *                     totalDays:
+ *                       type: integer
+ *                     totalWords:
+ *                       type: integer
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/activity', authenticateToken, getActivityHeatmap);
 
 /**
  * @swagger

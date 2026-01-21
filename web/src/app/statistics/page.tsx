@@ -79,6 +79,7 @@ function StatisticsPageContent() {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [progress, setProgress] = useState<Progress[]>([]);
   const [masteryDist, setMasteryDist] = useState<MasteryDistribution | null>(null);
+  const [heatmapData, setHeatmapData] = useState<Array<{ date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }>>([]);
   const [loading, setLoading] = useState(true);
   const [selectedExam, setSelectedExam] = useState<string>('CSAT');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
@@ -106,14 +107,18 @@ function StatisticsPageContent() {
     try {
       const token = localStorage.getItem('authToken');
 
-      const [progressResponse] = await Promise.all([
+      const [progressResponse, activityResponse] = await Promise.all([
         axios.get(`${API_URL}/progress`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${API_URL}/progress/activity`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
       setStats(progressResponse.data.stats);
       setProgress(progressResponse.data.progress || []);
+      setHeatmapData(activityResponse.data.heatmapData || []);
     } catch (error) {
       console.error('Failed to load statistics:', error);
     } finally {
@@ -436,6 +441,7 @@ function StatisticsPageContent() {
         {/* NEW: Learning Heatmap - Phase 2-2 */}
         <div className="mb-8">
           <LearningHeatmap
+            data={heatmapData.length > 0 ? heatmapData : undefined}
             currentStreakOverride={stats?.currentStreak || 0}
             longestStreakOverride={stats?.longestStreak || 0}
           />
