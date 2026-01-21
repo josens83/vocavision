@@ -367,12 +367,12 @@ function WordsPageContent() {
   );
 }
 
-// Exam display names
+// 서비스 중인 시험만 표시 (CSAT, TEPS - 나머지는 준비중)
+const ACTIVE_EXAM_CATEGORIES = ['CSAT', 'TEPS'];
+
+// Exam display names (서비스 중인 시험만)
 const examDisplayNames: Record<string, string> = {
   CSAT: '수능',
-  SAT: 'SAT',
-  TOEFL: 'TOEFL',
-  TOEIC: 'TOEIC',
   TEPS: 'TEPS',
 };
 
@@ -383,12 +383,9 @@ const levelDisplayNames: Record<string, string> = {
   L3: '고급',
 };
 
-// Exam colors for badges
+// Exam colors for badges (서비스 중인 시험만)
 const examBadgeColors: Record<string, string> = {
   CSAT: 'bg-blue-100 text-blue-600',
-  SAT: 'bg-emerald-100 text-emerald-600',
-  TOEFL: 'bg-orange-100 text-orange-600',
-  TOEIC: 'bg-green-100 text-green-600',
   TEPS: 'bg-purple-100 text-purple-600',
 };
 
@@ -401,9 +398,11 @@ function WordCard({
   difficultyColors: any;
   difficultyLabels: any;
 }) {
-  const examName = word.examCategory ? examDisplayNames[word.examCategory] || word.examCategory : null;
+  // 서비스 중인 시험(CSAT, TEPS)만 배지로 표시
+  const isActiveExam = word.examCategory && ACTIVE_EXAM_CATEGORIES.includes(word.examCategory);
+  const examName = isActiveExam ? examDisplayNames[word.examCategory!] : null;
   const levelName = word.level ? levelDisplayNames[word.level] || word.level : null;
-  const badgeColor = word.examCategory ? examBadgeColors[word.examCategory] || 'bg-gray-100 text-gray-600' : '';
+  const badgeColor = isActiveExam ? examBadgeColors[word.examCategory!] : '';
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition cursor-pointer">
@@ -414,9 +413,9 @@ function WordCard({
             <p className="text-sm text-gray-500">{word.pronunciation}</p>
           )}
         </div>
-        {/* Exam + Level Badge */}
+        {/* Exam + Level Badge - 서비스 중인 시험(CSAT, TEPS)만 표시 */}
         <div className="flex flex-col gap-1 items-end">
-          {examName && levelName ? (
+          {isActiveExam && examName && levelName ? (
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeColor}`}>
               {examName} {levelName}
             </span>
