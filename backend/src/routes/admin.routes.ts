@@ -60,7 +60,7 @@ const router = Router();
  * (Less restrictive than adminAuth - for image generation management)
  */
 const authOrSecretKey = async (req: Request, res: Response, next: NextFunction) => {
-  const secretKey = (req.query.key as string) || req.headers['x-admin-key'];
+  const secretKey = (req.query.key as string) || (req.query.adminKey as string) || req.headers['x-admin-key'];
 
   // Check for internal secret key (query param or header)
   if (secretKey && secretKey === process.env.INTERNAL_SECRET_KEY) {
