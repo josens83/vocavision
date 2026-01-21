@@ -49,9 +49,11 @@ export const getUserProgress = async (
   try {
     const userId = req.userId!;
 
-    // 오늘 시작 시간 (00:00:00)
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // KST 기준 오늘 시작 시간 (00:00:00)
+    const now = new Date();
+    const todayStartKST = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    todayStartKST.setUTCHours(0, 0, 0, 0);
+    const todayStartUTC = new Date(todayStartKST.getTime() - 9 * 60 * 60 * 1000);
 
     const [progress, stats, todayLearned] = await Promise.all([
       // 기존 progress 조회 (examLevels 포함)
@@ -90,17 +92,13 @@ export const getUserProgress = async (
         }
       }),
 
-      // 오늘 학습한 고유 단어 수 카운트
-      prisma.learningRecord.findMany({
+      // 오늘 학습/복습한 고유 단어 수 (UserProgress.updatedAt 기준, KST)
+      prisma.userProgress.count({
         where: {
           userId,
-          createdAt: {
-            gte: todayStart
+          updatedAt: {
+            gte: todayStartUTC
           }
-        },
-        distinct: ['wordId'],
-        select: {
-          wordId: true
         }
       })
     ]);
@@ -109,7 +107,7 @@ export const getUserProgress = async (
       progress,
       stats: {
         ...stats,
-        todayWordsLearned: todayLearned.length
+        todayWordsLearned: todayLearned
       }
     });
   } catch (error) {

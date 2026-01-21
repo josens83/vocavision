@@ -19,20 +19,21 @@ function getAccessibleLevels(user: any) {
   const plan = user.subscriptionPlan;
 
   // 무료 회원: CSAT L1만
-  if (status === 'FREE') {
+  if (status === 'FREE' || !status) {
     return { CSAT: ['L1'], TEPS: [] };
   }
 
-  // 유료 회원 (ACTIVE)
-  if (status === 'ACTIVE') {
-    // 베이직 (MONTHLY): CSAT 전체
-    if (plan === 'MONTHLY') {
-      return { CSAT: ['L1', 'L2', 'L3'], TEPS: [] };
-    }
-    // 프리미엄 (YEARLY/FAMILY): CSAT + TEPS 전체
-    if (plan === 'YEARLY' || plan === 'FAMILY') {
-      return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'] };
-    }
+  // 프리미엄 회원 체크 (YEARLY, FAMILY, PREMIUM 플랜 또는 PREMIUM 상태)
+  const isPremium = status === 'PREMIUM' ||
+    plan === 'YEARLY' || plan === 'FAMILY' || plan === 'PREMIUM';
+
+  if (isPremium) {
+    return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'] };
+  }
+
+  // 베이직 회원 (ACTIVE 상태 + MONTHLY 플랜, 또는 그 외 유료)
+  if (status === 'ACTIVE' || status === 'BASIC') {
+    return { CSAT: ['L1', 'L2', 'L3'], TEPS: [] };
   }
 
   // 기본값: CSAT L1만 (CANCELLED, EXPIRED 등)
@@ -370,17 +371,18 @@ function WordsPageContent() {
 // 서비스 중인 시험만 표시 (CSAT, TEPS - 나머지는 준비중)
 const ACTIVE_EXAM_CATEGORIES = ['CSAT', 'TEPS'];
 
-// Exam display names (서비스 중인 시험만)
-const examDisplayNames: Record<string, string> = {
-  CSAT: '수능',
-  TEPS: 'TEPS',
-};
-
-// Level display names
-const levelDisplayNames: Record<string, string> = {
-  L1: '초급',
-  L2: '중급',
-  L3: '고급',
+// Exam + Level 배지 라벨 (예: "수능 L1 (초급)")
+const examLevelLabels: Record<string, Record<string, string>> = {
+  CSAT: {
+    L1: '수능 L1 (초급)',
+    L2: '수능 L2 (중급)',
+    L3: '수능 L3 (고급)',
+  },
+  TEPS: {
+    L1: 'TEPS Lv.1',
+    L2: 'TEPS Lv.2',
+    L3: 'TEPS Lv.3',
+  },
 };
 
 // Exam colors for badges (서비스 중인 시험만)
@@ -400,8 +402,9 @@ function WordCard({
 }) {
   // 서비스 중인 시험(CSAT, TEPS)만 배지로 표시
   const isActiveExam = word.examCategory && ACTIVE_EXAM_CATEGORIES.includes(word.examCategory);
-  const examName = isActiveExam ? examDisplayNames[word.examCategory!] : null;
-  const levelName = word.level ? levelDisplayNames[word.level] || word.level : null;
+  const badgeLabel = isActiveExam && word.level
+    ? examLevelLabels[word.examCategory!]?.[word.level] || `${word.examCategory} ${word.level}`
+    : null;
   const badgeColor = isActiveExam ? examBadgeColors[word.examCategory!] : '';
 
   return (
@@ -415,9 +418,9 @@ function WordCard({
         </div>
         {/* Exam + Level Badge - 서비스 중인 시험(CSAT, TEPS)만 표시 */}
         <div className="flex flex-col gap-1 items-end">
-          {isActiveExam && examName && levelName ? (
+          {isActiveExam && badgeLabel ? (
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badgeColor}`}>
-              {examName} {levelName}
+              {badgeLabel}
             </span>
           ) : (
             <span
