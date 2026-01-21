@@ -3214,3 +3214,176 @@ async function runCloudinaryMigration(batchSize: number, startOffset: number) {
     );
   }
 }
+
+// ============================================
+// Concept Image Regeneration by Word Names
+// ============================================
+
+/**
+ * Regenerate concept images for specific words by name
+ * GET /admin/regenerate-concept?words=principle,preliminary,proportion
+ */
+export const regenerateConceptByWords = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { words } = req.query;
+
+    if (!words || typeof words !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'words query parameter is required (comma-separated word names)',
+      });
+    }
+
+    const wordNames = words.split(',').map((w) => w.trim().toLowerCase()).filter(Boolean);
+
+    if (wordNames.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No valid word names provided',
+      });
+    }
+
+    if (wordNames.length > 20) {
+      return res.status(400).json({
+        success: false,
+        error: 'Maximum 20 words per request',
+      });
+    }
+
+    // Find words by name (case-insensitive)
+    const foundWords = await prisma.word.findMany({
+      where: {
+        word: {
+          in: wordNames,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        id: true,
+        word: true,
+        definition: true,
+        definitionKo: true,
+      },
+    });
+
+    if (foundWords.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No words found matching the provided names',
+        requested: wordNames,
+      });
+    }
+
+    // Create a job ID for tracking
+    const jobId = `concept-regen-${Date.now()}`;
+
+    // Initialize job tracking
+    imageGenJobs.set(jobId, {
+      id: jobId,
+      status: 'processing',
+      totalWords: foundWords.length,
+      processedWords: 0,
+      successCount: 0,
+      errorCount: 0,
+      startedAt: new Date().toISOString(),
+      errors: [],
+    });
+
+    // Start processing in background
+    processConceptRegeneration(jobId, foundWords);
+
+    const notFound = wordNames.filter(
+      (name) => !foundWords.some((w) => w.word.toLowerCase() === name)
+    );
+
+    res.json({
+      success: true,
+      data: {
+        jobId,
+        message: `Started regenerating concept images for ${foundWords.length} words`,
+        words: foundWords.map((w) => w.word),
+        notFound: notFound.length > 0 ? notFound : undefined,
+      },
+    });
+  } catch (error) {
+    logger.error('[Admin/RegenerateConceptByWords] Error:', error);
+    next(error);
+  }
+};
+
+// Helper function for concept image regeneration
+async function processConceptRegeneration(
+  jobId: string,
+  words: Array<{ id: string; word: string; definition: string | null; definitionKo: string | null }>
+): Promise<void> {
+  const job = imageGenJobs.get(jobId);
+  if (!job) return;
+
+  for (const word of words) {
+    if (job.status !== 'processing') break;
+
+    job.currentWord = word.word;
+
+    try {
+      const prompt = generateConceptPrompt(word.definition || '', word.word);
+      const captionKo = word.definitionKo || word.definition || '';
+      const captionEn = word.definition || '';
+
+      logger.info(`[Admin/ConceptRegen] Generating concept image for "${word.word}"...`);
+
+      const result = await generateAndUploadImage(prompt, 'CONCEPT' as VisualType, word.word);
+
+      if (result) {
+        await prisma.wordVisual.upsert({
+          where: {
+            wordId_type: {
+              wordId: word.id,
+              type: 'CONCEPT',
+            },
+          },
+          update: {
+            imageUrl: result.imageUrl,
+            promptEn: prompt,
+            captionKo,
+            captionEn,
+          },
+          create: {
+            wordId: word.id,
+            type: 'CONCEPT',
+            imageUrl: result.imageUrl,
+            promptEn: prompt,
+            captionKo,
+            captionEn,
+          },
+        });
+        job.successCount++;
+        logger.info(`[Admin/ConceptRegen] ✅ "${word.word}" concept image generated`);
+      } else {
+        job.errors.push({ word: word.word, error: 'Image generation returned null' });
+        job.errorCount++;
+        logger.warn(`[Admin/ConceptRegen] ⚠️ "${word.word}" returned null result`);
+      }
+
+      // Delay between images (2 seconds to respect API rate limits)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      job.errors.push({ word: word.word, error: errorMsg });
+      job.errorCount++;
+      logger.error(`[Admin/ConceptRegen] ❌ Error for "${word.word}":`, error);
+
+      // Longer delay after error (5 seconds)
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+
+    job.processedWords++;
+  }
+
+  job.status = 'completed';
+  job.currentWord = undefined;
+  logger.info(`[Admin/ConceptRegen] Job ${jobId} completed. Success: ${job.successCount}, Errors: ${job.errorCount}`);
+}
