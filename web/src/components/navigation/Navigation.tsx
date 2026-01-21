@@ -23,6 +23,8 @@ export interface NavSubItem {
   count?: number;
   badge?: string;
   description?: string;
+  icon?: string;
+  isDivider?: boolean;
   disabled?: boolean;
   /** 로그인 필요 여부 */
   requiresAuth?: boolean;
@@ -94,6 +96,8 @@ export const authNavigationItems: NavItem[] = [
       { label: "대시보드", href: "/dashboard", description: "오늘의 학습 현황" },
       { label: "복습 노트", href: "/review", description: "틀린 단어 모아보기" },
       { label: "학습 통계", href: "/stats", description: "상세 학습 분석" },
+      { label: "divider", href: "#", isDivider: true },
+      { label: "MY", href: "/my", description: "계정 설정", icon: "👤" },
     ],
   },
   {
@@ -126,17 +130,22 @@ function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave }: NavDropdownPr
       </button>
 
       <div className={`dropdown py-2 ${isOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2"}`}>
-        {item.children?.map((child) => (
-          <Link key={child.href} href={child.href} className="dropdown-item group">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">{child.label}</span>
-                {child.badge && <span className="px-1.5 py-0.5 text-xs font-bold bg-study-flashcard text-slate-900 rounded">{child.badge}</span>}
+        {item.children?.map((child, index) => (
+          child.isDivider ? (
+            <div key={`divider-${index}`} className="border-t border-slate-200 my-2" />
+          ) : (
+            <Link key={child.href} href={child.href} className="dropdown-item group">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  {child.icon && <span>{child.icon}</span>}
+                  <span className="font-medium">{child.label}</span>
+                  {child.badge && <span className="px-1.5 py-0.5 text-xs font-bold bg-study-flashcard text-slate-900 rounded">{child.badge}</span>}
+                </div>
+                {child.description && <p className="text-xs text-slate-400 mt-0.5">{child.description}</p>}
               </div>
-              {child.description && <p className="text-xs text-slate-400 mt-0.5">{child.description}</p>}
-            </div>
-            {child.count !== undefined && <span className="text-sm text-slate-400 group-hover:text-slate-600">{child.count}</span>}
-          </Link>
+              {child.count !== undefined && <span className="text-sm text-slate-400 group-hover:text-slate-600">{child.count}</span>}
+            </Link>
+          )
         ))}
       </div>
     </div>
@@ -374,14 +383,19 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired }:
                     </button>
                     <div className={`overflow-hidden transition-all duration-300 ${expandedItem === item.label ? "max-h-96" : "max-h-0"}`}>
                       <div className="pl-12 py-2 space-y-1">
-                        {item.children.map((child) => (
-                          <Link key={child.href} href={child.href} onClick={onClose} className="flex items-center justify-between p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50">
-                            <div>
-                              <span className="text-sm font-medium">{child.label}</span>
-                              {child.badge && <span className="ml-2 px-1.5 py-0.5 text-xs font-bold bg-study-flashcard text-slate-900 rounded">{child.badge}</span>}
-                            </div>
-                            {child.count !== undefined && <span className="text-xs text-slate-400">{child.count}</span>}
-                          </Link>
+                        {item.children.map((child, index) => (
+                          child.isDivider ? (
+                            <div key={`divider-${index}`} className="border-t border-slate-200 my-2" />
+                          ) : (
+                            <Link key={child.href} href={child.href} onClick={onClose} className="flex items-center justify-between p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50">
+                              <div className="flex items-center gap-2">
+                                {child.icon && <span>{child.icon}</span>}
+                                <span className="text-sm font-medium">{child.label}</span>
+                                {child.badge && <span className="ml-2 px-1.5 py-0.5 text-xs font-bold bg-study-flashcard text-slate-900 rounded">{child.badge}</span>}
+                              </div>
+                              {child.count !== undefined && <span className="text-xs text-slate-400">{child.count}</span>}
+                            </Link>
+                          )
                         ))}
                       </div>
                     </div>

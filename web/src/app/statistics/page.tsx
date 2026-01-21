@@ -333,14 +333,14 @@ function StatisticsPageContent() {
 
         <div className="grid md:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
           {/* Mastery Level Distribution */}
-          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm overflow-hidden">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl font-bold">숙련도 분포</h2>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-shrink-0">
                 <select
                   value={selectedExam}
                   onChange={(e) => setSelectedExam(e.target.value)}
-                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
                 >
                   <option value="CSAT">수능</option>
                   <option value="TEPS">TEPS</option>
@@ -348,16 +348,16 @@ function StatisticsPageContent() {
                 <select
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
                 >
                   <option value="all">전체</option>
-                  <option value="L1">L1 (초급)</option>
-                  <option value="L2">L2 (중급)</option>
-                  <option value="L3">L3 (고급)</option>
+                  <option value="L1">L1</option>
+                  <option value="L2">L2</option>
+                  <option value="L3">L3</option>
                 </select>
               </div>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 min-w-0">
               {Object.entries(masteryDistData).map(([level, count]) => {
                 const total = Object.values(masteryDistData).reduce((a, b) => a + b, 0);
                 const percentage = total > 0 ? (count / total) * 100 : 0;
@@ -365,20 +365,20 @@ function StatisticsPageContent() {
                 const safeCount = isNaN(count) ? 0 : count;
 
                 return (
-                  <div key={level}>
-                    <div className="flex justify-between mb-2">
-                      <span className="font-medium text-sm sm:text-base">
+                  <div key={level} className="min-w-0">
+                    <div className="flex justify-between items-center gap-2 mb-2">
+                      <span className="font-medium text-xs sm:text-sm truncate min-w-0">
                         {masteryLabels[level as keyof typeof masteryLabels]}
                       </span>
-                      <span className="text-gray-600 text-sm">
+                      <span className="text-gray-600 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
                         {safeCount}개 ({safePercentage}%)
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
                       <div
                         className={`${
                           masteryColors[level as keyof typeof masteryColors]
-                        } h-3 rounded-full transition-all duration-500`}
+                        } h-2 sm:h-3 rounded-full transition-all duration-500`}
                         style={{ width: `${safePercentage}%` }}
                       />
                     </div>
@@ -389,19 +389,19 @@ function StatisticsPageContent() {
           </div>
 
           {/* Level Distribution */}
-          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-bold">레벨별 학습 현황</h2>
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm overflow-hidden">
+            <div className="flex justify-between items-center gap-2 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-bold truncate">레벨별 학습 현황</h2>
               <select
                 value={selectedExam}
                 onChange={(e) => setSelectedExam(e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className="text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500 flex-shrink-0"
               >
                 <option value="CSAT">수능</option>
                 <option value="TEPS">TEPS</option>
               </select>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 min-w-0">
               {Object.entries(levelDist).map(([level, count]) => {
                 const total = Object.values(levelDist).reduce((a, b) => a + b, 0);
                 const percentage = total > 0 ? (count / total) * 100 : 0;
@@ -409,20 +409,20 @@ function StatisticsPageContent() {
                 const safeCount = isNaN(count) ? 0 : count;
 
                 return (
-                  <div key={level}>
-                    <div className="flex justify-between mb-2">
-                      <span className="font-medium">
+                  <div key={level} className="min-w-0">
+                    <div className="flex justify-between items-center gap-2 mb-2">
+                      <span className="font-medium text-xs sm:text-sm">
                         {levelLabels[level as keyof typeof levelLabels]}
                       </span>
-                      <span className="text-gray-600">
+                      <span className="text-gray-600 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
                         {safeCount}개 ({safePercentage}%)
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
                       <div
                         className={`${
                           levelColors[level as keyof typeof levelColors]
-                        } h-3 rounded-full transition-all duration-500`}
+                        } h-2 sm:h-3 rounded-full transition-all duration-500`}
                         style={{ width: `${safePercentage}%` }}
                       />
                     </div>
