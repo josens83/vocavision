@@ -460,3 +460,134 @@ JSON만 출력하세요:`;
     return defaultResult;
   }
 }
+
+// ============================================
+// Concept Image Scene Generator
+// ============================================
+
+export interface ConceptSceneResult {
+  scene: string;
+  prompt: string;
+  captionKo: string;
+  captionEn: string;
+}
+
+/**
+ * Generate a concrete visual scene for CONCEPT image
+ * Transforms abstract definitions into specific, memorable visual scenarios
+ */
+export async function generateConceptScene(
+  word: string,
+  definitionEn: string,
+  definitionKo?: string
+): Promise<ConceptSceneResult> {
+  const defaultResult: ConceptSceneResult = {
+    scene: definitionEn || word,
+    prompt: `Cartoon style illustration. A simple scene showing the meaning of "${word}" (${definitionEn || word}). Soft pastel colors. Clean composition. White background. No text. No words. No letters. No numbers. No symbols. Square composition.`,
+    captionKo: definitionKo || word,
+    captionEn: definitionEn || word,
+  };
+
+  const anthropic = getAnthropicClient();
+
+  if (!anthropic || !definitionEn) {
+    return defaultResult;
+  }
+
+  try {
+    const prompt = `You are an expert at creating visual scenes for English vocabulary learning images.
+
+## Word Information
+- Word: ${word}
+- Meaning: ${definitionEn}
+${definitionKo ? `- Korean meaning: ${definitionKo}` : ''}
+
+## Task
+Create a **specific, concrete visual scene** that clearly demonstrates the meaning of this word.
+
+## Rules
+1. Describe a specific situation with characters, actions, and setting
+2. The scene must IMMEDIATELY convey the word's meaning without any text
+3. Include expressive body language and facial expressions
+4. Make it memorable and slightly humorous if appropriate
+5. Avoid abstract concepts - everything must be visually concrete
+6. Do NOT include any text, letters, or numbers in the scene
+
+## Good Examples
+
+### Example 1: abrupt
+Meaning: happening suddenly without warning
+Scene: A person walking calmly on a sidewalk. Suddenly, the ground in front of them ends at a sharp cliff edge with no warning sign. The person stops abruptly with arms raised, eyes wide in surprise, one foot hovering over the edge.
+
+### Example 2: abundant
+Meaning: existing in large quantities, plentiful
+Scene: A farmer standing in front of an overflowing harvest. Apples, tomatoes, and vegetables are piled so high they're tumbling out of baskets and covering the ground. The farmer looks overwhelmed but happy.
+
+### Example 3: meticulous
+Meaning: showing great attention to detail
+Scene: A chef carefully placing a single tiny herb leaf on a dish with tweezers, eyes squinting in concentration. Magnifying glasses, rulers, and precision tools scattered on the counter. Other chefs watching nervously.
+
+## Output Format (JSON only)
+{
+  "scene": "Detailed scene description in English (60-100 words). Include: specific character(s), their exact action, facial expression, body language, setting details, and any props.",
+  "captionKo": "Korean caption summarizing the meaning (10-20 characters)",
+  "captionEn": "English caption (5-10 words)"
+}
+
+Output JSON only:`;
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 500,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const content = message.content[0];
+    if (content.type === 'text') {
+      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+
+        // Format the final prompt for Stability AI
+        const finalPrompt = `Cartoon style illustration.
+
+${parsed.scene}
+
+Soft pastel colors with gentle lighting.
+Clean and simple composition.
+Plain white background.
+
+No text.
+No words.
+No letters.
+No numbers.
+No symbols.
+No labels.
+No captions.
+No titles.
+No icons.
+No speech bubbles.
+No signs.
+No watermarks.
+
+Square composition.`;
+
+        logger.info('[SmartCaption] Generated concept scene for', word, ':', {
+          captionKo: parsed.captionKo,
+          sceneLength: parsed.scene?.length,
+        });
+
+        return {
+          scene: parsed.scene,
+          prompt: finalPrompt,
+          captionKo: parsed.captionKo || defaultResult.captionKo,
+          captionEn: parsed.captionEn || defaultResult.captionEn,
+        };
+      }
+    }
+    return defaultResult;
+  } catch (error) {
+    logger.error('[SmartCaption] generateConceptScene error:', error);
+    return defaultResult;
+  }
+}
