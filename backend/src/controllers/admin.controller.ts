@@ -3387,3 +3387,215 @@ async function processConceptRegeneration(
   job.currentWord = undefined;
   logger.info(`[Admin/ConceptRegen] Job ${jobId} completed. Success: ${job.successCount}, Errors: ${job.errorCount}`);
 }
+
+// ============================================
+// Bulk Concept Image Generation (by exam/level)
+// ============================================
+
+/**
+ * Bulk generate concept images for words in a specific exam/level
+ * GET /api/admin/generate-concept-bulk
+ * Query params: exam, level, start (default 0), limit (default 350), delayMs (default 2000)
+ */
+export const generateConceptBulk = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {
+      exam,
+      level,
+      start = '0',
+      limit = '350',
+      delayMs = '2000',
+    } = req.query;
+
+    if (!exam || !level) {
+      return res.status(400).json({
+        success: false,
+        error: 'exam and level query parameters are required',
+      });
+    }
+
+    const startNum = parseInt(start as string);
+    const limitNum = parseInt(limit as string);
+    const delayMsNum = parseInt(delayMs as string);
+
+    // Validate params
+    if (isNaN(startNum) || startNum < 0) {
+      return res.status(400).json({ success: false, error: 'Invalid start parameter' });
+    }
+    if (isNaN(limitNum) || limitNum < 1 || limitNum > 500) {
+      return res.status(400).json({ success: false, error: 'Invalid limit parameter (1-500)' });
+    }
+    if (isNaN(delayMsNum) || delayMsNum < 500) {
+      return res.status(400).json({ success: false, error: 'Invalid delayMs parameter (min 500)' });
+    }
+
+    // Create a job ID for tracking
+    const jobId = `bulk-concept-${exam}-${level}-${Date.now()}`;
+
+    // Log immediately and respond (don't wait for processing)
+    console.log(`[BULK GEN] ========================================`);
+    console.log(`[BULK GEN] Starting ${exam} ${level} concept image generation`);
+    console.log(`[BULK GEN] Range: ${startNum} to ${startNum + limitNum - 1}`);
+    console.log(`[BULK GEN] Job ID: ${jobId}`);
+    console.log(`[BULK GEN] ========================================`);
+
+    // Respond immediately
+    res.json({
+      success: true,
+      data: {
+        jobId,
+        message: `Concept image generation started for ${exam} ${level}`,
+        params: {
+          exam,
+          level,
+          start: startNum,
+          limit: limitNum,
+          delayMs: delayMsNum,
+        },
+        estimatedTime: `${Math.ceil((limitNum * delayMsNum) / 1000 / 60)} minutes (excluding image generation time)`,
+        checkProgress: `Check Railway logs for progress`,
+      },
+    });
+
+    // Start background processing (after response is sent)
+    setImmediate(() => {
+      processBulkConceptGeneration(
+        jobId,
+        exam as string,
+        level as string,
+        startNum,
+        limitNum,
+        delayMsNum
+      );
+    });
+  } catch (error) {
+    logger.error('[Admin/GenerateConceptBulk] Error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Background processor for bulk concept image generation
+ */
+async function processBulkConceptGeneration(
+  jobId: string,
+  exam: string,
+  level: string,
+  start: number,
+  limit: number,
+  delayMs: number
+): Promise<void> {
+  const startTime = Date.now();
+  let processed = 0;
+  let success = 0;
+  let failed = 0;
+  const failedWords: string[] = [];
+
+  try {
+    // 1. Get words for the exam/level
+    const words = await prisma.word.findMany({
+      where: {
+        isActive: true,
+        examLevels: {
+          some: {
+            examCategory: exam as any,
+            level: level,
+          },
+        },
+      },
+      select: {
+        id: true,
+        word: true,
+        definition: true,
+        definitionKo: true,
+      },
+      orderBy: { word: 'asc' },
+      skip: start,
+      take: limit,
+    });
+
+    console.log(`[BULK GEN] Found ${words.length} words to process`);
+
+    if (words.length === 0) {
+      console.log(`[BULK GEN] No words to process. Exiting.`);
+      return;
+    }
+
+    // 2. Process each word sequentially
+    for (const word of words) {
+      try {
+        const prompt = generateConceptPrompt(word.definition || '', word.word);
+        const captionKo = word.definitionKo || word.definition || '';
+        const captionEn = word.definition || '';
+
+        const result = await generateAndUploadImage(prompt, 'CONCEPT' as VisualType, word.word);
+
+        if (result) {
+          await prisma.wordVisual.upsert({
+            where: {
+              wordId_type: {
+                wordId: word.id,
+                type: 'CONCEPT',
+              },
+            },
+            update: {
+              imageUrl: result.imageUrl,
+              promptEn: prompt,
+              captionKo,
+              captionEn,
+            },
+            create: {
+              wordId: word.id,
+              type: 'CONCEPT',
+              imageUrl: result.imageUrl,
+              promptEn: prompt,
+              captionKo,
+              captionEn,
+            },
+          });
+          success++;
+
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+          const remaining = words.length - processed - 1;
+          const eta = remaining > 0 ? Math.floor((elapsed / (processed + 1)) * remaining) : 0;
+
+          console.log(`[BULK GEN] ✅ ${word.word} (${processed + 1}/${words.length}) - ETA: ${Math.floor(eta / 60)}m ${eta % 60}s`);
+        } else {
+          failed++;
+          failedWords.push(word.word);
+          console.log(`[BULK GEN] ⚠️ ${word.word} returned null result`);
+        }
+      } catch (error: any) {
+        failed++;
+        failedWords.push(word.word);
+        console.error(`[BULK GEN] ❌ ${word.word}: ${error.message}`);
+
+        // Longer delay after error
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+
+      processed++;
+
+      // Delay between images
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+
+    // 3. Log completion
+    const totalTime = Math.floor((Date.now() - startTime) / 1000);
+    console.log(`[BULK GEN] ========================================`);
+    console.log(`[BULK GEN] ✅ Complete!`);
+    console.log(`[BULK GEN] Job ID: ${jobId}`);
+    console.log(`[BULK GEN] Success: ${success}, Failed: ${failed}`);
+    console.log(`[BULK GEN] Time: ${Math.floor(totalTime / 60)}m ${totalTime % 60}s`);
+    if (failedWords.length > 0) {
+      console.log(`[BULK GEN] Failed words: ${failedWords.join(', ')}`);
+    }
+    console.log(`[BULK GEN] ========================================`);
+  } catch (error) {
+    console.error(`[BULK GEN] ❌ Fatal error:`, error);
+  }
+}

@@ -45,6 +45,8 @@ import {
   batchRegenerateImages,
   // Concept Image Regeneration by word names
   regenerateConceptByWords,
+  // Bulk Concept Image Generation by exam/level
+  generateConceptBulk,
   // Cloudinary → Supabase Migration
   getCloudinaryMigrationStatus,
   startCloudinaryMigration,
@@ -101,6 +103,51 @@ router.post('/image-generation/stop/:jobId', authOrSecretKey, stopImageGeneratio
  *         description: Started regenerating concept images
  */
 router.get('/regenerate-concept', authOrSecretKey, regenerateConceptByWords);
+
+/**
+ * @swagger
+ * /admin/generate-concept-bulk:
+ *   get:
+ *     summary: Bulk generate concept images for exam/level words
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: exam
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Exam category (e.g., "CSAT", "TEPS")
+ *       - in: query
+ *         name: level
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Level (e.g., "L1", "L2", "L3")
+ *       - in: query
+ *         name: start
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Start offset for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 350
+ *         description: Number of words to process
+ *       - in: query
+ *         name: delayMs
+ *         schema:
+ *           type: integer
+ *           default: 2000
+ *         description: Delay between image generations (ms)
+ *     responses:
+ *       200:
+ *         description: Started bulk concept image generation
+ */
+router.get('/generate-concept-bulk', authOrSecretKey, generateConceptBulk);
 
 /**
  * Admin authentication middleware
