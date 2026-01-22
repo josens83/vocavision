@@ -149,12 +149,22 @@ export default function MyPage() {
                 <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#FFF0F5] transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="text-xl">✨</span>
-                    <span className="text-[15px] font-medium text-[#FF6B9D]">프리미엄 업그레이드</span>
+                    <span className="text-[15px] font-medium text-[#FF6B9D]">플랜 업그레이드</span>
                   </div>
                   <ChevronRight className="w-5 h-5 text-[#FF6B9D]" />
                 </div>
               </Link>
             )}
+
+            <Link href="/packages">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">📦</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">단품 구매</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
+              </div>
+            </Link>
 
             <Link href="/statistics">
               <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#F8F9FA] transition-colors">

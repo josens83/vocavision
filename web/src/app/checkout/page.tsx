@@ -47,7 +47,6 @@ const plans: Record<PlanType, PlanInfo> = {
       "전체 퀴즈 모드",
       "상세 학습 통계",
       "광고 없음",
-      "프리미엄 7일 무료 체험",
     ],
     prices: {
       monthly: 4900,
