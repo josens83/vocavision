@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <DashboardSidebar />
 
         {/* Main Content */}
-        <main className="flex-1 min-h-screen pb-20 lg:pb-0">
+        <main className="flex-1 min-w-0 min-h-screen pb-20 lg:pb-0 overflow-x-hidden">
           {children}
         </main>
       </div>
