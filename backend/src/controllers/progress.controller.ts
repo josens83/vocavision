@@ -218,13 +218,12 @@ export const getDueReviews = async (
         }
       }),
 
-      // 북마크 수 (UserBookmark 테이블 사용)
+      // 북마크 수 (Bookmark 테이블 - word 관계 없음, userId만 필터)
       prisma.bookmark.count({
         where: {
-          userId,
-          word: wordWhere
+          userId
         }
-      }).catch(() => 0)  // UserBookmark 테이블이 없을 경우 0 반환
+      }).catch(() => 0)  // Bookmark 테이블이 없을 경우 0 반환
     ]);
 
     // 정답률 계산
