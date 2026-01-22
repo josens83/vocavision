@@ -111,6 +111,8 @@ export const register = async (
         name: true,
         role: true,
         subscriptionStatus: true,
+        subscriptionPlan: true,
+        subscriptionEnd: true,
         trialEnd: true
       }
     });
@@ -180,7 +182,10 @@ export const login = async (
         email: user.email,
         name: user.name,
         role: user.role,
-        subscriptionStatus: user.subscriptionStatus
+        provider: user.provider,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionPlan: user.subscriptionPlan,
+        subscriptionEnd: user.subscriptionEnd,
       },
       token
     });
@@ -345,6 +350,8 @@ export const kakaoLogin = async (
         role: user.role,
         provider: user.provider,
         subscriptionStatus: user.subscriptionStatus,
+        subscriptionPlan: user.subscriptionPlan,
+        subscriptionEnd: user.subscriptionEnd,
       },
     });
   } catch (error) {
@@ -494,6 +501,8 @@ export const googleLogin = async (
         role: user.role,
         provider: user.provider,
         subscriptionStatus: user.subscriptionStatus,
+        subscriptionPlan: user.subscriptionPlan,
+        subscriptionEnd: user.subscriptionEnd,
       },
     });
   } catch (error) {
