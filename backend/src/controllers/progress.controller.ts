@@ -219,7 +219,7 @@ export const getDueReviews = async (
       }),
 
       // 북마크 수 (UserBookmark 테이블 사용)
-      prisma.userBookmark.count({
+      prisma.bookmark.count({
         where: {
           userId,
           word: wordWhere
