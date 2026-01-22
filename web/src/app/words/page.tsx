@@ -9,50 +9,7 @@ import { wordsAPI } from '@/lib/api';
 import { EmptySearchResults } from '@/components/ui/EmptyState';
 import { SkeletonWordCard } from '@/components/ui/Skeleton';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-
-// 사용자 플랜에 따른 접근 가능 레벨 정의
-function getAccessibleLevels(user: any) {
-  // 비로그인: 접근 불가 (로그인 유도)
-  if (!user) return { CSAT: [], TEPS: [] };
-
-  const status = user.subscriptionStatus;
-  const plan = user.subscriptionPlan;
-
-  // 무료 회원: CSAT L1만
-  if (status === 'FREE' || !status) {
-    return { CSAT: ['L1'], TEPS: [] };
-  }
-
-  // 프리미엄 회원 체크 (YEARLY, FAMILY, PREMIUM 플랜 또는 PREMIUM 상태)
-  const isPremium = status === 'PREMIUM' ||
-    plan === 'YEARLY' || plan === 'FAMILY' || plan === 'PREMIUM';
-
-  if (isPremium) {
-    return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'] };
-  }
-
-  // 베이직 회원 (ACTIVE 상태 + MONTHLY 플랜, 또는 그 외 유료)
-  if (status === 'ACTIVE' || status === 'BASIC') {
-    return { CSAT: ['L1', 'L2', 'L3'], TEPS: [] };
-  }
-
-  // 기본값: CSAT L1만 (CANCELLED, EXPIRED 등)
-  return { CSAT: ['L1'], TEPS: [] };
-}
-
-// 잠금 체크 함수
-function isLevelLocked(accessibleLevels: any, exam: string, level: string) {
-  if (!exam || !level) return false; // 전체 선택 시 잠금 없음
-  if (!accessibleLevels[exam]) return true;
-  return !accessibleLevels[exam].includes(level);
-}
-
-// 시험이 완전히 잠겨있는지 체크
-function isExamLocked(accessibleLevels: any, exam: string) {
-  if (!exam) return false;
-  if (!accessibleLevels[exam]) return true;
-  return accessibleLevels[exam].length === 0;
-}
+import { getAccessibleLevels, isLevelLocked, isExamLocked } from '@/lib/subscription';
 
 interface Word {
   id: string;
@@ -135,8 +92,12 @@ function WordsPageContent() {
     );
   }
 
-  // 접근 가능 레벨 계산
+  // 접근 가능 레벨 계산 (디버깅/표시용)
   const accessibleLevels = getAccessibleLevels(user);
+
+  // 잠금 체크 헬퍼 함수 (공통 유틸 사용)
+  const checkExamLocked = (exam: string) => isExamLocked(user, exam);
+  const checkLevelLocked = (exam: string, level: string) => isLevelLocked(user, exam, level);
 
   // Get initial search from URL parameter
   const initialSearch = searchParams.get('search') || '';
@@ -248,7 +209,7 @@ function WordsPageContent() {
               </button>
               <button
                 onClick={() => {
-                  const locked = isExamLocked(accessibleLevels, 'CSAT');
+                  const locked = checkExamLocked('CSAT');
                   if (locked) {
                     router.push('/pricing');
                     return;
@@ -258,19 +219,19 @@ function WordsPageContent() {
                   setPage(1);
                 }}
                 className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
-                  isExamLocked(accessibleLevels, 'CSAT')
+                  checkExamLocked('CSAT')
                     ? 'bg-[#F8F9FA] text-[#999999] cursor-pointer'
                     : examCategory === 'CSAT'
                       ? 'bg-[#FF6B9D] text-white'
                       : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
                 }`}
               >
-                {isExamLocked(accessibleLevels, 'CSAT') && <Lock className="w-3 h-3" />}
+                {checkExamLocked('CSAT') && <Lock className="w-3 h-3" />}
                 수능
               </button>
               <button
                 onClick={() => {
-                  const locked = isExamLocked(accessibleLevels, 'TEPS');
+                  const locked = checkExamLocked('TEPS');
                   if (locked) {
                     router.push('/pricing');
                     return;
@@ -280,14 +241,14 @@ function WordsPageContent() {
                   setPage(1);
                 }}
                 className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
-                  isExamLocked(accessibleLevels, 'TEPS')
+                  checkExamLocked('TEPS')
                     ? 'bg-[#F8F9FA] text-[#999999] cursor-pointer'
                     : examCategory === 'TEPS'
                       ? 'bg-[#A855F7] text-white'
                       : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
                 }`}
               >
-                {isExamLocked(accessibleLevels, 'TEPS') && <Lock className="w-3 h-3" />}
+                {checkExamLocked('TEPS') && <Lock className="w-3 h-3" />}
                 TEPS
               </button>
             </div>
@@ -298,7 +259,7 @@ function WordsPageContent() {
             <h4 className="text-[13px] text-[#767676] font-medium mb-2">레벨</h4>
             <div className="flex gap-2 flex-wrap">
               {['', 'L1', 'L2', 'L3'].map((lvl) => {
-                const locked = lvl !== '' && examCategory && isLevelLocked(accessibleLevels, examCategory, lvl);
+                const locked = lvl !== '' && examCategory && checkLevelLocked(examCategory, lvl);
                 return (
                   <button
                     key={lvl}

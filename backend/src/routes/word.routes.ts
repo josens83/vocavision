@@ -18,6 +18,7 @@ import {
   getWordsBatchWithVisuals,
 } from '../controllers/word.controller';
 import { authenticateToken, requireAdmin, optionalAuth } from '../middleware/auth.middleware';
+import { checkContentAccess } from '../middleware/subscription.middleware';
 
 const router = Router();
 
@@ -217,7 +218,7 @@ router.get('/counts', getWordCountsByExam);
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.get('/', optionalAuth, getWords);
+router.get('/', optionalAuth, checkContentAccess, getWords);
 
 /**
  * @swagger

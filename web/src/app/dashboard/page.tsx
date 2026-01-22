@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
 import { progressAPI, wordsAPI } from '@/lib/api';
+import { canAccessExam as canAccessExamUtil, canAccessLevel as canAccessLevelUtil } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 
@@ -80,25 +81,9 @@ export default function DashboardPage() {
   const [examLevelLoading, setExamLevelLoading] = useState(false);
   const [weakWordCount, setWeakWordCount] = useState(0);
 
-  // 구독 상태에 따른 접근 권한 체크
-  // FREE: 수능 L1만 / ACTIVE/PREMIUM: 수능 전체 / PREMIUM: TEPS 포함
-  const subscriptionStatus = user?.subscriptionStatus || 'FREE';
-  const isPremium = subscriptionStatus === 'PREMIUM' || subscriptionStatus === 'ACTIVE';
-  const isBasicOrHigher = isPremium || subscriptionStatus === 'TRIAL';
-
-  const canAccessExam = (exam: string): boolean => {
-    if (exam === 'CSAT') return true; // 수능은 모든 플랜에서 접근 가능 (레벨은 별도 체크)
-    if (exam === 'TEPS') return isPremium; // TEPS는 프리미엄만
-    return false;
-  };
-
-  const canAccessLevel = (exam: string, level: string): boolean => {
-    if (level === 'L1') return true; // L1은 모든 플랜에서 접근 가능
-    // L2, L3는 구독 필요
-    if (exam === 'CSAT') return isBasicOrHigher; // 수능 L2/L3는 베이직 이상
-    if (exam === 'TEPS') return isPremium; // TEPS는 프리미엄만
-    return false;
-  };
+  // 구독 상태에 따른 접근 권한 체크 (공통 유틸 사용)
+  const canAccessExam = (exam: string) => canAccessExamUtil(user, exam);
+  const canAccessLevel = (exam: string, level: string) => canAccessLevelUtil(user, level);
 
   // Calendar data
   const today = new Date();
