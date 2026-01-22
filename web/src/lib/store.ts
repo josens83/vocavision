@@ -1,6 +1,57 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// ============================================
+// 학습 세션 localStorage 유틸리티
+// ============================================
+const LEARNING_SESSION_KEY = 'vocavision_learning_session';
+
+export interface LearningSession {
+  exam: string;
+  level: string;
+  words: any[];  // 현재 20개 세트
+  currentIndex: number;
+  ratings: Record<string, number>;  // wordId → rating (1-4)
+  timestamp: number;
+}
+
+export const saveLearningSession = (session: LearningSession) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(LEARNING_SESSION_KEY, JSON.stringify(session));
+  }
+};
+
+export const loadLearningSession = (exam: string, level: string): LearningSession | null => {
+  if (typeof window === 'undefined') return null;
+
+  const saved = localStorage.getItem(LEARNING_SESSION_KEY);
+  if (!saved) return null;
+
+  try {
+    const session = JSON.parse(saved) as LearningSession;
+    // 같은 exam/level인 경우만 복원 (24시간 이내)
+    const isValid = session.exam?.toUpperCase() === exam?.toUpperCase() &&
+                    session.level === level &&
+                    Date.now() - session.timestamp < 24 * 60 * 60 * 1000;
+
+    if (isValid && session.words?.length > 0) {
+      return session;
+    }
+  } catch (e) {
+    console.error('Failed to parse learning session:', e);
+  }
+  return null;
+};
+
+export const clearLearningSession = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(LEARNING_SESSION_KEY);
+  }
+};
+
+// ============================================
+// Auth Store
+// ============================================
 interface User {
   id: string;
   email?: string | null;
@@ -53,9 +104,11 @@ interface LearningState {
   cardRatings: Record<number, number>; // 카드 인덱스 → rating (중복 방지)
   setSessionId: (id: string) => void;
   setCardRating: (index: number, rating: number) => void;
+  setCurrentIndex: (index: number) => void;
   goToNextCard: () => void;
   goToPrevCard: () => void;
   resetSession: () => void;
+  restoreSession: (index: number, ratings: Record<number, number>) => void;
   // Computed getters (calculated from cardRatings)
   getWordsStudied: () => number;
   getWordsCorrect: () => number;
@@ -73,6 +126,7 @@ export const useLearningStore = create<LearningState>()((set, get) => ({
         [index]: rating,
       },
     })),
+  setCurrentIndex: (index) => set({ currentWordIndex: index }),
   goToNextCard: () =>
     set((state) => ({
       currentWordIndex: state.currentWordIndex + 1,
@@ -86,6 +140,11 @@ export const useLearningStore = create<LearningState>()((set, get) => ({
       currentWordIndex: 0,
       sessionId: null,
       cardRatings: {},
+    }),
+  restoreSession: (index, ratings) =>
+    set({
+      currentWordIndex: index,
+      cardRatings: ratings,
     }),
   getWordsStudied: () => Object.keys(get().cardRatings).length,
   getWordsCorrect: () =>
