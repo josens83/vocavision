@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore } from '@/lib/store';
 import { progressAPI, wordsAPI } from '@/lib/api';
+import { canAccessContent } from '@/lib/subscription';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
 
@@ -116,6 +117,7 @@ function LearnPageContent() {
   const DEMO_KEY = 'vocavision_demo_count';
   const MAX_DEMO_COUNT = 2;
   const [demoBlocked, setDemoBlocked] = useState(false);
+  const [accessBlocked, setAccessBlocked] = useState(false);
 
   // 체험 횟수 확인
   useEffect(() => {
@@ -126,6 +128,17 @@ function LearnPageContent() {
       }
     }
   }, [isDemo, user]);
+
+  // 구독 기반 접근 제어
+  useEffect(() => {
+    if (!hasHydrated || isDemo) return;
+
+    if (user && examParam && levelParam) {
+      if (!canAccessContent(user, examParam, levelParam)) {
+        setAccessBlocked(true);
+      }
+    }
+  }, [hasHydrated, user, examParam, levelParam, isDemo]);
 
   // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트 (복습 모드 제외)
   useEffect(() => {
@@ -432,6 +445,39 @@ function LearnPageContent() {
 
   if (!hasHydrated || loading) {
     return <LearnPageLoading />;
+  }
+
+  // 구독 제한으로 접근 차단
+  if (accessBlocked && user) {
+    const examName = examParam === 'TEPS' ? 'TEPS' : '수능';
+    const levelName = levelParam === 'L2' ? '중급' : levelParam === 'L3' ? '고급' : levelParam;
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
+        <div className="bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-8 max-w-md w-full text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">프리미엄 콘텐츠</h2>
+          <p className="text-[14px] text-[#767676] mb-6 leading-relaxed">
+            <strong>{examName} {levelName}</strong> 콘텐츠는<br />
+            {examParam === 'TEPS' ? '프리미엄' : '베이직'} 플랜부터 이용 가능합니다.
+          </p>
+          <div className="space-y-3">
+            <a
+              href="/pricing"
+              className="block w-full py-3.5 px-4 bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] text-white font-bold text-[14px] rounded-[14px] hover:opacity-90 transition shadow-[0_4px_12px_rgba(255,107,157,0.3)]"
+            >
+              플랜 업그레이드
+            </a>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-[#767676] font-semibold text-[14px] rounded-[14px] hover:bg-[#F8F9FA] transition"
+            >
+              대시보드로 돌아가기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // 비로그인 사용자가 이미 체험을 완료한 경우 (2회 완료)

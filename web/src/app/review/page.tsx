@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
 import { progressAPI } from '@/lib/api';
+import { canAccessExam, canAccessLevel } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 
@@ -300,22 +301,34 @@ function ReviewPageContent() {
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">시험 선택</h3>
 
           <div className="flex gap-3">
-            {Object.entries(examInfo).map(([key, info]) => (
-              <button
-                key={key}
-                onClick={() => handleExamChange(key)}
-                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[16px] transition-all ${
-                  selectedExam === key
-                    ? key === 'CSAT'
-                      ? 'bg-[#FF6B9D] text-white shadow-sm'
-                      : 'bg-[#A855F7] text-white shadow-sm'
-                    : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
-                }`}
-              >
-                <span className="text-xl">{info.icon}</span>
-                <span className="font-semibold">{info.name}</span>
-              </button>
-            ))}
+            {Object.entries(examInfo).map(([key, info]) => {
+              const isLocked = !canAccessExam(user, key);
+              return (
+                <button
+                  key={key}
+                  onClick={() => {
+                    if (isLocked) {
+                      router.push('/pricing');
+                    } else {
+                      handleExamChange(key);
+                    }
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[16px] transition-all ${
+                    isLocked
+                      ? 'bg-[#F8F9FA] text-[#999999] cursor-not-allowed'
+                      : selectedExam === key
+                      ? key === 'CSAT'
+                        ? 'bg-[#FF6B9D] text-white shadow-sm'
+                        : 'bg-[#A855F7] text-white shadow-sm'
+                      : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
+                  }`}
+                >
+                  <span className="text-xl">{info.icon}</span>
+                  <span className="font-semibold">{info.name}</span>
+                  {isLocked && <span className="text-sm">🔒</span>}
+                </button>
+              );
+            })}
           </div>
         </section>
 
@@ -324,22 +337,42 @@ function ReviewPageContent() {
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">레벨 선택</h3>
 
           <div className="flex gap-3">
-            {Object.entries(levelInfo).map(([key, info]) => (
-              <button
-                key={key}
-                onClick={() => handleLevelChange(key)}
-                className={`flex-1 flex flex-col items-center py-4 rounded-[16px] transition-all ${
-                  selectedLevel === key
-                    ? 'bg-[#3B82F6] text-white shadow-sm'
-                    : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
-                }`}
-              >
-                <span className="font-bold text-[16px]">{key}</span>
-                <span className={`text-[12px] mt-1 ${selectedLevel === key ? 'text-blue-100' : 'text-[#999999]'}`}>
-                  {info.name}
-                </span>
-              </button>
-            ))}
+            {Object.entries(levelInfo).map(([key, info]) => {
+              const isLocked = !canAccessLevel(user, key);
+              return (
+                <button
+                  key={key}
+                  onClick={() => {
+                    if (isLocked) {
+                      router.push('/pricing');
+                    } else {
+                      handleLevelChange(key);
+                    }
+                  }}
+                  className={`flex-1 flex flex-col items-center py-4 rounded-[16px] transition-all ${
+                    isLocked
+                      ? 'bg-[#F8F9FA] text-[#999999] cursor-not-allowed'
+                      : selectedLevel === key
+                      ? 'bg-[#3B82F6] text-white shadow-sm'
+                      : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
+                  }`}
+                >
+                  <div className="flex items-center gap-1">
+                    <span className="font-bold text-[16px]">{key}</span>
+                    {isLocked && <span className="text-sm">🔒</span>}
+                  </div>
+                  <span className={`text-[12px] mt-1 ${
+                    isLocked
+                      ? 'text-[#999999]'
+                      : selectedLevel === key
+                      ? 'text-blue-100'
+                      : 'text-[#999999]'
+                  }`}>
+                    {info.name}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </section>
 
