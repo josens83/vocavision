@@ -373,13 +373,13 @@ function StatisticsPageContent() {
           </div>
         </div>
 
-        {/* 숙련도 분포 카드 (은행 앱 스타일) */}
-        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+        {/* 숙련도 분포 카드 (은행 앱 스타일) - overflow 방지 */}
+        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
             <h3 className="text-[15px] font-bold text-[#1c1c1e]">숙련도 분포</h3>
 
             {/* 필터 */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-shrink-0">
               <select
                 value={masteryExam}
                 onChange={(e) => setMasteryExam(e.target.value)}
@@ -401,8 +401,8 @@ function StatisticsPageContent() {
             </div>
           </div>
 
-          {/* 프로그레스 바들 */}
-          <div className="space-y-4">
+          {/* 프로그레스 바들 - min-w-0으로 shrink 허용 */}
+          <div className="space-y-4 w-full min-w-0">
             {Object.entries(masteryDistData).map(([level, count]) => {
               const total = Object.values(masteryDistData).reduce((a, b) => a + b, 0);
               const percentage = total > 0 ? (count / total) * 100 : 0;
@@ -410,12 +410,12 @@ function StatisticsPageContent() {
               const safeCount = isNaN(count) ? 0 : count;
 
               return (
-                <div key={level} className="w-full">
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[13px] text-[#767676]">
+                <div key={level} className="w-full min-w-0">
+                  <div className="flex justify-between items-center mb-1.5 gap-2">
+                    <span className="text-[13px] text-[#767676] truncate min-w-0">
                       {masteryLabels[level as keyof typeof masteryLabels]}
                     </span>
-                    <span className="text-[13px] font-semibold text-[#1c1c1e]">
+                    <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
                       {safeCount}개 ({safePercentage}%)
                     </span>
                   </div>
