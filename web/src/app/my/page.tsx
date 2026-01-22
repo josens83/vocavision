@@ -37,7 +37,7 @@ export default function MyPage() {
     return (
       <TabLayout>
         <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
-          <div className="animate-spin w-8 h-8 border-4 border-[#FF6B9D] border-t-transparent rounded-full" />
+          <div className="animate-spin w-8 h-8 border-4 border-[#14B8A6] border-t-transparent rounded-full" />
         </div>
       </TabLayout>
     );
@@ -65,7 +65,7 @@ export default function MyPage() {
                   className="w-[72px] h-[72px] rounded-full object-cover border-4 border-[#f5f5f5]"
                 />
               ) : (
-                <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-[#FF6B9D] to-[#A855F7] flex items-center justify-center">
+                <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-[#14B8A6] to-[#06B6D4] flex items-center justify-center">
                   <span className="text-white font-bold text-3xl">
                     {user.name?.charAt(0) || '👤'}
                   </span>
@@ -140,14 +140,14 @@ export default function MyPage() {
 
             {!isPremiumPlan(user) && (
               <Link href="/pricing">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#FFF0F5] transition-colors">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#ECFDF5] transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="text-xl">✨</span>
-                    <span className="text-[15px] font-medium text-[#FF6B9D]">
+                    <span className="text-[15px] font-medium text-[#14B8A6]">
                       {(user as any).subscriptionPlan === 'MONTHLY' ? '프리미엄으로 업그레이드' : '플랜 업그레이드'}
                     </span>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-[#FF6B9D]" />
+                  <ChevronRight className="w-5 h-5 text-[#14B8A6]" />
                 </div>
               </Link>
             )}

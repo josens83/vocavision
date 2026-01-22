@@ -197,11 +197,11 @@ export default function DashboardPage() {
 
         {/* P0-2: 오늘의 학습 목표 Hero (은행 앱 스타일) */}
         <section className={`relative w-full rounded-[24px] overflow-hidden p-6 shadow-sm ${
-          isCompleted ? 'bg-[#ECFDF5]' : 'bg-[#FFF0F5]'
+          isCompleted ? 'bg-[#ECFDF5]' : 'bg-[#ECFDF5]'
         }`}>
           <div className="relative z-10">
             <span className={`text-[13px] font-semibold block mb-2 ${
-              isCompleted ? 'text-[#10B981]' : 'text-[#FF6B9D]'
+              isCompleted ? 'text-[#10B981]' : 'text-[#14B8A6]'
             }`}>
               {isCompleted ? '🎉 학습 완료!' : '오늘의 학습 목표'}
             </span>
@@ -238,14 +238,14 @@ export default function DashboardPage() {
               <>
                 <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
                   다음 학습할 단어<br />
-                  <span className="text-[#FF6B9D]">{todayRemaining}개</span>
+                  <span className="text-[#14B8A6]">{todayRemaining}개</span>
                 </h2>
                 <p className="text-[14px] text-[#767676] mb-4">
                   지금 시작하면 <span className="font-semibold text-[#1c1c1e]">{estimatedMinutes}분</span>이면 끝나요
                 </p>
                 <Link
                   href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
-                  className="block w-full bg-white rounded-[14px] py-4 text-[#FF6B9D] font-bold text-[15px] text-center shadow-sm hover:shadow-md transition-shadow"
+                  className="block w-full bg-white rounded-[14px] py-4 text-[#14B8A6] font-bold text-[15px] text-center shadow-sm hover:shadow-md transition-shadow"
                 >
                   {learnedWords === 0 ? '학습 시작' : '이어서 학습'}
                 </Link>
@@ -271,7 +271,7 @@ export default function DashboardPage() {
               onClick={() => setActiveExam('CSAT' as ExamType)}
               className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[16px] transition-all ${
                 selectedExam === 'CSAT'
-                  ? 'bg-[#FF6B9D] text-white shadow-sm'
+                  ? 'bg-[#14B8A6] text-white shadow-sm'
                   : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
               }`}
             >
@@ -353,14 +353,14 @@ export default function DashboardPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[15px] font-bold text-[#1c1c1e]">바로 학습 이어가기</h3>
-              <span className="text-[13px] text-[#FF6B9D] font-semibold flex items-center gap-1">
+              <span className="text-[13px] text-[#14B8A6] font-semibold flex items-center gap-1">
                 🔥 {stats?.currentStreak || 0}일 연속
               </span>
             </div>
 
             {/* 현재 학습 정보 */}
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-[48px] h-[48px] rounded-full bg-[#FFF0F5] flex items-center justify-center">
+              <div className="w-[48px] h-[48px] rounded-full bg-[#ECFDF5] flex items-center justify-center">
                 <span className="text-2xl">{exam.icon}</span>
               </div>
               <div>
@@ -385,7 +385,7 @@ export default function DashboardPage() {
             {/* 프로그레스 바 */}
             <div className="w-full h-2 bg-[#f0f0f0] rounded-full mb-4 overflow-hidden">
               <div
-                className={`h-full bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] rounded-full transition-all duration-500 ${examLevelLoading ? 'animate-pulse' : ''}`}
+                className={`h-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] rounded-full transition-all duration-500 ${examLevelLoading ? 'animate-pulse' : ''}`}
                 style={{ width: examLevelLoading ? '0%' : `${progressPercent}%` }}
               />
             </div>
@@ -421,7 +421,7 @@ export default function DashboardPage() {
             ) : (
               <Link
                 href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
-                className="block w-full py-4 bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] text-white font-bold text-[15px] rounded-[14px] text-center shadow-sm hover:shadow-md transition-shadow"
+                className="block w-full py-4 bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white font-bold text-[15px] rounded-[14px] text-center shadow-sm hover:shadow-md transition-shadow"
               >
                 {learnedWords === 0 ? '학습 시작' : '이어서 학습'}
               </Link>
@@ -437,9 +437,9 @@ export default function DashboardPage() {
 
             {/* 현재/최장 연속 */}
             <div className="flex gap-4 mb-4">
-              <div className="flex-1 bg-[#FFF0F5] rounded-[14px] p-4 text-center">
+              <div className="flex-1 bg-[#ECFDF5] rounded-[14px] p-4 text-center">
                 <span className="text-2xl mb-1 block">🔥</span>
-                <p className="text-[22px] font-bold text-[#FF6B9D]">{stats?.currentStreak || 0}일</p>
+                <p className="text-[22px] font-bold text-[#14B8A6]">{stats?.currentStreak || 0}일</p>
                 <p className="text-[12px] text-[#767676]">현재 연속</p>
               </div>
               <div className="flex-1 bg-[#FFF7ED] rounded-[14px] p-4 text-center">
@@ -470,9 +470,9 @@ export default function DashboardPage() {
                     key={day}
                     className={`py-2 text-[13px] rounded-full ${
                       isToday
-                        ? 'bg-[#FF6B9D] text-white font-bold'
+                        ? 'bg-[#14B8A6] text-white font-bold'
                         : hasActivity
-                        ? 'bg-[#FFF0F5] text-[#FF6B9D] font-semibold'
+                        ? 'bg-[#ECFDF5] text-[#14B8A6] font-semibold'
                         : 'text-[#1c1c1e]'
                     }`}
                   >

@@ -180,7 +180,7 @@ export default function MultipleChoiceQuiz({
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent"></div>
       </div>
     );
   }
@@ -190,7 +190,7 @@ export default function MultipleChoiceQuiz({
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
           <p className="text-gray-600 mb-4">퀴즈를 위한 단어가 부족합니다.</p>
-          <button onClick={onBack} className="text-pink-500 font-medium">
+          <button onClick={onBack} className="text-teal-500 font-medium">
             돌아가기
           </button>
         </div>
@@ -226,7 +226,7 @@ export default function MultipleChoiceQuiz({
       <div className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
         {/* 모드 뱃지 */}
         <div className="text-center mb-4">
-          <span className="inline-block bg-pink-100 text-pink-600 text-xs font-medium px-3 py-1 rounded-full">
+          <span className="inline-block bg-teal-100 text-teal-600 text-xs font-medium px-3 py-1 rounded-full">
             {exam === 'CSAT' ? '수능' : exam === 'TEPS' ? 'TEPS' : exam} {level} • {mode === 'eng-to-kor' ? '📖 영→한 퀴즈' : '🔄 한→영 퀴즈'}
           </span>
         </div>
@@ -246,9 +246,9 @@ export default function MultipleChoiceQuiz({
               )}
               <button
                 onClick={handlePlayPronunciation}
-                className="p-2 bg-pink-100 hover:bg-pink-200 rounded-full transition-colors"
+                className="p-2 bg-teal-100 hover:bg-teal-200 rounded-full transition-colors"
               >
-                <Volume2 className="w-5 h-5 text-pink-600" />
+                <Volume2 className="w-5 h-5 text-teal-600" />
               </button>
             </>
           ) : (

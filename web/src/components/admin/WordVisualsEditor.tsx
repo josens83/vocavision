@@ -324,12 +324,12 @@ export default function WordVisualsEditor({
   }
 }`}
             rows={8}
-            className="w-full px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+            className="w-full px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
           />
           <div className="flex gap-2">
             <button
               onClick={handleJsonImport}
-              className="px-4 py-2 bg-pink-500 text-white rounded-lg text-sm font-medium hover:bg-pink-600 transition"
+              className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600 transition"
             >
               가져오기
             </button>
@@ -426,7 +426,7 @@ export default function WordVisualsEditor({
                   value={visual.imageUrl || ''}
                   onChange={(e) => updateVisual(type, { imageUrl: e.target.value })}
                   placeholder="이미지 URL 직접 입력"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
 
                 {/* Korean Caption */}
@@ -439,7 +439,7 @@ export default function WordVisualsEditor({
                     onChange={(e) => updateVisual(type, { captionKo: e.target.value })}
                     placeholder={`예: ${config.example}`}
                     rows={2}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
                   />
                 </div>
 
@@ -453,7 +453,7 @@ export default function WordVisualsEditor({
                     onChange={(e) => updateVisual(type, { captionEn: e.target.value })}
                     placeholder="English caption (optional)"
                     rows={2}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
                   />
                 </div>
 
@@ -469,7 +469,7 @@ export default function WordVisualsEditor({
                       onChange={(e) => updateVisual(type, { promptEn: e.target.value })}
                       placeholder="DALL-E / Midjourney prompt..."
                       rows={3}
-                      className="w-full px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none pr-10"
+                      className="w-full px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none pr-10"
                     />
                     {visual.promptEn && (
                       <button

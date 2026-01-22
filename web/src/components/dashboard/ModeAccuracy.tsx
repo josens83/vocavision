@@ -20,7 +20,7 @@ const MODE_CONFIG = {
   engToKor: {
     name: '영→한 퀴즈',
     icon: CheckSquare,
-    color: 'bg-pink-500',
+    color: 'bg-teal-500',
   },
   korToEng: {
     name: '한→영 퀴즈',

@@ -62,8 +62,8 @@ export const LEARNING_MODES: Record<
     label: "한→영",
     labelEn: "Kor→Eng",
     icon: "🇰🇷",
-    color: "text-pink-600",
-    bgColor: "bg-pink-50",
+    color: "text-teal-600",
+    bgColor: "bg-teal-50",
     description: "한국어 보고 영어 맞추기",
   },
   concept: {

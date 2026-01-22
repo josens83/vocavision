@@ -288,7 +288,7 @@ function QuizPageContent() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-500">퀴즈를 불러오는 중...</p>
         </div>
       </div>
@@ -305,7 +305,7 @@ function QuizPageContent() {
           <p className="text-gray-500 mb-6">오늘 복습할 단어가 없습니다.</p>
           <Link
             href="/review"
-            className="inline-block px-6 py-3 bg-pink-500 text-white font-bold rounded-xl"
+            className="inline-block px-6 py-3 bg-teal-500 text-white font-bold rounded-xl"
           >
             복습 페이지로 돌아가기
           </Link>
@@ -394,7 +394,7 @@ function QuizPageContent() {
 
           {/* 한국어 발음 */}
           {currentQuestion.word.pronunciationKo && (
-            <p className="text-sm text-pink-500 mt-1">
+            <p className="text-sm text-teal-500 mt-1">
               {currentQuestion.word.pronunciationKo}
             </p>
           )}
@@ -472,8 +472,8 @@ function QuizPageContent() {
                       ? 'border-red-500 bg-red-50 text-red-700'
                       : 'border-gray-200 text-gray-400'
                   : selectedAnswer === option.text
-                    ? 'border-pink-500 bg-pink-50'
-                    : 'border-gray-200 hover:border-pink-300 hover:bg-pink-50/50'
+                    ? 'border-teal-500 bg-teal-50'
+                    : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50/50'
               }`}
             >
               <span className="font-medium text-gray-500 mr-2">{idx + 1}.</span>
@@ -545,7 +545,7 @@ export default function ReviewQuizPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

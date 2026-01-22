@@ -281,7 +281,7 @@ const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
             id="isPublic"
             checked={form.isPublic}
             onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
-            className="w-4 h-4 text-pink-500 rounded border-slate-300 focus:ring-pink-500"
+            className="w-4 h-4 text-teal-500 rounded border-slate-300 focus:ring-teal-500"
           />
           <label htmlFor="isPublic" className="text-sm text-slate-700">
             공개 단어장 (사용자에게 표시)

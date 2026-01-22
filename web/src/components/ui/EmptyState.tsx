@@ -304,7 +304,7 @@ export function CelebrateCompletion({
         {onNext && (
           <button
             onClick={onNext}
-            className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-pink-500/25"
+            className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-pink-500/25"
           >
             다음 20개 학습 →
           </button>

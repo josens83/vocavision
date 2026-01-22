@@ -65,7 +65,7 @@ const features = [
     title: '창의적 암기법',
     description: '한글 기반 연상법',
     color: 'from-pink-500 to-pink-600',
-    bgColor: 'bg-pink-50',
+    bgColor: 'bg-teal-50',
     badge: 'AI',
   },
   {
@@ -113,8 +113,8 @@ const featureDetails = [
           </div>
           <div className="bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl p-3 text-center">
             <div className="text-2xl mb-1">💡</div>
-            <h4 className="font-semibold text-pink-800 text-sm">Mnemonic</h4>
-            <p className="text-xs text-pink-600">암기법 시각화</p>
+            <h4 className="font-semibold text-teal-800 text-sm">Mnemonic</h4>
+            <p className="text-xs text-teal-600">암기법 시각화</p>
           </div>
           <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-3 text-center">
             <div className="text-2xl mb-1">🎵</div>
@@ -139,7 +139,7 @@ const featureDetails = [
       <div className="space-y-4">
         <div className="bg-gray-100 rounded-xl p-4 text-center">
           <p className="text-2xl font-mono text-gray-800">/kənˈdʒek.tʃər/</p>
-          <p className="text-xl text-blue-600 mt-2">컨-<span className="font-bold text-pink-600">젝</span>-쳐</p>
+          <p className="text-xl text-blue-600 mt-2">컨-<span className="font-bold text-teal-600">젝</span>-쳐</p>
           <p className="text-sm text-gray-500 mt-1">강세: <span className="font-semibold">젝</span></p>
         </div>
         <ul className="text-sm text-gray-600 space-y-1">
@@ -186,7 +186,7 @@ const featureDetails = [
       <div className="space-y-4">
         <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 text-center">
           <p className="text-lg text-gray-700">
-            "<span className="font-bold text-pink-600">컨젝쳐</span> = 근데 저? 추측이에요."
+            "<span className="font-bold text-teal-600">컨젝쳐</span> = 근데 저? 추측이에요."
           </p>
           <p className="text-sm text-gray-500 mt-2">
             발음이 "근데 저"와 비슷 → 추측한다는 의미 연결

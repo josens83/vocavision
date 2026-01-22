@@ -13,7 +13,7 @@ export function Footer() {
             <Link href="/" className="inline-block mb-4">
               <span className="text-2xl font-bold">
                 <span className="text-indigo-400">Voca</span>
-                <span className="text-pink-400">Vision</span>
+                <span className="text-teal-400">Vision</span>
                 <span className="text-gray-300 ml-1">AI</span>
               </span>
             </Link>

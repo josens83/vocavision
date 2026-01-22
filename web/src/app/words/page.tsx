@@ -62,8 +62,8 @@ function WordsPageContent() {
       <DashboardLayout>
         <div className="p-4 lg:p-8 max-w-5xl mx-auto">
           <div className="text-center py-20">
-            <div className="w-20 h-20 bg-[#FFF0F5] rounded-full flex items-center justify-center mx-auto mb-6">
-              <Lock className="w-10 h-10 text-[#FF6B9D]" />
+            <div className="w-20 h-20 bg-[#ECFDF5] rounded-full flex items-center justify-center mx-auto mb-6">
+              <Lock className="w-10 h-10 text-[#14B8A6]" />
             </div>
             <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-3">
               로그인이 필요합니다
@@ -75,7 +75,7 @@ function WordsPageContent() {
             <div className="flex gap-3 justify-center">
               <Link
                 href="/auth/login"
-                className="px-6 py-3 bg-[#FF6B9D] text-white font-bold rounded-[14px] hover:bg-[#e85a8a] transition"
+                className="px-6 py-3 bg-[#14B8A6] text-white font-bold rounded-[14px] hover:bg-[#e85a8a] transition"
               >
                 로그인
               </Link>
@@ -181,7 +181,7 @@ function WordsPageContent() {
                 placeholder="단어 검색..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-[#F8F9FA] border-none rounded-[14px] py-4 pl-12 pr-4 text-[15px] text-[#1c1c1e] placeholder-[#999999] focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
+                className="w-full bg-[#F8F9FA] border-none rounded-[14px] py-4 pl-12 pr-4 text-[15px] text-[#1c1c1e] placeholder-[#999999] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               />
             </div>
           </form>
@@ -222,7 +222,7 @@ function WordsPageContent() {
                   checkExamLocked('CSAT')
                     ? 'bg-[#F8F9FA] text-[#999999] cursor-pointer'
                     : examCategory === 'CSAT'
-                      ? 'bg-[#FF6B9D] text-white'
+                      ? 'bg-[#14B8A6] text-white'
                       : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
                 }`}
               >
@@ -388,7 +388,7 @@ function WordCard({
           {isActiveExam && badgeLabel && (
             <span className={`text-[11px] px-2 py-1 rounded-full font-medium ${
               word.examCategory === 'CSAT'
-                ? 'bg-[#FFF0F5] text-[#FF6B9D]'
+                ? 'bg-[#ECFDF5] text-[#14B8A6]'
                 : 'bg-[#F3E8FF] text-[#A855F7]'
             }`}>
               {badgeLabel}
@@ -402,7 +402,7 @@ function WordCard({
       {/* 품사 */}
       <div className="flex items-center justify-between mt-3">
         <span className="text-[12px] text-[#999999]">{word.partOfSpeech}</span>
-        <span className="text-[13px] text-[#FF6B9D] font-medium">자세히 보기 →</span>
+        <span className="text-[13px] text-[#14B8A6] font-medium">자세히 보기 →</span>
       </div>
     </Link>
   );

@@ -139,7 +139,7 @@ export default function DashboardSidebar() {
             <span className="text-white font-bold text-lg">V</span>
           </div>
           <span className="font-bold text-lg">
-            <span className="text-pink-500">Voca</span>
+            <span className="text-teal-500">Voca</span>
             <span className="text-gray-700">Vision</span>
           </span>
         </Link>
@@ -192,19 +192,19 @@ export default function DashboardSidebar() {
                     href={item.href}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                       active
-                        ? 'bg-pink-50 text-pink-600'
+                        ? 'bg-teal-50 text-teal-600'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
-                    <span className={active ? 'text-pink-500' : 'text-gray-400'}>{item.icon}</span>
+                    <span className={active ? 'text-teal-500' : 'text-gray-400'}>{item.icon}</span>
                     <span>{item.label}</span>
                     {item.badge && (
-                      <span className="ml-auto bg-pink-100 text-pink-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                      <span className="ml-auto bg-teal-100 text-teal-600 text-xs font-bold px-2 py-0.5 rounded-full">
                         {item.badge}
                       </span>
                     )}
                     {active && (
-                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-pink-500" />
+                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-teal-500" />
                     )}
                   </Link>
                 );

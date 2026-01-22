@@ -17,7 +17,7 @@ const MODES = [
     icon: CheckSquare,
     title: '4지선다 (영→한)',
     description: '영어 보고 뜻 선택',
-    color: 'bg-pink-100 text-pink-600',
+    color: 'bg-teal-100 text-teal-600',
     available: true,
   },
   {
@@ -87,7 +87,7 @@ export default function QuizModeSelector({
                 p-6 rounded-2xl border-2 text-left transition-all
                 ${
                   mode.available
-                    ? 'bg-white border-gray-200 hover:border-pink-300 hover:shadow-md'
+                    ? 'bg-white border-gray-200 hover:border-teal-300 hover:shadow-md'
                     : 'bg-gray-50 border-gray-100 cursor-not-allowed opacity-60'
                 }
               `}
@@ -110,8 +110,8 @@ export default function QuizModeSelector({
       </div>
 
       {/* 추천 배지 */}
-      <div className="mt-6 p-4 bg-pink-50 rounded-xl border border-pink-100">
-        <p className="text-sm text-pink-700">
+      <div className="mt-6 p-4 bg-teal-50 rounded-xl border border-teal-100">
+        <p className="text-sm text-teal-700">
           💡 <strong>추천:</strong> 영→한으로 시작하고, 익숙해지면 한→영으로 도전해보세요!
         </p>
       </div>

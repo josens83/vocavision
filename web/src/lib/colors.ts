@@ -15,10 +15,10 @@ export const categoryColors = {
     border: '#cfe5f3',
   },
   vocabulary: {
-    primary: '#ff6699',
-    light: '#fee2eb',
+    primary: '#14B8A6',
+    light: '#CCFBF1',
     bg: '#fdfcfd',
-    border: '#fee2eb',
+    border: '#CCFBF1',
   },
   listening: {
     primary: '#fecc00',

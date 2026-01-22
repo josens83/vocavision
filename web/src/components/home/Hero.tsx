@@ -11,8 +11,8 @@ import { progressAPI, userAPI } from "@/lib/api";
 // 브랜드 컬러 시스템 (은행 앱 스타일)
 // ============================================
 const brandColors = {
-  primary: '#FF6B9D',      // 핑크 (VocaVision 메인)
-  primaryLight: '#FFF0F5', // 연핑크 배경
+  primary: '#14B8A6',      // 틸 (VocaVision 메인)
+  primaryLight: '#ECFDF5', // 연틸 배경
   secondary: '#A855F7',    // 보라 (복습)
   secondaryLight: '#F3E8FF',
   success: '#00C7AE',      // 민트 (완료)
@@ -162,7 +162,7 @@ function CurrentPlanBadge() {
   const daysRemaining = getDaysRemaining(user.subscriptionEnd);
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#FF6B9D]/10 to-[#A855F7]/10 rounded-[14px] mb-4">
+    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#14B8A6]/10 to-[#06B6D4]/10 rounded-[14px] mb-4">
       <div className="flex items-center gap-2">
         <span className="text-lg">{planInfo.icon}</span>
         <span className={`font-semibold text-[14px] px-2.5 py-1 rounded-full ${planInfo.bgColor} ${planInfo.textColor}`}>
@@ -266,7 +266,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 학습 현황</h3>
             {!loading && stats && stats.currentStreak > 0 && (
-              <span className="text-[13px] text-[#FF6B9D] font-semibold flex items-center gap-1">
+              <span className="text-[13px] text-[#14B8A6] font-semibold flex items-center gap-1">
                 🔥 {stats.currentStreak}일 연속
               </span>
             )}
@@ -308,7 +308,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
       {/* 빠른 액션 카드들 (MenuCard 스타일) */}
       <ActionCard
         icon={<Icons.BookOpen />}
-        iconBg="bg-[#FF6B9D] text-white"
+        iconBg="bg-[#14B8A6] text-white"
         category="학습하기"
         title={`${examDisplayName} ${levelDisplayName} 이어서 학습`}
         href={`/learn?exam=${lastStudy.exam.toLowerCase()}&level=${lastStudy.level}`}
@@ -337,7 +337,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
             <span className="text-lg">⚡</span>
             <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 목표</h3>
           </div>
-          <span className="text-[13px] text-[#FF6B9D] font-semibold">
+          <span className="text-[13px] text-[#14B8A6] font-semibold">
             {progressPercent >= 100 ? '🎉 ' : ''}{progressPercent}% 달성
           </span>
         </div>
@@ -348,7 +348,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
             className={`h-full rounded-full transition-all duration-500 ${
               progressPercent >= 100
                 ? 'bg-gradient-to-r from-[#10B981] to-[#059669]'
-                : 'bg-gradient-to-r from-[#FF6B9D] to-[#A855F7]'
+                : 'bg-gradient-to-r from-[#14B8A6] to-[#06B6D4]'
             }`}
             style={{ width: `${Math.min(progressPercent, 100)}%` }}
           />
@@ -375,7 +375,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
               }}
               className={`flex-1 py-2.5 rounded-[12px] text-[14px] font-semibold transition-all ${
                 dailyGoal === goal
-                  ? 'bg-[#FF6B9D] text-white shadow-sm'
+                  ? 'bg-[#14B8A6] text-white shadow-sm'
                   : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
               }`}
             >
@@ -436,7 +436,7 @@ function DesktopStatsCard() {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 학습 현황</h3>
         {!loading && stats && stats.currentStreak > 0 && (
-          <span className="text-[13px] text-[#FF6B9D] font-semibold flex items-center gap-1">
+          <span className="text-[13px] text-[#14B8A6] font-semibold flex items-center gap-1">
             🔥 {stats.currentStreak}일 연속
           </span>
         )}

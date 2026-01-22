@@ -45,7 +45,7 @@ export default function ExamLevelSelector() {
               onClick={() => setActiveExam(exam.key)}
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all ${
                 activeExam === exam.key
-                  ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/25'
+                  ? 'bg-teal-500 text-white shadow-lg shadow-pink-500/25'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >

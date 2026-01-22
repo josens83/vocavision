@@ -107,7 +107,7 @@ export default function StudyFAB() {
       icon: <Icons.Review />,
       label: "복습",
       href: "/review?exam=CSAT",
-      color: "bg-pink-500",
+      color: "bg-teal-500",
       // badge: 5, // Uncomment when review count is available
     },
     {

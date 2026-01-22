@@ -253,7 +253,7 @@ export const EXAM_CATEGORY_LABELS: Record<ExamCategory, string> = {
 
 // Exam category badge colors
 export const EXAM_CATEGORY_COLORS: Record<ExamCategory, string> = {
-  CSAT: 'bg-pink-500',
+  CSAT: 'bg-teal-500',
   CSAT_BASIC: 'bg-rose-400',
   CSAT_ARCHIVE: 'bg-gray-400',
   EBS: 'bg-emerald-500',

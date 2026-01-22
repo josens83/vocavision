@@ -74,9 +74,9 @@ export const levelConfigs: Record<Level, LevelConfig> = {
 
 export const vocabCategoryColors = {
   vocabulary: {
-    primary: "#FF6699",
+    primary: "#14B8A6",
     light: "#FFE2EB",
-    header: "#FF6699",
+    header: "#14B8A6",
   },
   grammar: {
     primary: "#1A8EC1",
@@ -258,7 +258,7 @@ export function LessonCard({
               text-sm font-medium text-gray-700 leading-snug
               line-clamp-2 min-h-[2.5rem]
               transition-colors duration-300
-              ${isHovered ? "text-pink-500" : ""}
+              ${isHovered ? "text-teal-500" : ""}
             `}
           >
             {lesson.title}

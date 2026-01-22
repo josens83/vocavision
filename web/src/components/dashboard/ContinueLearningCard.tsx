@@ -38,7 +38,7 @@ export default function ContinueLearningCard({
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-gray-900">바로 학습 이어가기</h2>
-        <span className="text-sm text-pink-500 font-medium flex items-center gap-1">
+        <span className="text-sm text-teal-500 font-medium flex items-center gap-1">
           <span>🔥</span> {currentStreak}일 연속
         </span>
       </div>
@@ -93,7 +93,7 @@ export default function ContinueLearningCard({
       {/* CTA Button */}
       <Link
         href={learnUrl}
-        className="block w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-xl font-bold text-center transition shadow-sm"
+        className="block w-full bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-xl font-bold text-center transition shadow-sm"
       >
         이어서 학습
       </Link>

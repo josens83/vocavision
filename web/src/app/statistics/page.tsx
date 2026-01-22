@@ -354,12 +354,12 @@ function StatisticsPageContent() {
         {/* 추가 통계 (현재 연속, 정확도) */}
         <div className="grid grid-cols-2 gap-4">
           {/* 현재 연속 */}
-          <div className="bg-[#FFF0F5] rounded-[20px] p-5">
+          <div className="bg-[#ECFDF5] rounded-[20px] p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">🔥</span>
-              <span className="text-[12px] text-[#FF6B9D] font-medium">현재 연속</span>
+              <span className="text-[12px] text-[#14B8A6] font-medium">현재 연속</span>
             </div>
-            <p className="text-[28px] font-bold text-[#FF6B9D]">{stats?.currentStreak || 0}일</p>
+            <p className="text-[28px] font-bold text-[#14B8A6]">{stats?.currentStreak || 0}일</p>
           </div>
 
           {/* 정확도 */}
@@ -382,7 +382,7 @@ function StatisticsPageContent() {
               <select
                 value={masteryExam}
                 onChange={(e) => setMasteryExam(e.target.value)}
-                className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
+                className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
                 <option value="CSAT">수능</option>
                 <option value="TEPS">TEPS</option>
@@ -390,7 +390,7 @@ function StatisticsPageContent() {
               <select
                 value={masteryLevel}
                 onChange={(e) => setMasteryLevel(e.target.value)}
-                className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
+                className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
                 <option value="all">전체</option>
                 <option value="L1">L1</option>
@@ -438,7 +438,7 @@ function StatisticsPageContent() {
             <select
               value={levelProgressExam}
               onChange={(e) => setLevelProgressExam(e.target.value)}
-              className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/20"
+              className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
             >
               <option value="CSAT">수능</option>
               <option value="TEPS">TEPS</option>

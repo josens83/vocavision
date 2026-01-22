@@ -95,9 +95,9 @@ const LEAGUE_INFO = {
   PEARL: {
     name: '진주',
     color: 'from-pink-200 to-pink-400',
-    bgColor: 'bg-pink-50',
-    textColor: 'text-pink-900',
-    borderColor: 'border-pink-300',
+    bgColor: 'bg-teal-50',
+    textColor: 'text-teal-900',
+    borderColor: 'border-teal-300',
     icon: '⚪',
     nextLeague: '흑요석',
   },

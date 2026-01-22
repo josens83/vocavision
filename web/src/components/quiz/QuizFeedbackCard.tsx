@@ -78,7 +78,7 @@ export default function QuizFeedbackCard({
       {/* 다음 버튼 */}
       <button
         onClick={onNext}
-        className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold
+        className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold
                    py-4 px-6 rounded-xl flex items-center justify-center gap-2
                    transition-colors"
       >

@@ -113,7 +113,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               placeholder='단어 검색... (정확히: "단어")'
               value={filters.search}
               onChange={(e) => onFilterChange({ search: e.target.value })}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none"
             />
           </div>
         </div>
@@ -166,7 +166,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   onClick={() => toggleExamCategory(opt.value as ExamCategory)}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                     filters.examCategories?.includes(opt.value as ExamCategory)
-                      ? 'bg-pink-500 text-white'
+                      ? 'bg-teal-500 text-white'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
@@ -237,7 +237,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   name="hasContent"
                   checked={filters.hasContent === null}
                   onChange={() => onFilterChange({ hasContent: null })}
-                  className="text-pink-500 focus:ring-pink-500"
+                  className="text-teal-500 focus:ring-teal-500"
                 />
                 <span className="text-sm text-slate-600">전체</span>
               </label>
@@ -247,7 +247,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   name="hasContent"
                   checked={filters.hasContent === true}
                   onChange={() => onFilterChange({ hasContent: true })}
-                  className="text-pink-500 focus:ring-pink-500"
+                  className="text-teal-500 focus:ring-teal-500"
                 />
                 <span className="text-sm text-slate-600">있음</span>
               </label>
@@ -257,7 +257,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   name="hasContent"
                   checked={filters.hasContent === false}
                   onChange={() => onFilterChange({ hasContent: false })}
-                  className="text-pink-500 focus:ring-pink-500"
+                  className="text-teal-500 focus:ring-teal-500"
                 />
                 <span className="text-sm text-slate-600">없음</span>
               </label>
@@ -345,7 +345,7 @@ const WordTable: React.FC<WordTableProps> = ({
                 type="checkbox"
                 checked={selectedIds.length === words.length && words.length > 0}
                 onChange={toggleAll}
-                className="w-4 h-4 rounded border-slate-300 text-pink-500 focus:ring-pink-500"
+                className="w-4 h-4 rounded border-slate-300 text-teal-500 focus:ring-teal-500"
               />
             </th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">
@@ -377,7 +377,7 @@ const WordTable: React.FC<WordTableProps> = ({
                   type="checkbox"
                   checked={selectedIds.includes(word.id)}
                   onChange={() => toggleOne(word.id)}
-                  className="w-4 h-4 rounded border-slate-300 text-pink-500 focus:ring-pink-500"
+                  className="w-4 h-4 rounded border-slate-300 text-teal-500 focus:ring-teal-500"
                 />
               </td>
               <td className="px-4 py-3">
@@ -392,7 +392,7 @@ const WordTable: React.FC<WordTableProps> = ({
                     </div>
                   ) : (
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
-                      <span className="text-lg font-bold text-pink-500">
+                      <span className="text-lg font-bold text-teal-500">
                         {word.word[0].toUpperCase()}
                       </span>
                     </div>
@@ -596,7 +596,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 onClick={() => onPageChange(pageNum)}
                 className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
                   page === pageNum
-                    ? 'bg-pink-500 text-white'
+                    ? 'bg-teal-500 text-white'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -873,8 +873,8 @@ export const WordList: React.FC<WordListProps> = ({
 
       {/* Bulk Actions */}
       {selectedIds.length > 0 && (
-        <div className="bg-pink-50 border border-pink-200 rounded-lg px-4 py-3 flex items-center justify-between">
-          <span className="text-sm text-pink-700">
+        <div className="bg-teal-50 border border-teal-200 rounded-lg px-4 py-3 flex items-center justify-between">
+          <span className="text-sm text-teal-700">
             <strong>{selectedIds.length}</strong>개 선택됨
           </span>
           <div className="flex items-center gap-2">
@@ -1007,7 +1007,7 @@ export const WordList: React.FC<WordListProps> = ({
                       onClick={() => setBulkStatusTarget(option.value)}
                       className={`p-3 rounded-lg border-2 transition-all text-left ${
                         bulkStatusTarget === option.value
-                          ? 'border-pink-500 bg-pink-50'
+                          ? 'border-teal-500 bg-teal-50'
                           : 'border-slate-200 hover:border-slate-300'
                       }`}
                     >

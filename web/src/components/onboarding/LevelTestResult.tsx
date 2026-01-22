@@ -77,9 +77,9 @@ export default function LevelTestResult({
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', duration: 0.5 }}
-        className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mb-6"
+        className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mb-6"
       >
-        <Trophy className="w-10 h-10 text-pink-500" />
+        <Trophy className="w-10 h-10 text-teal-500" />
       </motion.div>
 
       {/* 타이틀 */}
@@ -163,7 +163,7 @@ export default function LevelTestResult({
       >
         <button
           onClick={handleStartLearning}
-          className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-pink-500/25"
+          className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-pink-500/25"
         >
           {recommendedLevel}부터 학습 시작하기
           <ArrowRight className="w-5 h-5" />

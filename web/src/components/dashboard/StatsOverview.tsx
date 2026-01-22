@@ -35,7 +35,7 @@ export default function StatsOverview({ exam }: StatsOverviewProps) {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-pink-500" />
+          <BarChart3 className="w-5 h-5 text-teal-500" />
           <h2 className="text-lg font-bold text-gray-900">나의 학습 통계</h2>
         </div>
         <button

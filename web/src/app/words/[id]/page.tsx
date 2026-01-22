@@ -134,7 +134,7 @@ const levelStyles: Record<string, { bg: string; text: string; label: string }> =
 
 // Exam category colors and labels
 const examStyles: Record<string, { bg: string; text: string; label: string }> = {
-  CSAT: { bg: 'bg-pink-100', text: 'text-pink-700', label: '수능' },
+  CSAT: { bg: 'bg-teal-100', text: 'text-teal-700', label: '수능' },
   CSAT_BASIC: { bg: 'bg-rose-100', text: 'text-rose-700', label: '기초수능' },
   EBS: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'EBS' },
   TEPS: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'TEPS' },
@@ -567,7 +567,7 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
         {((word.rhymingWords && word.rhymingWords.length > 0) || (word.rhymes && word.rhymes.length > 0)) && (
           <section className="card p-6">
             <h2 className="text-lg font-display font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-lg">🎵</span>
+              <span className="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center text-lg">🎵</span>
               라이밍 (Rhyme)
             </h2>
 
@@ -575,7 +575,7 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
             {word.rhymingWords && word.rhymingWords.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {word.rhymingWords.map((rhyme, i) => (
-                  <span key={i} className="bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-pink-200 transition-colors cursor-default">
+                  <span key={i} className="bg-teal-100 text-teal-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-teal-200 transition-colors cursor-default">
                     {rhyme}
                   </span>
                 ))}
@@ -586,10 +586,10 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
             {word.rhymes && word.rhymes.length > 0 && (
               <div className="grid sm:grid-cols-2 gap-3">
                 {word.rhymes.map((rhyme, i) => (
-                  <div key={i} className="bg-pink-50 p-4 rounded-lg border border-pink-100">
-                    <div className="font-semibold text-pink-800">{rhyme.rhymingWord}</div>
+                  <div key={i} className="bg-teal-50 p-4 rounded-lg border border-teal-100">
+                    <div className="font-semibold text-teal-800">{rhyme.rhymingWord}</div>
                     {rhyme.example && (
-                      <p className="text-sm text-pink-600 mt-1">{rhyme.example}</p>
+                      <p className="text-sm text-teal-600 mt-1">{rhyme.example}</p>
                     )}
                   </div>
                 ))}
@@ -730,7 +730,7 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
           </button>
           <Link
             href={`/words/${word.id}/learn`}
-            className="flex-1 bg-pink-500 text-white py-3 rounded-xl font-medium text-center flex items-center justify-center gap-2 min-h-[48px] active:bg-pink-600 transition-colors"
+            className="flex-1 bg-teal-500 text-white py-3 rounded-xl font-medium text-center flex items-center justify-center gap-2 min-h-[48px] active:bg-teal-600 transition-colors"
           >
             <Icons.Play />
             <span>학습하기</span>

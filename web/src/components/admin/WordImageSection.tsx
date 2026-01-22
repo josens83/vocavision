@@ -281,7 +281,7 @@ export default function WordImageSection({
                   value={imageUrl || ''}
                   onChange={(e) => handleUrlInput(type.urlField, e.target.value)}
                   placeholder="이미지 URL 직접 입력"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
 
                 {/* 캡션 입력 */}
@@ -294,7 +294,7 @@ export default function WordImageSection({
                     onChange={(e) => onUpdate(type.captionField, e.target.value)}
                     placeholder={`예: ${type.example}`}
                     rows={3}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
                   />
                 </div>
               </div>

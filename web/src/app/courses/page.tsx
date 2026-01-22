@@ -147,7 +147,7 @@ export default function CoursesPage() {
               onClick={() => setActiveExam(key as ExamType)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-full whitespace-nowrap font-medium transition ${
                 selectedExam === key
-                  ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/25'
+                  ? 'bg-teal-500 text-white shadow-lg shadow-pink-500/25'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -169,7 +169,7 @@ export default function CoursesPage() {
                 <p className="text-gray-500 text-sm">{exam.fullName}</p>
               </div>
             </div>
-            <span className="bg-pink-100 text-pink-600 text-xs font-bold px-3 py-1 rounded-full">
+            <span className="bg-teal-100 text-teal-600 text-xs font-bold px-3 py-1 rounded-full">
               {completedDays}/30일
             </span>
           </div>
@@ -178,11 +178,11 @@ export default function CoursesPage() {
           <div className="mb-4">
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-500">전체 진도</span>
-              <span className="font-medium text-pink-600">{progressPercent}%</span>
+              <span className="font-medium text-teal-600">{progressPercent}%</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div
-                className="bg-pink-500 h-2 rounded-full transition-all"
+                className="bg-teal-500 h-2 rounded-full transition-all"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -190,7 +190,7 @@ export default function CoursesPage() {
 
           <Link
             href={`/learn?exam=${selectedExam.toLowerCase()}&level=L1`}
-            className="block w-full bg-pink-500 hover:bg-pink-600 text-white py-4 rounded-xl font-bold text-center transition shadow-lg shadow-pink-500/25"
+            className="block w-full bg-teal-500 hover:bg-teal-600 text-white py-4 rounded-xl font-bold text-center transition shadow-lg shadow-pink-500/25"
           >
             Day {currentDay} 이어하기
           </Link>
@@ -215,7 +215,7 @@ export default function CoursesPage() {
                     isCompleted
                       ? 'bg-green-50 border-2 border-green-200'
                       : isCurrent
-                      ? 'bg-pink-500 text-white shadow-lg'
+                      ? 'bg-teal-500 text-white shadow-lg'
                       : isLocked
                       ? 'bg-gray-50 opacity-50 cursor-not-allowed'
                       : 'bg-gray-50 hover:bg-gray-100'
@@ -255,7 +255,7 @@ export default function CoursesPage() {
         <div className="grid grid-cols-2 gap-4">
           <Link
             href={`/quiz?exam=${selectedExam.toLowerCase()}`}
-            className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-pink-200 hover:shadow-md transition"
+            className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-teal-200 hover:shadow-md transition"
           >
             <span className="text-3xl mb-3 block">🎯</span>
             <p className="font-bold text-gray-900">실력 테스트</p>
@@ -263,7 +263,7 @@ export default function CoursesPage() {
           </Link>
           <Link
             href="/games"
-            className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-pink-200 hover:shadow-md transition"
+            className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-teal-200 hover:shadow-md transition"
           >
             <span className="text-3xl mb-3 block">🎮</span>
             <p className="font-bold text-gray-900">게임 모드</p>

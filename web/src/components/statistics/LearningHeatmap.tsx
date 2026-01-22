@@ -127,19 +127,19 @@ export default function LearningHeatmap({
 
   const weeksData = groupByWeek();
 
-  // Color scheme based on level (핑크 계열 - VocaVision 브랜드)
+  // Color scheme based on level (틸 계열 - VocaVision 브랜드)
   const getColor = (level: 0 | 1 | 2 | 3 | 4) => {
     switch (level) {
       case 0:
         return 'bg-[#f0f0f0]';
       case 1:
-        return 'bg-[#FFE4EC]';
+        return 'bg-[#CCFBF1]';
       case 2:
-        return 'bg-[#FFB8CD]';
+        return 'bg-[#5EEAD4]';
       case 3:
-        return 'bg-[#FF8CAE]';
+        return 'bg-[#2DD4BF]';
       case 4:
-        return 'bg-[#FF6B9D]';
+        return 'bg-[#14B8A6]';
       default:
         return 'bg-[#f0f0f0]';
     }
@@ -211,7 +211,7 @@ export default function LearningHeatmap({
       {/* 요약 통계 */}
       <div className="flex gap-4 mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-sm bg-[#FF6B9D]" />
+          <div className="w-3 h-3 rounded-sm bg-[#14B8A6]" />
           <span className="text-[12px] text-[#767676]">{totalDays}일 학습</span>
         </div>
         <div className="flex items-center gap-2">
@@ -298,14 +298,14 @@ export default function LearningHeatmap({
               day: 'numeric',
             })}
           </div>
-          <div className="text-[#FF6B9D] text-[12px]">
+          <div className="text-[#14B8A6] text-[12px]">
             {hoveredDay.count}개 단어 학습
           </div>
         </motion.div>
       )}
 
       {/* 격려 메시지 */}
-      <div className="mt-4 p-4 bg-[#FFF0F5] rounded-[14px]">
+      <div className="mt-4 p-4 bg-[#ECFDF5] rounded-[14px]">
         <p className="text-[13px] text-[#1c1c1e]">
           💡 <strong>꾸준함이 핵심입니다!</strong>{' '}
           {currentStreak > 0
