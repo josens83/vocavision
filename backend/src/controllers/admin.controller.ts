@@ -20,6 +20,7 @@ import {
   translateMnemonicToEnglish,
   extractMnemonicScene,
   generateRhymeScene,
+  generateConceptScene,
 } from '../services/smartCaption.service';
 
 // ============================================
@@ -3528,9 +3529,28 @@ async function processBulkConceptGeneration(
     // 2. Process each word sequentially
     for (const word of words) {
       try {
-        const prompt = generateConceptPrompt(word.definition || '', word.word);
-        const captionKo = word.definitionKo || word.definition || '';
-        const captionEn = word.definition || '';
+        // Use Claude API for enhanced concept scene generation
+        let prompt: string;
+        let captionKo: string;
+        let captionEn: string;
+
+        try {
+          const conceptScene = await generateConceptScene(
+            word.word,
+            word.definition || '',
+            word.definitionKo || ''
+          );
+          prompt = conceptScene.prompt;
+          captionKo = conceptScene.captionKo;
+          captionEn = conceptScene.captionEn;
+          console.log(`[BULK GEN] 🎨 Enhanced prompt generated for ${word.word}`);
+        } catch (promptError) {
+          // Fallback to simple prompt if Claude API fails
+          console.warn(`[BULK GEN] ⚠️ Claude API failed for ${word.word}, using fallback prompt`);
+          prompt = generateConceptPrompt(word.definition || '', word.word);
+          captionKo = word.definitionKo || word.definition || '';
+          captionEn = word.definition || '';
+        }
 
         const result = await generateAndUploadImage(prompt, 'CONCEPT' as VisualType, word.word);
 
