@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
-import { progressAPI } from '@/lib/api';
 import TabLayout from '@/components/layout/TabLayout';
 
 // ChevronRight 아이콘
@@ -19,13 +18,6 @@ function ChevronRight({ className }: { className?: string }) {
 export default function MyPage() {
   const router = useRouter();
   const { user, _hasHydrated, logout } = useAuthStore();
-  const [stats, setStats] = useState<{
-    totalWordsLearned: number;
-    currentStreak: number;
-    accuracy: number;
-    dueReviewCount: number;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -33,40 +25,14 @@ export default function MyPage() {
       router.push('/auth/login');
       return;
     }
-    loadStats();
   }, [user, _hasHydrated, router]);
-
-  const loadStats = async () => {
-    try {
-      const [progressData, reviewData] = await Promise.all([
-        progressAPI.getUserProgress(),
-        progressAPI.getDueReviews(),
-      ]);
-      setStats({
-        totalWordsLearned: progressData.stats?.totalWordsLearned || 0,
-        currentStreak: progressData.stats?.currentStreak || 0,
-        accuracy: reviewData.accuracy || 0,
-        dueReviewCount: reviewData.count || 0,
-      });
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-      setStats({
-        totalWordsLearned: 0,
-        currentStreak: 0,
-        accuracy: 0,
-        dueReviewCount: 0,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogout = () => {
     logout();
     router.push('/');
   };
 
-  if (!_hasHydrated || loading) {
+  if (!_hasHydrated) {
     return (
       <TabLayout>
         <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
@@ -131,30 +97,6 @@ export default function MyPage() {
                     </span>
                   )}
                 </div>
-              </div>
-            </div>
-          </section>
-
-          {/* 학습 통계 요약 (은행 앱 스타일) */}
-          <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
-            <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">내 학습 현황</h3>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[#EFF6FF] rounded-[14px] p-4 text-center">
-                <p className="text-[24px] font-bold text-[#3B82F6]">{stats?.totalWordsLearned || 0}</p>
-                <p className="text-[12px] text-[#767676]">학습한 단어</p>
-              </div>
-              <div className="bg-[#FFF0F5] rounded-[14px] p-4 text-center">
-                <p className="text-[24px] font-bold text-[#FF6B9D]">{stats?.currentStreak || 0}일</p>
-                <p className="text-[12px] text-[#767676]">연속 학습</p>
-              </div>
-              <div className="bg-[#ECFDF5] rounded-[14px] p-4 text-center">
-                <p className="text-[24px] font-bold text-[#10B981]">{stats?.accuracy || 0}%</p>
-                <p className="text-[12px] text-[#767676]">정답률</p>
-              </div>
-              <div className="bg-[#FFF7ED] rounded-[14px] p-4 text-center">
-                <p className="text-[24px] font-bold text-[#F59E0B]">{stats?.dueReviewCount || 0}</p>
-                <p className="text-[12px] text-[#767676]">복습 대기</p>
               </div>
             </div>
           </section>

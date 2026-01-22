@@ -182,8 +182,8 @@ function SettingsContent() {
       <header className="bg-white border-b border-[#f0f0f0] sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-[#767676] hover:text-[#1c1c1e] transition-colors">
-              ← 대시보드
+            <Link href="/my" className="text-[#767676] hover:text-[#1c1c1e] transition-colors">
+              ← MY
             </Link>
             <h1 className="text-[20px] font-bold text-[#1c1c1e]">설정</h1>
           </div>
