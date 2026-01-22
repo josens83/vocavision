@@ -7,7 +7,6 @@ import { useAuthStore } from '@/lib/store';
 import axios from 'axios';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LearningHeatmap from '@/components/statistics/LearningHeatmap';
-import PredictiveAnalytics from '@/components/statistics/PredictiveAnalytics';
 
 // Benchmarking: Advanced statistics dashboard
 // Phase 2-2: 고급 통계 및 예측 분석 대시보드
@@ -488,11 +487,6 @@ function StatisticsPageContent() {
             currentStreakOverride={stats?.currentStreak || 0}
             longestStreakOverride={stats?.longestStreak || 0}
           />
-        </div>
-
-        {/* AI 학습 예측 (은행 앱 스타일) */}
-        <div className="w-full max-w-full overflow-hidden">
-          <PredictiveAnalytics />
         </div>
       </div>
     </DashboardLayout>
