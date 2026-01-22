@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
+import { getPlanDisplay, isPremiumPlan } from '@/lib/subscription';
 import TabLayout from '@/components/layout/TabLayout';
 
 // ChevronRight 아이콘
@@ -46,14 +47,7 @@ export default function MyPage() {
     return null;
   }
 
-  const subscriptionLabel = {
-    ACTIVE: { text: '프리미엄', bgColor: 'bg-gradient-to-r from-[#FF6B9D] to-[#A855F7]', textColor: 'text-white' },
-    PREMIUM: { text: '프리미엄', bgColor: 'bg-gradient-to-r from-[#FF6B9D] to-[#A855F7]', textColor: 'text-white' },
-    TRIAL: { text: '무료 체험', bgColor: 'bg-[#EFF6FF]', textColor: 'text-[#3B82F6]' },
-    FREE: { text: '무료', bgColor: 'bg-[#F8F9FA]', textColor: 'text-[#767676]' },
-  };
-
-  const currentSub = subscriptionLabel[user.subscriptionStatus as keyof typeof subscriptionLabel] || subscriptionLabel.FREE;
+  const currentSub = getPlanDisplay(user);
 
   return (
     <TabLayout>
@@ -144,12 +138,14 @@ export default function MyPage() {
               <h3 className="text-[13px] font-semibold text-[#767676]">기타</h3>
             </div>
 
-            {user.subscriptionStatus !== 'ACTIVE' && user.subscriptionStatus !== 'PREMIUM' && (
+            {!isPremiumPlan(user) && (
               <Link href="/pricing">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#FFF0F5] transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="text-xl">✨</span>
-                    <span className="text-[15px] font-medium text-[#FF6B9D]">플랜 업그레이드</span>
+                    <span className="text-[15px] font-medium text-[#FF6B9D]">
+                      {(user as any).subscriptionPlan === 'MONTHLY' ? '프리미엄으로 업그레이드' : '플랜 업그레이드'}
+                    </span>
                   </div>
                   <ChevronRight className="w-5 h-5 text-[#FF6B9D]" />
                 </div>

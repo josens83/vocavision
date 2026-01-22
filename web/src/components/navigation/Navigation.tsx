@@ -5,6 +5,7 @@ import { useState, useEffect, ReactNode, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
+import { getPlanDisplay, isPremiumPlan } from "@/lib/subscription";
 import { useAuthRequired } from "@/components/ui/AuthRequiredModal";
 
 export interface NavItem {
@@ -571,18 +572,14 @@ export default function Navigation() {
                     <div className="px-4 py-3 border-b border-slate-100">
                       <p className="text-sm font-medium text-slate-900">{user.name}</p>
                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                      <span className={`inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${
-                        user.subscriptionStatus === 'ACTIVE'
-                          ? 'bg-green-100 text-green-700'
-                          : user.subscriptionStatus === 'TRIAL'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        {user.subscriptionStatus === 'ACTIVE' && '프리미엄'}
-                        {user.subscriptionStatus === 'TRIAL' && '무료 체험'}
-                        {user.subscriptionStatus === 'FREE' && '무료'}
-                        {!user.subscriptionStatus && '무료'}
-                      </span>
+                      {(() => {
+                        const planDisplay = getPlanDisplay(user);
+                        return (
+                          <span className={`inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${planDisplay.bgColor} ${planDisplay.textColor}`}>
+                            {planDisplay.text}
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     {/* 메뉴 항목 */}
@@ -630,8 +627,8 @@ export default function Navigation() {
                       </Link>
                     </div>
 
-                    {/* 구독/요금제 */}
-                    {user.subscriptionStatus !== 'ACTIVE' && (
+                    {/* 구독/요금제 - 프리미엄(YEARLY/FAMILY)이 아닌 경우 표시 */}
+                    {!isPremiumPlan(user) && (
                       <div className="border-t border-slate-100 py-1">
                         <Link
                           href="/pricing"
@@ -641,7 +638,7 @@ export default function Navigation() {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                           </svg>
-                          프리미엄 업그레이드
+                          {(user as any).subscriptionPlan === 'MONTHLY' ? '프리미엄으로 업그레이드' : '플랜 업그레이드'}
                         </Link>
                       </div>
                     )}

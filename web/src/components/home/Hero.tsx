@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
+import { getPlanDisplay } from "@/lib/subscription";
 import { progressAPI, userAPI } from "@/lib/api";
 
 // ============================================
@@ -139,6 +140,45 @@ function ActionCard({
 }
 
 // ============================================
+// 남은 일수 계산 헬퍼 함수
+// ============================================
+function getDaysRemaining(subscriptionEnd?: string) {
+  if (!subscriptionEnd) return null;
+  const end = new Date(subscriptionEnd);
+  const now = new Date();
+  const diffTime = end.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays > 0 ? diffDays : null;
+}
+
+// ============================================
+// 현재 플랜 배지 컴포넌트
+// ============================================
+function CurrentPlanBadge() {
+  const { user } = useAuthStore();
+  if (!user) return null;
+
+  const planInfo = getPlanDisplay(user);
+  const daysRemaining = getDaysRemaining(user.subscriptionEnd);
+
+  return (
+    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#FF6B9D]/10 to-[#A855F7]/10 rounded-[14px] mb-4">
+      <div className="flex items-center gap-2">
+        <span className="text-lg">{planInfo.icon}</span>
+        <span className={`font-semibold text-[14px] px-2.5 py-1 rounded-full ${planInfo.bgColor} ${planInfo.textColor}`}>
+          {planInfo.text} 플랜
+        </span>
+      </div>
+      {daysRemaining && (
+        <span className="text-[13px] text-[#767676] font-medium">
+          D-{daysRemaining}일
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ============================================
 // 로그인 사용자용 학습 현황 섹션
 // ============================================
 function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean }) {
@@ -216,6 +256,9 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
 
   return (
     <div className="flex flex-col gap-4">
+      {/* 현재 플랜 표시 */}
+      <CurrentPlanBadge />
+
       {/* 오늘의 학습 현황 카드 - 모바일에서만 여기 표시 (은행 앱 스타일) */}
       {showStatsCard && (
         <div className="lg:hidden bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">

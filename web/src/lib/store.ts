@@ -52,6 +52,8 @@ export const clearLearningSession = () => {
 // ============================================
 // Auth Store
 // ============================================
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+
 interface User {
   id: string;
   email?: string | null;
@@ -60,6 +62,8 @@ interface User {
   role: string;
   provider?: string;
   subscriptionStatus: string;
+  subscriptionPlan?: string;  // FREE, MONTHLY, YEARLY, FAMILY
+  subscriptionEnd?: string;   // ISO date string
 }
 
 interface AuthState {
@@ -69,11 +73,12 @@ interface AuthState {
   setAuth: (user: User, token: string) => void;
   logout: () => void;
   setHasHydrated: (state: boolean) => void;
+  refreshUser: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       _hasHydrated: false,
@@ -87,6 +92,22 @@ export const useAuthStore = create<AuthState>()(
       },
       setHasHydrated: (state) => {
         set({ _hasHydrated: state });
+      },
+      refreshUser: async () => {
+        const token = get().token;
+        if (!token) return;
+
+        try {
+          const response = await fetch(`${API_URL}/users/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            set({ user: data.user });
+          }
+        } catch (error) {
+          console.error('Failed to refresh user:', error);
+        }
       },
     }),
     {

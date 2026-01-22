@@ -6,6 +6,7 @@ import Link from "next/link";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import Navigation from "@/components/navigation/Navigation";
 import { confirmPayment } from "@/lib/payments/toss";
+import { useAuthStore } from "@/lib/store";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -52,6 +53,13 @@ function SuccessContent() {
 
         if (result.success) {
           setStatus("success");
+          // 유저 정보 갱신 - 구독 상태 반영
+          try {
+            const { refreshUser } = useAuthStore.getState();
+            await refreshUser();
+          } catch (e) {
+            console.error('Failed to refresh user:', e);
+          }
         } else {
           setStatus("error");
           setErrorMessage(result.error || "결제 승인에 실패했습니다.");
