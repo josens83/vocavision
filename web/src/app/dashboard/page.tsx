@@ -247,7 +247,7 @@ export default function DashboardPage() {
                   href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
                   className="block w-full bg-white rounded-[14px] py-4 text-[#FF6B9D] font-bold text-[15px] text-center shadow-sm hover:shadow-md transition-shadow"
                 >
-                  이어서 학습
+                  {learnedWords === 0 ? '학습 시작' : '이어서 학습'}
                 </Link>
               </>
             )}
@@ -423,7 +423,7 @@ export default function DashboardPage() {
                 href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
                 className="block w-full py-4 bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] text-white font-bold text-[15px] rounded-[14px] text-center shadow-sm hover:shadow-md transition-shadow"
               >
-                이어서 학습
+                {learnedWords === 0 ? '학습 시작' : '이어서 학습'}
               </Link>
             )}
           </section>
