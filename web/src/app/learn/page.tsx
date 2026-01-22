@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams, redirect } from 'next/navigation';
-import { useAuthStore, useLearningStore } from '@/lib/store';
+import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSession, clearLearningSession } from '@/lib/store';
 import { progressAPI, wordsAPI } from '@/lib/api';
 import { canAccessContent } from '@/lib/subscription';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
@@ -152,12 +152,17 @@ function LearnPageContent() {
     cardRatings,
     setSessionId,
     setCardRating,
+    setCurrentIndex,
     goToNextCard,
     goToPrevCard,
     resetSession,
+    restoreSession,
     getWordsStudied,
     getWordsCorrect,
   } = useLearningStore();
+
+  // 세션 복원 여부 추적
+  const [sessionRestored, setSessionRestored] = useState(false);
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,10 +174,13 @@ function LearnPageContent() {
   useEffect(() => {
     if (!hasHydrated) return;
 
-    // Reset state on page entry to fix re-entry issue
-    resetSession();
+    // restart 모드이거나 데모/복습 모드면 세션 초기화
+    if (isRestart || isDemo || isReviewMode || isWeakMode) {
+      resetSession();
+      clearLearningSession();
+    }
+
     setShowResult(false);
-    setReviews([]);
     setLoading(true);
 
     // Guest users can also learn - don't redirect to login
@@ -254,7 +262,36 @@ function LearnPageContent() {
         setTotalLearnedInLevel(0);
         setTotalWordsInLevel(totalWeak);
       } else if (examParam) {
-        // If exam filter is provided, load words from that exam
+        // 1. 먼저 저장된 세션 확인 (restart 모드가 아닌 경우)
+        if (!isRestart && user && levelParam) {
+          const savedSession = loadLearningSession(examParam, levelParam);
+          if (savedSession && savedSession.words.length > 0) {
+            // 저장된 세션 복원
+            setReviews(savedSession.words.map((word: Word) => ({ word })));
+            // cardRatings를 인덱스 기반으로 변환
+            const indexRatings: Record<number, number> = {};
+            savedSession.words.forEach((word: Word, idx: number) => {
+              if (savedSession.ratings[word.id]) {
+                indexRatings[idx] = savedSession.ratings[word.id];
+              }
+            });
+            restoreSession(savedSession.currentIndex, indexRatings);
+            setSessionRestored(true);
+
+            // 진행률 데이터 로드
+            const totalData = await wordsAPI.getWords({
+              examCategory: examParam,
+              level: levelParam,
+              limit: 1,
+            });
+            const totalInLevel = totalData.pagination?.total || 0;
+            setTotalWordsInLevel(totalInLevel);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // 2. 새로운 단어 로드 (기존 로직)
         // 병렬 호출로 성능 개선 (5-8초 → 1-2초)
         const [wordsData, totalData] = await Promise.all([
           // 학습할 단어 조회 (excludeLearned로 미학습 단어만, restart 모드가 아닌 경우)
@@ -280,8 +317,22 @@ function LearnPageContent() {
           (word.definition && word.definition.trim() !== '') ||
           (word.definitionKo && word.definitionKo.trim() !== '')
         );
-        setReviews(wordsWithContent.slice(0, 20).map((word: Word) => ({ word })));
+        const newWords = wordsWithContent.slice(0, 20);
+        setReviews(newWords.map((word: Word) => ({ word })));
         setCurrentPage(page);
+
+        // 3. 새 세션 저장 (로그인 사용자 + levelParam이 있는 경우)
+        if (user && levelParam && newWords.length > 0) {
+          resetSession();  // 기존 세션 초기화
+          saveLearningSession({
+            exam: examParam,
+            level: levelParam,
+            words: newWords,
+            currentIndex: 0,
+            ratings: {},
+            timestamp: Date.now(),
+          });
+        }
 
         // Set progress data
         if (user && totalData) {
@@ -346,12 +397,23 @@ function LearnPageContent() {
     // Record rating for this card (prevents duplicate counting)
     setCardRating(currentWordIndex, rating);
 
+    // localStorage 세션 업데이트 (rating + index)
+    if (user && examParam && levelParam) {
+      const session = loadLearningSession(examParam, levelParam);
+      if (session) {
+        session.ratings[currentWord.id] = rating;
+        session.currentIndex = currentWordIndex + 1;
+        saveLearningSession(session);
+      }
+    }
+
     // Immediately advance to next word
     goToNextCard();
 
     // Check if we've finished all words
     if (currentWordIndex + 1 >= reviews.length) {
       setShowResult(true);
+      clearLearningSession();  // 세션 완료 시 클리어
       // 비로그인 데모 사용자의 경우 체험 횟수 증가
       if (isDemo && !user && typeof window !== 'undefined') {
         const currentCount = parseInt(localStorage.getItem(DEMO_KEY) || '0', 10);
@@ -373,31 +435,53 @@ function LearnPageContent() {
   const handlePrevious = () => {
     if (currentWordIndex > 0) {
       goToPrevCard();
+
+      // localStorage 세션 인덱스 업데이트
+      if (user && examParam && levelParam) {
+        const session = loadLearningSession(examParam, levelParam);
+        if (session) {
+          session.currentIndex = currentWordIndex - 1;
+          saveLearningSession(session);
+        }
+      }
     }
   };
 
   const handleNext = () => {
-    // "다음" 버튼은 "모름"(rating=1)으로 자동 처리 (이미 평가한 카드는 변경하지 않음)
+    // "다음" 버튼은 "알았음"(rating=4)으로 자동 처리 (이미 평가한 카드는 변경하지 않음)
     const currentWord = reviews[currentWordIndex]?.word;
 
     if (!currentWord) return;
 
     // Only record rating if this card hasn't been rated yet
     const alreadyRated = cardRatings[currentWordIndex] !== undefined;
+    const defaultRating = 4; // 알았음 (KNOWN)
 
     if (!alreadyRated) {
-      // Submit review with "모름" rating for logged-in users
+      // Submit review with "알았음" rating for logged-in users
       if (user) {
         progressAPI.submitReview({
           wordId: currentWord.id,
-          rating: 1, // 모름
+          rating: defaultRating,
           learningMethod: 'FLASHCARD',
           sessionId: sessionId || undefined,
         }).catch(error => console.error('Failed to submit review:', error));
       }
 
-      // Record as "모름" (rating=1)
-      setCardRating(currentWordIndex, 1);
+      // Record as "알았음" (rating=4)
+      setCardRating(currentWordIndex, defaultRating);
+    }
+
+    // localStorage 세션 업데이트 (rating + index)
+    if (user && examParam && levelParam) {
+      const session = loadLearningSession(examParam, levelParam);
+      if (session) {
+        if (!alreadyRated) {
+          session.ratings[currentWord.id] = defaultRating;
+        }
+        session.currentIndex = currentWordIndex + 1;
+        saveLearningSession(session);
+      }
     }
 
     // Advance to next word
@@ -406,6 +490,7 @@ function LearnPageContent() {
     // Check if we've finished all words
     if (currentWordIndex + 1 >= reviews.length) {
       setShowResult(true);
+      clearLearningSession();  // 세션 완료 시 클리어
       // 비로그인 데모 사용자의 경우 체험 횟수 증가
       if (isDemo && !user && typeof window !== 'undefined') {
         const currentCount = parseInt(localStorage.getItem(DEMO_KEY) || '0', 10);
