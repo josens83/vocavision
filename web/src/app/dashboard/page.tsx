@@ -80,6 +80,26 @@ export default function DashboardPage() {
   const [examLevelLoading, setExamLevelLoading] = useState(false);
   const [weakWordCount, setWeakWordCount] = useState(0);
 
+  // 구독 상태에 따른 접근 권한 체크
+  // FREE: 수능 L1만 / ACTIVE/PREMIUM: 수능 전체 / PREMIUM: TEPS 포함
+  const subscriptionStatus = user?.subscriptionStatus || 'FREE';
+  const isPremium = subscriptionStatus === 'PREMIUM' || subscriptionStatus === 'ACTIVE';
+  const isBasicOrHigher = isPremium || subscriptionStatus === 'TRIAL';
+
+  const canAccessExam = (exam: string): boolean => {
+    if (exam === 'CSAT') return true; // 수능은 모든 플랜에서 접근 가능 (레벨은 별도 체크)
+    if (exam === 'TEPS') return isPremium; // TEPS는 프리미엄만
+    return false;
+  };
+
+  const canAccessLevel = (exam: string, level: string): boolean => {
+    if (level === 'L1') return true; // L1은 모든 플랜에서 접근 가능
+    // L2, L3는 구독 필요
+    if (exam === 'CSAT') return isBasicOrHigher; // 수능 L2/L3는 베이직 이상
+    if (exam === 'TEPS') return isPremium; // TEPS는 프리미엄만
+    return false;
+  };
+
   // Calendar data
   const today = new Date();
   const currentMonth = today.getMonth();
@@ -275,15 +295,24 @@ export default function DashboardPage() {
             </button>
 
             <button
-              onClick={() => setActiveExam('TEPS' as ExamType)}
+              onClick={() => {
+                if (canAccessExam('TEPS')) {
+                  setActiveExam('TEPS' as ExamType);
+                } else {
+                  router.push('/pricing');
+                }
+              }}
               className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[16px] transition-all ${
-                selectedExam === 'TEPS'
+                !canAccessExam('TEPS')
+                  ? 'bg-[#F8F9FA] text-[#999999] cursor-not-allowed'
+                  : selectedExam === 'TEPS'
                   ? 'bg-[#A855F7] text-white shadow-sm'
                   : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
               }`}
             >
               <span className="text-xl">🎓</span>
               <span className="font-semibold">TEPS</span>
+              {!canAccessExam('TEPS') && <span className="text-sm">🔒</span>}
             </button>
           </div>
         </section>
@@ -293,22 +322,42 @@ export default function DashboardPage() {
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">레벨 선택</h3>
 
           <div className="flex gap-3">
-            {(['L1', 'L2', 'L3'] as const).map((lvl) => (
-              <button
-                key={lvl}
-                onClick={() => setActiveLevel(lvl)}
-                className={`flex-1 flex flex-col items-center py-4 rounded-[16px] transition-all ${
-                  selectedLevel === lvl
-                    ? 'bg-[#3B82F6] text-white shadow-sm'
-                    : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
-                }`}
-              >
-                <span className="font-bold text-[16px]">{lvl}</span>
-                <span className={`text-[12px] mt-1 ${selectedLevel === lvl ? 'text-blue-100' : 'text-[#999999]'}`}>
-                  {lvl === 'L1' ? '초급' : lvl === 'L2' ? '중급' : '고급'}
-                </span>
-              </button>
-            ))}
+            {(['L1', 'L2', 'L3'] as const).map((lvl) => {
+              const isLocked = !canAccessLevel(selectedExam, lvl);
+              return (
+                <button
+                  key={lvl}
+                  onClick={() => {
+                    if (isLocked) {
+                      router.push('/pricing');
+                    } else {
+                      setActiveLevel(lvl);
+                    }
+                  }}
+                  className={`flex-1 flex flex-col items-center py-4 rounded-[16px] transition-all ${
+                    isLocked
+                      ? 'bg-[#F8F9FA] text-[#999999] cursor-not-allowed'
+                      : selectedLevel === lvl
+                      ? 'bg-[#3B82F6] text-white shadow-sm'
+                      : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
+                  }`}
+                >
+                  <div className="flex items-center gap-1">
+                    <span className="font-bold text-[16px]">{lvl}</span>
+                    {isLocked && <span className="text-sm">🔒</span>}
+                  </div>
+                  <span className={`text-[12px] mt-1 ${
+                    isLocked
+                      ? 'text-[#999999]'
+                      : selectedLevel === lvl
+                      ? 'text-blue-100'
+                      : 'text-[#999999]'
+                  }`}>
+                    {lvl === 'L1' ? '초급' : lvl === 'L2' ? '중급' : '고급'}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </section>
 
