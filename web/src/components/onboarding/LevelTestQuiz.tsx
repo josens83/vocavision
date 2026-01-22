@@ -69,7 +69,7 @@ export default function LevelTestQuiz({
 
   const getOptionStyle = (option: string) => {
     if (!isAnswered) {
-      return 'bg-white border-gray-200 hover:border-pink-300 hover:bg-pink-50';
+      return 'bg-white border-gray-200 hover:border-teal-300 hover:bg-teal-50';
     }
 
     if (option === currentQuestion.correctAnswer) {
@@ -128,7 +128,7 @@ export default function LevelTestQuiz({
       <div className="flex-1 flex flex-col">
         {/* 단어 */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6 text-center">
-          <span className="text-xs text-pink-500 font-medium mb-2 block">
+          <span className="text-xs text-teal-500 font-medium mb-2 block">
             {getLevelLabel(currentQuestion.level)}
           </span>
           <h2 className="text-3xl font-bold text-gray-900">

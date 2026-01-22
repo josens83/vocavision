@@ -399,7 +399,7 @@ export default function AdminImageGenerationPage() {
                       flex-1 py-2.5 px-3 rounded-lg font-medium text-sm transition-all
                       ${
                         selectedLevel === level
-                          ? 'bg-pink-500 text-white'
+                          ? 'bg-teal-500 text-white'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }
                       ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}
@@ -423,7 +423,7 @@ export default function AdminImageGenerationPage() {
                 min={1}
                 max={1100}
                 disabled={isGenerating}
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-pink-500 focus:ring-pink-500 focus:outline-none focus:ring-2 focus:ring-opacity-20 disabled:opacity-50"
+                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-teal-500 focus:ring-teal-500 focus:outline-none focus:ring-2 focus:ring-opacity-20 disabled:opacity-50"
               />
               <p className="text-xs text-slate-500">최대 1,100</p>
             </div>
@@ -503,7 +503,7 @@ export default function AdminImageGenerationPage() {
                     <span className="text-slate-600">
                       {currentJob.processedWords.toLocaleString()} / {currentJob.totalWords.toLocaleString()} 단어
                     </span>
-                    <span className="font-medium text-pink-600">{progress}%</span>
+                    <span className="font-medium text-teal-600">{progress}%</span>
                   </div>
                   <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
                     <div

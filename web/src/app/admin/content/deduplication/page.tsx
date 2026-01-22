@@ -136,7 +136,7 @@ export default function DeduplicationPage() {
           <button
             onClick={fetchStats}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 disabled:opacity-50 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 disabled:opacity-50 transition"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -341,7 +341,7 @@ export default function DeduplicationPage() {
 
           <div className="space-y-4 text-sm">
             <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-xs">
+              <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center font-bold text-xs">
                 1
               </div>
               <div>
@@ -353,7 +353,7 @@ export default function DeduplicationPage() {
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-xs">
+              <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center font-bold text-xs">
                 2
               </div>
               <div>
@@ -368,7 +368,7 @@ export default function DeduplicationPage() {
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-xs">
+              <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center font-bold text-xs">
                 3
               </div>
               <div>

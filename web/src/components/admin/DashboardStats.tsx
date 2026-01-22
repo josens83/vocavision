@@ -37,7 +37,7 @@ const StatCard: React.FC<StatCardProps> = ({
   return (
     <div
       className={`bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-all ${
-        onClick ? 'cursor-pointer hover:border-pink-300 active:scale-[0.98]' : ''
+        onClick ? 'cursor-pointer hover:border-teal-300 active:scale-[0.98]' : ''
       }`}
       onClick={onClick}
     >
@@ -296,7 +296,7 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
   const examData = Object.entries(stats.byExamCategory || {}).map(([key, value]) => ({
     label: EXAM_CATEGORY_LABELS[key as keyof typeof EXAM_CATEGORY_LABELS] || key,
     value: value as number,
-    color: '#FF6699',
+    color: '#14B8A6',
   }));
 
   // Level data (handle UNKNOWN separately)
@@ -329,9 +329,9 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
 
       {/* Daily Workflow Guide */}
       {!hideWorkflowGuide && (
-        <div className="bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-100 rounded-xl p-4">
+        <div className="bg-gradient-to-r from-pink-50 to-purple-50 border border-teal-100 rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-pink-500 text-white flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-teal-500 text-white flex items-center justify-center flex-shrink-0">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
@@ -387,7 +387,7 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
         <StatCard
           title="전체 단어"
           value={stats.totalWords}
-          color="#FF6699"
+          color="#14B8A6"
           onClick={onNavigateToWords}
           icon={
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -478,9 +478,9 @@ export const DashboardStatsView: React.FC<DashboardStatsViewProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <button
             onClick={onAddWord}
-            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-pink-50 hover:bg-pink-100 transition-colors group"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-teal-50 hover:bg-teal-100 transition-colors group"
           >
-            <div className="w-10 h-10 rounded-lg bg-pink-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="w-10 h-10 rounded-lg bg-teal-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>

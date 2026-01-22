@@ -549,7 +549,7 @@ function LearnPageContent() {
           <div className="space-y-3">
             <a
               href="/pricing"
-              className="block w-full py-3.5 px-4 bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] text-white font-bold text-[14px] rounded-[14px] hover:opacity-90 transition shadow-[0_4px_12px_rgba(255,107,157,0.3)]"
+              className="block w-full py-3.5 px-4 bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white font-bold text-[14px] rounded-[14px] hover:opacity-90 transition shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
             >
               플랜 업그레이드
             </a>
@@ -580,7 +580,7 @@ function LearnPageContent() {
           <div className="space-y-3">
             <a
               href="/auth/register"
-              className="block w-full py-3.5 px-4 bg-[#FF6B9D] text-white font-bold text-[14px] rounded-[14px] hover:bg-[#FF5288] transition shadow-[0_4px_12px_rgba(255,107,157,0.3)]"
+              className="block w-full py-3.5 px-4 bg-[#14B8A6] text-white font-bold text-[14px] rounded-[14px] hover:bg-[#0D9488] transition shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
             >
               무료 회원가입
             </a>
@@ -720,7 +720,7 @@ function LearnPageContent() {
               <div className="flex-1">
                 <div className="w-full bg-[#F8F9FA] rounded-full h-2.5">
                   <div
-                    className="bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] h-2.5 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] h-2.5 rounded-full transition-all duration-300"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
@@ -730,7 +730,7 @@ function LearnPageContent() {
               {currentWordIndex >= reviews.length - 1 ? (
                 <button
                   onClick={handleNext}
-                  className="flex items-center gap-1 px-4 py-1.5 rounded-[10px] text-[13px] font-bold transition shrink-0 bg-[#FF6B9D] text-white hover:bg-[#FF5288] shadow-[0_2px_8px_rgba(255,107,157,0.3)]"
+                  className="flex items-center gap-1 px-4 py-1.5 rounded-[10px] text-[13px] font-bold transition shrink-0 bg-[#14B8A6] text-white hover:bg-[#0D9488] shadow-[0_2px_8px_rgba(20,184,166,0.3)]"
                 >
                   <span>완료</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -750,7 +750,7 @@ function LearnPageContent() {
               )}
 
               {/* Progress Count */}
-              <span className="text-[13px] font-bold text-[#FF6B9D] shrink-0">{currentWordIndex + 1}/{reviews.length}</span>
+              <span className="text-[13px] font-bold text-[#14B8A6] shrink-0">{currentWordIndex + 1}/{reviews.length}</span>
             </div>
           </div>
         </div>

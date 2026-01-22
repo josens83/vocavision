@@ -30,7 +30,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variants = {
     primary:
-      'bg-pink-500 text-white hover:bg-pink-600 focus:ring-pink-500 shadow-sm',
+      'bg-teal-500 text-white hover:bg-teal-600 focus:ring-teal-500 shadow-sm',
     secondary:
       'bg-slate-700 text-white hover:bg-slate-800 focus:ring-slate-500 shadow-sm',
     outline:
@@ -97,7 +97,7 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const colors = {
     gray: 'bg-slate-100 text-slate-700',
-    pink: 'bg-pink-100 text-pink-700',
+    pink: 'bg-teal-100 text-teal-700',
     green: 'bg-emerald-100 text-emerald-700',
     yellow: 'bg-amber-100 text-amber-700',
     blue: 'bg-blue-100 text-blue-700',
@@ -147,7 +147,7 @@ export const Input: React.FC<InputProps> = ({
           w-full px-4 py-2.5 rounded-lg border transition-colors duration-200
           ${error
             ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-            : 'border-slate-300 focus:border-pink-500 focus:ring-pink-500'
+            : 'border-slate-300 focus:border-teal-500 focus:ring-teal-500'
           }
           focus:outline-none focus:ring-2 focus:ring-opacity-20
           placeholder:text-slate-400
@@ -191,7 +191,7 @@ export const Select: React.FC<SelectProps> = ({
           w-full px-4 py-2.5 rounded-lg border transition-colors duration-200
           ${error
             ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-            : 'border-slate-300 focus:border-pink-500 focus:ring-pink-500'
+            : 'border-slate-300 focus:border-teal-500 focus:ring-teal-500'
           }
           focus:outline-none focus:ring-2 focus:ring-opacity-20
           bg-white
@@ -239,7 +239,7 @@ export const Textarea: React.FC<TextareaProps> = ({
           w-full px-4 py-3 rounded-lg border transition-colors duration-200
           ${error
             ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-            : 'border-slate-300 focus:border-pink-500 focus:ring-pink-500'
+            : 'border-slate-300 focus:border-teal-500 focus:ring-teal-500'
           }
           focus:outline-none focus:ring-2 focus:ring-opacity-20
           placeholder:text-slate-400 resize-none
@@ -272,8 +272,8 @@ export const Checkbox: React.FC<CheckboxProps> = ({
       <input
         type="checkbox"
         className={`
-          w-4 h-4 rounded border-slate-300 text-pink-500
-          focus:ring-pink-500 focus:ring-offset-0
+          w-4 h-4 rounded border-slate-300 text-teal-500
+          focus:ring-teal-500 focus:ring-offset-0
           ${className}
         `}
         {...props}
@@ -395,7 +395,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   color = 'pink',
 }) => {
   const colors = {
-    pink: 'bg-pink-500',
+    pink: 'bg-teal-500',
     green: 'bg-emerald-500',
     blue: 'bg-blue-500',
   };
@@ -465,7 +465,7 @@ export const Spinner: React.FC<SpinnerProps> = ({ size = 'md' }) => {
   return (
     <div className="flex items-center justify-center">
       <svg
-        className={`animate-spin text-pink-500 ${sizes[size]}`}
+        className={`animate-spin text-teal-500 ${sizes[size]}`}
         fill="none"
         viewBox="0 0 24 24"
       >

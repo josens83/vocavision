@@ -18,7 +18,7 @@ const examCategories: ExamCategory[] = [
     id: "CSAT",
     name: "수능",
     icon: "📚",
-    color: "bg-pink-100 text-pink-600",
+    color: "bg-teal-100 text-teal-600",
     href: "/learn?exam=CSAT",
     available: true,
   },

@@ -23,7 +23,7 @@ const config: Config = {
             200: '#FFC1D6',
             300: '#FFA3C2',
             400: '#FF85AD',
-            500: '#FF6699', // Primary Pink
+            500: '#14B8A6', // Primary Pink
             600: '#E65C8A',
             700: '#CC527A',
             800: '#B3486B',
@@ -55,7 +55,7 @@ const config: Config = {
 
         // 시험 카테고리 컬러 (Admin UI)
         exam: {
-          suneung: '#FF6699',
+          suneung: '#14B8A6',
           teps: '#8B5CF6',
           toefl: '#3B82F6',
           sat: '#10B981',
@@ -184,8 +184,8 @@ const config: Config = {
 
         // 브랜드 컬러
         brand: {
-          primary: '#1a8ec1',
-          secondary: '#50af31',
+          primary: '#14B8A6',
+          secondary: '#06B6D4',
           accent: '#fecc00',
         },
 

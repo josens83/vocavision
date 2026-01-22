@@ -274,7 +274,7 @@ export const BatchImageGenerationModal: React.FC<BatchImageGenerationModalProps>
                 <span className="text-slate-600">
                   진행률: <strong>{jobStatus.processedWords}</strong> / {jobStatus.totalWords} 단어
                 </span>
-                <span className="font-medium text-pink-600">{progress}%</span>
+                <span className="font-medium text-teal-600">{progress}%</span>
               </div>
               <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
                 <div

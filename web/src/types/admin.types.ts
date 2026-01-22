@@ -53,7 +53,7 @@ export const LEVEL_COLORS: Record<CEFRLevel, string> = {
   B1: 'bg-purple-100 text-purple-700 border-purple-200',
   B2: 'bg-amber-100 text-amber-700 border-amber-200',
   C1: 'bg-red-100 text-red-700 border-red-200',
-  C2: 'bg-pink-100 text-pink-700 border-pink-200',
+  C2: 'bg-teal-100 text-teal-700 border-teal-200',
 };
 
 export const STATUS_COLORS: Record<ContentStatus, string> = {

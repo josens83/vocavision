@@ -11,8 +11,8 @@ export default function LevelTestIntro({ onStart, onSkip }: LevelTestIntroProps)
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] text-center">
       {/* 아이콘 */}
-      <div className="w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mb-8">
-        <BookOpen className="w-12 h-12 text-pink-500" />
+      <div className="w-24 h-24 bg-teal-100 rounded-full flex items-center justify-center mb-8">
+        <BookOpen className="w-12 h-12 text-teal-500" />
       </div>
 
       {/* 타이틀 */}
@@ -29,21 +29,21 @@ export default function LevelTestIntro({ onStart, onSkip }: LevelTestIntroProps)
       {/* 혜택 리스트 */}
       <div className="bg-white rounded-2xl p-6 mb-8 w-full max-w-sm shadow-sm border border-gray-100">
         <div className="flex items-start gap-3 mb-4">
-          <Sparkles className="w-5 h-5 text-pink-500 mt-0.5 flex-shrink-0" />
+          <Sparkles className="w-5 h-5 text-teal-500 mt-0.5 flex-shrink-0" />
           <div className="text-left">
             <p className="font-medium text-gray-900">맞춤 레벨 추천</p>
             <p className="text-sm text-gray-500">당신에게 딱 맞는 난이도로 시작</p>
           </div>
         </div>
         <div className="flex items-start gap-3 mb-4">
-          <Sparkles className="w-5 h-5 text-pink-500 mt-0.5 flex-shrink-0" />
+          <Sparkles className="w-5 h-5 text-teal-500 mt-0.5 flex-shrink-0" />
           <div className="text-left">
             <p className="font-medium text-gray-900">효율적인 학습</p>
             <p className="text-sm text-gray-500">너무 쉽거나 어렵지 않게</p>
           </div>
         </div>
         <div className="flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-pink-500 mt-0.5 flex-shrink-0" />
+          <Sparkles className="w-5 h-5 text-teal-500 mt-0.5 flex-shrink-0" />
           <div className="text-left">
             <p className="font-medium text-gray-900">목표 설정 가이드</p>
             <p className="text-sm text-gray-500">수능 등급별 학습 방향 제시</p>
@@ -54,7 +54,7 @@ export default function LevelTestIntro({ onStart, onSkip }: LevelTestIntroProps)
       {/* CTA 버튼 */}
       <button
         onClick={onStart}
-        className="w-full max-w-sm bg-pink-500 hover:bg-pink-600 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-pink-500/25"
+        className="w-full max-w-sm bg-teal-500 hover:bg-teal-600 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-pink-500/25"
       >
         테스트 시작하기
         <ArrowRight className="w-5 h-5" />

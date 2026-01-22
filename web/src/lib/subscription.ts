@@ -39,7 +39,7 @@ export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscri
   if (plan === 'YEARLY' || plan === 'FAMILY') {
     return {
       text: '프리미엄',
-      bgColor: 'bg-gradient-to-r from-[#FF6B9D] to-[#A855F7]',
+      bgColor: 'bg-gradient-to-r from-[#14B8A6] to-[#06B6D4]',
       textColor: 'text-white',
       icon: '👑'
     };

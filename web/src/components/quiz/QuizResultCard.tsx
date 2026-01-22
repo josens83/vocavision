@@ -54,8 +54,8 @@ export default function QuizResultCard({
       <div className="max-w-lg mx-auto">
         {/* 완료 아이콘 */}
         <div className="text-center mb-6">
-          <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Trophy className="w-10 h-10 text-pink-500" />
+          <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trophy className="w-10 h-10 text-teal-500" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">퀴즈 완료!</h1>
           <p className="text-gray-500 mt-1">{gradeInfo.message}</p>
@@ -115,7 +115,7 @@ export default function QuizResultCard({
         {result.wrongWords.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
             <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-pink-500" />
+              <BookOpen className="w-5 h-5 text-teal-500" />
               복습이 필요한 단어 ({result.wrongWords.length}개)
             </h3>
             <div className="space-y-3">
@@ -138,7 +138,7 @@ export default function QuizResultCard({
         <div className="space-y-3">
           <button
             onClick={onRetry}
-            className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold
+            className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold
                        py-4 px-6 rounded-xl flex items-center justify-center gap-2
                        transition-colors"
           >

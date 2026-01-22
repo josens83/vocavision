@@ -19,7 +19,7 @@ export default function QuizOptions({
           onClick={() => onSelect(option)}
           disabled={disabled}
           className="w-full p-4 bg-white rounded-xl border-2 border-gray-200
-                     hover:border-pink-300 hover:bg-pink-50
+                     hover:border-teal-300 hover:bg-teal-50
                      text-left font-medium text-gray-800
                      transition-all active:scale-[0.98]
                      disabled:opacity-50 disabled:cursor-not-allowed"

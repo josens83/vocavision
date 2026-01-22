@@ -151,7 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeNav, onNavChange, pendingReview
           const isActive = activeNav === item.id;
           const className = `w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
             isActive
-              ? 'bg-pink-500 text-white'
+              ? 'bg-teal-500 text-white'
               : 'text-slate-400 hover:text-white hover:bg-slate-800'
           }`;
 
@@ -237,7 +237,7 @@ const Header: React.FC = () => {
           <input
             type="text"
             placeholder="검색..."
-            className="w-64 pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none text-sm"
+            className="w-64 pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none text-sm"
           />
         </div>
 
@@ -246,7 +246,7 @@ const Header: React.FC = () => {
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full"></span>
+          <span className="absolute top-1 right-1 w-2 h-2 bg-teal-500 rounded-full"></span>
         </button>
 
         {/* Settings */}

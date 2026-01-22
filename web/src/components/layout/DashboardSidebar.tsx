@@ -100,7 +100,7 @@ export default function DashboardSidebar() {
             <span className="text-white font-bold text-xl">V</span>
           </div>
           <span className="font-bold text-xl">
-            <span className="text-pink-500">Voca</span>
+            <span className="text-teal-500">Voca</span>
             <span className="text-gray-700">Vision</span>
             <span className="text-gray-400 ml-1">AI</span>
           </span>
@@ -147,14 +147,14 @@ export default function DashboardSidebar() {
             href={item.href}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
               isActive(item.href)
-                ? 'bg-pink-50 text-pink-600'
+                ? 'bg-teal-50 text-teal-600'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             }`}
           >
             {item.icon}
             <span>{item.label}</span>
             {item.badge && (
-              <span className="ml-auto bg-pink-100 text-pink-600 text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="ml-auto bg-teal-100 text-teal-600 text-xs font-bold px-2 py-0.5 rounded-full">
                 {item.badge}
               </span>
             )}
@@ -170,7 +170,7 @@ export default function DashboardSidebar() {
             href={item.href}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
               isActive(item.href)
-                ? 'bg-pink-50 text-pink-600'
+                ? 'bg-teal-50 text-teal-600'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             }`}
           >

@@ -34,7 +34,7 @@ function StressedPronunciation({ text }: { text: string }) {
           return (
             <span
               key={i}
-              className="text-pink-600 font-bold underline underline-offset-4 decoration-2 decoration-pink-400"
+              className="text-teal-600 font-bold underline underline-offset-4 decoration-2 decoration-pink-400"
             >
               {stressed}
             </span>
@@ -246,9 +246,9 @@ export default function FlashCardGesture({
         {/* Swipe Overlay Indicators */}
         <motion.div
           style={{ opacity: leftOpacity }}
-          className="absolute inset-0 bg-pink-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-10"
+          className="absolute inset-0 bg-teal-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-10"
         >
-          <div className="bg-pink-500 text-white rounded-full px-6 py-3">
+          <div className="bg-teal-500 text-white rounded-full px-6 py-3">
             <span className="text-xl font-bold inline-flex items-center gap-1">다음 <ArrowRight className="w-5 h-5" /></span>
           </div>
         </motion.div>
@@ -292,7 +292,7 @@ export default function FlashCardGesture({
 
           {/* Korean Pronunciation with stress marking - 강세 표시 지원 */}
           {koreanPronunciation && (
-            <span className="text-pink-500 font-medium">
+            <span className="text-teal-500 font-medium">
               <StressedPronunciation text={koreanPronunciation} />
             </span>
           )}
@@ -303,7 +303,7 @@ export default function FlashCardGesture({
 
         {/* Rating Buttons - 항상 표시 */}
         <div className="p-6 pb-0">
-          <div className="bg-white rounded-xl border-2 border-pink-100 p-4">
+          <div className="bg-white rounded-xl border-2 border-teal-100 p-4">
             <p className="text-center text-gray-500 text-xs md:text-sm mb-3">
               이 단어를 알고 있었나요?
             </p>
@@ -345,7 +345,7 @@ export default function FlashCardGesture({
             >
               <button
                 onClick={() => setShowAnswer(true)}
-                className="w-full bg-pink-500 hover:bg-pink-600 text-white py-4 rounded-xl text-lg font-bold transition shadow-lg shadow-pink-500/25"
+                className="w-full bg-teal-500 hover:bg-teal-600 text-white py-4 rounded-xl text-lg font-bold transition shadow-lg shadow-pink-500/25"
               >
                 정답 보기
               </button>

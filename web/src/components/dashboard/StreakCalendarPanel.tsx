@@ -60,9 +60,9 @@ export default function StreakCalendarPanel({
                   key={day}
                   className={`aspect-square flex items-center justify-center rounded-lg text-xs font-medium transition-colors ${
                     isToday
-                      ? 'bg-pink-500 text-white'
+                      ? 'bg-teal-500 text-white'
                       : hasActivity
-                      ? 'bg-pink-100 text-pink-600'
+                      ? 'bg-teal-100 text-teal-600'
                       : 'text-gray-400 hover:bg-gray-50'
                   }`}
                 >

@@ -318,7 +318,7 @@ function ReviewPageContent() {
                       ? 'bg-[#F8F9FA] text-[#999999] cursor-not-allowed'
                       : selectedExam === key
                       ? key === 'CSAT'
-                        ? 'bg-[#FF6B9D] text-white shadow-sm'
+                        ? 'bg-[#14B8A6] text-white shadow-sm'
                         : 'bg-[#A855F7] text-white shadow-sm'
                       : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
                   }`}
@@ -380,7 +380,7 @@ function ReviewPageContent() {
         <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[15px] font-bold text-[#1c1c1e]">복습 현황</h3>
-            <span className="text-[13px] text-[#FF6B9D] font-semibold flex items-center gap-1">
+            <span className="text-[13px] text-[#14B8A6] font-semibold flex items-center gap-1">
               🔥 {currentStreak}일 연속
             </span>
           </div>

@@ -147,22 +147,22 @@ export default function PricingPage() {
           </div>
 
           {/* 베이직 플랜 */}
-          <div className="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(255,107,157,0.15)] border-2 border-[#FF6B9D] p-7 relative">
+          <div className="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(20,184,166,0.15)] border-2 border-[#14B8A6] p-7 relative">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <span className="bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] text-white text-[12px] font-bold px-5 py-1.5 rounded-full shadow-lg">
+              <span className="bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white text-[12px] font-bold px-5 py-1.5 rounded-full shadow-lg">
                 인기
               </span>
             </div>
 
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 bg-[#FFF0F5] rounded-[14px] flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-[#FF6B9D]" />
+              <div className="w-11 h-11 bg-[#ECFDF5] rounded-[14px] flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-[#14B8A6]" />
               </div>
               <h3 className="text-[18px] font-bold text-[#1c1c1e]">베이직</h3>
             </div>
 
             <div className="mb-5">
-              <span className="text-[36px] font-bold text-[#FF6B9D]">
+              <span className="text-[36px] font-bold text-[#14B8A6]">
                 ₩{currentPrices.basic.toLocaleString()}
               </span>
               <span className="text-[#999999] text-[14px]">/{isYearly ? "년" : "월"}</span>
@@ -180,7 +180,7 @@ export default function PricingPage() {
 
             <button
               onClick={() => handlePlanSelect("basic")}
-              className="block w-full py-3.5 px-4 text-center rounded-[14px] font-semibold text-[14px] bg-[#FF6B9D] text-white hover:bg-[#FF5288] transition-colors shadow-[0_4px_12px_rgba(255,107,157,0.3)]"
+              className="block w-full py-3.5 px-4 text-center rounded-[14px] font-semibold text-[14px] bg-[#14B8A6] text-white hover:bg-[#0D9488] transition-colors shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
             >
               베이직 시작하기
             </button>
@@ -399,7 +399,7 @@ export default function PricingPage() {
                   <th className="text-center py-4 px-6 font-semibold text-[14px] text-[#767676]">
                     무료
                   </th>
-                  <th className="text-center py-4 px-6 font-semibold text-[14px] text-[#FF6B9D]">
+                  <th className="text-center py-4 px-6 font-semibold text-[14px] text-[#14B8A6]">
                     베이직
                   </th>
                   <th className="text-center py-4 px-6 font-semibold text-[14px] text-[#A855F7]">
@@ -435,7 +435,7 @@ export default function PricingPage() {
                           <X className="w-5 h-5 text-[#E8E8E8] mx-auto" />
                         )
                       ) : (
-                        <span className="text-[12px] text-[#FF6B9D] font-medium">
+                        <span className="text-[12px] text-[#14B8A6] font-medium">
                           {feature.basic}
                         </span>
                       )}
@@ -511,7 +511,7 @@ export default function PricingPage() {
 
         {/* CTA 섹션 */}
         <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] rounded-[24px] p-8 md:p-12 shadow-[0_4px_24px_rgba(255,107,157,0.25)]">
+          <div className="bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] rounded-[24px] p-8 md:p-12 shadow-[0_4px_24px_rgba(20,184,166,0.25)]">
             <h2 className="text-[24px] md:text-[28px] font-bold text-white mb-3">
               지금 바로 영어 단어 학습을 시작하세요!
             </h2>
@@ -523,7 +523,7 @@ export default function PricingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/auth/login"
-                className="inline-block px-8 py-4 bg-white text-[#FF6B9D] font-bold text-[14px] rounded-[14px] hover:bg-gray-50 transition-colors shadow-lg"
+                className="inline-block px-8 py-4 bg-white text-[#14B8A6] font-bold text-[14px] rounded-[14px] hover:bg-gray-50 transition-colors shadow-lg"
               >
                 무료로 시작하기
               </Link>

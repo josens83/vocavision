@@ -194,7 +194,7 @@ export const WordFormModal: React.FC<WordFormModalProps> = ({
                 onClick={() => toggleExamCategory(cat)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   form.examCategories.includes(cat)
-                    ? 'bg-pink-500 text-white shadow-md'
+                    ? 'bg-teal-500 text-white shadow-md'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -647,7 +647,7 @@ export const AIGenerationModal: React.FC<AIGenerationModalProps> = ({
               <div className="relative">
                 <Spinner size="lg" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs font-bold text-pink-600">AI</span>
+                  <span className="text-xs font-bold text-teal-600">AI</span>
                 </div>
               </div>
             </div>
@@ -1586,7 +1586,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                   </h3>
                   <div className="space-y-4">
                     {content.definitions.map((def, i) => (
-                      <div key={def.id || i} className="pl-4 border-l-2 border-pink-300">
+                      <div key={def.id || i} className="pl-4 border-l-2 border-teal-300">
                         <Badge color="gray" size="sm">{def.partOfSpeech}</Badge>
                         <p className="text-slate-900 mt-1">{def.definitionEn}</p>
                         <p className="text-slate-600 text-sm">{def.definitionKo}</p>
@@ -1634,9 +1634,9 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                       </div>
                     )}
                     {content.suffix && (
-                      <div className="px-3 py-2 bg-pink-50 rounded-lg">
-                        <span className="text-xs text-pink-500">접미사</span>
-                        <p className="font-medium text-pink-700">-{content.suffix}</p>
+                      <div className="px-3 py-2 bg-teal-50 rounded-lg">
+                        <span className="text-xs text-teal-500">접미사</span>
+                        <p className="font-medium text-teal-700">-{content.suffix}</p>
                       </div>
                     )}
                   </div>
@@ -1781,7 +1781,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                       variant="ghost"
                       size="sm"
                       onClick={handleStartEditExamples}
-                      className="text-pink-600 hover:bg-pink-100"
+                      className="text-teal-600 hover:bg-teal-100"
                     >
                       <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -1811,20 +1811,20 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                           value={ex.sentenceEn}
                           onChange={(e) => handleUpdateExample(i, 'sentenceEn', e.target.value)}
                           placeholder="English sentence..."
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
                         />
                         <input
                           type="text"
                           value={ex.sentenceKo}
                           onChange={(e) => handleUpdateExample(i, 'sentenceKo', e.target.value)}
                           placeholder="한국어 번역..."
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
                         />
                       </div>
                     ))}
                     <button
                       onClick={handleAddExample}
-                      className="w-full py-2 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:border-pink-400 hover:text-pink-500 transition text-sm"
+                      className="w-full py-2 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:border-teal-400 hover:text-teal-500 transition text-sm"
                     >
                       + 예문 추가
                     </button>
@@ -1833,7 +1833,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                       <Button variant="ghost" size="sm" onClick={handleCancelEditExamples} disabled={contentSaving}>
                         취소
                       </Button>
-                      <Button variant="primary" size="sm" onClick={handleSaveExamples} loading={contentSaving} className="bg-pink-500 hover:bg-pink-600">
+                      <Button variant="primary" size="sm" onClick={handleSaveExamples} loading={contentSaving} className="bg-teal-500 hover:bg-teal-600">
                         저장
                       </Button>
                     </div>
@@ -2056,7 +2056,7 @@ ${JSON.stringify({ word: word.word, level: word.level, examCategories, topics, c
                           log.action === 'publish' ? 'bg-purple-500' :
                           log.action === 'approve' ? 'bg-emerald-500' :
                           log.action === 'reject' ? 'bg-orange-500' :
-                          log.action === 'generate' ? 'bg-pink-500' :
+                          log.action === 'generate' ? 'bg-teal-500' :
                           'bg-gray-400'
                         }`} />
                         <div className="flex-1 min-w-0">

@@ -52,7 +52,7 @@ export default function WeeklyActivity({
             <div key={index} className="flex flex-col items-center">
               {/* 요일 */}
               <span
-                className={`text-xs mb-2 ${isToday ? 'font-semibold text-pink-600' : 'text-gray-500'}`}
+                className={`text-xs mb-2 ${isToday ? 'font-semibold text-teal-600' : 'text-gray-500'}`}
               >
                 {day.dayOfWeek}
               </span>
@@ -62,7 +62,7 @@ export default function WeeklyActivity({
                 className={`
                   w-10 h-10 rounded-lg flex items-center justify-center
                   ${getActivityLevel(day.wordsStudied)}
-                  ${isToday ? 'ring-2 ring-pink-500 ring-offset-2' : ''}
+                  ${isToday ? 'ring-2 ring-teal-500 ring-offset-2' : ''}
                 `}
                 title={`${day.wordsStudied}개 학습`}
               >

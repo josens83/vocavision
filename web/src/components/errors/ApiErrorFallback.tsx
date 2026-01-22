@@ -91,7 +91,7 @@ export function ApiErrorCard({ error, onRetry, title, message }: ApiErrorProps) 
       {onRetry && (
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-lg shadow-pink-500/25"
+          className="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-lg shadow-pink-500/25"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -151,7 +151,7 @@ export function EmptyState({
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className="inline-flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white px-5 py-2.5 rounded-xl font-bold transition"
+          className="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold transition"
         >
           {actionLabel}
         </button>
@@ -213,7 +213,7 @@ export function LoadingSpinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   return (
     <div className="flex justify-center py-8">
       <svg
-        className={`${sizeClasses[size]} animate-spin text-pink-500`}
+        className={`${sizeClasses[size]} animate-spin text-teal-500`}
         fill="none"
         viewBox="0 0 24 24"
       >

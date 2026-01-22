@@ -139,7 +139,7 @@ export function VocabSelect({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="mx-2 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-400 min-w-32 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="mx-2 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-teal-400 min-w-32 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <option value="">{placeholder}</option>
       {options.map((opt) => (
