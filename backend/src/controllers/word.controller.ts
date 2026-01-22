@@ -22,6 +22,7 @@ export const getWords = async (
       search,
       excludeLearned,
       shuffle,
+      mode,
     } = req.query;
 
     const pageNum = parseInt(page as string);
@@ -31,9 +32,10 @@ export const getWords = async (
     // Get user ID if authenticated (set by optionalAuth middleware)
     const userId = (req as any).userId;
 
-    // Only show PUBLISHED words to users
+    // Only show PUBLISHED and ACTIVE words to users
     const where: any = {
       status: 'PUBLISHED' as const,
+      isActive: true,
     };
 
     if (difficulty) {
@@ -91,6 +93,42 @@ export const getWords = async (
       const learnedIds = learnedWordIds.map(p => p.wordId);
       if (learnedIds.length > 0) {
         where.id = { notIn: learnedIds };
+      }
+    }
+
+    // mode=weak: Only return words that user has learned but are "weak"
+    // Weak = incorrectCount > 0 OR correctCount < 3
+    if (mode === 'weak' && userId) {
+      const weakWordIds = await prisma.userProgress.findMany({
+        where: {
+          userId,
+          OR: [
+            { incorrectCount: { gt: 0 } },
+            { correctCount: { lt: 3 } },
+          ],
+          word: {
+            isActive: true,
+            status: 'PUBLISHED',
+            ...(examCategory ? { examLevels: { some: { examCategory: examCategory as any } } } : {}),
+            ...(level ? { examLevels: { some: { level: level as string } } } : {}),
+          },
+        },
+        select: { wordId: true },
+        orderBy: [
+          { incorrectCount: 'desc' },
+          { correctCount: 'asc' },
+        ],
+      });
+      const weakIds = weakWordIds.map(p => p.wordId);
+      if (weakIds.length > 0) {
+        where.id = { in: weakIds };
+      } else {
+        // No weak words found - return empty result
+        return res.json({
+          data: [],
+          words: [],
+          pagination: { page: 1, limit: limitNum, total: 0, totalPages: 0 }
+        });
       }
     }
 
@@ -249,9 +287,10 @@ export const getRandomWords = async (
     const { count = '10', difficulty, examCategory, level } = req.query;
     const limitNum = parseInt(count as string);
 
-    // Only show PUBLISHED words to users
+    // Only show PUBLISHED and ACTIVE words to users
     const where: any = {
       status: 'PUBLISHED' as const,
+      isActive: true,
     };
     if (difficulty) {
       where.difficulty = difficulty;
