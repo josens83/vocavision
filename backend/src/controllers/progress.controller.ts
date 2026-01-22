@@ -125,8 +125,14 @@ export const getDueReviews = async (
     const now = new Date();
     const { examCategory, level } = req.query;
 
+    // KST 기준 오늘 시작 시간 (00:00:00)
+    const todayStartKST = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    todayStartKST.setUTCHours(0, 0, 0, 0);
+    const todayStartUTC = new Date(todayStartKST.getTime() - 9 * 60 * 60 * 1000);
+
     // 기본 where 조건
     const wordWhere: any = {
+      isActive: true,
       examCategory: { not: 'CSAT_ARCHIVE' }
     };
 
@@ -142,6 +148,7 @@ export const getDueReviews = async (
       };
     }
 
+    // 복습 대기 단어 조회 (정렬 기준 개선: nextReviewDate → incorrectCount 높은 순 → correctCount 낮은 순 → createdAt 오래된 순)
     const dueReviews = await prisma.userProgress.findMany({
       where: {
         userId,
@@ -166,15 +173,61 @@ export const getDueReviews = async (
           }
         }
       },
-      orderBy: { nextReviewDate: 'asc' }
+      orderBy: [
+        { nextReviewDate: 'asc' },
+        { incorrectCount: 'desc' },  // 틀린 횟수 많은 것 먼저
+        { correctCount: 'asc' },     // 맞은 횟수 적은 것 먼저
+        { createdAt: 'asc' },        // 오래된 것 먼저
+      ]
     });
 
-    // 전체 학습 기록에서 정답률 계산 (복습 대기와 무관하게)
-    const allProgress = await prisma.userProgress.findMany({
-      where: { userId, word: wordWhere },
-      select: { correctCount: true, incorrectCount: true }
-    });
+    // 병렬로 통계 정보 조회
+    const [allProgress, lastReviewRecord, weakWordsCount, completedTodayCount, bookmarkedCount] = await Promise.all([
+      // 전체 학습 기록에서 정답률 계산
+      prisma.userProgress.findMany({
+        where: { userId, word: wordWhere },
+        select: { correctCount: true, incorrectCount: true }
+      }),
 
+      // 마지막 복습 날짜 조회 (해당 시험/레벨의 가장 최근 lastReviewDate)
+      prisma.userProgress.findFirst({
+        where: {
+          userId,
+          lastReviewDate: { not: null },
+          word: wordWhere
+        },
+        orderBy: { lastReviewDate: 'desc' },
+        select: { lastReviewDate: true }
+      }),
+
+      // 취약 단어 수 (incorrectCount > 0인 단어)
+      prisma.userProgress.count({
+        where: {
+          userId,
+          incorrectCount: { gt: 0 },
+          word: wordWhere
+        }
+      }),
+
+      // 오늘 완료한 복습 수 (KST 기준)
+      prisma.userProgress.count({
+        where: {
+          userId,
+          lastReviewDate: { gte: todayStartUTC },
+          word: wordWhere
+        }
+      }),
+
+      // 북마크 수 (UserBookmark 테이블 사용)
+      prisma.userBookmark.count({
+        where: {
+          userId,
+          word: wordWhere
+        }
+      }).catch(() => 0)  // UserBookmark 테이블이 없을 경우 0 반환
+    ]);
+
+    // 정답률 계산
     let totalCorrect = 0;
     let totalIncorrect = 0;
     allProgress.forEach(p => {
@@ -184,7 +237,16 @@ export const getDueReviews = async (
     const totalAttempts = totalCorrect + totalIncorrect;
     const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
 
-    res.json({ reviews: dueReviews, count: dueReviews.length, accuracy });
+    res.json({
+      reviews: dueReviews,
+      count: dueReviews.length,
+      accuracy,
+      lastReviewDate: lastReviewRecord?.lastReviewDate || null,
+      weakCount: weakWordsCount,
+      completedToday: completedTodayCount,
+      totalReviewed: allProgress.length,
+      bookmarkedCount: bookmarkedCount
+    });
   } catch (error) {
     next(error);
   }
@@ -488,7 +550,7 @@ export const getReviewQuiz = async (
       };
     }
 
-    // 복습할 단어 가져오기
+    // 복습할 단어 가져오기 (getDueReviews와 동일한 정렬 기준 사용)
     const dueReviews = await prisma.userProgress.findMany({
       where: {
         userId,
@@ -504,7 +566,12 @@ export const getReviewQuiz = async (
           }
         }
       },
-      orderBy: { nextReviewDate: 'asc' },
+      orderBy: [
+        { nextReviewDate: 'asc' },
+        { incorrectCount: 'desc' },  // 틀린 횟수 많은 것 먼저
+        { correctCount: 'asc' },     // 맞은 횟수 적은 것 먼저
+        { createdAt: 'asc' },        // 오래된 것 먼저
+      ],
       take: parseInt(limit as string)
     });
 
@@ -768,7 +835,7 @@ export const getActivityHeatmap = async (
 };
 
 /**
- * 잘 모르는 단어 수 조회 (correctCount < 3 또는 masteryLevel이 NEW/LEARNING)
+ * 취약 단어 수 조회 (incorrectCount > 0인 단어 = 한 번이라도 틀린 적 있는 단어)
  * GET /progress/weak-words/count
  * Query: examCategory, level
  */
@@ -781,22 +848,30 @@ export const getWeakWordsCount = async (
     const userId = req.userId!;
     const { examCategory, level } = req.query;
 
-    // 시험/레벨에 해당하는 단어 중 잘 모르는 단어 수 조회
+    // 기본 where 조건
+    const wordWhere: any = {
+      isActive: true,
+      examCategory: { not: 'CSAT_ARCHIVE' }
+    };
+
+    // 시험 필터
+    if (examCategory && examCategory !== 'all') {
+      wordWhere.examCategory = examCategory as string;
+    }
+
+    // 레벨 필터
+    if (level && level !== 'all') {
+      wordWhere.examLevels = {
+        some: { level: level as string }
+      };
+    }
+
+    // 취약 단어 수 조회 (incorrectCount > 0 = 한 번이라도 틀린 적 있는 단어)
     const weakCount = await prisma.userProgress.count({
       where: {
         userId,
-        word: {
-          examLevels: examCategory || level ? {
-            some: {
-              ...(examCategory && { examCategory: examCategory as ExamCategory }),
-              ...(level && { level: level as string }),
-            }
-          } : undefined,
-        },
-        OR: [
-          { correctCount: { lt: 3 } },
-          { masteryLevel: { in: ['NEW', 'LEARNING'] } }
-        ]
+        incorrectCount: { gt: 0 },
+        word: wordWhere
       }
     });
 
