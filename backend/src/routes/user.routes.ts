@@ -4,6 +4,61 @@ import { prisma } from '../index';
 
 const router = Router();
 
+/**
+ * @swagger
+ * /users/me:
+ *   get:
+ *     summary: 현재 로그인한 사용자 정보 조회
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 사용자 정보
+ */
+router.get('/me', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as AuthRequest).userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        role: true,
+        provider: true,
+        subscriptionStatus: true,
+        subscriptionPlan: true,
+        subscriptionStart: true,
+        subscriptionEnd: true,
+        trialEnd: true,
+        totalWordsLearned: true,
+        currentStreak: true,
+        longestStreak: true,
+        lastActiveDate: true,
+        dailyGoal: true,
+        dailyProgress: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    console.error('[Users/me] Error:', error);
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
 // Sample seed words for quick database population
 const sampleWords = [
   // CSAT L1 (10 words)
