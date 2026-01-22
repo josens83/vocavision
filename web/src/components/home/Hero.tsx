@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
+import { getPlanDisplay } from "@/lib/subscription";
 import { progressAPI, userAPI } from "@/lib/api";
 
 // ============================================
@@ -139,26 +140,8 @@ function ActionCard({
 }
 
 // ============================================
-// 플랜 표시 헬퍼 함수
+// 남은 일수 계산 헬퍼 함수
 // ============================================
-function getPlanInfo(user: any) {
-  if (!user) return null;
-
-  const plan = user.subscriptionPlan;
-  const status = user.subscriptionStatus;
-
-  if (plan === 'YEARLY' || plan === 'FAMILY') {
-    return { text: '프리미엄', color: 'bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] text-white', icon: '👑' };
-  }
-  if (plan === 'MONTHLY' && status === 'ACTIVE') {
-    return { text: '베이직', color: 'bg-[#3B82F6] text-white', icon: '💎' };
-  }
-  if (status === 'TRIAL') {
-    return { text: '무료 체험', color: 'bg-[#EFF6FF] text-[#3B82F6]', icon: '🎁' };
-  }
-  return { text: '무료', color: 'bg-[#F8F9FA] text-[#767676]', icon: '✨' };
-}
-
 function getDaysRemaining(subscriptionEnd?: string) {
   if (!subscriptionEnd) return null;
   const end = new Date(subscriptionEnd);
@@ -175,16 +158,14 @@ function CurrentPlanBadge() {
   const { user } = useAuthStore();
   if (!user) return null;
 
-  const planInfo = getPlanInfo(user);
-  if (!planInfo) return null;
-
+  const planInfo = getPlanDisplay(user);
   const daysRemaining = getDaysRemaining(user.subscriptionEnd);
 
   return (
     <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#FF6B9D]/10 to-[#A855F7]/10 rounded-[14px] mb-4">
       <div className="flex items-center gap-2">
         <span className="text-lg">{planInfo.icon}</span>
-        <span className={`font-semibold text-[14px] px-2.5 py-1 rounded-full ${planInfo.color}`}>
+        <span className={`font-semibold text-[14px] px-2.5 py-1 rounded-full ${planInfo.bgColor} ${planInfo.textColor}`}>
           {planInfo.text} 플랜
         </span>
       </div>

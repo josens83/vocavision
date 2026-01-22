@@ -5,6 +5,7 @@ import { useState, useEffect, ReactNode, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
+import { getPlanDisplay, isPremiumPlan } from "@/lib/subscription";
 import { useAuthRequired } from "@/components/ui/AuthRequiredModal";
 
 export interface NavItem {
@@ -571,20 +572,14 @@ export default function Navigation() {
                     <div className="px-4 py-3 border-b border-slate-100">
                       <p className="text-sm font-medium text-slate-900">{user.name}</p>
                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                      <span className={`inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${
-                        ((user as any).subscriptionPlan === 'YEARLY' || (user as any).subscriptionPlan === 'FAMILY')
-                          ? 'bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] text-white'
-                          : ((user as any).subscriptionPlan === 'MONTHLY' && user.subscriptionStatus === 'ACTIVE')
-                          ? 'bg-blue-500 text-white'
-                          : user.subscriptionStatus === 'TRIAL'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        {((user as any).subscriptionPlan === 'YEARLY' || (user as any).subscriptionPlan === 'FAMILY') && '프리미엄'}
-                        {(user as any).subscriptionPlan === 'MONTHLY' && user.subscriptionStatus === 'ACTIVE' && '베이직'}
-                        {user.subscriptionStatus === 'TRIAL' && !((user as any).subscriptionPlan === 'MONTHLY' || (user as any).subscriptionPlan === 'YEARLY' || (user as any).subscriptionPlan === 'FAMILY') && '무료 체험'}
-                        {(user.subscriptionStatus === 'FREE' || !user.subscriptionStatus) && !(user as any).subscriptionPlan && '무료'}
-                      </span>
+                      {(() => {
+                        const planDisplay = getPlanDisplay(user);
+                        return (
+                          <span className={`inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${planDisplay.bgColor} ${planDisplay.textColor}`}>
+                            {planDisplay.text}
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     {/* 메뉴 항목 */}
@@ -633,7 +628,7 @@ export default function Navigation() {
                     </div>
 
                     {/* 구독/요금제 - 프리미엄(YEARLY/FAMILY)이 아닌 경우 표시 */}
-                    {!((user as any).subscriptionPlan === 'YEARLY' || (user as any).subscriptionPlan === 'FAMILY') && (
+                    {!isPremiumPlan(user) && (
                       <div className="border-t border-slate-100 py-1">
                         <Link
                           href="/pricing"

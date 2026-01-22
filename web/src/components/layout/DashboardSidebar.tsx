@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
+import { getPlanDisplay } from '@/lib/subscription';
 
 interface SidebarItem {
   label: string;
@@ -125,13 +126,14 @@ export default function DashboardSidebar() {
             )}
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900 truncate">{user.name}</p>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                user.subscriptionStatus === 'ACTIVE'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-gray-100 text-gray-600'
-              }`}>
-                {user.subscriptionStatus === 'ACTIVE' ? '프리미엄' : '무료'}
-              </span>
+              {(() => {
+                const planDisplay = getPlanDisplay(user);
+                return (
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${planDisplay.bgColor} ${planDisplay.textColor}`}>
+                    {planDisplay.text}
+                  </span>
+                );
+              })()}
             </div>
           </Link>
         </div>
