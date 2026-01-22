@@ -106,6 +106,8 @@ function LearnPageContent() {
   const levelParam = searchParams.get('level');
   const isDemo = searchParams.get('demo') === 'true' || searchParams.get('demo') === '1';
   const isReviewMode = searchParams.get('mode') === 'review';
+  const isWeakMode = searchParams.get('mode') === 'weak';
+  const isRestart = searchParams.get('restart') === 'true';
 
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
@@ -127,10 +129,10 @@ function LearnPageContent() {
 
   // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트 (복습 모드 제외)
   useEffect(() => {
-    if (hasHydrated && !examParam && !isDemo && !isReviewMode) {
+    if (hasHydrated && !examParam && !isDemo && !isReviewMode && !isWeakMode) {
       router.replace(user ? '/dashboard' : '/');
     }
-  }, [hasHydrated, examParam, isDemo, isReviewMode, user, router]);
+  }, [hasHydrated, examParam, isDemo, isReviewMode, isWeakMode, user, router]);
   const {
     currentWordIndex,
     sessionId,
@@ -176,7 +178,7 @@ function LearnPageContent() {
         timestamp: Date.now(),
       }));
     }
-  }, [user, hasHydrated, router, examParam, levelParam, isDemo]);
+  }, [user, hasHydrated, router, examParam, levelParam, isDemo, isWeakMode, isRestart]);
 
   const startSession = async () => {
     try {
@@ -207,17 +209,48 @@ function LearnPageContent() {
         const words = data.words || data.data || [];
         setReviews(words.map((word: Word) => ({ word })));
         setTotalWordsInLevel(data.pagination?.total || 0);
-      } else if (examParam) {
-        // If exam filter is provided, load words from that exam
-        // 병렬 호출로 성능 개선 (5-8초 → 1-2초)
+      } else if (isWeakMode && examParam && user) {
+        // 약한 단어만 학습 모드: incorrectCount > 0 또는 correctCount < 3인 단어
         const [wordsData, totalData] = await Promise.all([
-          // 학습할 단어 조회 (excludeLearned로 미학습 단어만)
           wordsAPI.getWords({
             examCategory: examParam,
             level: levelParam || undefined,
             limit: 20,
             page,
-            excludeLearned: user ? true : undefined,
+            mode: 'weak',
+            shuffle: true,
+          }),
+          wordsAPI.getWords({
+            examCategory: examParam,
+            level: levelParam || undefined,
+            limit: 1,
+            mode: 'weak',
+          }),
+        ]);
+
+        const words = wordsData.words || wordsData.data || [];
+        const wordsWithContent = words.filter((word: any) =>
+          (word.definition && word.definition.trim() !== '') ||
+          (word.definitionKo && word.definitionKo.trim() !== '')
+        );
+        setReviews(wordsWithContent.slice(0, 20).map((word: Word) => ({ word })));
+        setCurrentPage(page);
+
+        // 약한 단어 진행률 표시
+        const totalWeak = totalData?.pagination?.total || 0;
+        setTotalLearnedInLevel(0);
+        setTotalWordsInLevel(totalWeak);
+      } else if (examParam) {
+        // If exam filter is provided, load words from that exam
+        // 병렬 호출로 성능 개선 (5-8초 → 1-2초)
+        const [wordsData, totalData] = await Promise.all([
+          // 학습할 단어 조회 (excludeLearned로 미학습 단어만, restart 모드가 아닌 경우)
+          wordsAPI.getWords({
+            examCategory: examParam,
+            level: levelParam || undefined,
+            limit: 20,
+            page,
+            excludeLearned: user && !isRestart ? true : undefined,
             shuffle: true,
           }),
           // 로그인 사용자만 전체 단어 수 조회 (진행률 계산용)
