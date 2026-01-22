@@ -139,6 +139,65 @@ function ActionCard({
 }
 
 // ============================================
+// 플랜 표시 헬퍼 함수
+// ============================================
+function getPlanInfo(user: any) {
+  if (!user) return null;
+
+  const plan = user.subscriptionPlan;
+  const status = user.subscriptionStatus;
+
+  if (plan === 'YEARLY' || plan === 'FAMILY') {
+    return { text: '프리미엄', color: 'bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] text-white', icon: '👑' };
+  }
+  if (plan === 'MONTHLY' && status === 'ACTIVE') {
+    return { text: '베이직', color: 'bg-[#3B82F6] text-white', icon: '💎' };
+  }
+  if (status === 'TRIAL') {
+    return { text: '무료 체험', color: 'bg-[#EFF6FF] text-[#3B82F6]', icon: '🎁' };
+  }
+  return { text: '무료', color: 'bg-[#F8F9FA] text-[#767676]', icon: '✨' };
+}
+
+function getDaysRemaining(subscriptionEnd?: string) {
+  if (!subscriptionEnd) return null;
+  const end = new Date(subscriptionEnd);
+  const now = new Date();
+  const diffTime = end.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays > 0 ? diffDays : null;
+}
+
+// ============================================
+// 현재 플랜 배지 컴포넌트
+// ============================================
+function CurrentPlanBadge() {
+  const { user } = useAuthStore();
+  if (!user) return null;
+
+  const planInfo = getPlanInfo(user);
+  if (!planInfo) return null;
+
+  const daysRemaining = getDaysRemaining(user.subscriptionEnd);
+
+  return (
+    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#FF6B9D]/10 to-[#A855F7]/10 rounded-[14px] mb-4">
+      <div className="flex items-center gap-2">
+        <span className="text-lg">{planInfo.icon}</span>
+        <span className={`font-semibold text-[14px] px-2.5 py-1 rounded-full ${planInfo.color}`}>
+          {planInfo.text} 플랜
+        </span>
+      </div>
+      {daysRemaining && (
+        <span className="text-[13px] text-[#767676] font-medium">
+          D-{daysRemaining}일
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ============================================
 // 로그인 사용자용 학습 현황 섹션
 // ============================================
 function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean }) {
@@ -216,6 +275,9 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
 
   return (
     <div className="flex flex-col gap-4">
+      {/* 현재 플랜 표시 */}
+      <CurrentPlanBadge />
+
       {/* 오늘의 학습 현황 카드 - 모바일에서만 여기 표시 (은행 앱 스타일) */}
       {showStatsCard && (
         <div className="lg:hidden bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
