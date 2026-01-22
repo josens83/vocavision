@@ -21,7 +21,7 @@ function DashboardItem({ value, label, color }: { value: string | number, label:
       >
         {value}
       </span>
-      <span className="text-[12px] text-[#767676]">{label}</span>
+      <span className="text-[12px] text-gray-500">{label}</span>
     </div>
   );
 }
@@ -198,7 +198,7 @@ function ReviewPageContent() {
           <SkeletonCard className="h-40" />
           <div className="grid grid-cols-3 gap-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-[20px] p-4 border border-[#f5f5f5]">
+              <div key={i} className="bg-white rounded-2xl p-4 border border-gray-200">
                 <div className="h-9 w-12 bg-gray-200 rounded animate-pulse mx-auto mb-1" />
                 <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mx-auto" />
               </div>
@@ -218,7 +218,7 @@ function ReviewPageContent() {
       <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4">
         {/* 데모 모드 배너 */}
         {isDemo && !user && (
-          <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-[14px] p-4">
+          <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-xl p-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 bg-[#F59E0B] text-white rounded font-bold text-xs">체험</span>
@@ -235,24 +235,24 @@ function ReviewPageContent() {
         )}
 
         {/* 복습 대기 Hero (은행 앱 스타일 - 보라색) */}
-        <section className="relative w-full bg-[#F3E8FF] rounded-[24px] overflow-hidden p-6 shadow-sm">
+        <section className="relative w-full bg-[#F3E8FF] rounded-2xl overflow-hidden p-6 shadow-sm">
           <div className="relative z-10">
-            <span className="text-[#A855F7] text-[13px] font-semibold block mb-2">
+            <span className="text-purple-500 text-[13px] font-semibold block mb-2">
               복습 대기
             </span>
 
             {stats.dueToday > 0 ? (
               <>
                 <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
-                  <span className="text-[#A855F7]">{stats.dueToday}개</span> 단어가<br />
+                  <span className="text-purple-500">{stats.dueToday}개</span> 단어가<br />
                   복습을 기다려요
                 </h2>
-                <p className="text-[14px] text-[#767676] mb-4">
+                <p className="text-[14px] text-gray-500 mb-4">
                   지금 시작하면 <span className="font-semibold text-[#1c1c1e]">{estimatedMinutes}분</span>이면 끝나요
                 </p>
                 <Link
                   href={`/review/quiz?exam=${selectedExam}&level=${selectedLevel}`}
-                  className="block w-full bg-white rounded-[14px] py-4 text-[#A855F7] font-bold text-[15px] text-center shadow-sm hover:shadow-md transition-shadow"
+                  className="block w-full bg-white rounded-xl py-4 text-purple-500 font-bold text-[15px] text-center shadow-sm hover:shadow-md transition-shadow"
                 >
                   복습 시작
                 </Link>
@@ -262,7 +262,7 @@ function ReviewPageContent() {
                 <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
                   오늘 복습 완료! 🎉
                 </h2>
-                <p className="text-[14px] text-[#767676] mb-4">
+                <p className="text-[14px] text-gray-500 mb-4">
                   오늘 {stats.completedToday}개 복습을 완료했어요! 잘 하셨습니다.
                 </p>
               </>
@@ -271,7 +271,7 @@ function ReviewPageContent() {
                 <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
                   아직 복습할 단어가 없어요 📚
                 </h2>
-                <p className="text-[14px] text-[#767676] mb-4">
+                <p className="text-[14px] text-gray-500 mb-4">
                   학습한 단어는 간격 반복 알고리즘에 따라 복습 일정에 추가됩니다
                 </p>
               </>
@@ -280,7 +280,7 @@ function ReviewPageContent() {
                 <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
                   오늘은 복습 쉬는 날! ✅
                 </h2>
-                <p className="text-[14px] text-[#767676] mb-4">
+                <p className="text-[14px] text-gray-500 mb-4">
                   내일 복습할 단어가 준비될 때까지 쉬세요
                 </p>
               </>
@@ -297,7 +297,7 @@ function ReviewPageContent() {
         </section>
 
         {/* 시험 선택 (은행 앱 스타일) */}
-        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">시험 선택</h3>
 
           <div className="flex gap-3">
@@ -313,14 +313,14 @@ function ReviewPageContent() {
                       handleExamChange(key);
                     }
                   }}
-                  className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[16px] transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl transition-all ${
                     isLocked
-                      ? 'bg-[#F8F9FA] text-[#999999] cursor-not-allowed'
+                      ? 'bg-gray-100 text-[#999999] cursor-not-allowed'
                       : selectedExam === key
                       ? key === 'CSAT'
                         ? 'bg-[#14B8A6] text-white shadow-sm'
                         : 'bg-[#A855F7] text-white shadow-sm'
-                      : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                   }`}
                 >
                   <span className="text-xl">{info.icon}</span>
@@ -333,7 +333,7 @@ function ReviewPageContent() {
         </section>
 
         {/* 레벨 선택 (은행 앱 스타일) */}
-        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">레벨 선택</h3>
 
           <div className="flex gap-3">
@@ -349,12 +349,12 @@ function ReviewPageContent() {
                       handleLevelChange(key);
                     }
                   }}
-                  className={`flex-1 flex flex-col items-center py-4 rounded-[16px] transition-all ${
+                  className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all ${
                     isLocked
-                      ? 'bg-[#F8F9FA] text-[#999999] cursor-not-allowed'
+                      ? 'bg-gray-100 text-[#999999] cursor-not-allowed'
                       : selectedLevel === key
                       ? 'bg-[#3B82F6] text-white shadow-sm'
-                      : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                   }`}
                 >
                   <div className="flex items-center gap-1">
@@ -377,7 +377,7 @@ function ReviewPageContent() {
         </section>
 
         {/* 복습 현황 카드 (은행 앱 스타일) */}
-        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[15px] font-bold text-[#1c1c1e]">복습 현황</h3>
             <span className="text-[13px] text-[#14B8A6] font-semibold flex items-center gap-1">
@@ -395,7 +395,7 @@ function ReviewPageContent() {
         </section>
 
         {/* 바로 복습 이어가기 카드 (은행 앱 스타일) */}
-        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[15px] font-bold text-[#1c1c1e]">바로 복습 이어가기</h3>
           </div>
@@ -408,24 +408,24 @@ function ReviewPageContent() {
               <p className="text-[16px] font-bold text-[#1c1c1e]">
                 {examInfo[selectedExam]?.name || selectedExam} {selectedLevel}
               </p>
-              <p className="text-[13px] text-[#767676]">복습 대기 단어 • 기억 강화</p>
+              <p className="text-[13px] text-gray-500">복습 대기 단어 • 기억 강화</p>
             </div>
           </div>
 
-          <p className="text-[13px] text-[#767676] mb-4">
+          <p className="text-[13px] text-gray-500 mb-4">
             마지막 복습: {stats.lastReviewDate ? new Date(stats.lastReviewDate).toLocaleDateString('ko-KR') : '기록 없음'}
           </p>
 
           <div className="grid grid-cols-2 gap-3">
             <Link
               href={`/learn?mode=review&exam=${selectedExam}&level=${selectedLevel}`}
-              className="block bg-[#F8F9FA] hover:bg-[#f0f0f0] text-[#767676] py-3 rounded-[14px] font-semibold text-center transition-colors"
+              className="block bg-gray-100 hover:bg-gray-200 text-gray-500 py-3 rounded-xl font-semibold text-center transition-colors"
             >
               📚 플래시카드
             </Link>
             <Link
               href={`/review/quiz?exam=${selectedExam}&level=${selectedLevel}`}
-              className="block bg-gradient-to-r from-[#A855F7] to-[#EC4899] text-white py-3 rounded-[14px] font-bold text-center shadow-sm hover:shadow-md transition-shadow"
+              className="block bg-gradient-to-r from-[#A855F7] to-[#EC4899] text-white py-3 rounded-xl font-bold text-center shadow-sm hover:shadow-md transition-shadow"
             >
               🎯 4지선다 퀴즈
             </Link>
@@ -434,7 +434,7 @@ function ReviewPageContent() {
 
         {/* 오늘 복습 완료 메시지 */}
         {stats.dueToday === 0 && (stats.completedToday || 0) > 0 && (
-          <section className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-[20px] p-6 text-center">
+          <section className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-2xl p-6 text-center">
             <div className="text-5xl mb-3">🎉</div>
             <h3 className="text-xl font-bold text-[#047857] mb-2">오늘 복습 완료!</h3>
             <p className="text-[#059669]">모든 복습을 마쳤습니다. 잘하셨어요!</p>
@@ -445,30 +445,30 @@ function ReviewPageContent() {
         <div className="grid grid-cols-3 gap-3">
           <Link
             href="/learn?mode=review"
-            className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] text-center hover:shadow-md transition"
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 text-center hover:shadow-md transition"
           >
-            <p className="text-[22px] font-bold text-[#A855F7]">{stats.dueToday}</p>
-            <p className="text-[12px] text-[#767676] mt-1">오늘 복습</p>
+            <p className="text-[22px] font-bold text-purple-500">{stats.dueToday}</p>
+            <p className="text-[12px] text-gray-500 mt-1">오늘 복습</p>
           </Link>
           <Link
             href="/learn?mode=weak"
-            className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] text-center hover:shadow-md transition"
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 text-center hover:shadow-md transition"
           >
             <p className="text-[22px] font-bold text-[#EF4444]">{stats.weak}</p>
-            <p className="text-[12px] text-[#767676] mt-1">취약 단어</p>
+            <p className="text-[12px] text-gray-500 mt-1">취약 단어</p>
           </Link>
           <Link
             href="/bookmarks"
-            className="bg-white rounded-[20px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] text-center hover:shadow-md transition"
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 text-center hover:shadow-md transition"
           >
             <p className="text-[22px] font-bold text-[#F59E0B]">{stats.bookmarked}</p>
-            <p className="text-[12px] text-[#767676] mt-1">북마크</p>
+            <p className="text-[12px] text-gray-500 mt-1">북마크</p>
           </Link>
         </div>
 
         {/* Due Words Preview (은행 앱 스타일) */}
         {dueWords.length > 0 && (
-          <section className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-5 border-b border-[#f0f0f0]">
               <h3 className="text-[15px] font-bold text-[#1c1c1e]">복습 대기 중</h3>
             </div>
@@ -477,11 +477,11 @@ function ReviewPageContent() {
                 <Link
                   key={word.id}
                   href={`/words/${word.id}`}
-                  className="flex items-center justify-between p-4 hover:bg-[#F8F9FA] transition"
+                  className="flex items-center justify-between p-4 hover:bg-gray-100 transition"
                 >
                   <div>
                     <p className="text-[15px] font-bold text-[#1c1c1e]">{word.word}</p>
-                    <p className="text-[13px] text-[#767676]">{word.definitionKo}</p>
+                    <p className="text-[13px] text-gray-500">{word.definitionKo}</p>
                   </div>
                   <div className="flex items-center gap-3 text-[13px]">
                     <span className="text-[#10B981] font-semibold">✓ {word.correctCount}</span>
@@ -492,7 +492,7 @@ function ReviewPageContent() {
             </div>
             {stats.dueToday > 5 && (
               <div className="p-4 text-center border-t border-[#f0f0f0]">
-                <Link href="/learn?mode=review" className="text-[#A855F7] text-[14px] font-bold inline-flex items-center gap-1">
+                <Link href="/learn?mode=review" className="text-purple-500 text-[14px] font-bold inline-flex items-center gap-1">
                   전체 {stats.dueToday}개 보기 <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -501,50 +501,50 @@ function ReviewPageContent() {
         )}
 
         {/* 복습 일정 (은행 앱 스타일) */}
-        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">복습 일정</h3>
 
           <div className="space-y-3">
             {/* 오늘 */}
-            <div className="flex items-center justify-between p-4 bg-[#F3E8FF] rounded-[14px]">
+            <div className="flex items-center justify-between p-4 bg-[#F3E8FF] rounded-xl">
               <div className="flex items-center gap-3">
                 <span className="text-xl">📅</span>
                 <div>
                   <p className="text-[14px] font-semibold text-[#1c1c1e]">오늘</p>
-                  <p className="text-[12px] text-[#767676]">{new Date().toLocaleDateString('ko-KR')}</p>
+                  <p className="text-[12px] text-gray-500">{new Date().toLocaleDateString('ko-KR')}</p>
                 </div>
               </div>
-              <span className="text-[#A855F7] font-bold">{stats.dueToday}개</span>
+              <span className="text-purple-500 font-bold">{stats.dueToday}개</span>
             </div>
 
             {/* 내일 */}
-            <div className="flex items-center justify-between p-4 bg-[#F8F9FA] rounded-[14px]">
+            <div className="flex items-center justify-between p-4 bg-gray-100 rounded-xl">
               <div className="flex items-center gap-3">
                 <span className="text-xl">📆</span>
                 <div>
                   <p className="text-[14px] font-semibold text-[#1c1c1e]">내일</p>
-                  <p className="text-[12px] text-[#767676]">내일 복습 예정</p>
+                  <p className="text-[12px] text-gray-500">내일 복습 예정</p>
                 </div>
               </div>
-              <span className="text-[#767676] font-bold">-</span>
+              <span className="text-gray-500 font-bold">-</span>
             </div>
 
             {/* 이번 주 */}
-            <div className="flex items-center justify-between p-4 bg-[#F8F9FA] rounded-[14px]">
+            <div className="flex items-center justify-between p-4 bg-gray-100 rounded-xl">
               <div className="flex items-center gap-3">
                 <span className="text-xl">🗓️</span>
                 <div>
                   <p className="text-[14px] font-semibold text-[#1c1c1e]">이번 주</p>
-                  <p className="text-[12px] text-[#767676]">7일 이내</p>
+                  <p className="text-[12px] text-gray-500">7일 이내</p>
                 </div>
               </div>
-              <span className="text-[#767676] font-bold">-</span>
+              <span className="text-gray-500 font-bold">-</span>
             </div>
           </div>
         </section>
 
         {/* 간격 반복 학습 안내 (은행 앱 스타일) */}
-        <section className="bg-[#EFF6FF] rounded-[20px] p-5 border border-[#BFDBFE]">
+        <section className="bg-[#EFF6FF] rounded-2xl p-5 border border-[#BFDBFE]">
           <h4 className="text-[15px] font-bold text-[#1E40AF] mb-2">💡 간격 반복 학습이란?</h4>
           <p className="text-[14px] text-[#1E3A8A]">
             기억이 사라지기 직전에 복습하면 장기 기억으로 전환됩니다.
@@ -565,7 +565,7 @@ function ReviewPageLoading() {
         <SkeletonCard className="h-40" />
         <div className="grid grid-cols-3 gap-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-[20px] p-4 border border-[#f5f5f5]">
+            <div key={i} className="bg-white rounded-2xl p-4 border border-gray-200">
               <div className="h-9 w-12 bg-gray-200 rounded animate-pulse mx-auto mb-1" />
               <div className="h-4 w-16 bg-gray-200 rounded animate-pulse mx-auto" />
             </div>

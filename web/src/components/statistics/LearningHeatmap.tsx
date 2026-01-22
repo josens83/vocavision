@@ -202,21 +202,21 @@ export default function LearningHeatmap({
   }
 
   return (
-    <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
+    <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 overflow-hidden">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-[15px] font-bold text-[#1c1c1e]">학습 활동</h3>
-        <span className="text-[13px] text-[#767676]">최근 52주</span>
+        <span className="text-[13px] text-gray-500">최근 52주</span>
       </div>
 
       {/* 요약 통계 */}
       <div className="flex gap-4 mb-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-sm bg-[#14B8A6]" />
-          <span className="text-[12px] text-[#767676]">{totalDays}일 학습</span>
+          <span className="text-[12px] text-gray-500">{totalDays}일 학습</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-sm bg-[#3B82F6]" />
-          <span className="text-[12px] text-[#767676]">{totalWords}개 단어</span>
+          <span className="text-[12px] text-gray-500">{totalWords}개 단어</span>
         </div>
       </div>
 
@@ -305,7 +305,7 @@ export default function LearningHeatmap({
       )}
 
       {/* 격려 메시지 */}
-      <div className="mt-4 p-4 bg-[#ECFDF5] rounded-[14px]">
+      <div className="mt-4 p-4 bg-[#ECFDF5] rounded-xl">
         <p className="text-[13px] text-[#1c1c1e]">
           💡 <strong>꾸준함이 핵심입니다!</strong>{' '}
           {currentStreak > 0

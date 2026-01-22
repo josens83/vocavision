@@ -93,7 +93,7 @@ export default function PackageDetailPage() {
       <Navigation />
       <main className="min-h-screen bg-gray-50 pt-20">
         {/* 히어로 배너 */}
-        <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white overflow-hidden">
+        <div className="relative bg-gradient-to-br from-teal-600 via-cyan-600 to-blue-700 text-white overflow-hidden">
           {/* 배경 패턴 */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-10 left-10 w-32 h-32 border-4 border-white rounded-full" />

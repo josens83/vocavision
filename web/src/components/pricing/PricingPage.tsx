@@ -62,18 +62,18 @@ export default function PricingPage() {
         <h1 className="text-3xl md:text-4xl font-bold text-[#1c1c1e] mb-3">
           나에게 맞는 플랜 선택
         </h1>
-        <p className="text-[15px] text-[#767676] max-w-2xl mx-auto px-4">
+        <p className="text-[15px] text-gray-500 max-w-2xl mx-auto px-4">
           무료로 시작하고, 필요할 때 업그레이드하세요.
         </p>
 
         {/* 결제 주기 토글 */}
-        <div className="mt-8 inline-flex items-center bg-[#F8F9FA] rounded-full p-1 border border-[#f5f5f5]">
+        <div className="mt-8 inline-flex items-center bg-gray-100 rounded-full p-1 border border-gray-200">
           <button
             onClick={() => setBillingCycle("monthly")}
             className={`px-6 py-2.5 rounded-full text-[14px] font-medium transition-all ${
               !isYearly
                 ? "bg-white text-[#1c1c1e] shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
-                : "text-[#767676] hover:text-[#1c1c1e]"
+                : "text-gray-500 hover:text-[#1c1c1e]"
             }`}
           >
             월간 결제
@@ -83,7 +83,7 @@ export default function PricingPage() {
             className={`px-6 py-2.5 rounded-full text-[14px] font-medium transition-all ${
               isYearly
                 ? "bg-white text-[#1c1c1e] shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
-                : "text-[#767676] hover:text-[#1c1c1e]"
+                : "text-gray-500 hover:text-[#1c1c1e]"
             }`}
           >
             연간 결제
@@ -98,26 +98,26 @@ export default function PricingPage() {
       <div className="max-w-6xl mx-auto px-4 pb-16">
         <div className="grid md:grid-cols-3 gap-8">
           {/* 무료 플랜 */}
-          <div className="bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-7 relative">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-7 relative">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 bg-[#F8F9FA] rounded-[14px] flex items-center justify-center">
-                <Zap className="w-5 h-5 text-[#767676]" />
+              <div className="w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center">
+                <Zap className="w-5 h-5 text-gray-500" />
               </div>
               <h3 className="text-[18px] font-bold text-[#1c1c1e]">무료</h3>
             </div>
 
             <div className="mb-5">
-              <span className="text-[36px] font-bold text-[#767676]">₩0</span>
+              <span className="text-[36px] font-bold text-gray-500">₩0</span>
               <span className="text-[#999999] text-[14px]">/월</span>
             </div>
 
-            <p className="text-[#767676] text-[13px] mb-6">
+            <p className="text-gray-500 text-[13px] mb-6">
               VocaVision AI를 처음 시작하는 분께 추천
             </p>
 
             <Link
               href="/auth/login"
-              className="block w-full py-3.5 px-4 text-center rounded-[14px] font-semibold text-[14px] border-2 border-[#E8E8E8] text-[#767676] hover:bg-[#F8F9FA] transition-colors"
+              className="block w-full py-3.5 px-4 text-center rounded-xl font-semibold text-[14px] border-2 border-[#E8E8E8] text-gray-500 hover:bg-gray-100 transition-colors"
             >
               무료로 시작하기
             </Link>
@@ -147,7 +147,7 @@ export default function PricingPage() {
           </div>
 
           {/* 베이직 플랜 */}
-          <div className="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(20,184,166,0.15)] border-2 border-[#14B8A6] p-7 relative">
+          <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(20,184,166,0.15)] border-2 border-[#14B8A6] p-7 relative">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white text-[12px] font-bold px-5 py-1.5 rounded-full shadow-lg">
                 인기
@@ -155,7 +155,7 @@ export default function PricingPage() {
             </div>
 
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 bg-[#ECFDF5] rounded-[14px] flex items-center justify-center">
+              <div className="w-11 h-11 bg-[#ECFDF5] rounded-xl flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-[#14B8A6]" />
               </div>
               <h3 className="text-[18px] font-bold text-[#1c1c1e]">베이직</h3>
@@ -174,13 +174,13 @@ export default function PricingPage() {
               )}
             </div>
 
-            <p className="text-[#767676] text-[13px] mb-6">
+            <p className="text-gray-500 text-[13px] mb-6">
               수능 영어 완벽 대비를 원하는 분께 추천
             </p>
 
             <button
               onClick={() => handlePlanSelect("basic")}
-              className="block w-full py-3.5 px-4 text-center rounded-[14px] font-semibold text-[14px] bg-[#14B8A6] text-white hover:bg-[#0D9488] transition-colors shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
+              className="block w-full py-3.5 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#14B8A6] text-white hover:bg-[#0D9488] transition-colors shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
             >
               베이직 시작하기
             </button>
@@ -214,9 +214,9 @@ export default function PricingPage() {
           </div>
 
           {/* 프리미엄 플랜 */}
-          <div className="bg-gradient-to-br from-[#A855F7] to-[#7C3AED] rounded-[24px] shadow-[0_4px_20px_rgba(168,85,247,0.25)] p-7 relative text-white">
+          <div className="bg-gradient-to-br from-[#A855F7] to-[#7C3AED] rounded-2xl shadow-[0_4px_20px_rgba(168,85,247,0.25)] p-7 relative text-white">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 bg-white/20 rounded-[14px] flex items-center justify-center">
+              <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
                 <Crown className="w-5 h-5 text-[#FCD34D]" />
               </div>
               <h3 className="text-[18px] font-bold">프리미엄</h3>
@@ -241,7 +241,7 @@ export default function PricingPage() {
 
             <button
               onClick={() => handlePlanSelect("premium")}
-              className="block w-full py-3.5 px-4 text-center rounded-[14px] font-semibold text-[14px] bg-white text-[#A855F7] hover:bg-gray-100 transition-colors"
+              className="block w-full py-3.5 px-4 text-center rounded-xl font-semibold text-[14px] bg-white text-purple-500 hover:bg-gray-100 transition-colors"
             >
               프리미엄 시작하기
             </button>
@@ -284,20 +284,20 @@ export default function PricingPage() {
           <h2 className="text-[22px] font-bold text-[#1c1c1e] text-center mb-3">
             단품 상품
           </h2>
-          <p className="text-[14px] text-[#767676] text-center mb-8">
+          <p className="text-[14px] text-gray-500 text-center mb-8">
             필요한 콘텐츠만 골라서 구매하세요. 구독 없이 영구 이용 가능!
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
             {/* 수능 핵심 200 */}
-            <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#F59E0B] text-white text-[11px] font-bold px-3 py-1 rounded-full">
                   베스트
                 </span>
               </div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#F59E0B] to-[#EF4444] rounded-[14px] flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#F59E0B] to-[#EF4444] rounded-xl flex items-center justify-center">
                   <span className="text-white text-xl">🎯</span>
                 </div>
                 <div>
@@ -305,7 +305,7 @@ export default function PricingPage() {
                   <p className="text-[12px] text-[#999999]">200개 단어</p>
                 </div>
               </div>
-              <p className="text-[#767676] text-[13px] mb-4">
+              <p className="text-gray-500 text-[13px] mb-4">
                 수능 영어에서 가장 자주 출제되는 핵심 200단어를 집중 학습하세요.
               </p>
               <div className="flex items-end gap-1 mb-4">
@@ -314,21 +314,21 @@ export default function PricingPage() {
               </div>
               <button
                 onClick={() => router.push("/checkout?product=csat-core-200")}
-                className="w-full py-3 px-4 text-center rounded-[14px] font-semibold text-[14px] bg-[#F59E0B] text-white hover:bg-[#D97706] transition-colors"
+                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#F59E0B] text-white hover:bg-[#D97706] transition-colors"
               >
                 구매하기
               </button>
             </div>
 
             {/* EBS 연계어휘 */}
-            <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#3B82F6] text-white text-[11px] font-bold px-3 py-1 rounded-full">
                   대용량
                 </span>
               </div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#3B82F6] to-[#6366F1] rounded-[14px] flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#3B82F6] to-[#6366F1] rounded-xl flex items-center justify-center">
                   <span className="text-white text-xl">📚</span>
                 </div>
                 <div>
@@ -336,7 +336,7 @@ export default function PricingPage() {
                   <p className="text-[12px] text-[#999999]">3,837개 단어</p>
                 </div>
               </div>
-              <p className="text-[#767676] text-[13px] mb-4">
+              <p className="text-gray-500 text-[13px] mb-4">
                 EBS 수능특강, 수능완성에서 나오는 연계 어휘를 완벽하게 마스터하세요.
               </p>
               <div className="flex items-end gap-1 mb-4">
@@ -345,21 +345,21 @@ export default function PricingPage() {
               </div>
               <button
                 onClick={() => router.push("/checkout?product=ebs-vocab")}
-                className="w-full py-3 px-4 text-center rounded-[14px] font-semibold text-[14px] bg-[#3B82F6] text-white hover:bg-[#2563EB] transition-colors"
+                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#3B82F6] text-white hover:bg-[#2563EB] transition-colors"
               >
                 구매하기
               </button>
             </div>
 
             {/* 2026년 수능기출완전분석 */}
-            <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-6 relative opacity-75">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative opacity-75">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#999999] text-white text-[11px] font-bold px-3 py-1 rounded-full">
                   출시예정
                 </span>
               </div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#9CA3AF] to-[#6B7280] rounded-[14px] flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#9CA3AF] to-[#6B7280] rounded-xl flex items-center justify-center">
                   <span className="text-white text-xl">📝</span>
                 </div>
                 <div>
@@ -367,7 +367,7 @@ export default function PricingPage() {
                   <p className="text-[12px] text-[#999999]">출시 준비중</p>
                 </div>
               </div>
-              <p className="text-[#767676] text-[13px] mb-4">
+              <p className="text-gray-500 text-[13px] mb-4">
                 2026년 수능 기출문제 완전 분석. 출제 경향과 핵심 어휘를 한 번에!
               </p>
               <div className="flex items-end gap-1 mb-4">
@@ -375,7 +375,7 @@ export default function PricingPage() {
               </div>
               <button
                 disabled
-                className="w-full py-3 px-4 text-center rounded-[14px] font-semibold text-[14px] bg-[#E8E8E8] text-[#999999] cursor-not-allowed"
+                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#E8E8E8] text-[#999999] cursor-not-allowed"
               >
                 출시 알림 받기
               </button>
@@ -390,19 +390,19 @@ export default function PricingPage() {
           </h2>
 
           <div className="overflow-x-auto">
-            <table className="w-full bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
+            <table className="w-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
               <thead>
-                <tr className="bg-[#F8F9FA]">
+                <tr className="bg-gray-100">
                   <th className="text-left py-4 px-6 font-semibold text-[14px] text-[#1c1c1e]">
                     기능
                   </th>
-                  <th className="text-center py-4 px-6 font-semibold text-[14px] text-[#767676]">
+                  <th className="text-center py-4 px-6 font-semibold text-[14px] text-gray-500">
                     무료
                   </th>
                   <th className="text-center py-4 px-6 font-semibold text-[14px] text-[#14B8A6]">
                     베이직
                   </th>
-                  <th className="text-center py-4 px-6 font-semibold text-[14px] text-[#A855F7]">
+                  <th className="text-center py-4 px-6 font-semibold text-[14px] text-purple-500">
                     프리미엄
                   </th>
                 </tr>
@@ -422,7 +422,7 @@ export default function PricingPage() {
                           <X className="w-5 h-5 text-[#E8E8E8] mx-auto" />
                         )
                       ) : (
-                        <span className="text-[12px] text-[#767676]">
+                        <span className="text-[12px] text-gray-500">
                           {feature.free}
                         </span>
                       )}
@@ -448,7 +448,7 @@ export default function PricingPage() {
                           <X className="w-5 h-5 text-[#E8E8E8] mx-auto" />
                         )
                       ) : (
-                        <span className="text-[12px] text-[#A855F7] font-medium">
+                        <span className="text-[12px] text-purple-500 font-medium">
                           {feature.premium}
                         </span>
                       )}
@@ -467,41 +467,41 @@ export default function PricingPage() {
           </h2>
 
           <div className="max-w-3xl mx-auto space-y-3">
-            <details className="bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-5 group">
+            <details className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 group">
               <summary className="font-semibold text-[14px] text-[#1c1c1e] cursor-pointer list-none flex justify-between items-center">
                 언제든지 플랜을 변경할 수 있나요?
                 <span className="text-[#C8C8C8] group-open:rotate-180 transition-transform text-[12px]">
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-[13px] text-[#767676] leading-relaxed">
+              <p className="mt-4 text-[13px] text-gray-500 leading-relaxed">
                 네, 언제든지 플랜을 업그레이드하거나 다운그레이드할 수 있습니다.
                 업그레이드 시 즉시 적용되며, 다운그레이드는 현재 결제 기간이
                 끝난 후 적용됩니다.
               </p>
             </details>
 
-            <details className="bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-5 group">
+            <details className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 group">
               <summary className="font-semibold text-[14px] text-[#1c1c1e] cursor-pointer list-none flex justify-between items-center">
                 환불 정책은 어떻게 되나요?
                 <span className="text-[#C8C8C8] group-open:rotate-180 transition-transform text-[12px]">
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-[13px] text-[#767676] leading-relaxed">
+              <p className="mt-4 text-[13px] text-gray-500 leading-relaxed">
                 결제 후 7일 이내에 환불 요청하시면 전액 환불해 드립니다. 7일
                 이후에는 남은 기간에 대한 부분 환불이 가능합니다.
               </p>
             </details>
 
-            <details className="bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-5 group">
+            <details className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 group">
               <summary className="font-semibold text-[14px] text-[#1c1c1e] cursor-pointer list-none flex justify-between items-center">
                 결제 수단은 무엇을 지원하나요?
                 <span className="text-[#C8C8C8] group-open:rotate-180 transition-transform text-[12px]">
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-[13px] text-[#767676] leading-relaxed">
+              <p className="mt-4 text-[13px] text-gray-500 leading-relaxed">
                 신용카드, 체크카드, 계좌이체를 지원합니다. 토스페이먼츠를 통해
                 안전하게 결제됩니다.
               </p>
@@ -511,7 +511,7 @@ export default function PricingPage() {
 
         {/* CTA 섹션 */}
         <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] rounded-[24px] p-8 md:p-12 shadow-[0_4px_24px_rgba(20,184,166,0.25)]">
+          <div className="bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] rounded-2xl p-8 md:p-12 shadow-[0_4px_24px_rgba(20,184,166,0.25)]">
             <h2 className="text-[24px] md:text-[28px] font-bold text-white mb-3">
               지금 바로 영어 단어 학습을 시작하세요!
             </h2>
@@ -523,13 +523,13 @@ export default function PricingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/auth/login"
-                className="inline-block px-8 py-4 bg-white text-[#14B8A6] font-bold text-[14px] rounded-[14px] hover:bg-gray-50 transition-colors shadow-lg"
+                className="inline-block px-8 py-4 bg-white text-[#14B8A6] font-bold text-[14px] rounded-xl hover:bg-gray-50 transition-colors shadow-lg"
               >
                 무료로 시작하기
               </Link>
               <Link
                 href="/learn?exam=CSAT&demo=1"
-                className="inline-block px-8 py-4 bg-white/15 text-white font-semibold text-[14px] rounded-[14px] hover:bg-white/25 transition-colors border border-white/30"
+                className="inline-block px-8 py-4 bg-white/15 text-white font-semibold text-[14px] rounded-xl hover:bg-white/25 transition-colors border border-white/30"
               >
                 먼저 맛보기
               </Link>

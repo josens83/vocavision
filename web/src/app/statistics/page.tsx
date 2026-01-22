@@ -291,11 +291,11 @@ function StatisticsPageContent() {
             <div className="h-8 w-40 bg-gray-200 rounded mb-6" />
             <div className="grid grid-cols-2 gap-4 mb-6">
               {[1, 2].map((i) => (
-                <div key={i} className="bg-white rounded-[20px] p-5 h-32" />
+                <div key={i} className="bg-white rounded-2xl p-5 h-32" />
               ))}
             </div>
-            <div className="bg-white rounded-[20px] p-5 h-64 mb-6" />
-            <div className="bg-white rounded-[20px] p-5 h-64" />
+            <div className="bg-white rounded-2xl p-5 h-64 mb-6" />
+            <div className="bg-white rounded-2xl p-5 h-64" />
           </div>
         </div>
       </DashboardLayout>
@@ -308,7 +308,7 @@ function StatisticsPageContent() {
       <div className="p-4 lg:p-8 max-w-5xl mx-auto w-full overflow-x-hidden space-y-4">
         {/* 데모 모드 배너 */}
         {isDemo && !user && (
-          <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-[14px] p-4">
+          <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-xl p-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 bg-[#F59E0B] text-white rounded font-bold text-xs">체험</span>
@@ -327,13 +327,13 @@ function StatisticsPageContent() {
         {/* 페이지 헤더 */}
         <header className="mb-2">
           <h1 className="text-[22px] font-bold text-[#1c1c1e]">상세 통계</h1>
-          <p className="text-[14px] text-[#767676] mt-1">학습 진행 상황과 패턴을 분석합니다</p>
+          <p className="text-[14px] text-gray-500 mt-1">학습 진행 상황과 패턴을 분석합니다</p>
         </header>
 
         {/* 요약 통계 카드들 (은행 앱 스타일) */}
         <div className="grid grid-cols-2 gap-4">
           {/* 학습한 단어 */}
-          <div className="bg-[#EFF6FF] rounded-[20px] p-5">
+          <div className="bg-[#EFF6FF] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">📚</span>
               <span className="text-[12px] text-[#3B82F6] font-medium">학습한 단어</span>
@@ -342,7 +342,7 @@ function StatisticsPageContent() {
           </div>
 
           {/* 최장 연속 */}
-          <div className="bg-[#FFF7ED] rounded-[20px] p-5">
+          <div className="bg-[#FFF7ED] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">🏆</span>
               <span className="text-[12px] text-[#F59E0B] font-medium">최장 연속</span>
@@ -354,7 +354,7 @@ function StatisticsPageContent() {
         {/* 추가 통계 (현재 연속, 정확도) */}
         <div className="grid grid-cols-2 gap-4">
           {/* 현재 연속 */}
-          <div className="bg-[#ECFDF5] rounded-[20px] p-5">
+          <div className="bg-[#ECFDF5] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">🔥</span>
               <span className="text-[12px] text-[#14B8A6] font-medium">현재 연속</span>
@@ -363,7 +363,7 @@ function StatisticsPageContent() {
           </div>
 
           {/* 정확도 */}
-          <div className="bg-[#ECFDF5] rounded-[20px] p-5">
+          <div className="bg-[#ECFDF5] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">✅</span>
               <span className="text-[12px] text-[#10B981] font-medium">정확도</span>
@@ -373,7 +373,7 @@ function StatisticsPageContent() {
         </div>
 
         {/* 숙련도 분포 카드 (은행 앱 스타일) - overflow 방지 */}
-        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 overflow-hidden">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
             <h3 className="text-[15px] font-bold text-[#1c1c1e]">숙련도 분포</h3>
 
@@ -382,7 +382,7 @@ function StatisticsPageContent() {
               <select
                 value={masteryExam}
                 onChange={(e) => setMasteryExam(e.target.value)}
-                className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
                 <option value="CSAT">수능</option>
                 <option value="TEPS">TEPS</option>
@@ -390,7 +390,7 @@ function StatisticsPageContent() {
               <select
                 value={masteryLevel}
                 onChange={(e) => setMasteryLevel(e.target.value)}
-                className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
                 <option value="all">전체</option>
                 <option value="L1">L1</option>
@@ -411,7 +411,7 @@ function StatisticsPageContent() {
               return (
                 <div key={level} className="w-full min-w-0">
                   <div className="flex justify-between items-center mb-1.5 gap-2">
-                    <span className="text-[13px] text-[#767676] truncate min-w-0">
+                    <span className="text-[13px] text-gray-500 truncate min-w-0">
                       {masteryLabels[level as keyof typeof masteryLabels]}
                     </span>
                     <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
@@ -431,14 +431,14 @@ function StatisticsPageContent() {
         </section>
 
         {/* 레벨별 학습 현황 카드 (은행 앱 스타일) */}
-        <section className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[15px] font-bold text-[#1c1c1e]">레벨별 학습 현황</h3>
 
             <select
               value={levelProgressExam}
               onChange={(e) => setLevelProgressExam(e.target.value)}
-              className="text-[13px] bg-[#F8F9FA] border-none rounded-[10px] px-3 py-2 text-[#767676] font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+              className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
             >
               <option value="CSAT">수능</option>
               <option value="TEPS">TEPS</option>
@@ -455,7 +455,7 @@ function StatisticsPageContent() {
               return (
                 <div
                   key={level}
-                  className="flex items-center justify-between p-4 bg-[#F8F9FA] rounded-[14px]"
+                  className="flex items-center justify-between p-4 bg-gray-100 rounded-xl"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-[40px] h-[40px] rounded-full flex items-center justify-center ${levelColors[level as keyof typeof levelColors]}`}>
@@ -465,14 +465,14 @@ function StatisticsPageContent() {
                       <p className="text-[14px] font-semibold text-[#1c1c1e]">
                         {levelNames[level as keyof typeof levelNames]}
                       </p>
-                      <p className="text-[12px] text-[#767676]">
+                      <p className="text-[12px] text-gray-500">
                         {levelLabels[level as keyof typeof levelLabels]}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-[16px] font-bold text-[#1c1c1e]">{safeCount}개</p>
-                    <p className="text-[12px] text-[#767676]">{safePercentage}% 학습</p>
+                    <p className="text-[12px] text-gray-500">{safePercentage}% 학습</p>
                   </div>
                 </div>
               );
@@ -502,11 +502,11 @@ function StatisticsPageLoading() {
           <div className="h-8 w-40 bg-gray-200 rounded mb-6" />
           <div className="grid grid-cols-2 gap-4 mb-6">
             {[1, 2].map((i) => (
-              <div key={i} className="bg-white rounded-[20px] p-5 h-32" />
+              <div key={i} className="bg-white rounded-2xl p-5 h-32" />
             ))}
           </div>
-          <div className="bg-white rounded-[20px] p-5 h-64 mb-6" />
-          <div className="bg-white rounded-[20px] p-5 h-64" />
+          <div className="bg-white rounded-2xl p-5 h-64 mb-6" />
+          <div className="bg-white rounded-2xl p-5 h-64" />
         </div>
       </div>
     </DashboardLayout>

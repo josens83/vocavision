@@ -59,31 +59,31 @@ function LearnPageLoading() {
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* Skeleton Header */}
-      <div className="bg-white border-b border-[#f5f5f5] sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="h-6 w-20 bg-[#F8F9FA] rounded-[10px] animate-pulse" />
-            <div className="h-5 w-24 bg-[#F8F9FA] rounded-[10px] animate-pulse" />
-            <div className="h-10 w-20 bg-[#F8F9FA] rounded-[10px] animate-pulse" />
+            <div className="h-6 w-20 bg-gray-100 rounded-[10px] animate-pulse" />
+            <div className="h-5 w-24 bg-gray-100 rounded-[10px] animate-pulse" />
+            <div className="h-10 w-20 bg-gray-100 rounded-[10px] animate-pulse" />
           </div>
           <div className="mt-3">
             <div className="flex items-center justify-between mb-1">
-              <div className="h-4 w-12 bg-[#F8F9FA] rounded-[8px] animate-pulse" />
-              <div className="h-4 w-16 bg-[#F8F9FA] rounded-[8px] animate-pulse" />
+              <div className="h-4 w-12 bg-gray-100 rounded-[8px] animate-pulse" />
+              <div className="h-4 w-16 bg-gray-100 rounded-[8px] animate-pulse" />
             </div>
-            <div className="w-full bg-[#F8F9FA] rounded-full h-2" />
+            <div className="w-full bg-gray-100 rounded-full h-2" />
           </div>
         </div>
       </div>
       {/* Skeleton Card */}
       <div className="container mx-auto px-4 py-6 max-w-2xl">
-        <div className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-6">
-          <div className="h-12 w-48 bg-[#F8F9FA] rounded-[12px] animate-pulse mx-auto mb-4" />
-          <div className="h-6 w-32 bg-[#F8F9FA] rounded-[10px] animate-pulse mx-auto mb-6" />
-          <div className="h-24 w-full bg-[#F8F9FA] rounded-[14px] animate-pulse mb-6" />
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <div className="h-12 w-48 bg-gray-100 rounded-[12px] animate-pulse mx-auto mb-4" />
+          <div className="h-6 w-32 bg-gray-100 rounded-[10px] animate-pulse mx-auto mb-6" />
+          <div className="h-24 w-full bg-gray-100 rounded-xl animate-pulse mb-6" />
           <div className="flex gap-3 justify-center">
-            <div className="h-12 w-24 bg-[#F8F9FA] rounded-[14px] animate-pulse" />
-            <div className="h-12 w-24 bg-[#F8F9FA] rounded-[14px] animate-pulse" />
+            <div className="h-12 w-24 bg-gray-100 rounded-xl animate-pulse" />
+            <div className="h-12 w-24 bg-gray-100 rounded-xl animate-pulse" />
           </div>
         </div>
       </div>
@@ -539,23 +539,23 @@ function LearnPageContent() {
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
-        <div className="bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-8 max-w-md w-full text-center">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">🔒</div>
           <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">프리미엄 콘텐츠</h2>
-          <p className="text-[14px] text-[#767676] mb-6 leading-relaxed">
+          <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
             <strong>{examName} {levelName}</strong> 콘텐츠는<br />
             {examParam === 'TEPS' ? '프리미엄' : '베이직'} 플랜부터 이용 가능합니다.
           </p>
           <div className="space-y-3">
             <a
               href="/pricing"
-              className="block w-full py-3.5 px-4 bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white font-bold text-[14px] rounded-[14px] hover:opacity-90 transition shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
+              className="block w-full py-3.5 px-4 bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white font-bold text-[14px] rounded-xl hover:opacity-90 transition shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
             >
               플랜 업그레이드
             </a>
             <button
               onClick={() => router.push('/dashboard')}
-              className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-[#767676] font-semibold text-[14px] rounded-[14px] hover:bg-[#F8F9FA] transition"
+              className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
               대시보드로 돌아가기
             </button>
@@ -569,10 +569,10 @@ function LearnPageContent() {
   if (demoBlocked && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
-        <div className="bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] p-8 max-w-md w-full text-center">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">체험이 완료되었습니다!</h2>
-          <p className="text-[14px] text-[#767676] mb-6 leading-relaxed">
+          <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
             2회 무료 체험을 모두 사용하셨습니다.<br />
             VocaVision AI의 모든 기능을 이용하려면<br />
             무료 회원가입을 해주세요.
@@ -580,19 +580,19 @@ function LearnPageContent() {
           <div className="space-y-3">
             <a
               href="/auth/register"
-              className="block w-full py-3.5 px-4 bg-[#14B8A6] text-white font-bold text-[14px] rounded-[14px] hover:bg-[#0D9488] transition shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
+              className="block w-full py-3.5 px-4 bg-[#14B8A6] text-white font-bold text-[14px] rounded-xl hover:bg-[#0D9488] transition shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
             >
               무료 회원가입
             </a>
             <a
               href="/auth/login"
-              className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-[#767676] font-semibold text-[14px] rounded-[14px] hover:bg-[#F8F9FA] transition"
+              className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
               이미 계정이 있으신가요? 로그인
             </a>
             <button
               onClick={() => router.push('/')}
-              className="block w-full py-2 text-[#999999] text-[13px] hover:text-[#767676] transition"
+              className="block w-full py-2 text-[#999999] text-[13px] hover:text-gray-500 transition"
             >
               메인으로 돌아가기
             </button>
@@ -667,13 +667,13 @@ function LearnPageContent() {
       )}
 
       {/* Fixed Header */}
-      <div className="bg-white border-b border-[#f5f5f5] sticky top-0 z-10 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-2">
             {/* Back Button */}
             <button
               onClick={() => router.push(user ? '/dashboard' : '/')}
-              className="flex items-center gap-1 text-[#767676] hover:text-[#1c1c1e] transition shrink-0"
+              className="flex items-center gap-1 text-gray-500 hover:text-[#1c1c1e] transition shrink-0"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -685,7 +685,7 @@ function LearnPageContent() {
             <div className="text-center flex-1 min-w-0">
               {examParam && !isDemo && (
                 <span className="text-[15px] font-bold text-[#1c1c1e]">
-                  {examNames[examParam]} {levelParam && <span className="text-[#767676] font-normal">· {levelNames[levelParam] || levelParam}</span>}
+                  {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {levelNames[levelParam] || levelParam}</span>}
                 </span>
               )}
             </div>
@@ -707,7 +707,7 @@ function LearnPageContent() {
                 className={`flex items-center gap-1 px-2 py-1.5 rounded-[10px] text-[13px] font-medium transition shrink-0 ${
                   currentWordIndex === 0
                     ? 'text-[#E8E8E8] cursor-not-allowed'
-                    : 'text-[#767676] hover:text-[#1c1c1e] hover:bg-[#F8F9FA]'
+                    : 'text-gray-500 hover:text-[#1c1c1e] hover:bg-gray-100'
                 }`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -718,7 +718,7 @@ function LearnPageContent() {
 
               {/* Progress Bar */}
               <div className="flex-1">
-                <div className="w-full bg-[#F8F9FA] rounded-full h-2.5">
+                <div className="w-full bg-gray-100 rounded-full h-2.5">
                   <div
                     className="bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] h-2.5 rounded-full transition-all duration-300"
                     style={{ width: `${progressPercent}%` }}
@@ -740,7 +740,7 @@ function LearnPageContent() {
               ) : (
                 <button
                   onClick={handleNext}
-                  className="flex items-center gap-1 px-2 py-1.5 rounded-[10px] text-[13px] font-medium transition shrink-0 text-[#767676] hover:text-[#1c1c1e] hover:bg-[#F8F9FA]"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-[10px] text-[13px] font-medium transition shrink-0 text-gray-500 hover:text-[#1c1c1e] hover:bg-gray-100"
                 >
                   <span className="hidden sm:inline">다음</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

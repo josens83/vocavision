@@ -29,7 +29,7 @@ export interface PlanDisplay {
  */
 export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscriptionStatus?: string | null } | null): PlanDisplay {
   if (!user) {
-    return { text: '무료', bgColor: 'bg-[#F8F9FA]', textColor: 'text-[#767676]', icon: '✨' };
+    return { text: '무료', bgColor: 'bg-gray-100', textColor: 'text-gray-500', icon: '✨' };
   }
 
   const plan = user.subscriptionPlan;
@@ -66,7 +66,7 @@ export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscri
   }
 
   // 그 외 = 무료
-  return { text: '무료', bgColor: 'bg-[#F8F9FA]', textColor: 'text-[#767676]', icon: '✨' };
+  return { text: '무료', bgColor: 'bg-gray-100', textColor: 'text-gray-500', icon: '✨' };
 }
 
 /**

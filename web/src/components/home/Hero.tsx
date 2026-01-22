@@ -89,7 +89,7 @@ function DashboardItem({ value, label, color }: { value: string | number, label:
       >
         {value}
       </span>
-      <span className="text-[12px] text-[#767676]">{label}</span>
+      <span className="text-[12px] text-gray-500">{label}</span>
     </div>
   );
 }
@@ -115,7 +115,7 @@ function ActionCard({
   return (
     <Link
       href={href}
-      className="bg-[#F8F9FA] active:bg-[#F0F0F0] transition-colors rounded-[20px] p-5 flex items-center justify-between cursor-pointer hover:shadow-sm"
+      className="bg-gray-100 active:bg-[#F0F0F0] transition-colors rounded-2xl p-5 flex items-center justify-between cursor-pointer hover:shadow-sm"
     >
       <div className="flex items-center gap-[18px]">
         {/* 아이콘 원형 배경 */}
@@ -124,7 +124,7 @@ function ActionCard({
         </div>
         {/* 텍스트 */}
         <div className="flex flex-col">
-          <span className="text-[12px] text-[#767676] font-medium mb-[2px]">{category}</span>
+          <span className="text-[12px] text-gray-500 font-medium mb-[2px]">{category}</span>
           <span className="text-[16px] font-bold text-[#1c1c1e]">{title}</span>
           {subtitle && (
             <span className="text-[13px] text-[#999999] mt-0.5">{subtitle}</span>
@@ -162,7 +162,7 @@ function CurrentPlanBadge() {
   const daysRemaining = getDaysRemaining(user.subscriptionEnd);
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#14B8A6]/10 to-[#06B6D4]/10 rounded-[14px] mb-4">
+    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#14B8A6]/10 to-[#06B6D4]/10 rounded-xl mb-4">
       <div className="flex items-center gap-2">
         <span className="text-lg">{planInfo.icon}</span>
         <span className={`font-semibold text-[14px] px-2.5 py-1 rounded-full ${planInfo.bgColor} ${planInfo.textColor}`}>
@@ -170,7 +170,7 @@ function CurrentPlanBadge() {
         </span>
       </div>
       {daysRemaining && (
-        <span className="text-[13px] text-[#767676] font-medium">
+        <span className="text-[13px] text-gray-500 font-medium">
           D-{daysRemaining}일
         </span>
       )}
@@ -261,7 +261,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
 
       {/* 오늘의 학습 현황 카드 - 모바일에서만 여기 표시 (은행 앱 스타일) */}
       {showStatsCard && (
-        <div className="lg:hidden bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+        <div className="lg:hidden bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 학습 현황</h3>
@@ -331,7 +331,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
       />
 
       {/* 오늘의 목표 카드 (은행 앱 스타일) */}
-      <div className="bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="text-lg">⚡</span>
@@ -354,7 +354,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
           />
         </div>
 
-        <p className="text-[14px] text-[#767676] mb-4">
+        <p className="text-[14px] text-gray-500 mb-4">
           {progressPercent >= 100
             ? `목표 달성! 오늘 ${todayProgress}개 학습 완료!`
             : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`}
@@ -376,7 +376,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
               className={`flex-1 py-2.5 rounded-[12px] text-[14px] font-semibold transition-all ${
                 dailyGoal === goal
                   ? 'bg-[#14B8A6] text-white shadow-sm'
-                  : 'bg-[#F8F9FA] text-[#767676] hover:bg-[#f0f0f0]'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
             >
               {goal}개
@@ -431,7 +431,7 @@ function DesktopStatsCard() {
   };
 
   return (
-    <div className="hidden lg:block bg-white rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+    <div className="hidden lg:block bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 학습 현황</h3>

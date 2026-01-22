@@ -55,14 +55,14 @@ export default function MyPage() {
         <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
 
           {/* 프로필 카드 (은행 앱 스타일) */}
-          <section className="bg-white rounded-[20px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5]">
+          <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center gap-4">
               {/* 프로필 이미지 */}
               {user.avatar ? (
                 <img
                   src={user.avatar}
                   alt={user.name || '사용자'}
-                  className="w-[72px] h-[72px] rounded-full object-cover border-4 border-[#f5f5f5]"
+                  className="w-[72px] h-[72px] rounded-full object-cover border-4 border-gray-200"
                 />
               ) : (
                 <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-[#14B8A6] to-[#06B6D4] flex items-center justify-center">
@@ -75,7 +75,7 @@ export default function MyPage() {
               {/* 유저 정보 */}
               <div className="flex-1">
                 <h2 className="text-[20px] font-bold text-[#1c1c1e]">{user.name || '사용자'}</h2>
-                <p className="text-[14px] text-[#767676]">{user.email}</p>
+                <p className="text-[14px] text-gray-500">{user.email}</p>
 
                 <div className="flex items-center gap-2 mt-2">
                   {/* 구독 배지 */}
@@ -96,13 +96,13 @@ export default function MyPage() {
           </section>
 
           {/* 계정 설정 메뉴 (은행 앱 스타일) */}
-          <section className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#f5f5f5]">
-              <h3 className="text-[13px] font-semibold text-[#767676]">계정 설정</h3>
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-200">
+              <h3 className="text-[13px] font-semibold text-gray-500">계정 설정</h3>
             </div>
 
             <Link href="/settings?tab=profile">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">👤</span>
                   <span className="text-[15px] font-medium text-[#1c1c1e]">프로필 설정</span>
@@ -112,7 +112,7 @@ export default function MyPage() {
             </Link>
 
             <Link href="/settings?tab=password">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">🔒</span>
                   <span className="text-[15px] font-medium text-[#1c1c1e]">비밀번호 변경</span>
@@ -122,7 +122,7 @@ export default function MyPage() {
             </Link>
 
             <Link href="/settings?tab=subscription">
-              <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+              <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">💳</span>
                   <span className="text-[15px] font-medium text-[#1c1c1e]">구독 관리</span>
@@ -133,14 +133,14 @@ export default function MyPage() {
           </section>
 
           {/* 기타 메뉴 (은행 앱 스타일) */}
-          <section className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#f5f5f5]">
-              <h3 className="text-[13px] font-semibold text-[#767676]">기타</h3>
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-200">
+              <h3 className="text-[13px] font-semibold text-gray-500">기타</h3>
             </div>
 
             {!isPremiumPlan(user) && (
               <Link href="/pricing">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#ECFDF5] transition-colors">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 cursor-pointer hover:bg-[#ECFDF5] transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="text-xl">✨</span>
                     <span className="text-[15px] font-medium text-[#14B8A6]">
@@ -153,7 +153,7 @@ export default function MyPage() {
             )}
 
             <Link href="/packages">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">📦</span>
                   <span className="text-[15px] font-medium text-[#1c1c1e]">단품 구매</span>
@@ -163,7 +163,7 @@ export default function MyPage() {
             </Link>
 
             <Link href="/statistics">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[#f5f5f5] cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">📊</span>
                   <span className="text-[15px] font-medium text-[#1c1c1e]">상세 통계</span>
@@ -173,7 +173,7 @@ export default function MyPage() {
             </Link>
 
             <Link href="/help">
-              <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[#F8F9FA] transition-colors">
+              <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">❓</span>
                   <span className="text-[15px] font-medium text-[#1c1c1e]">도움말</span>
@@ -186,7 +186,7 @@ export default function MyPage() {
           {/* 로그아웃 버튼 (은행 앱 스타일) */}
           <button
             onClick={handleLogout}
-            className="w-full py-4 text-[#EF4444] font-semibold text-[15px] bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#f5f5f5] hover:bg-[#FEF2F2] transition-colors"
+            className="w-full py-4 text-[#EF4444] font-semibold text-[15px] bg-white rounded-xl shadow-sm border border-gray-200 hover:bg-[#FEF2F2] transition-colors"
           >
             로그아웃
           </button>
