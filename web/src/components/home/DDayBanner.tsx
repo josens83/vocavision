@@ -30,6 +30,18 @@ function calculateTimeLeft(): TimeLeft {
   };
 }
 
+// 카운터 박스 컴포넌트
+function CounterBox({ value, label }: { value: string | number; label: string }) {
+  return (
+    <div className="text-center">
+      <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-gray-100 flex items-center justify-center">
+        <span className="text-2xl md:text-3xl font-bold text-gray-900">{value}</span>
+      </div>
+      <span className="text-xs text-gray-500 mt-1 block">{label}</span>
+    </div>
+  );
+}
+
 export default function DDayBanner() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [mounted, setMounted] = useState(false);
@@ -49,92 +61,64 @@ export default function DDayBanner() {
 
   if (!mounted) {
     return (
-      <section className="bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900">
+      <section className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="h-20 animate-pulse bg-white/10 rounded-xl" />
+          <div className="h-20 animate-pulse bg-gray-100 rounded-2xl" />
         </div>
       </section>
     );
   }
 
   return (
-    <section className="bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900 relative overflow-hidden">
-      {/* 배경 장식 */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-1/4 w-64 h-64 bg-blue-500 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-6 py-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* 왼쪽: 텍스트 */}
-          <div className="text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-semibold mb-2">
-              <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
-              2027학년도 수능
+    <section className="bg-white border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-6 py-6 md:py-8">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+            {/* 왼쪽: 텍스트 */}
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-sm font-medium mb-3">
+                2027학년도 수능
+              </div>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+                수능까지 <span className="text-teal-600">D-{timeLeft.days}</span>
+              </h2>
+              <p className="text-gray-500 text-sm mt-2">
+                매일 20단어씩 학습하면 수능 전 완벽 마스터!
+              </p>
             </div>
-            <h2 className="text-xl md:text-2xl font-bold text-white">
-              수능까지 <span className="text-yellow-400">D-{timeLeft.days}</span>
-            </h2>
-            <p className="text-white/70 text-sm mt-1">
-              매일 20단어씩 학습하면 수능 전 완벽 마스터!
-            </p>
+
+            {/* 중앙: 카운트다운 */}
+            <div className="flex items-center gap-2 md:gap-3">
+              <CounterBox value={timeLeft.days} label="일" />
+              <span className="text-gray-400 text-2xl font-light">:</span>
+              <CounterBox value={String(timeLeft.hours).padStart(2, "0")} label="시간" />
+              <span className="text-gray-400 text-2xl font-light">:</span>
+              <CounterBox value={String(timeLeft.minutes).padStart(2, "0")} label="분" />
+              <span className="text-gray-400 text-2xl font-light">:</span>
+              <CounterBox value={String(timeLeft.seconds).padStart(2, "0")} label="초" />
+            </div>
+
+            {/* 오른쪽: CTA - 비로그인 시에만 표시 */}
+            {!isLoggedIn && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/learn?exam=CSAT&level=L1"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition-colors"
+                >
+                  <span>무료로 시작하기</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium rounded-xl transition-colors"
+                >
+                  <span>요금제 보기</span>
+                </Link>
+              </div>
+            )}
           </div>
-
-          {/* 중앙: 카운트다운 */}
-          <div className="flex items-center gap-3">
-            <div className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
-                <span className="text-2xl md:text-3xl font-bold text-white">{timeLeft.days}</span>
-              </div>
-              <span className="text-xs text-white/60 mt-1 block">일</span>
-            </div>
-            <span className="text-white/40 text-2xl font-light">:</span>
-            <div className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
-                <span className="text-2xl md:text-3xl font-bold text-white">{String(timeLeft.hours).padStart(2, "0")}</span>
-              </div>
-              <span className="text-xs text-white/60 mt-1 block">시간</span>
-            </div>
-            <span className="text-white/40 text-2xl font-light">:</span>
-            <div className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
-                <span className="text-2xl md:text-3xl font-bold text-white">{String(timeLeft.minutes).padStart(2, "0")}</span>
-              </div>
-              <span className="text-xs text-white/60 mt-1 block">분</span>
-            </div>
-            <span className="text-white/40 text-2xl font-light">:</span>
-            <div className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
-                <span className="text-2xl md:text-3xl font-bold text-yellow-400">{String(timeLeft.seconds).padStart(2, "0")}</span>
-              </div>
-              <span className="text-xs text-white/60 mt-1 block">초</span>
-            </div>
-          </div>
-
-          {/* 오른쪽: CTA - 비로그인 시에만 표시 */}
-          {!isLoggedIn && (
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/learn?exam=CSAT&level=L1"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-semibold rounded-xl transition-all hover:scale-105 group"
-              >
-                <span>무료로 시작하기</span>
-                <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </Link>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors border border-white/20 group"
-              >
-                <span>요금제 보기</span>
-                <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </Link>
-            </div>
-          )}
         </div>
       </div>
     </section>
