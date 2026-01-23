@@ -96,16 +96,13 @@ export const getWords = async (
       }
     }
 
-    // mode=weak: Only return words that user has learned but are "weak"
-    // Weak = incorrectCount > 0 OR correctCount < 3
+    // mode=weak: 복습 대상 단어 반환 (needsReview = true)
+    // 플래시카드에서 "모름/애매함" 선택한 단어들
     if (mode === 'weak' && userId) {
       const weakWordIds = await prisma.userProgress.findMany({
         where: {
           userId,
-          OR: [
-            { incorrectCount: { gt: 0 } },
-            { correctCount: { lt: 3 } },
-          ],
+          needsReview: true,
           word: {
             isActive: true,
             status: 'PUBLISHED',
@@ -115,8 +112,8 @@ export const getWords = async (
         },
         select: { wordId: true },
         orderBy: [
-          { incorrectCount: 'desc' },
-          { correctCount: 'asc' },
+          { reviewCorrectCount: 'asc' },  // 복습 진행도 낮은 것 먼저
+          { updatedAt: 'asc' },           // 오래 복습 안 한 것 먼저
         ],
       });
       const weakIds = weakWordIds.map(p => p.wordId);
