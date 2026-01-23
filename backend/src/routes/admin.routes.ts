@@ -150,6 +150,45 @@ router.get('/regenerate-concept', authOrSecretKey, regenerateConceptByWords);
 router.get('/generate-concept-bulk', authOrSecretKey, generateConceptBulk);
 
 /**
+ * @swagger
+ * /admin/content/words/batch-concept-image-get:
+ *   get:
+ *     summary: Alias for bulk concept image generation (GET for browser URL bar)
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: exam
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Exam category (e.g., "CSAT", "TEPS")
+ *       - in: query
+ *         name: level
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Level (e.g., "L1", "L2", "L3")
+ *       - in: query
+ *         name: start
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Start offset for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 100
+ *         description: Number of words to process (max 500)
+ *     responses:
+ *       200:
+ *         description: Started bulk concept image generation
+ */
+router.get('/content/words/batch-concept-image-get', authOrSecretKey, generateConceptBulk);
+
+/**
  * Admin authentication middleware
  * Allows either:
  * 1. JWT Bearer token with admin role
