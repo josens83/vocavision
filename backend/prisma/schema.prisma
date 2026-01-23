@@ -512,6 +512,11 @@ model UserProgress {
   incorrectCount  Int      @default(0)
   totalReviews    Int      @default(0)
 
+  // 복습 대상 여부 (모름/애매함 클릭 시 true)
+  needsReview     Boolean  @default(false)
+  // 복습 퀴즈 정답 횟수 (복습 대상 단어 중 퀴즈 정답 횟수)
+  reviewCorrectCount Int   @default(0)
+
   // Learning methods used
   usedImages      Boolean  @default(false)
   usedVideos      Boolean  @default(false)
@@ -528,6 +533,7 @@ model UserProgress {
   @@unique([userId, wordId])
   @@index([userId])
   @@index([nextReviewDate])
+  @@index([needsReview])
 }
 
 enum MasteryLevel {

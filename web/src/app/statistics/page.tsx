@@ -28,6 +28,8 @@ interface Progress {
   incorrectCount: number;
   totalReviews: number;
   lastReviewDate: string | null;
+  needsReview?: boolean;
+  reviewCorrectCount?: number;
   word: {
     word: string;
     difficulty: string;
@@ -37,11 +39,28 @@ interface Progress {
   };
 }
 
+// 새로운 API 응답 타입
 interface MasteryDistribution {
   examCategory: string;
   level: string;
-  totalWords: number;
-  distribution: {
+  accuracy: {
+    correctWords: number;
+    totalLearnedWords: number;
+    percent: number;
+  };
+  mastery: {
+    reviewTarget: number;
+    reviewing: { count: number; percent: number };
+    familiar: { count: number; percent: number };
+    mastered: { count: number; percent: number };
+  };
+  overall: {
+    totalWords: number;
+    learnedWords: number;
+    progressPercent: number;
+  };
+  // 기존 호환성
+  distribution?: {
     notSeen: number;
     learning: number;
     familiar: number;
@@ -58,14 +77,14 @@ const DEMO_STATS: UserStats = {
 };
 
 const DEMO_PROGRESS: Progress[] = [
-  { id: '1', wordId: 'w1', masteryLevel: 'MASTERED', correctCount: 5, incorrectCount: 0, totalReviews: 5, lastReviewDate: new Date().toISOString(), word: { word: 'abundant', difficulty: 'BEGINNER', level: 'L1', examCategory: 'CSAT' } },
-  { id: '2', wordId: 'w2', masteryLevel: 'MASTERED', correctCount: 4, incorrectCount: 1, totalReviews: 5, lastReviewDate: new Date().toISOString(), word: { word: 'benevolent', difficulty: 'INTERMEDIATE', level: 'L2', examCategory: 'CSAT' } },
-  { id: '3', wordId: 'w3', masteryLevel: 'FAMILIAR', correctCount: 3, incorrectCount: 1, totalReviews: 4, lastReviewDate: new Date().toISOString(), word: { word: 'comprehensive', difficulty: 'INTERMEDIATE', level: 'L2', examCategory: 'CSAT' } },
-  { id: '4', wordId: 'w4', masteryLevel: 'FAMILIAR', correctCount: 2, incorrectCount: 1, totalReviews: 3, lastReviewDate: new Date().toISOString(), word: { word: 'diligent', difficulty: 'BEGINNER', level: 'L1', examCategory: 'CSAT' } },
-  { id: '5', wordId: 'w5', masteryLevel: 'LEARNING', correctCount: 2, incorrectCount: 2, totalReviews: 4, lastReviewDate: new Date().toISOString(), word: { word: 'eloquent', difficulty: 'ADVANCED', level: 'L3', examCategory: 'CSAT' } },
-  { id: '6', wordId: 'w6', masteryLevel: 'LEARNING', correctCount: 1, incorrectCount: 2, totalReviews: 3, lastReviewDate: new Date().toISOString(), word: { word: 'fluctuate', difficulty: 'ADVANCED', level: 'L3', examCategory: 'CSAT' } },
-  { id: '7', wordId: 'w7', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 1, totalReviews: 1, lastReviewDate: new Date().toISOString(), word: { word: 'gratitude', difficulty: 'BEGINNER', level: 'L1', examCategory: 'CSAT' } },
-  { id: '8', wordId: 'w8', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 0, totalReviews: 0, lastReviewDate: null, word: { word: 'hypothesis', difficulty: 'EXPERT', level: 'L1', examCategory: 'TEPS' } },
+  { id: '1', wordId: 'w1', masteryLevel: 'MASTERED', correctCount: 5, incorrectCount: 0, totalReviews: 5, lastReviewDate: new Date().toISOString(), needsReview: false, reviewCorrectCount: 0, word: { word: 'abundant', difficulty: 'BEGINNER', level: 'L1', examCategory: 'CSAT' } },
+  { id: '2', wordId: 'w2', masteryLevel: 'MASTERED', correctCount: 4, incorrectCount: 1, totalReviews: 5, lastReviewDate: new Date().toISOString(), needsReview: false, reviewCorrectCount: 0, word: { word: 'benevolent', difficulty: 'INTERMEDIATE', level: 'L2', examCategory: 'CSAT' } },
+  { id: '3', wordId: 'w3', masteryLevel: 'FAMILIAR', correctCount: 3, incorrectCount: 1, totalReviews: 4, lastReviewDate: new Date().toISOString(), needsReview: true, reviewCorrectCount: 1, word: { word: 'comprehensive', difficulty: 'INTERMEDIATE', level: 'L2', examCategory: 'CSAT' } },
+  { id: '4', wordId: 'w4', masteryLevel: 'FAMILIAR', correctCount: 2, incorrectCount: 1, totalReviews: 3, lastReviewDate: new Date().toISOString(), needsReview: true, reviewCorrectCount: 2, word: { word: 'diligent', difficulty: 'BEGINNER', level: 'L1', examCategory: 'CSAT' } },
+  { id: '5', wordId: 'w5', masteryLevel: 'LEARNING', correctCount: 2, incorrectCount: 2, totalReviews: 4, lastReviewDate: new Date().toISOString(), needsReview: true, reviewCorrectCount: 0, word: { word: 'eloquent', difficulty: 'ADVANCED', level: 'L3', examCategory: 'CSAT' } },
+  { id: '6', wordId: 'w6', masteryLevel: 'LEARNING', correctCount: 1, incorrectCount: 2, totalReviews: 3, lastReviewDate: new Date().toISOString(), needsReview: true, reviewCorrectCount: 0, word: { word: 'fluctuate', difficulty: 'ADVANCED', level: 'L3', examCategory: 'CSAT' } },
+  { id: '7', wordId: 'w7', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 1, totalReviews: 1, lastReviewDate: new Date().toISOString(), needsReview: true, reviewCorrectCount: 0, word: { word: 'gratitude', difficulty: 'BEGINNER', level: 'L1', examCategory: 'CSAT' } },
+  { id: '8', wordId: 'w8', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 0, totalReviews: 0, lastReviewDate: null, needsReview: false, reviewCorrectCount: 0, word: { word: 'hypothesis', difficulty: 'EXPERT', level: 'L1', examCategory: 'TEPS' } },
 ];
 
 function StatisticsPageContent() {
@@ -150,55 +169,67 @@ function StatisticsPageContent() {
     loadMasteryDistribution();
   }, [masteryExam, masteryLevel, user, hasHydrated, isDemo]);
 
-  // 필터링된 progress (examLevels 기반) - 숙련도 분포용
-  const getFilteredProgress = () => {
+  // 필터링된 progress (examLevels 기반) - 레벨별 학습 현황용
+  const getFilteredProgress = (exam: string, level?: string) => {
     return progress.filter((p) => {
-      // examLevels 관계 사용
       if (p.word.examLevels && p.word.examLevels.length > 0) {
         const hasMatchingExamLevel = p.word.examLevels.some((el) => {
-          const examMatch = el.examCategory === masteryExam;
-          const levelMatch = masteryLevel === 'all' || el.level === masteryLevel;
+          const examMatch = el.examCategory === exam;
+          const levelMatch = !level || level === 'all' || el.level === level;
           return examMatch && levelMatch;
         });
         return hasMatchingExamLevel;
       }
-      // fallback: 기존 필드 사용
-      if (p.word.examCategory && p.word.examCategory !== masteryExam) {
+      if (p.word.examCategory && p.word.examCategory !== exam) {
         return false;
       }
-      if (masteryLevel !== 'all' && p.word.level !== masteryLevel) {
+      if (level && level !== 'all' && p.word.level !== level) {
         return false;
       }
       return true;
     });
   };
 
-  // API에서 가져온 숙련도 분포 사용 (데모 모드에서는 로컬 계산)
-  const getMasteryDistributionData = () => {
-    // API 데이터가 있으면 사용
-    if (masteryDist && !isDemo) {
-      return {
-        NEW: masteryDist.distribution.notSeen,
-        LEARNING: masteryDist.distribution.learning,
-        FAMILIAR: masteryDist.distribution.familiar,
-        MASTERED: masteryDist.distribution.mastered,
-      };
-    }
+  // 데모 모드용 숙련도 계산
+  const getDemoMasteryData = () => {
+    const filtered = getFilteredProgress(masteryExam, masteryLevel);
+    const reviewWords = filtered.filter(p => p.needsReview);
+    const totalReview = reviewWords.length;
 
-    // 데모 모드 또는 API 데이터 없을 때: 로컬 계산
-    const distribution = {
-      NEW: 0,
-      LEARNING: 0,
-      FAMILIAR: 0,
-      MASTERED: 0,
+    const reviewing = reviewWords.filter(p => (p.reviewCorrectCount || 0) === 0).length;
+    const familiar = reviewWords.filter(p => (p.reviewCorrectCount || 0) === 1).length;
+    const mastered = reviewWords.filter(p => (p.reviewCorrectCount || 0) >= 2).length;
+
+    const correctWords = filtered.filter(p => !p.needsReview).length;
+    const totalLearned = filtered.length;
+
+    return {
+      accuracy: {
+        correctWords,
+        totalLearnedWords: totalLearned,
+        percent: totalLearned > 0 ? Math.round((correctWords / totalLearned) * 100) : 0,
+      },
+      mastery: {
+        reviewTarget: totalReview,
+        reviewing: {
+          count: reviewing,
+          percent: totalReview > 0 ? Math.round((reviewing / totalReview) * 100) : 0,
+        },
+        familiar: {
+          count: familiar,
+          percent: totalReview > 0 ? Math.round((familiar / totalReview) * 100) : 0,
+        },
+        mastered: {
+          count: mastered,
+          percent: totalReview > 0 ? Math.round((mastered / totalReview) * 100) : 0,
+        },
+      },
+      overall: {
+        totalWords: 1000,
+        learnedWords: totalLearned,
+        progressPercent: Math.round((totalLearned / 1000) * 100),
+      },
     };
-
-    const filtered = getFilteredProgress();
-    filtered.forEach((p) => {
-      distribution[p.masteryLevel as keyof typeof distribution]++;
-    });
-
-    return distribution;
   };
 
   // 레벨별 학습 현황 (독립적 필터)
@@ -209,21 +240,9 @@ function StatisticsPageContent() {
       L3: 0,
     };
 
-    // 선택된 시험 기준으로 필터링 (레벨별 학습 현황 전용)
-    const filtered = progress.filter((p) => {
-      // examLevels 관계 사용
-      if (p.word.examLevels && p.word.examLevels.length > 0) {
-        return p.word.examLevels.some((el) => el.examCategory === levelProgressExam);
-      }
-      // fallback: 기존 필드 사용
-      if (p.word.examCategory && p.word.examCategory !== levelProgressExam) {
-        return false;
-      }
-      return true;
-    });
+    const filtered = getFilteredProgress(levelProgressExam);
 
     filtered.forEach((p) => {
-      // examLevels에서 레벨 가져오기
       let level = 'L1';
       if (p.word.examLevels && p.word.examLevels.length > 0) {
         const matchingExamLevel = p.word.examLevels.find((el) => el.examCategory === levelProgressExam);
@@ -239,36 +258,33 @@ function StatisticsPageContent() {
     return distribution;
   };
 
-  const getAccuracyRate = () => {
-    const total = progress.reduce((sum, p) => sum + p.totalReviews, 0);
-    const correct = progress.reduce((sum, p) => sum + p.correctCount, 0);
-    return total > 0 ? Math.round((correct / total) * 100) : 0;
+  // 정확도 계산 (API 데이터 또는 데모 데이터 사용)
+  const getAccuracyData = () => {
+    if (masteryDist && !isDemo) {
+      return masteryDist.accuracy;
+    }
+    const demoData = getDemoMasteryData();
+    return demoData.accuracy;
   };
 
-  const masteryDistData = getMasteryDistributionData();
+  // 숙련도 분포 데이터
+  const getMasteryData = () => {
+    if (masteryDist && !isDemo) {
+      return masteryDist.mastery;
+    }
+    const demoData = getDemoMasteryData();
+    return demoData.mastery;
+  };
+
   const levelDist = getLevelDistribution();
-  const accuracyRate = getAccuracyRate();
-
-  // 숙련도 색상 (은행 앱 스타일)
-  const masteryColors = {
-    NEW: 'bg-[#D1D5DB]',      // 회색 - 아직 안 본
-    LEARNING: 'bg-[#F59E0B]', // 앰버 - 공부 중
-    FAMILIAR: 'bg-[#3B82F6]', // 파랑 - 어느 정도 암기
-    MASTERED: 'bg-[#10B981]', // 그린 - 완전 암기
-  };
-
-  const masteryLabels = {
-    NEW: '아직 안 본 단어',
-    LEARNING: '공부 중',
-    FAMILIAR: '어느 정도 암기',
-    MASTERED: '완전 암기',
-  };
+  const accuracyData = getAccuracyData();
+  const masteryData = getMasteryData();
 
   // 레벨별 배경색 (은행 앱 스타일)
   const levelColors = {
-    L1: 'bg-[#10B981]',  // 초급 - 그린
-    L2: 'bg-[#3B82F6]',  // 중급 - 파랑
-    L3: 'bg-[#A855F7]',  // 고급 - 보라
+    L1: 'bg-[#10B981]',
+    L2: 'bg-[#3B82F6]',
+    L3: 'bg-[#A855F7]',
   };
 
   const levelLabels = {
@@ -304,7 +320,6 @@ function StatisticsPageContent() {
 
   return (
     <DashboardLayout>
-      {/* 최상위 컨테이너: overflow-x 방지 */}
       <div className="p-4 lg:p-8 max-w-5xl mx-auto w-full overflow-x-hidden space-y-4">
         {/* 데모 모드 배너 */}
         {isDemo && !user && (
@@ -362,17 +377,20 @@ function StatisticsPageContent() {
             <p className="text-[28px] font-bold text-[#14B8A6]">{stats?.currentStreak || 0}일</p>
           </div>
 
-          {/* 정확도 */}
+          {/* 정확도 (새 로직) */}
           <div className="bg-[#ECFDF5] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">✅</span>
               <span className="text-[12px] text-[#10B981] font-medium">정확도</span>
             </div>
-            <p className="text-[28px] font-bold text-[#10B981]">{accuracyRate}%</p>
+            <p className="text-[28px] font-bold text-[#10B981]">{accuracyData.percent}%</p>
+            <p className="text-[11px] text-gray-500 mt-1">
+              {accuracyData.correctWords}/{accuracyData.totalLearnedWords} 단어
+            </p>
           </div>
         </div>
 
-        {/* 숙련도 분포 카드 (은행 앱 스타일) - overflow 방지 */}
+        {/* 숙련도 분포 카드 (새 로직) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 overflow-hidden">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
             <h3 className="text-[15px] font-bold text-[#1c1c1e]">숙련도 분포</h3>
@@ -400,34 +418,88 @@ function StatisticsPageContent() {
             </div>
           </div>
 
-          {/* 프로그레스 바들 - min-w-0으로 shrink 허용 */}
-          <div className="space-y-4 w-full min-w-0">
-            {Object.entries(masteryDistData).map(([level, count]) => {
-              const total = Object.values(masteryDistData).reduce((a, b) => a + b, 0);
-              const percentage = total > 0 ? (count / total) * 100 : 0;
-              const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
-              const safeCount = isNaN(count) ? 0 : count;
-
-              return (
-                <div key={level} className="w-full min-w-0">
-                  <div className="flex justify-between items-center mb-1.5 gap-2">
-                    <span className="text-[13px] text-gray-500 truncate min-w-0">
-                      {masteryLabels[level as keyof typeof masteryLabels]}
-                    </span>
-                    <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                      {safeCount}개 ({safePercentage}%)
-                    </span>
-                  </div>
-                  <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${masteryColors[level as keyof typeof masteryColors]}`}
-                      style={{ width: `${Math.max(safePercentage, 0)}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+          {/* 복습 대상 단어 (개수만, % 없음) */}
+          <div className="bg-gray-100 rounded-xl p-4 mb-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📝</span>
+                <span className="text-[14px] font-medium text-[#1c1c1e]">복습 대상 단어</span>
+              </div>
+              <span className="text-[18px] font-bold text-[#1c1c1e]">{masteryData.reviewTarget}개</span>
+            </div>
+            <p className="text-[12px] text-gray-500 mt-2">
+              모름/애매함으로 표시한 단어들 (복습 퀴즈에서 학습)
+            </p>
           </div>
+
+          {/* 구분선 */}
+          <div className="border-t border-gray-200 my-4" />
+
+          {/* 숙련도 분포 (% 포함) */}
+          <div className="space-y-4 w-full min-w-0">
+            {/* 복습 중 */}
+            <div className="w-full min-w-0">
+              <div className="flex justify-between items-center mb-1.5 gap-2">
+                <span className="text-[13px] text-gray-500 truncate min-w-0">
+                  복습 중
+                </span>
+                <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
+                  {masteryData.reviewing.count}개 ({masteryData.reviewing.percent}%)
+                </span>
+              </div>
+              <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500 bg-[#F59E0B]"
+                  style={{ width: `${Math.max(masteryData.reviewing.percent, 0)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* 어느 정도 암기 */}
+            <div className="w-full min-w-0">
+              <div className="flex justify-between items-center mb-1.5 gap-2">
+                <span className="text-[13px] text-gray-500 truncate min-w-0">
+                  어느 정도 암기
+                </span>
+                <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
+                  {masteryData.familiar.count}개 ({masteryData.familiar.percent}%)
+                </span>
+              </div>
+              <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500 bg-[#3B82F6]"
+                  style={{ width: `${Math.max(masteryData.familiar.percent, 0)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* 완전 암기 */}
+            <div className="w-full min-w-0">
+              <div className="flex justify-between items-center mb-1.5 gap-2">
+                <span className="text-[13px] text-gray-500 truncate min-w-0">
+                  완전 암기
+                </span>
+                <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
+                  {masteryData.mastered.count}개 ({masteryData.mastered.percent}%)
+                </span>
+              </div>
+              <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500 bg-[#10B981]"
+                  style={{ width: `${Math.max(masteryData.mastered.percent, 0)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 안내 메시지 */}
+          {masteryData.reviewTarget === 0 && (
+            <div className="mt-4 p-3 bg-[#ECFDF5] rounded-xl">
+              <p className="text-[13px] text-[#10B981]">
+                🎉 복습할 단어가 없습니다! 새로운 단어를 학습해보세요.
+              </p>
+            </div>
+          )}
         </section>
 
         {/* 레벨별 학습 현황 카드 (은행 앱 스타일) */}
