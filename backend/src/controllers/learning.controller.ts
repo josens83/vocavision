@@ -435,3 +435,458 @@ export const getLearningStats = async (
     next(error);
   }
 };
+
+// ============================================
+// Learning Session Management (전체 레벨 학습)
+// ============================================
+
+// Fisher-Yates 셔플 알고리즘
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
+ * 현재 진행 중인 학습 세션 조회
+ * GET /learning/session?exam=CSAT&level=L1
+ */
+export const getLearningSession = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      throw new AppError('Unauthorized', 401);
+    }
+
+    const { exam, level } = req.query;
+
+    if (!exam || !level) {
+      throw new AppError('exam and level are required', 400);
+    }
+
+    // 진행 중인 세션 찾기
+    const session = await prisma.learningSession.findFirst({
+      where: {
+        userId,
+        examCategory: exam as string,
+        level: level as string,
+        status: 'IN_PROGRESS',
+      },
+    });
+
+    if (!session) {
+      return res.json({ session: null });
+    }
+
+    // wordOrder를 파싱하여 현재 세트의 단어들 가져오기
+    const wordOrder: string[] = JSON.parse(session.wordOrder);
+    const setSize = 20;
+    const startIdx = session.currentSet * setSize;
+    const endIdx = Math.min(startIdx + setSize, wordOrder.length);
+    const currentSetWordIds = wordOrder.slice(startIdx, endIdx);
+
+    // 현재 세트 단어들의 상세 정보 조회
+    const words = await prisma.word.findMany({
+      where: {
+        id: { in: currentSetWordIds },
+      },
+      include: {
+        visuals: { orderBy: { order: 'asc' } },
+        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+        examples: { take: 2 },
+        etymology: true,
+      },
+    });
+
+    // wordOrder 순서대로 정렬
+    const orderedWords = currentSetWordIds
+      .map(id => words.find(w => w.id === id))
+      .filter(Boolean);
+
+    res.json({
+      session: {
+        id: session.id,
+        examCategory: session.examCategory,
+        level: session.level,
+        totalWords: session.totalWords,
+        currentSet: session.currentSet,
+        currentIndex: session.currentIndex,
+        totalSets: Math.ceil(session.totalWords / setSize),
+        completedSets: session.completedSets,
+        totalReviewed: session.totalReviewed,
+        status: session.status,
+      },
+      words: orderedWords,
+      setInfo: {
+        setNumber: session.currentSet,
+        totalSets: Math.ceil(session.totalWords / setSize),
+        wordsInSet: orderedWords.length,
+        startIndex: startIdx,
+        endIndex: endIdx - 1,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 새 학습 세션 시작 또는 재시작
+ * POST /learning/session/start
+ * body: { exam, level, restart: boolean }
+ */
+export const startLearningSession = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      throw new AppError('Unauthorized', 401);
+    }
+
+    const { exam, level, restart = false } = req.body;
+
+    if (!exam || !level) {
+      throw new AppError('exam and level are required', 400);
+    }
+
+    // restart=true면 기존 진행 중인 세션 종료
+    if (restart) {
+      await prisma.learningSession.updateMany({
+        where: {
+          userId,
+          examCategory: exam,
+          level,
+          status: 'IN_PROGRESS',
+        },
+        data: {
+          status: 'ABANDONED',
+        },
+      });
+    } else {
+      // 기존 진행 중인 세션이 있는지 확인
+      const existingSession = await prisma.learningSession.findFirst({
+        where: {
+          userId,
+          examCategory: exam,
+          level,
+          status: 'IN_PROGRESS',
+        },
+      });
+
+      if (existingSession) {
+        // 기존 세션 반환 (getLearningSession과 동일한 형식)
+        const wordOrder: string[] = JSON.parse(existingSession.wordOrder);
+        const setSize = 20;
+        const startIdx = existingSession.currentSet * setSize;
+        const endIdx = Math.min(startIdx + setSize, wordOrder.length);
+        const currentSetWordIds = wordOrder.slice(startIdx, endIdx);
+
+        const words = await prisma.word.findMany({
+          where: { id: { in: currentSetWordIds } },
+          include: {
+            visuals: { orderBy: { order: 'asc' } },
+            mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+            examples: { take: 2 },
+            etymology: true,
+          },
+        });
+
+        const orderedWords = currentSetWordIds
+          .map(id => words.find(w => w.id === id))
+          .filter(Boolean);
+
+        return res.json({
+          session: {
+            id: existingSession.id,
+            examCategory: existingSession.examCategory,
+            level: existingSession.level,
+            totalWords: existingSession.totalWords,
+            currentSet: existingSession.currentSet,
+            currentIndex: existingSession.currentIndex,
+            totalSets: Math.ceil(existingSession.totalWords / setSize),
+            completedSets: existingSession.completedSets,
+            totalReviewed: existingSession.totalReviewed,
+            status: existingSession.status,
+          },
+          words: orderedWords,
+          isExisting: true,
+        });
+      }
+    }
+
+    // 해당 레벨의 모든 단어 ID 조회
+    const allWords = await prisma.word.findMany({
+      where: {
+        examLevels: {
+          some: {
+            examCategory: exam,
+            level: level,
+          },
+        },
+        isActive: true,
+      },
+      select: { id: true },
+      orderBy: { word: 'asc' },
+    });
+
+    if (allWords.length === 0) {
+      throw new AppError('No words found for this exam/level', 404);
+    }
+
+    // 단어 ID 배열 셔플
+    const wordIds = allWords.map(w => w.id);
+    const shuffledWordIds = shuffleArray(wordIds);
+
+    // 새 세션 생성
+    const newSession = await prisma.learningSession.create({
+      data: {
+        userId,
+        examCategory: exam,
+        level,
+        wordOrder: JSON.stringify(shuffledWordIds),
+        totalWords: shuffledWordIds.length,
+        currentSet: 0,
+        currentIndex: 0,
+        status: 'IN_PROGRESS',
+      },
+    });
+
+    // 첫 번째 세트 단어들 조회
+    const setSize = 20;
+    const firstSetWordIds = shuffledWordIds.slice(0, setSize);
+
+    const words = await prisma.word.findMany({
+      where: { id: { in: firstSetWordIds } },
+      include: {
+        visuals: { orderBy: { order: 'asc' } },
+        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+        examples: { take: 2 },
+        etymology: true,
+      },
+    });
+
+    const orderedWords = firstSetWordIds
+      .map(id => words.find(w => w.id === id))
+      .filter(Boolean);
+
+    res.status(201).json({
+      session: {
+        id: newSession.id,
+        examCategory: newSession.examCategory,
+        level: newSession.level,
+        totalWords: newSession.totalWords,
+        currentSet: 0,
+        currentIndex: 0,
+        totalSets: Math.ceil(newSession.totalWords / setSize),
+        completedSets: 0,
+        totalReviewed: 0,
+        status: newSession.status,
+      },
+      words: orderedWords,
+      isNew: true,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 학습 세션 진행률 업데이트
+ * PATCH /learning/session/progress
+ * body: { sessionId, currentSet?, currentIndex?, completedSet?: boolean }
+ */
+export const updateSessionProgress = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      throw new AppError('Unauthorized', 401);
+    }
+
+    const { sessionId, currentSet, currentIndex, completedSet } = req.body;
+
+    if (!sessionId) {
+      throw new AppError('sessionId is required', 400);
+    }
+
+    // 세션 확인
+    const session = await prisma.learningSession.findFirst({
+      where: {
+        id: sessionId,
+        userId,
+        status: 'IN_PROGRESS',
+      },
+    });
+
+    if (!session) {
+      throw new AppError('Session not found', 404);
+    }
+
+    const setSize = 20;
+    const totalSets = Math.ceil(session.totalWords / setSize);
+
+    // 업데이트 데이터 준비
+    const updateData: any = {};
+
+    if (currentSet !== undefined) {
+      updateData.currentSet = currentSet;
+    }
+
+    if (currentIndex !== undefined) {
+      updateData.currentIndex = currentIndex;
+    }
+
+    // 세트 완료 처리
+    if (completedSet) {
+      updateData.completedSets = session.completedSets + 1;
+      updateData.totalReviewed = (session.currentSet + 1) * setSize;
+      updateData.currentIndex = 0;
+
+      // 다음 세트로 이동
+      const nextSet = session.currentSet + 1;
+      if (nextSet >= totalSets) {
+        // 전체 학습 완료
+        updateData.status = 'COMPLETED';
+        updateData.currentSet = session.currentSet; // 마지막 세트 유지
+      } else {
+        updateData.currentSet = nextSet;
+      }
+    }
+
+    const updatedSession = await prisma.learningSession.update({
+      where: { id: sessionId },
+      data: updateData,
+    });
+
+    // 다음 세트 단어들 조회 (세트 완료 후)
+    let nextWords: any[] = [];
+    if (completedSet && updatedSession.status === 'IN_PROGRESS') {
+      const wordOrder: string[] = JSON.parse(updatedSession.wordOrder);
+      const startIdx = updatedSession.currentSet * setSize;
+      const endIdx = Math.min(startIdx + setSize, wordOrder.length);
+      const nextSetWordIds = wordOrder.slice(startIdx, endIdx);
+
+      const words = await prisma.word.findMany({
+        where: { id: { in: nextSetWordIds } },
+        include: {
+          visuals: { orderBy: { order: 'asc' } },
+          mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+          examples: { take: 2 },
+          etymology: true,
+        },
+      });
+
+      nextWords = nextSetWordIds
+        .map(id => words.find(w => w.id === id))
+        .filter(Boolean);
+    }
+
+    res.json({
+      session: {
+        id: updatedSession.id,
+        examCategory: updatedSession.examCategory,
+        level: updatedSession.level,
+        totalWords: updatedSession.totalWords,
+        currentSet: updatedSession.currentSet,
+        currentIndex: updatedSession.currentIndex,
+        totalSets,
+        completedSets: updatedSession.completedSets,
+        totalReviewed: updatedSession.totalReviewed,
+        status: updatedSession.status,
+      },
+      words: nextWords.length > 0 ? nextWords : undefined,
+      isCompleted: updatedSession.status === 'COMPLETED',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 특정 세트 단어 조회 (직접 이동용)
+ * GET /learning/session/:sessionId/set/:setNumber
+ */
+export const getSessionSet = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      throw new AppError('Unauthorized', 401);
+    }
+
+    const { sessionId, setNumber } = req.params;
+    const setNum = parseInt(setNumber, 10);
+
+    if (isNaN(setNum) || setNum < 0) {
+      throw new AppError('Invalid set number', 400);
+    }
+
+    // 세션 확인
+    const session = await prisma.learningSession.findFirst({
+      where: {
+        id: sessionId,
+        userId,
+      },
+    });
+
+    if (!session) {
+      throw new AppError('Session not found', 404);
+    }
+
+    const setSize = 20;
+    const totalSets = Math.ceil(session.totalWords / setSize);
+
+    if (setNum >= totalSets) {
+      throw new AppError('Set number out of range', 400);
+    }
+
+    // 해당 세트 단어들 조회
+    const wordOrder: string[] = JSON.parse(session.wordOrder);
+    const startIdx = setNum * setSize;
+    const endIdx = Math.min(startIdx + setSize, wordOrder.length);
+    const setWordIds = wordOrder.slice(startIdx, endIdx);
+
+    const words = await prisma.word.findMany({
+      where: { id: { in: setWordIds } },
+      include: {
+        visuals: { orderBy: { order: 'asc' } },
+        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+        examples: { take: 2 },
+        etymology: true,
+      },
+    });
+
+    const orderedWords = setWordIds
+      .map(id => words.find(w => w.id === id))
+      .filter(Boolean);
+
+    res.json({
+      words: orderedWords,
+      setInfo: {
+        setNumber: setNum,
+        totalSets,
+        wordsInSet: orderedWords.length,
+        startIndex: startIdx,
+        endIndex: endIdx - 1,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -250,6 +250,39 @@ export const learningAPI = {
     const response = await api.get('/learning/stats');
     return response.data;
   },
+
+  // ============================================
+  // Learning Session Management (전체 레벨 학습)
+  // ============================================
+
+  // 현재 진행 중인 학습 세션 조회
+  getSession: async (exam: string, level: string) => {
+    const response = await api.get(`/learning/session?exam=${exam}&level=${level}`);
+    return response.data;
+  },
+
+  // 새 학습 세션 시작 또는 재시작
+  startSession: async (data: { exam: string; level: string; restart?: boolean }) => {
+    const response = await api.post('/learning/session/start', data);
+    return response.data;
+  },
+
+  // 학습 세션 진행률 업데이트
+  updateSessionProgress: async (data: {
+    sessionId: string;
+    currentSet?: number;
+    currentIndex?: number;
+    completedSet?: boolean;
+  }) => {
+    const response = await api.patch('/learning/session/progress', data);
+    return response.data;
+  },
+
+  // 특정 세트 단어 조회
+  getSessionSet: async (sessionId: string, setNumber: number) => {
+    const response = await api.get(`/learning/session/${sessionId}/set/${setNumber}`);
+    return response.data;
+  },
 };
 
 // Word Visuals API - 3-이미지 시각화 시스템

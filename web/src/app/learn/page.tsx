@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSession, clearLearningSession } from '@/lib/store';
-import { progressAPI, wordsAPI } from '@/lib/api';
+import { progressAPI, wordsAPI, learningAPI } from '@/lib/api';
 import { canAccessContent } from '@/lib/subscription';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
@@ -171,6 +171,18 @@ function LearnPageContent() {
   const [totalWordsInLevel, setTotalWordsInLevel] = useState(0);
   const [totalLearnedInLevel, setTotalLearnedInLevel] = useState(0);
 
+  // 서버측 학습 세션 상태
+  const [serverSession, setServerSession] = useState<{
+    id: string;
+    totalWords: number;
+    currentSet: number;
+    currentIndex: number;
+    totalSets: number;
+    completedSets: number;
+    totalReviewed: number;
+    status: string;
+  } | null>(null);
+
   useEffect(() => {
     if (!hasHydrated) return;
 
@@ -261,88 +273,49 @@ function LearnPageContent() {
         const totalWeak = totalData?.pagination?.total || 0;
         setTotalLearnedInLevel(0);
         setTotalWordsInLevel(totalWeak);
-      } else if (examParam) {
-        // 1. 먼저 저장된 세션 확인 (restart 모드가 아닌 경우)
-        if (!isRestart && user && levelParam) {
-          const savedSession = loadLearningSession(examParam, levelParam);
-          if (savedSession && savedSession.words.length > 0) {
-            // 저장된 세션 복원
-            setReviews(savedSession.words.map((word: Word) => ({ word })));
-            // cardRatings를 인덱스 기반으로 변환
-            const indexRatings: Record<number, number> = {};
-            savedSession.words.forEach((word: Word, idx: number) => {
-              if (savedSession.ratings[word.id]) {
-                indexRatings[idx] = savedSession.ratings[word.id];
-              }
-            });
-            restoreSession(savedSession.currentIndex, indexRatings);
-            setSessionRestored(true);
-
-            // 진행률 데이터 로드
-            const totalData = await wordsAPI.getWords({
-              examCategory: examParam,
-              level: levelParam,
-              limit: 1,
-            });
-            const totalInLevel = totalData.pagination?.total || 0;
-            setTotalWordsInLevel(totalInLevel);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // 2. 새로운 단어 로드 (기존 로직)
-        // 병렬 호출로 성능 개선 (5-8초 → 1-2초)
-        const [wordsData, totalData] = await Promise.all([
-          // 학습할 단어 조회 (excludeLearned로 미학습 단어만, restart 모드가 아닌 경우)
-          wordsAPI.getWords({
-            examCategory: examParam,
-            level: levelParam || undefined,
-            limit: 20,
-            page,
-            excludeLearned: user && !isRestart ? true : undefined,
-            shuffle: true,
-          }),
-          // 로그인 사용자만 전체 단어 수 조회 (진행률 계산용)
-          user ? wordsAPI.getWords({
-            examCategory: examParam,
-            level: levelParam || undefined,
-            limit: 1,
-          }) : Promise.resolve(null),
-        ]);
-
-        const words = wordsData.words || wordsData.data || [];
-        // Filter to only include words with actual content
-        const wordsWithContent = words.filter((word: any) =>
-          (word.definition && word.definition.trim() !== '') ||
-          (word.definitionKo && word.definitionKo.trim() !== '')
-        );
-        const newWords = wordsWithContent.slice(0, 20);
-        setReviews(newWords.map((word: Word) => ({ word })));
-        setCurrentPage(page);
-
-        // 3. 새 세션 저장 (로그인 사용자 + levelParam이 있는 경우)
-        if (user && levelParam && newWords.length > 0) {
-          resetSession();  // 기존 세션 초기화
-          saveLearningSession({
+      } else if (examParam && levelParam && user) {
+        // ====== 서버측 학습 세션 사용 (로그인 + exam + level) ======
+        try {
+          // restart 모드면 새 세션 시작, 아니면 기존 세션 조회/생성
+          const sessionData = await learningAPI.startSession({
             exam: examParam,
             level: levelParam,
-            words: newWords,
-            currentIndex: 0,
-            ratings: {},
-            timestamp: Date.now(),
+            restart: isRestart,
           });
-        }
 
-        // Set progress data
-        if (user && totalData) {
-          const totalInLevel = totalData.pagination?.total || 0;
-          const remainingUnlearned = wordsData.pagination?.total || 0;
-          setTotalLearnedInLevel(totalInLevel - remainingUnlearned);
-          setTotalWordsInLevel(totalInLevel);
-        } else {
-          setTotalWordsInLevel(wordsData.pagination?.total || 0);
+          if (sessionData.session) {
+            setServerSession(sessionData.session);
+            setTotalWordsInLevel(sessionData.session.totalWords);
+            setTotalLearnedInLevel(sessionData.session.totalReviewed);
+
+            // 서버에서 받은 단어들 사용
+            const words = sessionData.words || [];
+            setReviews(words.map((word: Word) => ({ word })));
+
+            // 기존 세션이면 인덱스 복원
+            if (sessionData.isExisting && sessionData.session.currentIndex > 0) {
+              restoreSession(sessionData.session.currentIndex, {});
+              setSessionRestored(true);
+            }
+
+            // localStorage 세션도 동기화 (폴백용)
+            saveLearningSession({
+              exam: examParam,
+              level: levelParam,
+              words,
+              currentIndex: sessionData.session.currentIndex,
+              ratings: {},
+              timestamp: Date.now(),
+            });
+          }
+        } catch (sessionError) {
+          console.error('Server session failed, falling back to local:', sessionError);
+          // 서버 세션 실패시 기존 로직으로 폴백
+          await loadReviewsFallback(page);
         }
+      } else if (examParam) {
+        // 비로그인 또는 레벨 없는 경우 기존 로직
+        await loadReviewsFallback(page);
       } else if (user) {
         // Logged-in users: Get due reviews or random words
         try {
@@ -379,6 +352,88 @@ function LearnPageContent() {
     }
   };
 
+  // 폴백 로직 (서버 세션 없이 로컬 방식)
+  const loadReviewsFallback = async (page = 1) => {
+    if (!examParam) return;
+
+    // 1. 먼저 저장된 세션 확인 (restart 모드가 아닌 경우)
+    if (!isRestart && user && levelParam) {
+      const savedSession = loadLearningSession(examParam, levelParam);
+      if (savedSession && savedSession.words.length > 0) {
+        // 저장된 세션 복원
+        setReviews(savedSession.words.map((word: Word) => ({ word })));
+        // cardRatings를 인덱스 기반으로 변환
+        const indexRatings: Record<number, number> = {};
+        savedSession.words.forEach((word: Word, idx: number) => {
+          if (savedSession.ratings[word.id]) {
+            indexRatings[idx] = savedSession.ratings[word.id];
+          }
+        });
+        restoreSession(savedSession.currentIndex, indexRatings);
+        setSessionRestored(true);
+
+        // 진행률 데이터 로드
+        const totalData = await wordsAPI.getWords({
+          examCategory: examParam,
+          level: levelParam,
+          limit: 1,
+        });
+        const totalInLevel = totalData.pagination?.total || 0;
+        setTotalWordsInLevel(totalInLevel);
+        return;
+      }
+    }
+
+    // 2. 새로운 단어 로드 (기존 로직)
+    const [wordsData, totalData] = await Promise.all([
+      wordsAPI.getWords({
+        examCategory: examParam,
+        level: levelParam || undefined,
+        limit: 20,
+        page,
+        excludeLearned: user && !isRestart ? true : undefined,
+        shuffle: true,
+      }),
+      user ? wordsAPI.getWords({
+        examCategory: examParam,
+        level: levelParam || undefined,
+        limit: 1,
+      }) : Promise.resolve(null),
+    ]);
+
+    const words = wordsData.words || wordsData.data || [];
+    const wordsWithContent = words.filter((word: any) =>
+      (word.definition && word.definition.trim() !== '') ||
+      (word.definitionKo && word.definitionKo.trim() !== '')
+    );
+    const newWords = wordsWithContent.slice(0, 20);
+    setReviews(newWords.map((word: Word) => ({ word })));
+    setCurrentPage(page);
+
+    // 3. 새 세션 저장 (로그인 사용자 + levelParam이 있는 경우)
+    if (user && levelParam && newWords.length > 0) {
+      resetSession();
+      saveLearningSession({
+        exam: examParam,
+        level: levelParam,
+        words: newWords,
+        currentIndex: 0,
+        ratings: {},
+        timestamp: Date.now(),
+      });
+    }
+
+    // Set progress data
+    if (user && totalData) {
+      const totalInLevel = totalData.pagination?.total || 0;
+      const remainingUnlearned = wordsData.pagination?.total || 0;
+      setTotalLearnedInLevel(totalInLevel - remainingUnlearned);
+      setTotalWordsInLevel(totalInLevel);
+    } else {
+      setTotalWordsInLevel(wordsData.pagination?.total || 0);
+    }
+  };
+
   const handleAnswer = (correct: boolean, rating: number) => {
     const currentWord = reviews[currentWordIndex]?.word;
 
@@ -410,25 +465,65 @@ function LearnPageContent() {
     // Immediately advance to next word
     goToNextCard();
 
-    // Check if we've finished all words
+    // Check if we've finished all words in current set
     if (currentWordIndex + 1 >= reviews.length) {
-      setShowResult(true);
-      clearLearningSession();  // 세션 완료 시 클리어
-      // 비로그인 데모 사용자의 경우 체험 횟수 증가
-      if (isDemo && !user && typeof window !== 'undefined') {
-        const currentCount = parseInt(localStorage.getItem(DEMO_KEY) || '0', 10);
-        localStorage.setItem(DEMO_KEY, String(currentCount + 1));
+      handleSetComplete();
+    }
+  };
+
+  // 세트 완료 처리 (handleAnswer, handleNext에서 공통 사용)
+  const handleSetComplete = async () => {
+    // 서버 세션이 있으면 세트 완료 처리
+    if (serverSession && user && examParam && levelParam) {
+      try {
+        const result = await learningAPI.updateSessionProgress({
+          sessionId: serverSession.id,
+          completedSet: true,
+        });
+
+        if (result.isCompleted) {
+          // 전체 학습 완료
+          setShowResult(true);
+          clearLearningSession();
+        } else if (result.words && result.words.length > 0) {
+          // 다음 세트로 자동 이동
+          setServerSession(result.session);
+          setReviews(result.words.map((word: Word) => ({ word })));
+          setTotalLearnedInLevel(result.session.totalReviewed);
+          resetSession();
+
+          // localStorage도 업데이트
+          saveLearningSession({
+            exam: examParam,
+            level: levelParam,
+            words: result.words,
+            currentIndex: 0,
+            ratings: {},
+            timestamp: Date.now(),
+          });
+          return; // 다음 세트로 이동했으므로 showResult 표시 안함
+        }
+      } catch (error) {
+        console.error('Failed to update server session:', error);
       }
-      if (user && sessionId) {
-        // Calculate final stats from cardRatings
-        const finalWordsStudied = getWordsStudied();
-        const finalWordsCorrect = getWordsCorrect();
-        progressAPI.endSession({
-          sessionId,
-          wordsStudied: finalWordsStudied,
-          wordsCorrect: finalWordsCorrect,
-        }).catch(error => console.error('Failed to end session:', error));
-      }
+    }
+
+    setShowResult(true);
+    clearLearningSession();  // 세션 완료 시 클리어
+    // 비로그인 데모 사용자의 경우 체험 횟수 증가
+    if (isDemo && !user && typeof window !== 'undefined') {
+      const currentCount = parseInt(localStorage.getItem(DEMO_KEY) || '0', 10);
+      localStorage.setItem(DEMO_KEY, String(currentCount + 1));
+    }
+    if (user && sessionId) {
+      // Calculate final stats from cardRatings
+      const finalWordsStudied = getWordsStudied();
+      const finalWordsCorrect = getWordsCorrect();
+      progressAPI.endSession({
+        sessionId,
+        wordsStudied: finalWordsStudied,
+        wordsCorrect: finalWordsCorrect,
+      }).catch(error => console.error('Failed to end session:', error));
     }
   };
 
@@ -487,44 +582,71 @@ function LearnPageContent() {
     // Advance to next word
     goToNextCard();
 
-    // Check if we've finished all words
+    // Check if we've finished all words in current set
     if (currentWordIndex + 1 >= reviews.length) {
-      setShowResult(true);
-      clearLearningSession();  // 세션 완료 시 클리어
-      // 비로그인 데모 사용자의 경우 체험 횟수 증가
-      if (isDemo && !user && typeof window !== 'undefined') {
-        const currentCount = parseInt(localStorage.getItem(DEMO_KEY) || '0', 10);
-        localStorage.setItem(DEMO_KEY, String(currentCount + 1));
-      }
-      if (user && sessionId) {
-        // Calculate final stats from cardRatings
-        const finalWordsStudied = getWordsStudied();
-        const finalWordsCorrect = getWordsCorrect();
-        progressAPI.endSession({
-          sessionId,
-          wordsStudied: finalWordsStudied,
-          wordsCorrect: finalWordsCorrect,
-        }).catch(error => console.error('Failed to end session:', error));
-      }
+      handleSetComplete();
     }
   };
 
-  const handleRestart = () => {
+  const handleRestart = async () => {
     resetSession();
     setShowResult(false);
+    setServerSession(null);
+
+    // 서버 세션 재시작
+    if (user && examParam && levelParam) {
+      setLoading(true);
+      try {
+        const sessionData = await learningAPI.startSession({
+          exam: examParam,
+          level: levelParam,
+          restart: true,  // 새 세션 시작
+        });
+
+        if (sessionData.session) {
+          setServerSession(sessionData.session);
+          setTotalWordsInLevel(sessionData.session.totalWords);
+          setTotalLearnedInLevel(0);
+
+          const words = sessionData.words || [];
+          setReviews(words.map((word: Word) => ({ word })));
+
+          saveLearningSession({
+            exam: examParam,
+            level: levelParam,
+            words,
+            currentIndex: 0,
+            ratings: {},
+            timestamp: Date.now(),
+          });
+        }
+        setLoading(false);
+        startSession();
+        return;
+      } catch (error) {
+        console.error('Failed to restart server session:', error);
+        setLoading(false);
+      }
+    }
+
+    // 폴백
     loadReviews();
     if (user) {
       startSession();
     }
   };
 
-  const handleNextBatch = () => {
-    resetSession();
-    setShowResult(false);
-    setLoading(true);
-    loadReviews(currentPage + 1);
-    if (user) {
-      startSession();
+  const handleNextBatch = async () => {
+    // 서버 세션이 있으면 다음 세트 로드 (이미 handleSetComplete에서 처리됨)
+    // 이 함수는 서버 세션 없이 기존 방식으로 사용하는 경우만 처리
+    if (!serverSession) {
+      resetSession();
+      setShowResult(false);
+      setLoading(true);
+      loadReviews(currentPage + 1);
+      if (user) {
+        startSession();
+      }
     }
   };
 
@@ -614,8 +736,20 @@ function LearnPageContent() {
     // Calculate final stats from cardRatings
     const wordsStudied = getWordsStudied();
     const wordsCorrect = getWordsCorrect();
+
+    // 서버 세션인 경우 전체 학습 완료 여부 확인
+    const isSessionCompleted = serverSession?.status === 'COMPLETED';
+
     // Check if there are more words to learn
-    const hasMoreWords = totalWordsInLevel > 0 && (totalLearnedInLevel + wordsStudied) < totalWordsInLevel;
+    // 서버 세션 완료면 더 이상 학습할 단어 없음
+    const hasMoreWords = !isSessionCompleted &&
+      totalWordsInLevel > 0 &&
+      (totalLearnedInLevel + wordsStudied) < totalWordsInLevel;
+
+    // 전체 진행률 계산 (서버 세션 기준)
+    const totalLearned = serverSession
+      ? serverSession.totalReviewed
+      : totalLearnedInLevel + wordsStudied;
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
@@ -624,10 +758,10 @@ function LearnPageContent() {
           total={wordsStudied}
           onRetry={handleRestart}
           onHome={() => router.push(user ? '/dashboard' : '/')}
-          onNext={user && hasMoreWords && examParam ? handleNextBatch : undefined}
+          onNext={user && hasMoreWords && examParam && !serverSession ? handleNextBatch : undefined}
           isGuest={!user}
           totalProgress={user && totalWordsInLevel > 0 ? {
-            learned: totalLearnedInLevel + wordsStudied,
+            learned: totalLearned,
             total: totalWordsInLevel,
           } : undefined}
         />
