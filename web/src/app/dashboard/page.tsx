@@ -10,32 +10,35 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 
 // ============================================
-// DashboardItem 컴포넌트 (은행 앱 스타일)
+// DashboardItem 컴포넌트 (미니멀 스타일)
 // ============================================
-function DashboardItem({ value, label, color, loading }: { value: string | number, label: string, color: string, loading?: boolean }) {
+function DashboardItem({ value, label, color, loading }: { value: string | number, label: string, color: 'blue' | 'amber' | 'emerald', loading?: boolean }) {
+  const colorClasses = {
+    blue: 'text-blue-600',
+    amber: 'text-amber-600',
+    emerald: 'text-emerald-600',
+  };
+
   return (
     <div className="flex-1 flex flex-col items-center gap-1">
       {loading ? (
-        <div className="h-6 w-12 bg-slate-200 rounded animate-pulse" />
+        <div className="h-6 w-12 bg-gray-200 rounded animate-pulse" />
       ) : (
-        <span
-          className="text-[22px] font-bold"
-          style={{ color }}
-        >
+        <span className={`text-2xl font-bold ${colorClasses[color]}`}>
           {value}
         </span>
       )}
-      <span className="text-[12px] text-gray-500">{label}</span>
+      <span className="text-xs text-gray-500">{label}</span>
     </div>
   );
 }
 
 // Exam info
-const examInfo: Record<string, { name: string; icon: string; gradient: string; color: string }> = {
-  CSAT: { name: '수능', icon: '📝', gradient: 'from-blue-500 to-blue-600', color: 'blue' },
-  TOEIC: { name: 'TOEIC', icon: '💼', gradient: 'from-green-500 to-green-600', color: 'green' },
-  TOEFL: { name: 'TOEFL', icon: '🌍', gradient: 'from-orange-500 to-orange-600', color: 'orange' },
-  TEPS: { name: 'TEPS', icon: '🎓', gradient: 'from-purple-500 to-cyan-600', color: 'purple' },
+const examInfo: Record<string, { name: string; icon: string; color: string }> = {
+  CSAT: { name: '수능', icon: '📝', color: 'blue' },
+  TOEIC: { name: 'TOEIC', icon: '💼', color: 'green' },
+  TOEFL: { name: 'TOEFL', icon: '🌍', color: 'orange' },
+  TEPS: { name: 'TEPS', icon: '🎓', color: 'purple' },
 };
 
 // Level info - exam-specific
@@ -81,7 +84,7 @@ export default function DashboardPage() {
   const [examLevelLoading, setExamLevelLoading] = useState(false);
   const [weakWordCount, setWeakWordCount] = useState(0);
 
-  // 구독 상태에 따른 접근 권한 체크 (공통 유틸 사용)
+  // 구독 상태에 따른 접근 권한 체크
   const canAccessExam = (exam: string) => canAccessExamUtil(user, exam);
   const canAccessLevel = (exam: string, level: string) => canAccessLevelUtil(user, level);
 
@@ -101,7 +104,6 @@ export default function DashboardPage() {
     loadData();
   }, [user, hasHydrated, router]);
 
-  // Load exam/level specific word counts when selection changes
   useEffect(() => {
     if (!hasHydrated || !user) return;
     loadExamLevelProgress();
@@ -133,17 +135,8 @@ export default function DashboardPage() {
       const level = activeLevel || 'L1';
 
       const [totalData, unlearnedData, weakData] = await Promise.all([
-        wordsAPI.getWords({
-          examCategory,
-          level,
-          limit: 1,
-        }),
-        wordsAPI.getWords({
-          examCategory,
-          level,
-          limit: 1,
-          excludeLearned: true,
-        }),
+        wordsAPI.getWords({ examCategory, level, limit: 1 }),
+        wordsAPI.getWords({ examCategory, level, limit: 1, excludeLearned: true }),
         progressAPI.getWeakWordsCount({ examCategory, level }),
       ]);
 
@@ -165,16 +158,12 @@ export default function DashboardPage() {
   const exam = examInfo[selectedExam];
   const level = getLevelInfo(selectedExam, selectedLevel);
 
-  // Use exam/level specific word counts (real data from API)
   const totalWords = examLevelTotalWords || level.wordCount;
   const learnedWords = examLevelLearnedWords;
   const remainingWords = Math.max(totalWords - learnedWords, 0);
   const progressPercent = totalWords > 0 ? Math.min(Math.round((learnedWords / totalWords) * 100), 100) : 0;
 
-  // 학습 완료 여부
   const isCompleted = remainingWords === 0 && totalWords > 0;
-
-  // 오늘의 학습 목표
   const dailyGoal = 20;
   const todayRemaining = Math.min(dailyGoal, remainingWords);
   const estimatedMinutes = Math.ceil(todayRemaining * 0.3);
@@ -192,27 +181,23 @@ export default function DashboardPage() {
       <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4">
         {/* 모바일 헤더 */}
         <div className="lg:hidden">
-          <h1 className="text-xl font-bold text-[#1c1c1e]">대시보드</h1>
+          <h1 className="text-xl font-bold text-gray-900">대시보드</h1>
         </div>
 
-        {/* P0-2: 오늘의 학습 목표 Hero (은행 앱 스타일) */}
-        <section className={`relative w-full rounded-2xl overflow-hidden p-6 shadow-sm ${
-          isCompleted ? 'bg-[#ECFDF5]' : 'bg-[#ECFDF5]'
-        }`}>
-          <div className="relative z-10">
-            <span className={`text-[13px] font-semibold block mb-2 ${
-              isCompleted ? 'text-[#10B981]' : 'text-[#14B8A6]'
-            }`}>
+        {/* 오늘의 학습 목표 Hero */}
+        <section className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="relative">
+            <span className={`text-sm font-semibold block mb-2 ${isCompleted ? 'text-emerald-600' : 'text-teal-600'}`}>
               {isCompleted ? '🎉 학습 완료!' : '오늘의 학습 목표'}
             </span>
 
             {isCompleted ? (
               <>
-                <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 leading-tight mb-2">
                   {exam.name} {level.name} 마스터!<br />
-                  <span className="text-[#10B981]">{totalWords}개</span> 단어 완료
+                  <span className="text-emerald-600">{totalWords}개</span> 단어 완료
                 </h2>
-                <p className="text-[14px] text-gray-500 mb-4">
+                <p className="text-sm text-gray-500 mb-4">
                   {weakWordCount > 0
                     ? `잘 모르는 단어 ${weakWordCount}개를 복습해보세요!`
                     : '완벽하게 암기했어요! 다음 레벨에 도전해보세요.'}
@@ -220,14 +205,14 @@ export default function DashboardPage() {
                 <div className="space-y-2">
                   <Link
                     href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&restart=true`}
-                    className="block w-full bg-white rounded-xl py-4 text-[#10B981] font-bold text-[15px] text-center shadow-sm hover:shadow-md transition-shadow"
+                    className="block w-full bg-emerald-50 hover:bg-emerald-100 rounded-xl py-4 text-emerald-600 font-semibold text-center transition-colors"
                   >
                     처음부터 다시 학습
                   </Link>
                   {weakWordCount > 0 && (
                     <Link
                       href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&mode=weak`}
-                      className="block w-full bg-[#FFF7ED] rounded-xl py-4 text-[#F59E0B] font-bold text-[15px] text-center hover:bg-[#FFEDD5] transition-colors"
+                      className="block w-full bg-amber-50 hover:bg-amber-100 rounded-xl py-4 text-amber-600 font-semibold text-center transition-colors"
                     >
                       잘 모르는 {weakWordCount}개만 학습
                     </Link>
@@ -236,16 +221,16 @@ export default function DashboardPage() {
               </>
             ) : (
               <>
-                <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
+                <h2 className="text-2xl font-bold text-gray-900 leading-tight mb-2">
                   다음 학습할 단어<br />
-                  <span className="text-[#14B8A6]">{todayRemaining}개</span>
+                  <span className="text-teal-600">{todayRemaining}개</span>
                 </h2>
-                <p className="text-[14px] text-gray-500 mb-4">
-                  지금 시작하면 <span className="font-semibold text-[#1c1c1e]">{estimatedMinutes}분</span>이면 끝나요
+                <p className="text-sm text-gray-500 mb-4">
+                  지금 시작하면 <span className="font-semibold text-gray-900">{estimatedMinutes}분</span>이면 끝나요
                 </p>
                 <Link
                   href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
-                  className="block w-full bg-white rounded-xl py-4 text-[#14B8A6] font-bold text-[15px] text-center shadow-sm hover:shadow-md transition-shadow"
+                  className="block w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl py-4 text-center transition-colors"
                 >
                   {learnedWords === 0 ? '학습 시작' : '이어서 학습'}
                 </Link>
@@ -254,25 +239,23 @@ export default function DashboardPage() {
           </div>
 
           {/* 장식 요소 */}
-          <div className="absolute top-4 right-4 opacity-60 select-none pointer-events-none">
-            <div className="flex gap-1">
-              <span className="text-[36px] transform -rotate-12">{isCompleted ? '🎉' : '📚'}</span>
-              <span className="text-[32px] transform rotate-6">{isCompleted ? '✅' : '✨'}</span>
-            </div>
+          <div className="absolute top-4 right-4 opacity-40 select-none pointer-events-none hidden md:flex gap-1">
+            <span className="text-4xl transform -rotate-12">{isCompleted ? '🎉' : '📚'}</span>
+            <span className="text-3xl transform rotate-6">{isCompleted ? '✅' : '✨'}</span>
           </div>
         </section>
 
-        {/* 시험 선택 섹션 (은행 앱 스타일) */}
-        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">시험 선택</h3>
+        {/* 시험 선택 섹션 */}
+        <section className="bg-white border border-gray-200 rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
 
           <div className="flex gap-3">
             <button
               onClick={() => setActiveExam('CSAT' as ExamType)}
               className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl transition-all ${
                 selectedExam === 'CSAT'
-                  ? 'bg-[#14B8A6] text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  ? 'bg-teal-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               <span className="text-xl">📝</span>
@@ -289,10 +272,10 @@ export default function DashboardPage() {
               }}
               className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl transition-all ${
                 !canAccessExam('TEPS')
-                  ? 'bg-gray-100 text-[#999999] cursor-not-allowed'
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : selectedExam === 'TEPS'
-                  ? 'bg-[#A855F7] text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  ? 'bg-purple-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               <span className="text-xl">🎓</span>
@@ -302,9 +285,9 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* 레벨 선택 섹션 (은행 앱 스타일) */}
-        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">레벨 선택</h3>
+        {/* 레벨 선택 섹션 */}
+        <section className="bg-white border border-gray-200 rounded-2xl p-5">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">레벨 선택</h3>
 
           <div className="flex gap-3">
             {(['L1', 'L2', 'L3'] as const).map((lvl) => {
@@ -321,22 +304,18 @@ export default function DashboardPage() {
                   }}
                   className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all ${
                     isLocked
-                      ? 'bg-gray-100 text-[#999999] cursor-not-allowed'
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : selectedLevel === lvl
-                      ? 'bg-[#3B82F6] text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <div className="flex items-center gap-1">
-                    <span className="font-bold text-[16px]">{lvl}</span>
+                    <span className="font-bold">{lvl}</span>
                     {isLocked && <span className="text-sm">🔒</span>}
                   </div>
-                  <span className={`text-[12px] mt-1 ${
-                    isLocked
-                      ? 'text-[#999999]'
-                      : selectedLevel === lvl
-                      ? 'text-blue-100'
-                      : 'text-[#999999]'
+                  <span className={`text-xs mt-1 ${
+                    isLocked ? 'text-gray-400' : selectedLevel === lvl ? 'text-blue-100' : 'text-gray-500'
                   }`}>
                     {lvl === 'L1' ? '초급' : lvl === 'L2' ? '중급' : '고급'}
                   </span>
@@ -346,52 +325,52 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* 2열 그리드 (데스크탑) */}
+        {/* 2열 그리드 */}
         <div className="grid lg:grid-cols-2 gap-4">
-          {/* P0-3: 바로 학습 이어가기 카드 (은행 앱 스타일) */}
-          <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+          {/* 바로 학습 이어가기 카드 */}
+          <section className="bg-white border border-gray-200 rounded-2xl p-5">
             {/* 헤더 */}
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[15px] font-bold text-[#1c1c1e]">바로 학습 이어가기</h3>
-              <span className="text-[13px] text-[#14B8A6] font-semibold flex items-center gap-1">
+              <h3 className="text-sm font-semibold text-gray-900">바로 학습 이어가기</h3>
+              <span className="text-sm text-teal-600 font-medium flex items-center gap-1">
                 🔥 {stats?.currentStreak || 0}일 연속
               </span>
             </div>
 
             {/* 현재 학습 정보 */}
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-[48px] h-[48px] rounded-full bg-[#ECFDF5] flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center">
                 <span className="text-2xl">{exam.icon}</span>
               </div>
               <div>
-                <p className="text-[16px] font-bold text-[#1c1c1e]">
+                <p className="font-bold text-gray-900">
                   {exam.name} {level.name}
                 </p>
-                <p className="text-[13px] text-gray-500">
+                <p className="text-sm text-gray-500">
                   {level.description} • {level.target}
                 </p>
               </div>
             </div>
 
             {/* 통계 3분할 */}
-            <div className="flex justify-between items-center py-4 border-y border-[#f0f0f0] mb-4">
-              <DashboardItem value={learnedWords} label="학습 완료" color="#3B82F6" loading={examLevelLoading} />
-              <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-              <DashboardItem value={remainingWords} label="남은 단어" color="#F59E0B" loading={examLevelLoading} />
-              <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-              <DashboardItem value={`${progressPercent}%`} label="진행률" color="#10B981" loading={examLevelLoading} />
+            <div className="flex justify-between items-center py-4 border-y border-gray-100 mb-4">
+              <DashboardItem value={learnedWords} label="학습 완료" color="blue" loading={examLevelLoading} />
+              <div className="w-px h-10 bg-gray-100" />
+              <DashboardItem value={remainingWords} label="남은 단어" color="amber" loading={examLevelLoading} />
+              <div className="w-px h-10 bg-gray-100" />
+              <DashboardItem value={`${progressPercent}%`} label="진행률" color="emerald" loading={examLevelLoading} />
             </div>
 
             {/* 프로그레스 바 */}
-            <div className="w-full h-2 bg-[#f0f0f0] rounded-full mb-4 overflow-hidden">
+            <div className="w-full h-2 bg-gray-100 rounded-full mb-4 overflow-hidden">
               <div
-                className={`h-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] rounded-full transition-all duration-500 ${examLevelLoading ? 'animate-pulse' : ''}`}
+                className={`h-full bg-teal-500 rounded-full transition-all duration-500 ${examLevelLoading ? 'animate-pulse' : ''}`}
                 style={{ width: examLevelLoading ? '0%' : `${progressPercent}%` }}
               />
             </div>
 
             {/* 부가 정보 */}
-            <div className="flex justify-between text-[13px] text-gray-500 mb-4">
+            <div className="flex justify-between text-sm text-gray-500 mb-4">
               <span>마지막 학습: {stats?.lastActiveDate ? new Date(stats.lastActiveDate).toLocaleDateString('ko-KR') : '오늘'}</span>
               <span>오늘 목표: {dailyGoal}개</span>
             </div>
@@ -399,20 +378,20 @@ export default function DashboardPage() {
             {/* 버튼 */}
             {isCompleted ? (
               <div className="space-y-3">
-                <div className="flex items-center justify-center gap-2 py-3 bg-[#ECFDF5] rounded-xl">
+                <div className="flex items-center justify-center gap-2 py-3 bg-emerald-50 rounded-xl">
                   <span className="text-xl">✅</span>
-                  <span className="text-[15px] font-semibold text-[#10B981]">학습 완료!</span>
+                  <span className="font-semibold text-emerald-600">학습 완료!</span>
                 </div>
                 <Link
                   href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&restart=true`}
-                  className="block w-full py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-500 font-semibold text-center transition-colors"
+                  className="block w-full py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 font-semibold text-center transition-colors"
                 >
                   처음부터 다시 학습
                 </Link>
                 {weakWordCount > 0 && (
                   <Link
                     href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&mode=weak`}
-                    className="block w-full py-3 bg-[#FFF7ED] hover:bg-[#FFEDD5] rounded-xl text-[#F59E0B] font-semibold text-center transition-colors"
+                    className="block w-full py-3 bg-amber-50 hover:bg-amber-100 rounded-xl text-amber-600 font-semibold text-center transition-colors"
                   >
                     잘 모르는 단어 {weakWordCount}개만 학습
                   </Link>
@@ -421,31 +400,31 @@ export default function DashboardPage() {
             ) : (
               <Link
                 href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
-                className="block w-full py-4 bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white font-bold text-[15px] rounded-xl text-center shadow-sm hover:shadow-md transition-shadow"
+                className="block w-full py-4 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
               >
                 {learnedWords === 0 ? '학습 시작' : '이어서 학습'}
               </Link>
             )}
           </section>
 
-          {/* P0-4: 연속 학습일 + 캘린더 (은행 앱 스타일) */}
-          <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+          {/* 연속 학습일 + 캘린더 */}
+          <section className="bg-white border border-gray-200 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[15px] font-bold text-[#1c1c1e]">연속 학습일</h3>
-              <span className="text-[13px] text-gray-500">{currentYear}년 {currentMonth + 1}월</span>
+              <h3 className="text-sm font-semibold text-gray-900">연속 학습일</h3>
+              <span className="text-sm text-gray-500">{currentYear}년 {currentMonth + 1}월</span>
             </div>
 
             {/* 현재/최장 연속 */}
             <div className="flex gap-4 mb-4">
-              <div className="flex-1 bg-[#ECFDF5] rounded-xl p-4 text-center">
+              <div className="flex-1 bg-teal-50 rounded-xl p-4 text-center">
                 <span className="text-2xl mb-1 block">🔥</span>
-                <p className="text-[22px] font-bold text-[#14B8A6]">{stats?.currentStreak || 0}일</p>
-                <p className="text-[12px] text-gray-500">현재 연속</p>
+                <p className="text-2xl font-bold text-teal-600">{stats?.currentStreak || 0}일</p>
+                <p className="text-xs text-gray-500">현재 연속</p>
               </div>
-              <div className="flex-1 bg-[#FFF7ED] rounded-xl p-4 text-center">
+              <div className="flex-1 bg-amber-50 rounded-xl p-4 text-center">
                 <span className="text-2xl mb-1 block">🏆</span>
-                <p className="text-[22px] font-bold text-[#F59E0B]">{stats?.longestStreak || 0}일</p>
-                <p className="text-[12px] text-gray-500">최장 기록</p>
+                <p className="text-2xl font-bold text-amber-600">{stats?.longestStreak || 0}일</p>
+                <p className="text-xs text-gray-500">최장 기록</p>
               </div>
             </div>
 
@@ -453,7 +432,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-7 gap-1 text-center">
               {/* 요일 헤더 */}
               {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
-                <div key={day} className="text-[11px] text-[#999999] py-1">{day}</div>
+                <div key={day} className="text-xs text-gray-400 py-1">{day}</div>
               ))}
               {/* 빈 셀 */}
               {Array.from({ length: firstDayOfMonth }).map((_, i) => (
@@ -468,12 +447,12 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={day}
-                    className={`py-2 text-[13px] rounded-full ${
+                    className={`py-2 text-sm rounded-full ${
                       isToday
-                        ? 'bg-[#14B8A6] text-white font-bold'
+                        ? 'bg-teal-500 text-white font-bold'
                         : hasActivity
-                        ? 'bg-[#ECFDF5] text-[#14B8A6] font-semibold'
-                        : 'text-[#1c1c1e]'
+                        ? 'bg-teal-50 text-teal-600 font-semibold'
+                        : 'text-gray-900'
                     }`}
                   >
                     {day}
