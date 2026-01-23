@@ -7,50 +7,19 @@ import PopularWordsSection from "./PopularWordsSection";
 import { LazySection } from "@/components/ui/LazySection";
 import { useAuthStore } from "@/lib/store";
 
-// New Landing Page Components
-import HeroSection from "./HeroSection";
-import FeaturesSection from "./FeaturesSection";
-import SocialProofSection from "./SocialProofSection";
-import PricingPreviewSection from "./PricingPreviewSection";
-import CTASection from "./CTASection";
-import Footer from "./Footer";
-
 export default function HomePage() {
-  const { user, _hasHydrated } = useAuthStore();
+  const { user } = useAuthStore();
   const isLoggedIn = !!user;
 
-  // Show loading state while hydrating
-  if (!_hasHydrated) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-pulse">
-          <div className="h-8 w-8 rounded-lg bg-indigo-600" />
-        </div>
-      </div>
-    );
-  }
-
-  // Non-logged-in users: Show new landing page
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-white">
-        <HeroSection />
-        <FeaturesSection />
-        <SocialProofSection />
-        <PricingPreviewSection />
-        <CTASection />
-        <Footer />
-      </div>
-    );
-  }
-
-  // Logged-in users: Show existing dashboard-style home
   return (
     <div className="min-h-screen bg-white">
       <Hero />
 
       {/* D-Day 카운트다운 배너 */}
       <DDayBanner />
+
+      {/* 단품 패키지 섹션 - 나에게 딱 맞는 단어장 (비로그인 시에만) */}
+      {!isLoggedIn && <ProductPackageSection />}
 
       {/* BEST/NEW 인기 단어 섹션 - Lazy Load */}
       <LazySection minHeight={400} fallback={<PopularWordsSkeleton />}>
@@ -60,11 +29,11 @@ export default function HomePage() {
       {/* CTA 섹션 */}
       <section className="py-20 px-6 bg-gradient-to-br from-brand-primary to-brand-primary/80">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-display-md font-display font-bold mb-6">오늘도 학습을 시작하세요</h2>
+          <h2 className="text-display-md font-display font-bold mb-6">지금 바로 시작하세요</h2>
           <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">매일 10분, 과학적인 학습 방법으로 영어 어휘력을 향상시키세요.</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href="/learn?exam=CSAT" className="btn bg-white text-brand-primary hover:bg-white/90 hover:shadow-lg">학습 시작하기</a>
-            <a href="/review" className="btn border-2 border-white/30 text-white hover:bg-white/10">복습하기</a>
+            <a href="/learn?exam=CSAT" className="btn bg-white text-brand-primary hover:bg-white/90 hover:shadow-lg">무료로 시작하기</a>
+            <a href="/pricing" className="btn border-2 border-white/30 text-white hover:bg-white/10">요금제 보기</a>
           </div>
         </div>
       </section>
