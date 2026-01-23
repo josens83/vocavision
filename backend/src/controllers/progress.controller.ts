@@ -547,7 +547,7 @@ export async function updateUserStats(userId: string) {
   });
 }
 
-// 복습 퀴즈 생성 API
+// 복습 퀴즈 생성 API (needsReview = true인 단어 대상)
 export const getReviewQuiz = async (
   req: AuthRequest,
   res: Response,
@@ -555,7 +555,6 @@ export const getReviewQuiz = async (
 ) => {
   try {
     const userId = req.userId!;
-    const now = new Date();
     const { examCategory, level, limit = '10' } = req.query;
 
     // 기본 where 조건
@@ -573,11 +572,12 @@ export const getReviewQuiz = async (
       };
     }
 
-    // 복습할 단어 가져오기 (getDueReviews와 동일한 정렬 기준 사용)
+    // 복습 대상 단어 가져오기 (needsReview = true)
+    // reviewCorrectCount 오름차순으로 정렬하여 덜 암기된 단어부터 출제
     const dueReviews = await prisma.userProgress.findMany({
       where: {
         userId,
-        nextReviewDate: { lte: now },
+        needsReview: true,
         word: wordWhere
       },
       include: {
@@ -590,10 +590,9 @@ export const getReviewQuiz = async (
         }
       },
       orderBy: [
-        { nextReviewDate: 'asc' },
-        { incorrectCount: 'desc' },  // 틀린 횟수 많은 것 먼저
-        { correctCount: 'asc' },     // 맞은 횟수 적은 것 먼저
-        { createdAt: 'asc' },        // 오래된 것 먼저
+        { reviewCorrectCount: 'asc' },  // 복습 진행도 낮은 것 먼저
+        { updatedAt: 'asc' },           // 오래 복습 안 한 것 먼저
+        { createdAt: 'asc' },           // 오래된 것 먼저
       ],
       take: parseInt(limit as string)
     });
@@ -900,7 +899,7 @@ export const getActivityHeatmap = async (
 };
 
 /**
- * 취약 단어 수 조회 (incorrectCount > 0인 단어 = 한 번이라도 틀린 적 있는 단어)
+ * 복습 대상 단어 수 조회 (needsReview = true인 단어)
  * GET /progress/weak-words/count
  * Query: examCategory, level
  */
@@ -931,11 +930,11 @@ export const getWeakWordsCount = async (
       };
     }
 
-    // 취약 단어 수 조회 (incorrectCount > 0 = 한 번이라도 틀린 적 있는 단어)
+    // 복습 대상 단어 수 조회 (needsReview = true)
     const weakCount = await prisma.userProgress.count({
       where: {
         userId,
-        incorrectCount: { gt: 0 },
+        needsReview: true,
         word: wordWhere
       }
     });
