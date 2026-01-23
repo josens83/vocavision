@@ -164,14 +164,24 @@ html, body {
   .badge-premium { @apply bg-purple-100 text-purple-700; }
   .badge-coming { @apply bg-gray-100 text-gray-500; }
 
-  /* Card Styles */
+  /* Card Styles - Minimal (no hover lift) */
   .card {
-    @apply bg-white rounded-2xl border border-surface-border shadow-card;
-    @apply transition-all duration-300 ease-out;
+    @apply bg-white rounded-2xl border border-gray-200;
+    @apply transition-colors duration-200;
   }
 
   .card:hover {
-    @apply shadow-card-hover -translate-y-1;
+    @apply border-gray-300;
+  }
+
+  /* Card with hover lift effect (opt-in) */
+  .card-lift {
+    @apply bg-white rounded-2xl border border-gray-200;
+    @apply transition-all duration-200;
+  }
+
+  .card-lift:hover {
+    @apply border-teal-300 shadow-sm -translate-y-0.5;
   }
 
   .card-level-beginner {
