@@ -6,6 +6,10 @@ import {
   recordLearning,
   recordLearningBatch,
   getLearningStats,
+  getLearningSession,
+  startLearningSession,
+  updateSessionProgress,
+  getSessionSet,
 } from '../controllers/learning.controller';
 import { authenticateToken, requireSubscription } from '../middleware/auth.middleware';
 
@@ -277,5 +281,146 @@ router.post('/record-batch', authenticateToken, recordLearningBatch);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/stats', authenticateToken, getLearningStats);
+
+// ============================================
+// Learning Session Management
+// ============================================
+
+/**
+ * @swagger
+ * /learning/session:
+ *   get:
+ *     summary: 현재 진행 중인 학습 세션 조회
+ *     tags: [Learning]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: exam
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 시험 카테고리 (CSAT, TEPS 등)
+ *       - in: query
+ *         name: level
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 레벨 (L1, L2, L3)
+ *     responses:
+ *       200:
+ *         description: 세션 정보 및 현재 세트 단어들
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/session', authenticateToken, getLearningSession);
+
+/**
+ * @swagger
+ * /learning/session/start:
+ *   post:
+ *     summary: 새 학습 세션 시작 또는 재시작
+ *     tags: [Learning]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - exam
+ *               - level
+ *             properties:
+ *               exam:
+ *                 type: string
+ *                 description: 시험 카테고리
+ *               level:
+ *                 type: string
+ *                 description: 레벨
+ *               restart:
+ *                 type: boolean
+ *                 default: false
+ *                 description: true면 기존 세션 종료하고 새 세션 시작
+ *     responses:
+ *       201:
+ *         description: 새 세션 생성됨
+ *       200:
+ *         description: 기존 세션 반환
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.post('/session/start', authenticateToken, startLearningSession);
+
+/**
+ * @swagger
+ * /learning/session/progress:
+ *   patch:
+ *     summary: 학습 세션 진행률 업데이트
+ *     tags: [Learning]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - sessionId
+ *             properties:
+ *               sessionId:
+ *                 type: string
+ *                 description: 세션 ID
+ *               currentSet:
+ *                 type: integer
+ *                 description: 현재 세트 번호
+ *               currentIndex:
+ *                 type: integer
+ *                 description: 현재 단어 인덱스
+ *               completedSet:
+ *                 type: boolean
+ *                 description: 세트 완료 여부 (true면 다음 세트로 이동)
+ *     responses:
+ *       200:
+ *         description: 진행률 업데이트됨
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         description: 세션을 찾을 수 없음
+ */
+router.patch('/session/progress', authenticateToken, updateSessionProgress);
+
+/**
+ * @swagger
+ * /learning/session/{sessionId}/set/{setNumber}:
+ *   get:
+ *     summary: 특정 세트 단어 조회
+ *     tags: [Learning]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 세션 ID
+ *       - in: path
+ *         name: setNumber
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 세트 번호 (0-based)
+ *     responses:
+ *       200:
+ *         description: 세트 단어 목록
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         description: 세션을 찾을 수 없음
+ */
+router.get('/session/:sessionId/set/:setNumber', authenticateToken, getSessionSet);
 
 export default router;
