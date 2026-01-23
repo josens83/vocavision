@@ -815,12 +815,20 @@ function LearnPageContent() {
               <span className="font-medium text-[13px]">나가기</span>
             </button>
 
-            {/* Center - Course Info (데모 모드에서는 숨김) */}
+            {/* Center - Course Info + Set Info */}
             <div className="text-center flex-1 min-w-0">
               {examParam && !isDemo && (
-                <span className="text-[15px] font-bold text-[#1c1c1e]">
-                  {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {levelNames[levelParam] || levelParam}</span>}
-                </span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+                  <span className="text-[15px] font-bold text-[#1c1c1e]">
+                    {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {levelNames[levelParam] || levelParam}</span>}
+                  </span>
+                  {/* Set 정보 표시 */}
+                  {serverSession && serverSession.totalSets > 0 && (
+                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[12px] font-medium">
+                      Set {serverSession.currentSet + 1}/{serverSession.totalSets}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
 
@@ -883,8 +891,15 @@ function LearnPageContent() {
                 </button>
               )}
 
-              {/* Progress Count */}
-              <span className="text-[13px] font-bold text-[#14B8A6] shrink-0">{currentWordIndex + 1}/{reviews.length}</span>
+              {/* Progress Count + Set Info (모바일) */}
+              <div className="flex items-center gap-2 shrink-0">
+                {serverSession && serverSession.totalSets > 0 && (
+                  <span className="sm:hidden text-[12px] font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                    Set {serverSession.currentSet + 1}
+                  </span>
+                )}
+                <span className="text-[13px] font-bold text-[#14B8A6]">{currentWordIndex + 1}/{reviews.length}</span>
+              </div>
             </div>
           </div>
         </div>
