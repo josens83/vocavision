@@ -17,56 +17,48 @@ export interface CategoryCardProps {
   isNew?: boolean;
 }
 
+// 미니멀 스타일 - 레벨별 색상만 유지
 const levelStyles: Record<Level, {
   text: string;
-  bg: string;
   bgLight: string;
-  border: string;
-  shadow: string;
-  gradient: string;
+  badgeBg: string;
+  badgeText: string;
   label: string;
 }> = {
   beginner: {
-    text: "text-level-beginner",
-    bg: "bg-level-beginner",
-    bgLight: "bg-level-beginner-light",
-    border: "hover:border-level-beginner",
-    shadow: "hover:shadow-glow-green",
-    gradient: "from-level-beginner to-level-beginner-dark",
+    text: "text-green-600",
+    bgLight: "bg-green-50",
+    badgeBg: "bg-green-100",
+    badgeText: "text-green-700",
     label: "Beginner",
   },
   intermediate: {
-    text: "text-level-intermediate",
-    bg: "bg-level-intermediate",
-    bgLight: "bg-level-intermediate-light",
-    border: "hover:border-level-intermediate",
-    shadow: "hover:shadow-glow-blue",
-    gradient: "from-level-intermediate to-level-intermediate-dark",
+    text: "text-blue-600",
+    bgLight: "bg-blue-50",
+    badgeBg: "bg-blue-100",
+    badgeText: "text-blue-700",
     label: "Intermediate",
   },
   advanced: {
-    text: "text-level-advanced",
-    bg: "bg-level-advanced",
-    bgLight: "bg-level-advanced-light",
-    border: "hover:border-level-advanced",
-    shadow: "hover:shadow-glow-orange",
-    gradient: "from-level-advanced to-level-advanced-dark",
+    text: "text-orange-600",
+    bgLight: "bg-orange-50",
+    badgeBg: "bg-orange-100",
+    badgeText: "text-orange-700",
     label: "Advanced",
   },
   expert: {
-    text: "text-level-expert",
-    bg: "bg-level-expert",
-    bgLight: "bg-level-expert-light",
-    border: "hover:border-level-expert",
-    shadow: "hover:shadow-glow-purple",
-    gradient: "from-level-expert to-level-expert-dark",
+    text: "text-teal-600",
+    bgLight: "bg-teal-50",
+    badgeBg: "bg-teal-100",
+    badgeText: "text-teal-700",
     label: "Expert",
   },
 };
 
 const DefaultIcon = ({ level }: { level: Level }) => {
   const firstLetter = level.charAt(0).toUpperCase();
-  return <span className="text-5xl font-display font-bold opacity-80">{firstLetter}</span>;
+  const styles = levelStyles[level];
+  return <span className={`text-4xl font-bold ${styles.text}`}>{firstLetter}</span>;
 };
 
 export function CategoryCard({ title, description, level, wordCount, href, icon, progress, isNew }: CategoryCardProps) {
@@ -74,54 +66,48 @@ export function CategoryCard({ title, description, level, wordCount, href, icon,
 
   return (
     <Link href={href} className="group block">
-      <div className={`card overflow-hidden ${styles.border} ${styles.shadow} transition-all duration-300 ease-out`}>
-        <div className={`relative h-36 ${styles.bgLight} flex items-center justify-center overflow-hidden`}>
-          <div className="absolute inset-0 opacity-30">
-            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <defs>
-                <pattern id={`grid-${level}`} width="10" height="10" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="0.5" fill="currentColor" className={styles.text} />
-                </pattern>
-              </defs>
-              <rect width="100" height="100" fill={`url(#grid-${level})`} />
-            </svg>
-          </div>
-
-          <div className={`relative z-10 ${styles.text} transform group-hover:scale-110 transition-transform duration-300`}>
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-teal-300 hover:shadow-sm transition-all duration-200">
+        {/* 아이콘 영역 */}
+        <div className={`relative h-32 ${styles.bgLight} flex items-center justify-center`}>
+          <div className="transform group-hover:scale-110 transition-transform duration-200">
             {icon || <DefaultIcon level={level} />}
           </div>
 
           {isNew && (
-            <div className="absolute top-3 right-3 px-2 py-1 bg-study-flashcard text-slate-900 text-xs font-bold rounded-full">NEW</div>
+            <div className="absolute top-3 right-3 px-2 py-1 bg-teal-500 text-white text-xs font-bold rounded-full">NEW</div>
           )}
 
-          <div className={`absolute bottom-3 left-3 px-3 py-1 rounded-full ${styles.bg} text-white text-xs font-medium`}>
+          <div className={`absolute bottom-3 left-3 px-3 py-1 rounded-full ${styles.badgeBg} ${styles.badgeText} text-xs font-medium`}>
             {styles.label}
           </div>
         </div>
 
+        {/* 콘텐츠 영역 */}
         <div className="p-5">
-          <h3 className={`text-lg font-display font-semibold mb-2 ${styles.text} group-hover:translate-x-1 transition-transform duration-200`}>
+          <h3 className={`text-lg font-semibold text-gray-900 mb-2`}>
             {title}
           </h3>
-          <p className="text-sm text-slate-500 line-clamp-2 mb-4">{description}</p>
+          <p className="text-sm text-gray-500 line-clamp-2 mb-4">{description}</p>
 
           {progress !== undefined && (
             <div className="mb-4">
-              <div className="flex justify-between text-xs text-slate-500 mb-1">
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
                 <span>진행률</span>
                 <span>{progress}%</span>
               </div>
-              <div className="progress-bar">
-                <div className={`progress-bar__fill bg-gradient-to-r ${styles.gradient}`} style={{ width: `${progress}%` }} />
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${styles.text.replace('text-', 'bg-')} rounded-full transition-all duration-300`}
+                  style={{ width: `${progress}%` }}
+                />
               </div>
             </div>
           )}
 
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-400">{wordCount.toLocaleString()}개 단어</span>
-            <div className={`w-8 h-8 rounded-full ${styles.bgLight} flex items-center justify-center transform group-hover:translate-x-1 transition-all duration-200`}>
-              <svg className={`w-4 h-4 ${styles.text}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="text-sm text-gray-400">{wordCount.toLocaleString()}개 단어</span>
+            <div className={`w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-teal-50 transition-colors`}>
+              <svg className="w-4 h-4 text-gray-600 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
@@ -153,7 +139,7 @@ export const vocaVisionCategories: CategoryCardProps[] = [
   { title: "L3 고급", description: "1등급 목표 고급 어휘입니다.", level: "advanced", wordCount: PLATFORM_STATS.levels.L3, href: "/learn?exam=CSAT&level=L3" },
 ];
 
-// 시험 기반 카테고리 (새로 추가)
+// 시험 기반 카테고리
 export type ExamType = "csat" | "sat" | "toefl" | "toeic" | "teps";
 
 export interface ExamCategoryCardProps {
@@ -168,47 +154,42 @@ export interface ExamCategoryCardProps {
   progress?: number;
 }
 
+// 미니멀 시험 스타일
 const examStyles: Record<ExamType, {
   text: string;
-  bg: string;
   bgLight: string;
-  border: string;
-  gradient: string;
+  badgeBg: string;
+  badgeText: string;
 }> = {
   csat: {
     text: "text-blue-600",
-    bg: "bg-blue-500",
     bgLight: "bg-blue-50",
-    border: "hover:border-blue-400",
-    gradient: "from-blue-500 to-blue-600",
+    badgeBg: "bg-blue-100",
+    badgeText: "text-blue-700",
   },
   sat: {
     text: "text-red-600",
-    bg: "bg-red-500",
     bgLight: "bg-red-50",
-    border: "hover:border-red-400",
-    gradient: "from-red-500 to-red-600",
+    badgeBg: "bg-red-100",
+    badgeText: "text-red-700",
   },
   toefl: {
     text: "text-orange-600",
-    bg: "bg-orange-500",
     bgLight: "bg-orange-50",
-    border: "hover:border-orange-400",
-    gradient: "from-orange-500 to-orange-600",
+    badgeBg: "bg-orange-100",
+    badgeText: "text-orange-700",
   },
   toeic: {
     text: "text-green-600",
-    bg: "bg-green-500",
     bgLight: "bg-green-50",
-    border: "hover:border-green-400",
-    gradient: "from-green-500 to-green-600",
+    badgeBg: "bg-green-100",
+    badgeText: "text-green-700",
   },
   teps: {
     text: "text-purple-600",
-    bg: "bg-purple-500",
     bgLight: "bg-purple-50",
-    border: "hover:border-purple-400",
-    gradient: "from-purple-500 to-cyan-600",
+    badgeBg: "bg-purple-100",
+    badgeText: "text-purple-700",
   },
 };
 
@@ -218,15 +199,15 @@ export function ExamCategoryCard({ title, fullName, description, examType, wordC
   if (!isActive) {
     return (
       <div className="block opacity-60 cursor-not-allowed">
-        <div className={`card overflow-hidden border-gray-200 transition-all duration-300`}>
-          <div className={`relative h-36 bg-gray-100 flex items-center justify-center overflow-hidden`}>
-            <div className="text-5xl">{icon}</div>
-            <div className="absolute top-3 right-3 px-2 py-1 bg-gray-400 text-white text-xs font-bold rounded-full">
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <div className="relative h-32 bg-gray-100 flex items-center justify-center">
+            <div className="text-4xl">{icon}</div>
+            <div className="absolute top-3 right-3 px-2 py-1 bg-gray-200 text-gray-500 text-xs font-bold rounded-full">
               준비 중
             </div>
           </div>
           <div className="p-5">
-            <h3 className="text-lg font-display font-semibold mb-1 text-gray-400">{title}</h3>
+            <h3 className="text-lg font-semibold text-gray-400 mb-1">{title}</h3>
             <p className="text-xs text-gray-400 mb-2">{fullName}</p>
             <p className="text-sm text-gray-400 line-clamp-2 mb-4">{description}</p>
             <div className="flex items-center justify-between">
@@ -240,42 +221,45 @@ export function ExamCategoryCard({ title, fullName, description, examType, wordC
 
   return (
     <Link href={href} className="group block">
-      <div className={`card overflow-hidden ${styles.border} hover:shadow-lg transition-all duration-300`}>
-        <div className={`relative h-36 ${styles.bgLight} flex items-center justify-center overflow-hidden`}>
-          <div className="text-5xl transform group-hover:scale-110 transition-transform duration-300">
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-teal-300 hover:shadow-sm transition-all duration-200">
+        <div className={`relative h-32 ${styles.bgLight} flex items-center justify-center`}>
+          <div className="text-4xl transform group-hover:scale-110 transition-transform duration-200">
             {icon}
           </div>
-          <div className={`absolute top-3 right-3 px-2 py-1 ${styles.bg} text-white text-xs font-bold rounded-full`}>
+          <div className={`absolute top-3 right-3 px-2 py-1 ${styles.badgeBg} ${styles.badgeText} text-xs font-bold rounded-full`}>
             학습 가능
           </div>
-          <div className={`absolute bottom-3 left-3 px-3 py-1 rounded-full ${styles.bg} text-white text-xs font-medium`}>
+          <div className={`absolute bottom-3 left-3 px-3 py-1 rounded-full ${styles.badgeBg} ${styles.badgeText} text-xs font-medium`}>
             {title}
           </div>
         </div>
 
         <div className="p-5">
-          <h3 className={`text-lg font-display font-semibold mb-1 ${styles.text} group-hover:translate-x-1 transition-transform duration-200`}>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
             {title}
           </h3>
-          <p className="text-xs text-slate-500 mb-2">{fullName}</p>
-          <p className="text-sm text-slate-500 line-clamp-2 mb-4">{description}</p>
+          <p className="text-xs text-gray-500 mb-2">{fullName}</p>
+          <p className="text-sm text-gray-500 line-clamp-2 mb-4">{description}</p>
 
           {progress !== undefined && (
             <div className="mb-4">
-              <div className="flex justify-between text-xs text-slate-500 mb-1">
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
                 <span>진행률</span>
                 <span>{progress}%</span>
               </div>
-              <div className="progress-bar">
-                <div className={`progress-bar__fill bg-gradient-to-r ${styles.gradient}`} style={{ width: `${progress}%` }} />
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${styles.text.replace('text-', 'bg-')} rounded-full transition-all duration-300`}
+                  style={{ width: `${progress}%` }}
+                />
               </div>
             </div>
           )}
 
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-400">{wordCount.toLocaleString()}개 단어</span>
-            <div className={`w-8 h-8 rounded-full ${styles.bgLight} flex items-center justify-center transform group-hover:translate-x-1 transition-all duration-200`}>
-              <svg className={`w-4 h-4 ${styles.text}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="text-sm text-gray-400">{wordCount.toLocaleString()}개 단어</span>
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-teal-50 transition-colors">
+              <svg className="w-4 h-4 text-gray-600 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
@@ -348,34 +332,31 @@ export interface StudyTypeCardProps {
   href: string;
   count?: number;
   countLabel?: string;
-  /** 비로그인 시 표시할 힌트 메시지 */
   guestHint?: string;
-  /** 로그인 필요 여부 (true면 비로그인 시 모달 표시) */
   requiresAuth?: boolean;
-  /** 로그인 필요 시 클릭 핸들러 */
   onAuthRequired?: () => void;
 }
 
 const studyTypeStyles: Record<StudyType, { text: string; bgLight: string; icon: ReactNode }> = {
   flashcard: {
-    text: "text-study-flashcard-dark",
-    bgLight: "bg-study-flashcard-light",
-    icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>,
+    text: "text-teal-600",
+    bgLight: "bg-teal-50",
+    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>,
   },
   quiz: {
-    text: "text-study-quiz-dark",
-    bgLight: "bg-study-quiz-light",
-    icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+    text: "text-blue-600",
+    bgLight: "bg-blue-50",
+    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   },
   review: {
-    text: "text-study-review-dark",
-    bgLight: "bg-study-review-light",
-    icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>,
+    text: "text-orange-600",
+    bgLight: "bg-orange-50",
+    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>,
   },
   vocabulary: {
-    text: "text-study-vocabulary-dark",
-    bgLight: "bg-study-vocabulary-light",
-    icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
+    text: "text-green-600",
+    bgLight: "bg-green-50",
+    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
   },
 };
 
@@ -383,36 +364,35 @@ export function StudyTypeCard({ title, description, type, href, count, countLabe
   const styles = studyTypeStyles[type];
 
   const content = (
-    <div className="card p-5 flex items-center gap-4 hover:border-slate-300 transition-all duration-200">
-      <div className={`w-14 h-14 rounded-xl ${styles.bgLight} ${styles.text} flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+    <div className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-4 hover:border-teal-300 hover:shadow-sm transition-all duration-200">
+      <div className={`w-12 h-12 rounded-xl ${styles.bgLight} ${styles.text} flex items-center justify-center`}>
         {styles.icon}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h4 className="font-semibold text-slate-900 mb-1 group-hover:text-slate-600 transition-colors">{title}</h4>
+          <h4 className="font-semibold text-gray-900 mb-1">{title}</h4>
           {requiresAuth && (
             <span className="text-sm text-amber-600">🔒</span>
           )}
         </div>
-        <p className="text-sm text-slate-500 truncate">{description}</p>
+        <p className="text-sm text-gray-500 truncate">{description}</p>
       </div>
       {count !== undefined ? (
         <div className="text-right">
-          <div className={`text-2xl font-display font-bold ${styles.text}`}>{count.toLocaleString()}</div>
-          <div className="text-xs text-slate-400">{countLabel}</div>
+          <div className={`text-2xl font-bold ${styles.text}`}>{count.toLocaleString()}</div>
+          <div className="text-xs text-gray-400">{countLabel}</div>
         </div>
       ) : guestHint ? (
         <div className="text-right">
-          <div className="text-sm text-slate-400">{guestHint}</div>
+          <div className="text-sm text-gray-400">{guestHint}</div>
         </div>
       ) : null}
-      <svg className="w-5 h-5 text-slate-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-gray-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
       </svg>
     </div>
   );
 
-  // 로그인 필요한 카드면 버튼으로 처리
   if (requiresAuth && onAuthRequired) {
     return (
       <button onClick={onAuthRequired} className="group block w-full text-left">
