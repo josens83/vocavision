@@ -208,7 +208,7 @@ const examStyles: Record<ExamType, {
     bg: "bg-purple-500",
     bgLight: "bg-purple-50",
     border: "hover:border-purple-400",
-    gradient: "from-purple-500 to-purple-600",
+    gradient: "from-purple-500 to-cyan-600",
   },
 };
 

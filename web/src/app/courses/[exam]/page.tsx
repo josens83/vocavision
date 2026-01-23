@@ -95,7 +95,7 @@ const examInfo: Record<string, {
     fullName: '서울대 영어능력시험',
     description: 'TEPS 500+ 목표를 위한 고급 어휘 코스입니다. 청해와 독해에서 자주 출제되는 단어를 학습합니다.',
     icon: '🎓',
-    gradient: 'from-purple-500 to-purple-600',
+    gradient: 'from-purple-500 to-cyan-600',
     bgColor: 'bg-purple-50',
     levels: [
       { id: 'L1', name: '400점', target: '400점 목표', wordCount: '80' },

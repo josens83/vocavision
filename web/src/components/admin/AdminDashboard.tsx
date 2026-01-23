@@ -135,7 +135,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeNav, onNavChange, pendingReview
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-slate-800">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-cyan-600 flex items-center justify-center">
             <span className="text-white font-bold">V</span>
           </div>
           <div>

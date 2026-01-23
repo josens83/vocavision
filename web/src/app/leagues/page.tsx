@@ -85,7 +85,7 @@ const LEAGUE_INFO = {
   },
   AMETHYST: {
     name: '자수정',
-    color: 'from-purple-400 to-purple-600',
+    color: 'from-purple-400 to-cyan-600',
     bgColor: 'bg-purple-50',
     textColor: 'text-purple-900',
     borderColor: 'border-purple-300',

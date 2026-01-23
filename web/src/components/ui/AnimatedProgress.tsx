@@ -25,7 +25,7 @@ interface AnimatedProgressProps {
 const colorStyles: Record<ProgressColor, string> = {
   green: 'from-green-400 to-green-600',
   blue: 'from-blue-400 to-blue-600',
-  purple: 'from-purple-400 to-purple-600',
+  purple: 'from-purple-400 to-cyan-600',
   orange: 'from-orange-400 to-orange-600',
   brand: 'from-brand-primary to-brand-secondary',
 };

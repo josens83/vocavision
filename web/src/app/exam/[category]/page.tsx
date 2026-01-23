@@ -45,7 +45,7 @@ const examData: Record<string, {
     fullName: '서울대 영어능력시험',
     description: 'TEPS 고득점을 위한 고급 어휘를 학습하세요. 청해와 독해에서 자주 출제되는 단어들을 목표 점수별로 정리했습니다.',
     icon: '🎓',
-    color: 'from-purple-500 to-purple-600',
+    color: 'from-purple-500 to-cyan-600',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
     textColor: 'text-purple-600',

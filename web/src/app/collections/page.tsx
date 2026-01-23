@@ -84,7 +84,7 @@ export default function CollectionsPage() {
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Hero Section */}
-        <div className="bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-2xl p-8 mb-8">
+        <div className="bg-gradient-to-br from-blue-600 to-cyan-600 text-white rounded-2xl p-8 mb-8">
           <h2 className="text-3xl font-bold mb-4">엄선된 단어 모음집</h2>
           <p className="text-blue-100 text-lg mb-6">
             주제와 난이도별로 구성된 단어 컬렉션으로 효과적으로 학습하세요.

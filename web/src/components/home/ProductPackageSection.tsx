@@ -79,7 +79,7 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
       }`}
     >
       {/* 배너 이미지 영역 - 그라데이션 배경 */}
-      <div className="relative aspect-[16/9] bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 overflow-hidden">
+      <div className="relative aspect-[16/9] bg-gradient-to-br from-teal-600 via-cyan-600 to-blue-700 overflow-hidden">
         {/* 배경 패턴 */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-4 right-4 w-24 h-24 border-4 border-white rounded-full" />
@@ -130,7 +130,7 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
         {/* 호버 시 화살표 */}
         {!pkg.isComingSoon && (
           <div className="absolute bottom-6 right-6 w-10 h-10 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-            <ArrowRight className="w-5 h-5 text-violet-600" />
+            <ArrowRight className="w-5 h-5 text-teal-600" />
           </div>
         )}
       </div>
@@ -153,7 +153,7 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
           )}
         </div>
         {!pkg.isComingSoon && (
-          <span className="text-sm text-brand-primary font-medium group-hover:underline">
+          <span className="text-sm text-teal-600 font-medium group-hover:underline">
             자세히 보기
           </span>
         )}

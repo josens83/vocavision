@@ -41,7 +41,7 @@ const features = [
     icon: '🎨',
     title: 'AI 이미지',
     description: 'Concept · Mnemonic · Rhyme',
-    color: 'from-purple-500 to-purple-600',
+    color: 'from-purple-500 to-cyan-600',
     bgColor: 'bg-purple-50',
     badge: 'AI',
   },
