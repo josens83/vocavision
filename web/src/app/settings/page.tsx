@@ -384,22 +384,26 @@ function SettingsContent() {
                       )}
                     </div>
 
-                    {(subscription.subscriptionStatus === 'ACTIVE' || subscription.subscriptionStatus === 'PREMIUM') && (
-                      <button
-                        onClick={handleCancelSubscription}
-                        className="bg-[#FEF2F2] text-[#EF4444] px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-[#FEE2E2] transition"
-                      >
-                        구독 취소
-                      </button>
-                    )}
-
                     {(subscription.subscriptionStatus === 'FREE' || subscription.subscriptionStatus === 'CANCELLED') && (
                       <Link
                         href="/pricing"
-                        className="inline-block bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:shadow-md transition"
+                        className="inline-block bg-[#14B8A6] text-white px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-[#0F766E] transition"
                       >
                         프리미엄 구독하기
                       </Link>
+                    )}
+
+                    {/* 위험 영역: 구독 취소 */}
+                    {(subscription.subscriptionStatus === 'ACTIVE' || subscription.subscriptionStatus === 'PREMIUM') && (
+                      <div className="border-t border-[#f0f0f0] pt-6 mt-6">
+                        <h4 className="font-semibold text-[15px] mb-4 text-[#EF4444]">위험 영역</h4>
+                        <button
+                          onClick={handleCancelSubscription}
+                          className="bg-[#FEF2F2] text-[#EF4444] px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-[#FEE2E2] transition"
+                        >
+                          구독 취소
+                        </button>
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -409,11 +413,11 @@ function SettingsContent() {
                   </div>
                 )}
 
+                {/* 로그아웃 (일반 영역) */}
                 <div className="border-t border-[#f0f0f0] pt-6 mt-6">
-                  <h4 className="font-semibold text-[15px] mb-4 text-[#EF4444]">위험 영역</h4>
                   <button
                     onClick={handleLogout}
-                    className="bg-gray-100 text-gray-500 px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-gray-200 transition"
+                    className="bg-gray-100 text-gray-700 px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-gray-200 transition"
                   >
                     로그아웃
                   </button>
