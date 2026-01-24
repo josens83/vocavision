@@ -691,7 +691,7 @@ function LearnPageContent() {
   // 구독 제한으로 접근 차단
   if (accessBlocked && user) {
     const examName = examParam === 'TEPS' ? 'TEPS' : '수능';
-    const levelName = levelParam === 'L2' ? '중급' : levelParam === 'L3' ? '고급' : levelParam;
+    const levelName = examParam && levelParam ? getLevelName(examParam, levelParam) : levelParam;
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
