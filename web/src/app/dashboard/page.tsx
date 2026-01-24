@@ -180,6 +180,11 @@ export default function DashboardPage() {
   const remainingWords = Math.max(totalWords - learnedWords, 0);
   const progressPercent = totalWords > 0 ? Math.min(Math.round((learnedWords / totalWords) * 100), 100) : 0;
 
+  // Set 계산 (세션 유무와 관계없이 학습 완료 단어 기준)
+  const totalSets = Math.ceil(totalWords / 20);
+  const currentSet = learnedWords > 0 ? Math.floor((learnedWords - 1) / 20) + 1 : 1;
+  const wordsInCurrentSet = learnedWords > 0 ? ((learnedWords - 1) % 20) + 1 : 0;
+
   const isCompleted = remainingWords === 0 && totalWords > 0;
   const dailyGoal = 20;
   const todayRemaining = Math.min(dailyGoal, remainingWords);
@@ -367,26 +372,26 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            {/* Set 정보 뱃지 */}
-            {learningSession && (
+            {/* Set 정보 뱃지 (데스크톱) */}
+            {totalWords > 0 && (
               <div className="hidden sm:flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-xl">
                 <span className="text-blue-600 font-semibold">
-                  Set {learningSession.currentSet + 1} / {learningSession.totalSets}
+                  Set {currentSet} / {totalSets}
                 </span>
               </div>
             )}
           </div>
 
           {/* Set 정보 (모바일용) */}
-          {learningSession && (
+          {totalWords > 0 && (
             <div className="sm:hidden flex items-center justify-center gap-2 bg-blue-50 px-4 py-3 rounded-xl mb-4">
               <span className="text-lg">📚</span>
               <span className="text-blue-600 font-semibold">
-                Set {learningSession.currentSet + 1} / {learningSession.totalSets}
+                Set {currentSet} / {totalSets}
               </span>
               <span className="text-gray-400">•</span>
               <span className="text-gray-600 text-sm">
-                {learningSession.currentIndex} / 20
+                {wordsInCurrentSet} / 20
               </span>
             </div>
           )}
