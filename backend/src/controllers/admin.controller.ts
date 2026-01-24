@@ -3638,3 +3638,236 @@ async function processBulkConceptGeneration(
     console.error(`[BULK GEN] ❌ Fatal error:`, error);
   }
 }
+
+// ============================================
+// Batch Visual Regeneration (CONCEPT, MNEMONIC, RHYME)
+// ============================================
+
+/**
+ * Regenerate visuals (CONCEPT, MNEMONIC, RHYME) for multiple words
+ * GET /api/admin/regenerate-visuals?words=abandon,abolish,...&types=CONCEPT,MNEMONIC,RHYME
+ */
+export const regenerateVisualsByWords = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { words, types = 'CONCEPT,MNEMONIC,RHYME' } = req.query;
+
+    if (!words || typeof words !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'words query parameter is required',
+      });
+    }
+
+    const wordNames = words.split(',').map((w) => w.trim().toLowerCase()).filter(Boolean);
+    const visualTypes = (types as string).split(',').map((t) => t.trim().toUpperCase()).filter(
+      (t) => ['CONCEPT', 'MNEMONIC', 'RHYME'].includes(t)
+    ) as VisualType[];
+
+    if (wordNames.length === 0) {
+      return res.status(400).json({ success: false, error: 'No valid word names' });
+    }
+
+    if (wordNames.length > 100) {
+      return res.status(400).json({ success: false, error: 'Maximum 100 words per request' });
+    }
+
+    if (visualTypes.length === 0) {
+      return res.status(400).json({ success: false, error: 'No valid visual types' });
+    }
+
+    // Find words
+    const foundWords = await prisma.word.findMany({
+      where: {
+        word: { in: wordNames, mode: 'insensitive' },
+      },
+      select: {
+        id: true,
+        word: true,
+        definition: true,
+        definitionKo: true,
+        mnemonics: { take: 1 },
+        rhymes: { take: 3 },
+      },
+    });
+
+    if (foundWords.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No matching words found',
+        requested: wordNames.length,
+      });
+    }
+
+    const jobId = `visuals-regen-${Date.now()}`;
+    const totalImages = foundWords.length * visualTypes.length;
+
+    // Respond immediately
+    res.json({
+      success: true,
+      data: {
+        jobId,
+        message: `Started generating ${visualTypes.join(', ')} images for ${foundWords.length} words`,
+        totalImages,
+        words: foundWords.map((w) => w.word),
+        types: visualTypes,
+        estimatedTime: `${Math.ceil(totalImages * 5 / 60)} minutes`,
+      },
+    });
+
+    // Background processing
+    setImmediate(() => {
+      processVisualsRegeneration(jobId, foundWords, visualTypes);
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Helper function for batch visual regeneration
+async function processVisualsRegeneration(
+  jobId: string,
+  words: Array<{
+    id: string;
+    word: string;
+    definition: string | null;
+    definitionKo: string | null;
+    mnemonics: any[];
+    rhymes: any[];
+  }>,
+  types: VisualType[]
+): Promise<void> {
+  let processed = 0;
+  let success = 0;
+  let failed = 0;
+  const total = words.length * types.length;
+  const startTime = Date.now();
+
+  logger.info(`[VisualsRegen] ========================================`);
+  logger.info(`[VisualsRegen] Job ${jobId} started`);
+  logger.info(`[VisualsRegen] Words: ${words.length}, Types: ${types.join(', ')}`);
+  logger.info(`[VisualsRegen] Total images: ${total}`);
+  logger.info(`[VisualsRegen] ========================================`);
+
+  for (const word of words) {
+    for (const type of types) {
+      try {
+        let prompt: string = '';
+        let captionKo: string = '';
+        let captionEn: string = '';
+
+        if (type === 'CONCEPT') {
+          try {
+            const scene = await generateConceptScene(
+              word.word,
+              word.definition || '',
+              word.definitionKo || ''
+            );
+            prompt = scene.prompt;
+            captionKo = scene.captionKo;
+            captionEn = scene.captionEn;
+            logger.info(`[VisualsRegen] 🎨 CONCEPT scene generated for "${word.word}"`);
+          } catch (sceneError) {
+            logger.warn(`[VisualsRegen] ⚠️ CONCEPT scene fallback for "${word.word}"`);
+            prompt = generateConceptPrompt(word.definition || '', word.word);
+            captionKo = word.definitionKo || '';
+            captionEn = word.definition || '';
+          }
+        } else if (type === 'MNEMONIC') {
+          const mnemonic = word.mnemonics?.[0]?.content || word.mnemonics?.[0]?.koreanHint || '';
+          if (mnemonic) {
+            try {
+              const scene = await extractMnemonicScene(mnemonic, word.word);
+              prompt = scene.prompt;
+              captionKo = scene.captionKo;
+              captionEn = scene.captionEn;
+              logger.info(`[VisualsRegen] 🎨 MNEMONIC scene generated for "${word.word}"`);
+            } catch (sceneError) {
+              logger.warn(`[VisualsRegen] ⚠️ MNEMONIC scene fallback for "${word.word}"`);
+              prompt = generateMnemonicPrompt(mnemonic, word.word);
+              captionKo = mnemonic;
+              captionEn = word.definition || '';
+            }
+          } else {
+            prompt = generateMnemonicPrompt(word.word, word.word);
+            captionKo = word.definitionKo || '';
+            captionEn = word.definition || '';
+          }
+        } else if (type === 'RHYME') {
+          const rhymes = word.rhymes?.map((r: any) => r.phrase || r.rhyme).filter(Boolean) || [];
+          try {
+            const sceneData = await generateRhymeScene(
+              word.word,
+              word.definition || '',
+              rhymes
+            );
+            prompt = sceneData.prompt;
+            captionKo = sceneData.captionKo;
+            captionEn = sceneData.captionEn;
+            logger.info(`[VisualsRegen] 🎨 RHYME scene generated for "${word.word}"`);
+          } catch (sceneError) {
+            logger.warn(`[VisualsRegen] ⚠️ RHYME scene fallback for "${word.word}"`);
+            prompt = generateRhymePrompt(word.definition || word.word, word.word);
+            try {
+              const captions = await generateRhymeCaptions(word.word, word.definition || '', rhymes);
+              captionKo = captions.captionKo;
+              captionEn = captions.captionEn;
+            } catch {
+              captionKo = word.definitionKo || '';
+              captionEn = word.definition || '';
+            }
+          }
+        }
+
+        logger.info(`[VisualsRegen] Generating ${type} image for "${word.word}"...`);
+        const result = await generateAndUploadImage(prompt, type, word.word);
+
+        if (result) {
+          await prisma.wordVisual.upsert({
+            where: { wordId_type: { wordId: word.id, type } },
+            update: { imageUrl: result.imageUrl, promptEn: prompt, captionKo, captionEn },
+            create: {
+              wordId: word.id,
+              type,
+              imageUrl: result.imageUrl,
+              promptEn: prompt,
+              captionKo,
+              captionEn,
+              order: types.indexOf(type),
+            },
+          });
+          success++;
+
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+          const remaining = total - processed - 1;
+          const eta = remaining > 0 ? Math.floor((elapsed / (processed + 1)) * remaining) : 0;
+
+          logger.info(`[VisualsRegen] ✅ ${word.word} - ${type} (${processed + 1}/${total}) - ETA: ${Math.floor(eta / 60)}m ${eta % 60}s`);
+        } else {
+          failed++;
+          logger.warn(`[VisualsRegen] ⚠️ ${word.word} - ${type} returned null`);
+        }
+      } catch (error: any) {
+        failed++;
+        logger.error(`[VisualsRegen] ❌ ${word.word} - ${type}: ${error.message}`);
+
+        // Longer delay after error
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+
+      processed++;
+      // 3초 딜레이 (API 제한)
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+  }
+
+  const totalTime = Math.floor((Date.now() - startTime) / 1000);
+  logger.info(`[VisualsRegen] ========================================`);
+  logger.info(`[VisualsRegen] Job ${jobId} completed!`);
+  logger.info(`[VisualsRegen] Success: ${success}, Failed: ${failed}`);
+  logger.info(`[VisualsRegen] Time: ${Math.floor(totalTime / 60)}m ${totalTime % 60}s`);
+  logger.info(`[VisualsRegen] ========================================`);
+}
