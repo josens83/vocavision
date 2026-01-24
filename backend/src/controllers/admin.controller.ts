@@ -3777,10 +3777,17 @@ async function processVisualsRegeneration(
             captionEn = word.definition || '';
           }
         } else if (type === 'MNEMONIC') {
-          const mnemonic = word.mnemonics?.[0]?.content || word.mnemonics?.[0]?.koreanHint || '';
+          const mnemonicContent = word.mnemonics?.[0]?.content || '';
+          const mnemonicKorean = word.mnemonics?.[0]?.koreanHint || '';
+          const mnemonic = mnemonicContent || mnemonicKorean;
           if (mnemonic) {
             try {
-              const scene = await extractMnemonicScene(mnemonic, word.word);
+              const scene = await extractMnemonicScene(
+                word.word,
+                word.definition || '',
+                mnemonicContent,
+                mnemonicKorean
+              );
               prompt = scene.prompt;
               captionKo = scene.captionKo;
               captionEn = scene.captionEn;
