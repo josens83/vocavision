@@ -236,11 +236,12 @@ enum ContentStatus {
 
 // Exam Categories for Korean users
 enum ExamCategory {
-  CSAT          // 수능 (대학수학능력시험) - 고급 어휘
+  CSAT          // 수능 (대학수학능력시험) - L1 초급, L2 중급, L3 고급
   CSAT_BASIC    // 수능 기초 (중학 필수 어휘)
-  CSAT_ARCHIVE  // 수능 아카이브 (기초 단어 보관용, Zipf ≥ 5.0)
+  CSAT_ARCHIVE  // 수능 아카이브 (보관용)
   EBS           // EBS 연계 어휘
-  TEPS          // 텝스 (서울대 영어능력시험)
+  TEPS          // 텝스 (서울대 영어능력시험) - L1 기본, L2 필수
+  TEPS_ARCHIVE  // 텝스 아카이브 (보관용)
   TOEIC         // 토익 (비즈니스 영어)
   TOEFL         // 토플 (학술 영어)
   SAT           // SAT (미국 대입)
