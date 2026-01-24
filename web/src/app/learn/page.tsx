@@ -48,7 +48,21 @@ const examNames: Record<string, string> = {
   TEPS: 'TEPS',
 };
 
-// Level name mapping
+// Level name mapping - exam-specific
+const getLevelName = (exam: string, level: string): string => {
+  if (exam === 'TEPS') {
+    return level === 'L1' ? '기본' : '필수';
+  }
+  // CSAT 및 기타
+  switch (level) {
+    case 'L1': return '초급';
+    case 'L2': return '중급';
+    case 'L3': return '고급';
+    default: return level;
+  }
+};
+
+// 기존 호환용 (CSAT 기본값)
 const levelNames: Record<string, string> = {
   L1: '초급',
   L2: '중급',
@@ -932,7 +946,7 @@ function LearnPageContent() {
               {examParam && !isDemo && (
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
                   <span className="text-[15px] font-bold text-[#1c1c1e]">
-                    {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {levelNames[levelParam] || levelParam}</span>}
+                    {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {getLevelName(examParam, levelParam)}</span>}
                   </span>
                   {/* Set 정보 표시 */}
                   {serverSession && serverSession.totalSets > 0 && (

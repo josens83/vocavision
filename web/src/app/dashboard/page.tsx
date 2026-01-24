@@ -45,17 +45,16 @@ const examInfo: Record<string, { name: string; icon: string; color: string }> = 
 const getLevelInfo = (exam: string, level: string) => {
   if (exam === 'TEPS') {
     const tepsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: '고급어휘 L1', description: 'TEPS 고급 어휘', target: '고득점 목표', wordCount: 1000 },
-      L2: { name: '고급어휘 L2', description: 'TEPS 심화 어휘', target: '고득점 목표', wordCount: 1000 },
-      L3: { name: '고급어휘 L3', description: 'TEPS 최고급 어휘', target: '고득점 목표', wordCount: 1000 },
+      L1: { name: '기본', description: 'TEPS 기본 어휘', target: '기본 점수 목표', wordCount: 369 },
+      L2: { name: '필수', description: 'TEPS 필수 어휘', target: '고득점 목표', wordCount: 136 },
     };
     return tepsLevels[level] || tepsLevels.L1;
   }
 
   const defaultLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-    L1: { name: '초급', description: '기초 필수 단어', target: '3등급 목표', wordCount: 1000 },
-    L2: { name: '중급', description: '핵심 심화 단어', target: '2등급 목표', wordCount: 1000 },
-    L3: { name: '고급', description: '고난도 단어', target: '1등급 목표', wordCount: 1000 },
+    L1: { name: '초급', description: '기초 필수 단어', target: '3등급 목표', wordCount: 882 },
+    L2: { name: '중급', description: '핵심 심화 단어', target: '2등급 목표', wordCount: 748 },
+    L3: { name: '고급', description: '고난도 단어', target: '1등급 목표', wordCount: 157 },
   };
   return defaultLevels[level] || defaultLevels.L1;
 };
@@ -312,8 +311,11 @@ export default function DashboardPage() {
           <h3 className="text-sm font-semibold text-gray-900 mb-4">레벨 선택</h3>
 
           <div className="flex gap-3">
-            {(['L1', 'L2', 'L3'] as const).map((lvl) => {
+            {(selectedExam === 'TEPS' ? ['L1', 'L2'] as const : ['L1', 'L2', 'L3'] as const).map((lvl) => {
               const isLocked = !canAccessLevel(selectedExam, lvl);
+              const levelLabel = selectedExam === 'TEPS'
+                ? (lvl === 'L1' ? '기본' : '필수')
+                : (lvl === 'L1' ? '초급' : lvl === 'L2' ? '중급' : '고급');
               return (
                 <button
                   key={lvl}
@@ -339,7 +341,7 @@ export default function DashboardPage() {
                   <span className={`text-xs mt-1 ${
                     isLocked ? 'text-gray-400' : selectedLevel === lvl ? 'text-blue-100' : 'text-gray-500'
                   }`}>
-                    {lvl === 'L1' ? '초급' : lvl === 'L2' ? '중급' : '고급'}
+                    {levelLabel}
                   </span>
                 </button>
               );
