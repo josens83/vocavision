@@ -47,6 +47,8 @@ import {
   regenerateConceptByWords,
   // Bulk Concept Image Generation by exam/level
   generateConceptBulk,
+  // Batch Visual Regeneration (CONCEPT, MNEMONIC, RHYME)
+  regenerateVisualsByWords,
   // Cloudinary → Supabase Migration
   getCloudinaryMigrationStatus,
   startCloudinaryMigration,
@@ -148,6 +150,33 @@ router.get('/regenerate-concept', authOrSecretKey, regenerateConceptByWords);
  *         description: Started bulk concept image generation
  */
 router.get('/generate-concept-bulk', authOrSecretKey, generateConceptBulk);
+
+/**
+ * @swagger
+ * /admin/regenerate-visuals:
+ *   get:
+ *     summary: Regenerate multiple visual types for multiple words
+ *     tags: [Admin - Image Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: words
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Comma-separated word names (e.g., "abandon,abolish,absorb")
+ *       - in: query
+ *         name: types
+ *         schema:
+ *           type: string
+ *           default: "CONCEPT,MNEMONIC,RHYME"
+ *         description: Comma-separated visual types to generate
+ *     responses:
+ *       200:
+ *         description: Started regenerating visuals
+ */
+router.get('/regenerate-visuals', authOrSecretKey, regenerateVisualsByWords);
 
 /**
  * @swagger
