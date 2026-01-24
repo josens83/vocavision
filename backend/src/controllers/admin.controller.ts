@@ -3330,9 +3330,28 @@ async function processConceptRegeneration(
     job.currentWord = word.word;
 
     try {
-      const prompt = generateConceptPrompt(word.definition || '', word.word);
-      const captionKo = word.definitionKo || word.definition || '';
-      const captionEn = word.definition || '';
+      // Claude API로 고품질 장면 생성 시도
+      let prompt: string;
+      let captionKo: string;
+      let captionEn: string;
+
+      try {
+        const conceptScene = await generateConceptScene(
+          word.word,
+          word.definition || '',
+          word.definitionKo || ''
+        );
+        prompt = conceptScene.prompt;
+        captionKo = conceptScene.captionKo;
+        captionEn = conceptScene.captionEn;
+        logger.info(`[Admin/ConceptRegen] 🎨 Enhanced prompt generated for "${word.word}"`);
+      } catch (promptError) {
+        // Claude API 실패 시 기본 프롬프트로 폴백
+        logger.warn(`[Admin/ConceptRegen] ⚠️ Claude API failed for "${word.word}", using fallback`);
+        prompt = generateConceptPrompt(word.definition || '', word.word);
+        captionKo = word.definitionKo || word.definition || '';
+        captionEn = word.definition || '';
+      }
 
       logger.info(`[Admin/ConceptRegen] Generating concept image for "${word.word}"...`);
 
