@@ -153,8 +153,8 @@ export default function FlashCardGesture({
     }
   };
 
-  // 오른쪽 스와이프 → 다음 단어 (기록 없으면 "알았음" 기록)
-  const handleSwipeRight = () => {
+  // 다음 단어로 이동 (기록 없으면 "알았음" 기록)
+  const handleGoToNext = () => {
     const count = parseInt(localStorage.getItem(SWIPE_HINT_KEY) || '0', 10);
     localStorage.setItem(SWIPE_HINT_KEY, String(count + 1));
     if (count + 1 >= 5) {
@@ -177,8 +177,8 @@ export default function FlashCardGesture({
     }, 200);
   };
 
-  // 왼쪽 스와이프 → 이전 단어 (API 호출 없음)
-  const handleSwipeLeft = () => {
+  // 이전 단어로 이동 (API 호출 없음)
+  const handleGoToPrevious = () => {
     if (hasPrevious && onPrevious) {
       const count = parseInt(localStorage.getItem(SWIPE_HINT_KEY) || '0', 10);
       localStorage.setItem(SWIPE_HINT_KEY, String(count + 1));
@@ -209,12 +209,12 @@ export default function FlashCardGesture({
       return;
     }
 
-    // 왼쪽 스와이프 (x < 0) → 이전 단어로 이동
+    // 왼쪽 스와이프 (오른쪽→왼쪽, x < 0) → 다음 단어로 이동
     if (info.offset.x < -threshold || info.velocity.x < -velocity) {
-      handleSwipeLeft();
-    // 오른쪽 스와이프 (x > 0) → 다음 단어로 이동
+      handleGoToNext();
+    // 오른쪽 스와이프 (왼쪽→오른쪽, x > 0) → 이전 단어로 이동
     } else if (info.offset.x > threshold || info.velocity.x > velocity) {
-      handleSwipeRight();
+      handleGoToPrevious();
     } else {
       x.set(0);
     }
@@ -243,11 +243,11 @@ export default function FlashCardGesture({
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-200px)] md:min-h-0 md:block">
-      {/* Swipe Hint */}
+      {/* Swipe Hint - 왼쪽 스와이프=다음, 오른쪽 스와이프=이전 */}
       {showSwipeHint && (
         <div className="text-center text-sm text-gray-400 flex justify-center gap-6 md:hidden mb-2">
-          {hasPrevious && <span className="inline-flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" /> 이전</span>}
-          <span className="inline-flex items-center gap-1">다음 <ArrowRight className="w-3.5 h-3.5" /></span>
+          {hasPrevious && <span className="inline-flex items-center gap-1">이전 <ArrowRight className="w-3.5 h-3.5" /></span>}
+          <span className="inline-flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" /> 다음</span>
         </div>
       )}
 
@@ -263,10 +263,20 @@ export default function FlashCardGesture({
         className="relative cursor-grab active:cursor-grabbing flex-1 md:flex-none"
       >
         {/* Swipe Overlay Indicators */}
-        {/* 왼쪽 스와이프 시 (이전 단어) */}
+        {/* 왼쪽 스와이프 시 (다음 단어) - 오른쪽→왼쪽으로 스와이프하면 다음 */}
+        <motion.div
+          style={{ opacity: leftOpacity }}
+          className="absolute inset-0 bg-teal-50 rounded-2xl flex items-center justify-center pointer-events-none z-10 border-2 border-teal-300"
+        >
+          <div className="bg-teal-500 text-white rounded-full px-6 py-3">
+            <span className="text-xl font-bold inline-flex items-center gap-1">다음 <ArrowRight className="w-5 h-5" /></span>
+          </div>
+        </motion.div>
+
+        {/* 오른쪽 스와이프 시 (이전 단어) - 왼쪽→오른쪽으로 스와이프하면 이전 */}
         {hasPrevious && (
           <motion.div
-            style={{ opacity: leftOpacity }}
+            style={{ opacity: rightOpacity }}
             className="absolute inset-0 bg-gray-50 rounded-2xl flex items-center justify-center pointer-events-none z-10 border-2 border-gray-300"
           >
             <div className="bg-gray-500 text-white rounded-full px-6 py-3">
@@ -274,16 +284,6 @@ export default function FlashCardGesture({
             </div>
           </motion.div>
         )}
-
-        {/* 오른쪽 스와이프 시 (다음 단어) */}
-        <motion.div
-          style={{ opacity: rightOpacity }}
-          className="absolute inset-0 bg-teal-50 rounded-2xl flex items-center justify-center pointer-events-none z-10 border-2 border-teal-300"
-        >
-          <div className="bg-teal-500 text-white rounded-full px-6 py-3">
-            <span className="text-xl font-bold inline-flex items-center gap-1">다음 <ArrowRight className="w-5 h-5" /></span>
-          </div>
-        </motion.div>
 
         {/* Card Content */}
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
