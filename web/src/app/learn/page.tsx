@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSession, clearLearningSession } from '@/lib/store';
 import { progressAPI, wordsAPI, learningAPI } from '@/lib/api';
 import { canAccessContent } from '@/lib/subscription';
+import { motion } from 'framer-motion';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
 
@@ -167,6 +168,11 @@ function LearnPageContent() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [showResult, setShowResult] = useState(false);
+  const [showSetComplete, setShowSetComplete] = useState(false);
+  const [pendingNextSet, setPendingNextSet] = useState<{
+    session: typeof serverSession;
+    words: Word[];
+  } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalWordsInLevel, setTotalWordsInLevel] = useState(0);
   const [totalLearnedInLevel, setTotalLearnedInLevel] = useState(0);
@@ -486,22 +492,13 @@ function LearnPageContent() {
           setShowResult(true);
           clearLearningSession();
         } else if (result.words && result.words.length > 0) {
-          // 다음 세트로 자동 이동
-          setServerSession(result.session);
-          setReviews(result.words.map((word: Word) => ({ word })));
-          setTotalLearnedInLevel(result.session.totalReviewed);
-          resetSession();
-
-          // localStorage도 업데이트
-          saveLearningSession({
-            exam: examParam,
-            level: levelParam,
+          // Set 완료 화면 표시 (다음 Set 데이터 저장)
+          setPendingNextSet({
+            session: result.session,
             words: result.words,
-            currentIndex: 0,
-            ratings: {},
-            timestamp: Date.now(),
           });
-          return; // 다음 세트로 이동했으므로 showResult 표시 안함
+          setShowSetComplete(true);
+          return; // Set 완료 화면 표시
         }
       } catch (error) {
         console.error('Failed to update server session:', error);
@@ -524,6 +521,29 @@ function LearnPageContent() {
         wordsStudied: finalWordsStudied,
         wordsCorrect: finalWordsCorrect,
       }).catch(error => console.error('Failed to end session:', error));
+    }
+  };
+
+  // 다음 Set으로 이동
+  const handleContinueToNextSet = () => {
+    if (pendingNextSet && examParam && levelParam) {
+      setServerSession(pendingNextSet.session);
+      setReviews(pendingNextSet.words.map((word: Word) => ({ word })));
+      setTotalLearnedInLevel(pendingNextSet.session?.totalReviewed || 0);
+      resetSession();
+
+      // localStorage도 업데이트
+      saveLearningSession({
+        exam: examParam,
+        level: levelParam,
+        words: pendingNextSet.words,
+        currentIndex: 0,
+        ratings: {},
+        timestamp: Date.now(),
+      });
+
+      setPendingNextSet(null);
+      setShowSetComplete(false);
     }
   };
 
@@ -728,6 +748,98 @@ function LearnPageContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
         <EmptyFirstTime type="words" />
+      </div>
+    );
+  }
+
+  // Set 완료 화면 표시
+  if (showSetComplete && pendingNextSet && serverSession) {
+    const wordsStudied = getWordsStudied();
+    const wordsCorrect = getWordsCorrect();
+    const percentage = wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0;
+    const completedSet = serverSession.currentSet + 1; // 방금 완료한 Set 번호
+    const totalSets = serverSession.totalSets;
+    const totalReviewed = serverSession.totalReviewed;
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white rounded-2xl p-8 text-center border border-gray-200 max-w-md mx-auto shadow-lg"
+        >
+          {/* 축하 이모지 */}
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            className="text-7xl mb-4"
+          >
+            {percentage === 100 ? '🏆' : percentage >= 80 ? '🎉' : '💪'}
+          </motion.div>
+
+          {/* Set 완료 메시지 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              Set {completedSet} 완료!
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {wordsStudied}단어 학습 · 정확도 {percentage}%
+            </p>
+          </motion.div>
+
+          {/* 진행 상황 */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="bg-[#F0FDF4] rounded-xl p-4 mb-6"
+          >
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="text-gray-600">전체 진행</span>
+              <span className="font-bold text-[#10B981]">
+                Set {completedSet}/{totalSets}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(completedSet / totalSets) * 100}%` }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] h-3 rounded-full"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              총 {totalReviewed}단어 학습 완료
+            </p>
+          </motion.div>
+
+          {/* 액션 버튼 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="flex flex-col gap-3"
+          >
+            <button
+              onClick={handleContinueToNextSet}
+              className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] hover:opacity-90 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-[#14B8A6]/25"
+            >
+              Set {completedSet + 1} 시작하기 →
+            </button>
+
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
+            >
+              나중에 계속하기
+            </button>
+          </motion.div>
+        </motion.div>
       </div>
     );
   }
