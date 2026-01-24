@@ -336,7 +336,27 @@ JSON만 출력하세요:`;
         const parsed = JSON.parse(jsonMatch[0]);
 
         // Format the prompt for Stability AI
-        const finalPrompt = `A 1:1 square cartoon illustration. ${parsed.scene}. Style: cute cartoon, bright colors, humorous, exaggerated expressions, memorable for Korean students. CRITICAL: NO text, NO letters, NO words in the image.`;
+        const finalPrompt = `Cartoon style illustration.
+
+${parsed.scene}
+
+Style: cute cartoon, bright colors, humorous, exaggerated expressions, memorable for Korean students.
+Everyday setting with ONE absurd or unusual action.
+
+No text.
+No words.
+No letters.
+No numbers.
+No symbols.
+No labels.
+No captions.
+No titles.
+No icons.
+No speech bubbles.
+No signs.
+No watermarks.
+
+Square composition.`;
 
         logger.info('[SmartCaption] Extracted mnemonic scene for', word, ':', {
           captionKo: parsed.captionKo,
@@ -439,7 +459,27 @@ JSON만 출력하세요:`;
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
 
-        const finalPrompt = `A 1:1 square humorous cartoon illustration. ${parsed.scene}. Style: playful cartoon, bright colors, dynamic action, memorable. CRITICAL: NO text, NO letters, NO words in the image.`;
+        const finalPrompt = `Cartoon style illustration.
+
+${parsed.scene}
+
+Style: clean cartoon, soft colors, calm composition.
+Focus on meaning, minimal emotion.
+
+No text.
+No words.
+No letters.
+No numbers.
+No symbols.
+No labels.
+No captions.
+No titles.
+No icons.
+No speech bubbles.
+No signs.
+No watermarks.
+
+Square composition.`;
 
         logger.info('[SmartCaption] Generated rhyme scene for', word, ':', {
           selectedRhymes: parsed.selectedRhymes,
@@ -506,30 +546,31 @@ ${definitionKo ? `- Korean meaning: ${definitionKo}` : ''}
 Create a **specific, concrete visual scene** that clearly demonstrates the meaning of this word.
 
 ## Rules
-1. Describe a specific situation with characters, actions, and setting
-2. The scene must IMMEDIATELY convey the word's meaning without any text
-3. Include expressive body language and facial expressions
-4. Make it memorable and slightly humorous if appropriate
-5. Avoid abstract concepts - everything must be visually concrete
-6. Do NOT include any text, letters, or numbers in the scene
+1. Describe a specific situation with **at least 2 characters** interacting
+2. Show **cause → action → result** in one scene
+3. The scene must IMMEDIATELY convey the word's meaning without any text
+4. Include expressive body language and facial expressions
+5. Make it memorable (slightly humorous OK, but meaning is priority)
+6. Avoid abstract concepts - everything must be visually concrete
+7. Do NOT include any text, letters, numbers, or symbols
 
 ## Good Examples
 
 ### Example 1: abrupt
 Meaning: happening suddenly without warning
-Scene: A person walking calmly on a sidewalk. Suddenly, the ground in front of them ends at a sharp cliff edge with no warning sign. The person stops abruptly with arms raised, eyes wide in surprise, one foot hovering over the edge.
+Scene: Two friends walking and chatting on a sidewalk. The ground in front of them suddenly ends at a sharp cliff edge with no warning. One person stops abruptly with arms raised, grabbing their friend's sleeve. Both have wide eyes in surprise, feet hovering over the edge.
 
 ### Example 2: abundant
 Meaning: existing in large quantities, plentiful
-Scene: A farmer standing in front of an overflowing harvest. Apples, tomatoes, and vegetables are piled so high they're tumbling out of baskets and covering the ground. The farmer looks overwhelmed but happy.
+Scene: A farmer and his child standing in front of an overflowing harvest. Apples, tomatoes, and vegetables are piled so high they're tumbling out of baskets and covering the ground. The farmer gestures proudly while the child tries to catch falling apples.
 
 ### Example 3: meticulous
 Meaning: showing great attention to detail
-Scene: A chef carefully placing a single tiny herb leaf on a dish with tweezers, eyes squinting in concentration. Magnifying glasses, rulers, and precision tools scattered on the counter. Other chefs watching nervously.
+Scene: A chef carefully placing a single tiny herb leaf on a dish with tweezers while an assistant holds a magnifying glass. Both squint in concentration. Other kitchen staff in background watch nervously with bated breath.
 
 ## Output Format (JSON only)
 {
-  "scene": "Detailed scene description in English (60-100 words). Include: specific character(s), their exact action, facial expression, body language, setting details, and any props.",
+  "scene": "Detailed scene description in English (60-100 words). Include: at least 2 characters, their interaction, cause-action-result flow, facial expressions, body language, setting details.",
   "captionKo": "Korean caption summarizing the meaning (10-20 characters)",
   "captionEn": "English caption (5-10 words)"
 }
