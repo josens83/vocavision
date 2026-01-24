@@ -911,7 +911,10 @@ function LearnPageContent() {
           word={currentWord}
           onAnswer={handleAnswer}
           onPrevious={handlePrevious}
+          onNext={handleNext}
           hasPrevious={currentWordIndex > 0}
+          hasNext={currentWordIndex < reviews.length - 1}
+          hasExistingProgress={cardRatings[currentWordIndex] !== undefined}
         />
         {/* Swipe Hint */}
         <div className="flex items-center justify-center gap-2 text-[#C8C8C8] text-[12px] mt-4">
