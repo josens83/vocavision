@@ -312,9 +312,17 @@ function LearnPageContent() {
             const words = sessionData.words || [];
             setReviews(words.map((word: Word) => ({ word })));
 
+            // localStorage에 저장된 더 진행된 인덱스 확인
+            const savedSession = loadLearningSession(examParam, levelParam);
+            const serverIndex = sessionData.session.currentIndex;
+            const localIndex = savedSession?.currentIndex || 0;
+
+            // 더 진행된 인덱스 사용 (같은 exam/level인 경우)
+            const restoreIndex = Math.max(serverIndex, localIndex);
+
             // 기존 세션이면 인덱스 복원
-            if (sessionData.isExisting && sessionData.session.currentIndex > 0) {
-              restoreSession(sessionData.session.currentIndex, {});
+            if (sessionData.isExisting && restoreIndex > 0) {
+              restoreSession(restoreIndex, savedSession?.ratings || {});
               setSessionRestored(true);
             }
 
@@ -323,8 +331,8 @@ function LearnPageContent() {
               exam: examParam,
               level: levelParam,
               words,
-              currentIndex: sessionData.session.currentIndex,
-              ratings: {},
+              currentIndex: restoreIndex,
+              ratings: savedSession?.ratings || {},
               timestamp: Date.now(),
             });
           }
