@@ -18,8 +18,8 @@ export default function HomePage() {
       {/* D-Day 카운트다운 배너 */}
       <DDayBanner />
 
-      {/* 단품 패키지 섹션 - 나에게 딱 맞는 단어장 (비로그인 시에만) */}
-      {!isLoggedIn && <ProductPackageSection />}
+      {/* 단품 패키지 섹션 - 나에게 딱 맞는 단어장 */}
+      <ProductPackageSection />
 
       {/* BEST/NEW 인기 단어 섹션 - Lazy Load */}
       <LazySection minHeight={400} fallback={<PopularWordsSkeleton />}>
