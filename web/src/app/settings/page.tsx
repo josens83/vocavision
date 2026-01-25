@@ -126,12 +126,18 @@ function SettingsContent() {
     }
   };
 
-  const handleCancelSubscription = async () => {
+  const handleDeleteAccount = async () => {
+    // 구독 활성 상태면 탈퇴 불가
+    if (subscription?.subscriptionStatus === 'ACTIVE' || subscription?.subscriptionStatus === 'PREMIUM') {
+      toast.warning('탈퇴 불가', '구독 만료 후 회원 탈퇴가 가능합니다. 환불이 필요하시면 고객센터로 문의해주세요.');
+      return;
+    }
+
     const confirmed = await confirm({
-      title: '구독 취소',
-      message: '정말 구독을 취소하시겠습니까? 남은 기간 동안은 계속 이용하실 수 있습니다.',
-      confirmText: '구독 취소',
-      cancelText: '유지하기',
+      title: '회원 탈퇴',
+      message: '정말 탈퇴하시겠습니까? 모든 학습 기록이 삭제되며 복구할 수 없습니다.',
+      confirmText: '탈퇴하기',
+      cancelText: '취소',
       type: 'danger',
     });
 
@@ -139,16 +145,15 @@ function SettingsContent() {
 
     try {
       const token = localStorage.getItem('authToken');
-      await axios.post(
-        `${API_URL}/subscriptions/cancel`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success('구독 취소 완료', '구독이 취소되었습니다');
-      loadSubscription();
+      await axios.delete(`${API_URL}/users/account`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success('회원 탈퇴 완료', '이용해 주셔서 감사합니다');
+      logout();
+      router.push('/');
     } catch (error) {
-      console.error('Failed to cancel subscription:', error);
-      toast.error('구독 취소 실패', '다시 시도해주세요');
+      console.error('Failed to delete account:', error);
+      toast.error('회원 탈퇴 실패', '다시 시도해주세요');
     }
   };
 
@@ -393,18 +398,37 @@ function SettingsContent() {
                       </Link>
                     )}
 
-                    {/* 위험 영역: 구독 취소 */}
+                    {/* 구독 상태 안내 */}
                     {(subscription.subscriptionStatus === 'ACTIVE' || subscription.subscriptionStatus === 'PREMIUM') && (
-                      <div className="border-t border-[#f0f0f0] pt-6 mt-6">
-                        <h4 className="font-semibold text-[15px] mb-4 text-[#EF4444]">위험 영역</h4>
-                        <button
-                          onClick={handleCancelSubscription}
-                          className="bg-[#FEF2F2] text-[#EF4444] px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-[#FEE2E2] transition"
-                        >
-                          구독 취소
-                        </button>
+                      <div className="bg-[#F0FDF4] p-4 rounded-xl border border-[#BBF7D0]">
+                        <p className="text-[14px] text-[#15803D] font-medium">
+                          ✅ 현재 구독이 활성화되어 있습니다.
+                        </p>
+                        <p className="text-[13px] text-[#767676] mt-1">
+                          만료일({subscription.subscriptionEnd ? new Date(subscription.subscriptionEnd).toLocaleDateString('ko-KR') : '-'})에 자동 종료됩니다.
+                          자동 갱신되지 않으며, 환불이 필요하시면 고객센터로 문의해주세요.
+                        </p>
                       </div>
                     )}
+
+                    {/* 위험 영역: 회원 탈퇴 */}
+                    <div className="border-t border-[#f0f0f0] pt-6 mt-6">
+                      <h4 className="font-semibold text-[15px] mb-4 text-[#EF4444]">위험 영역</h4>
+                      <div className="flex flex-col gap-3">
+                        <button
+                          onClick={handleDeleteAccount}
+                          className="bg-[#FEF2F2] text-[#EF4444] px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-[#FEE2E2] transition w-fit"
+                        >
+                          회원 탈퇴
+                        </button>
+                        <button
+                          onClick={handleLogout}
+                          className="bg-gray-100 text-gray-700 px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-gray-200 transition w-fit"
+                        >
+                          로그아웃
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -412,16 +436,6 @@ function SettingsContent() {
                     <p className="text-gray-500 mt-3 text-[14px]">구독 정보를 불러오는 중...</p>
                   </div>
                 )}
-
-                {/* 로그아웃 (일반 영역) */}
-                <div className="border-t border-[#f0f0f0] pt-6 mt-6">
-                  <button
-                    onClick={handleLogout}
-                    className="bg-gray-100 text-gray-700 px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-gray-200 transition"
-                  >
-                    로그아웃
-                  </button>
-                </div>
               </div>
             )}
           </div>
