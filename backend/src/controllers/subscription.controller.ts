@@ -185,12 +185,27 @@ export const cancelSubscription = async (
       where: { id: userId }
     });
 
-    if (!user || !user.subscriptionId) {
-      throw new AppError('No active subscription found', 404);
+    if (!user) {
+      throw new AppError('User not found', 404);
     }
 
-    await stripe.subscriptions.cancel(user.subscriptionId);
+    // 구독이 활성 상태가 아니면 취소 불가
+    if (user.subscriptionStatus !== 'ACTIVE') {
+      throw new AppError('No active subscription to cancel', 400);
+    }
 
+    // Stripe 구독이 있는 경우 Stripe에서도 취소
+    if (user.subscriptionId) {
+      try {
+        await stripe.subscriptions.cancel(user.subscriptionId);
+      } catch (stripeError) {
+        console.error('[Subscription] Stripe cancel error:', stripeError);
+        // Stripe 오류는 무시하고 DB 상태만 업데이트 (TossPayments 단건결제인 경우)
+      }
+    }
+
+    // DB에서 구독 상태를 CANCELLED로 변경
+    // 만료일(subscriptionEnd)까지는 계속 이용 가능
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -198,7 +213,10 @@ export const cancelSubscription = async (
       }
     });
 
-    res.json({ message: 'Subscription cancelled successfully' });
+    res.json({
+      message: 'Subscription cancelled successfully',
+      subscriptionEnd: user.subscriptionEnd
+    });
   } catch (error) {
     next(error);
   }
