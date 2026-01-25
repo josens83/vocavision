@@ -513,15 +513,23 @@ function LearnPageContent() {
           // 전체 학습 완료
           setShowResult(true);
           clearLearningSession();
-        } else if (result.words && result.words.length > 0) {
-          // Set 완료 화면 표시 (다음 Set 데이터 저장)
+          return; // 전체 완료 시 여기서 종료
+        }
+
+        // Set 완료 - 중간 화면 표시 (다음 단어 유무와 상관없이 일관되게)
+        if (result.session) {
+          setServerSession(result.session);
+        }
+
+        if (result.words && result.words.length > 0) {
+          // 다음 Set 데이터 저장
           setPendingNextSet({
             session: result.session,
             words: result.words,
           });
-          setShowSetComplete(true);
-          return; // Set 완료 화면 표시
         }
+        setShowSetComplete(true);
+        return; // Set 완료 화면 표시
       } catch (error) {
         console.error('Failed to update server session:', error);
       }
@@ -774,14 +782,15 @@ function LearnPageContent() {
     );
   }
 
-  // Set 완료 화면 표시
-  if (showSetComplete && pendingNextSet && serverSession) {
+  // Set 완료 화면 표시 (pendingNextSet 유무와 상관없이 일관되게 표시)
+  if (showSetComplete && serverSession) {
     const wordsStudied = getWordsStudied();
     const wordsCorrect = getWordsCorrect();
     const percentage = wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0;
     const completedSet = serverSession.currentSet + 1; // 방금 완료한 Set 번호
     const totalSets = serverSession.totalSets;
     const totalReviewed = serverSession.totalReviewed;
+    const hasNextSet = pendingNextSet && pendingNextSet.words && pendingNextSet.words.length > 0;
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
@@ -847,12 +856,24 @@ function LearnPageContent() {
             transition={{ delay: 0.6 }}
             className="flex flex-col gap-3"
           >
-            <button
-              onClick={handleContinueToNextSet}
-              className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] hover:opacity-90 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-[#14B8A6]/25"
-            >
-              Set {completedSet + 1} 시작하기 →
-            </button>
+            {hasNextSet ? (
+              <button
+                onClick={handleContinueToNextSet}
+                className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] hover:opacity-90 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-[#14B8A6]/25"
+              >
+                Set {completedSet + 1} 시작하기 →
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setShowSetComplete(false);
+                  setShowResult(true);
+                }}
+                className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] hover:opacity-90 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-[#14B8A6]/25"
+              >
+                학습 결과 보기
+              </button>
+            )}
 
             <button
               onClick={() => router.push('/dashboard')}
