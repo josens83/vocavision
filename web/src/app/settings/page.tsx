@@ -128,7 +128,7 @@ function SettingsContent() {
 
   const handleDeleteAccount = async () => {
     // 구독 활성 상태면 탈퇴 불가
-    if (subscription?.subscriptionStatus === 'ACTIVE' || subscription?.subscriptionStatus === 'PREMIUM') {
+    if (subscription?.subscriptionStatus === 'ACTIVE') {
       toast.warning('탈퇴 불가', '구독 만료 후 회원 탈퇴가 가능합니다. 환불이 필요하시면 고객센터로 문의해주세요.');
       return;
     }
@@ -355,9 +355,6 @@ function SettingsContent() {
                             {subscription.subscriptionStatus === 'ACTIVE' && (
                               <span className="text-[#10B981]">활성</span>
                             )}
-                            {subscription.subscriptionStatus === 'PREMIUM' && (
-                              <span className="text-purple-500">프리미엄</span>
-                            )}
                             {subscription.subscriptionStatus === 'TRIAL' && (
                               <span className="text-[#3B82F6]">무료 체험</span>
                             )}
@@ -399,7 +396,7 @@ function SettingsContent() {
                     )}
 
                     {/* 구독 상태 안내 */}
-                    {(subscription.subscriptionStatus === 'ACTIVE' || subscription.subscriptionStatus === 'PREMIUM') && (
+                    {subscription.subscriptionStatus === 'ACTIVE' && (
                       <div className="bg-[#F0FDF4] p-4 rounded-xl border border-[#BBF7D0]">
                         <p className="text-[14px] text-[#15803D] font-medium">
                           ✅ 현재 구독이 활성화되어 있습니다.
