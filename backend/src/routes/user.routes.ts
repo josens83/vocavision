@@ -238,7 +238,7 @@ router.delete('/account', authenticateToken, async (req: Request, res: Response)
     }
 
     // Block deletion if subscription is active
-    if (user.subscriptionStatus === 'ACTIVE' || user.subscriptionStatus === 'PREMIUM') {
+    if (user.subscriptionStatus === 'ACTIVE') {
       return res.status(400).json({
         error: '구독 활성 상태에서는 탈퇴할 수 없습니다. 구독 만료 후 다시 시도해주세요.',
       });
@@ -258,9 +258,6 @@ router.delete('/account', authenticateToken, async (req: Request, res: Response)
 
       // Delete UserAchievement
       await tx.userAchievement.deleteMany({ where: { userId } });
-
-      // Delete UserStats
-      await tx.userStats.deleteMany({ where: { userId } });
 
       // Delete Payment
       await tx.payment.deleteMany({ where: { userId } });
