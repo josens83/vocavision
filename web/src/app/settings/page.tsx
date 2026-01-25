@@ -27,6 +27,7 @@ function SettingsContent() {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const logout = useAuthStore((state) => state.logout);
+  const refreshUser = useAuthStore((state) => state.refreshUser);
 
   const toast = useToast();
   const confirm = useConfirm();
@@ -83,6 +84,8 @@ function SettingsContent() {
         { name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      // 스토어의 user 정보 갱신
+      await refreshUser();
       toast.success('프로필 업데이트 완료', '프로필이 성공적으로 업데이트되었습니다');
     } catch (error) {
       console.error('Failed to update profile:', error);
