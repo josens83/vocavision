@@ -209,11 +209,12 @@ export const getDueReviews = async (
         }
       }),
 
-      // 오늘 완료한 복습 수 (KST 기준)
+      // 오늘 완료한 복습 수 (KST 기준) - 처음 학습이 아닌 실제 복습만 카운트
       prisma.userProgress.count({
         where: {
           userId,
           lastReviewDate: { gte: todayStartUTC },
+          createdAt: { lt: todayStartUTC },  // 오늘 이전에 생성된 단어만 (= 복습)
           word: wordWhere
         }
       }),
