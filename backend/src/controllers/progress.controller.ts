@@ -573,12 +573,12 @@ export const getReviewQuiz = async (
       };
     }
 
-    // 복습 대상 단어 가져오기 (needsReview = true)
+    // 복습 대상 단어 가져오기 (한 번이라도 학습한 모든 단어)
     // reviewCorrectCount 오름차순으로 정렬하여 덜 암기된 단어부터 출제
     const dueReviews = await prisma.userProgress.findMany({
       where: {
         userId,
-        needsReview: true,
+        // needsReview 조건 제거 - 학습한 모든 단어가 복습 가능
         word: wordWhere
       },
       include: {
