@@ -35,6 +35,12 @@ model User {
   subscriptionEnd    DateTime?
   trialEnd          DateTime?
 
+  // Billing (정기결제)
+  billingKey        String?   // TossPayments 빌링키
+  customerKey       String?   // TossPayments 고객 식별키
+  autoRenewal       Boolean   @default(true)  // 자동 갱신 여부
+  lastPaymentId     String?   // 마지막 결제 ID
+
   // Learning Stats
   totalWordsLearned Int @default(0)
   currentStreak     Int @default(0)

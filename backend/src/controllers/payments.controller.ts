@@ -415,8 +415,86 @@ export const recordPaymentFailure = async (
 };
 
 /**
- * 빌링키 발급 (정기결제용) - 추후 구현
+ * 빌링키로 자동 결제 실행
+ * 내부 함수 - issueBillingKey, 크론잡에서 호출
+ */
+export async function chargeBillingKey(
+  userId: string,
+  plan: string,
+  billingCycle: string
+): Promise<{ success: boolean; subscriptionEnd: Date; paymentId: string }> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  if (!user?.billingKey || !user?.customerKey) {
+    throw new Error('No billing key found for user');
+  }
+
+  const amount = PLAN_PRICES[plan]?.[billingCycle];
+  if (!amount) {
+    throw new Error(`Invalid plan/billingCycle: ${plan}/${billingCycle}`);
+  }
+
+  const orderId = `vv-billing-${userId.substring(0, 8)}-${Date.now()}`;
+  const orderName = `VocaVision ${plan === 'premium' ? '프리미엄' : '베이직'} ${billingCycle === 'yearly' ? '연간' : '월간'} 구독`;
+
+  logger.info(`[Billing] Charging user ${userId}: ${orderName}, ${amount}원`);
+
+  // TossPayments 빌링 결제 API 호출
+  const tossResponse = await callTossAPI(`/billing/${user.billingKey}`, 'POST', {
+    customerKey: user.customerKey,
+    amount,
+    orderId,
+    orderName,
+  });
+
+  logger.info(`[Billing] Toss response:`, { status: tossResponse.status, paymentKey: tossResponse.paymentKey });
+
+  // Payment 레코드 생성
+  const payment = await prisma.payment.create({
+    data: {
+      userId,
+      orderId,
+      orderName,
+      amount,
+      paymentKey: tossResponse.paymentKey,
+      method: tossResponse.method || '카드',
+      plan,
+      billingCycle,
+      status: 'COMPLETED',
+      paidAt: new Date(),
+    },
+  });
+
+  // 구독 기간 연장
+  const subscriptionEnd = new Date();
+  if (billingCycle === 'yearly') {
+    subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
+  } else {
+    subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      subscriptionStatus: 'ACTIVE',
+      subscriptionPlan: billingCycle === 'yearly' ? 'YEARLY' : 'MONTHLY',
+      subscriptionStart: new Date(),
+      subscriptionEnd,
+      lastPaymentId: payment.id,
+    },
+  });
+
+  logger.info(`[Billing] User ${userId} subscription renewed until ${subscriptionEnd}`);
+
+  return { success: true, subscriptionEnd, paymentId: payment.id };
+}
+
+/**
+ * 빌링키 발급 (정기결제용)
  * POST /api/payments/billing/issue
+ *
+ * 프론트엔드에서 TossPayments 카드 등록 완료 후 authKey 전달
+ * 백엔드에서 빌링키 발급 → User에 저장 → 첫 결제 진행
  */
 export const issueBillingKey = async (
   req: AuthRequest,
@@ -425,7 +503,7 @@ export const issueBillingKey = async (
 ) => {
   try {
     const userId = req.userId!;
-    const { authKey, customerKey } = req.body;
+    const { authKey, customerKey, plan = 'basic', billingCycle = 'monthly' } = req.body;
 
     if (!authKey || !customerKey) {
       return res.status(400).json({
@@ -434,28 +512,200 @@ export const issueBillingKey = async (
       });
     }
 
-    // 토스페이먼츠 빌링키 발급 API 호출
+    // 플랜/사이클 검증
+    if (!['basic', 'premium'].includes(plan)) {
+      return res.status(400).json({ success: false, error: 'Invalid plan' });
+    }
+    if (!['monthly', 'yearly'].includes(billingCycle)) {
+      return res.status(400).json({ success: false, error: 'Invalid billing cycle' });
+    }
+
+    // 1. 토스페이먼츠 빌링키 발급 API 호출
     const tossResponse = await callTossAPI('/billing/authorizations/issue', 'POST', {
       authKey,
       customerKey,
     });
 
-    logger.info(`[Payments] Billing key issued for user ${userId}`);
+    logger.info(`[Billing] Billing key issued for user ${userId}`, {
+      billingKey: tossResponse.billingKey?.substring(0, 10) + '...',
+      card: tossResponse.card?.company,
+    });
 
-    // 빌링키는 암호화하여 저장해야 함 (여기서는 간단히 저장)
-    // 실제 운영에서는 암호화 필수!
+    // 2. User에 빌링키 저장
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        billingKey: tossResponse.billingKey,
+        customerKey: customerKey,
+        autoRenewal: true,
+      },
+    });
+
+    // 3. 첫 결제 진행 (즉시)
+    try {
+      const chargeResult = await chargeBillingKey(userId, plan, billingCycle);
+
+      res.json({
+        success: true,
+        data: {
+          billingKey: tossResponse.billingKey,
+          cardCompany: tossResponse.card?.company,
+          cardNumber: tossResponse.card?.number,
+          subscriptionEnd: chargeResult.subscriptionEnd,
+          message: '정기결제가 성공적으로 등록되었습니다.',
+        },
+      });
+    } catch (chargeError: any) {
+      // 빌링키는 저장되었지만 첫 결제 실패
+      logger.error('[Billing] First charge failed:', chargeError.message);
+
+      res.status(400).json({
+        success: false,
+        error: `첫 결제 실패: ${chargeError.message}`,
+        billingKeyIssued: true, // 빌링키는 발급됨
+      });
+    }
+
+  } catch (error: any) {
+    logger.error('[Billing] Issue billing key error:', error);
+    res.status(400).json({
+      success: false,
+      error: error.message || '빌링키 발급 실패',
+    });
+  }
+};
+
+/**
+ * 빌링키 삭제 (카드 등록 해제)
+ * DELETE /api/payments/billing
+ */
+export const deleteBillingKey = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId!;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user?.billingKey) {
+      return res.status(400).json({
+        success: false,
+        error: '등록된 결제 수단이 없습니다.',
+      });
+    }
+
+    // User에서 빌링키 삭제
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        billingKey: null,
+        customerKey: null,
+        autoRenewal: false,
+      },
+    });
+
+    logger.info(`[Billing] Billing key deleted for user ${userId}`);
+
+    res.json({
+      success: true,
+      message: '결제 수단이 삭제되었습니다.',
+    });
+
+  } catch (error: any) {
+    logger.error('[Billing] Delete billing key error:', error);
+    next(error);
+  }
+};
+
+/**
+ * 자동 갱신 설정 변경
+ * PATCH /api/payments/billing/auto-renewal
+ */
+export const updateAutoRenewal = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId!;
+    const { autoRenewal } = req.body;
+
+    if (typeof autoRenewal !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        error: 'autoRenewal must be a boolean',
+      });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { autoRenewal },
+      select: {
+        autoRenewal: true,
+        subscriptionEnd: true,
+        billingKey: true,
+      },
+    });
+
+    logger.info(`[Billing] Auto-renewal updated for user ${userId}: ${autoRenewal}`);
 
     res.json({
       success: true,
       data: {
-        billingKey: tossResponse.billingKey,
-        cardCompany: tossResponse.card?.company,
-        cardNumber: tossResponse.card?.number,
+        autoRenewal: user.autoRenewal,
+        subscriptionEnd: user.subscriptionEnd,
+        hasBillingKey: !!user.billingKey,
       },
     });
 
   } catch (error: any) {
-    logger.error('[Payments] Issue billing key error:', error);
+    logger.error('[Billing] Update auto-renewal error:', error);
+    next(error);
+  }
+};
+
+/**
+ * 결제 수단 정보 조회
+ * GET /api/payments/billing/info
+ */
+export const getBillingInfo = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId!;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        billingKey: true,
+        autoRenewal: true,
+        subscriptionStatus: true,
+        subscriptionPlan: true,
+        subscriptionEnd: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        hasBillingKey: !!user.billingKey,
+        autoRenewal: user.autoRenewal,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionPlan: user.subscriptionPlan,
+        subscriptionEnd: user.subscriptionEnd,
+      },
+    });
+
+  } catch (error: any) {
+    logger.error('[Billing] Get billing info error:', error);
     next(error);
   }
 };
