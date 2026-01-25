@@ -198,6 +198,86 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
   }
 });
 
+/**
+ * @swagger
+ * /users/account:
+ *   delete:
+ *     summary: 회원 탈퇴 (계정 삭제)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 회원 탈퇴 성공
+ *       400:
+ *         description: 구독 활성 상태에서 탈퇴 불가
+ *       401:
+ *         description: 인증 실패
+ */
+router.delete('/account', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as AuthRequest).userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Get user with subscription status
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        subscriptionStatus: true,
+        subscriptionEnd: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Block deletion if subscription is active
+    if (user.subscriptionStatus === 'ACTIVE' || user.subscriptionStatus === 'PREMIUM') {
+      return res.status(400).json({
+        error: '구독 활성 상태에서는 탈퇴할 수 없습니다. 구독 만료 후 다시 시도해주세요.',
+      });
+    }
+
+    // Delete user and all related data (cascade)
+    // Prisma cascade will handle related records based on schema
+    await prisma.$transaction(async (tx) => {
+      // Delete UserProgress
+      await tx.userProgress.deleteMany({ where: { userId } });
+
+      // Delete LearningRecord
+      await tx.learningRecord.deleteMany({ where: { userId } });
+
+      // Delete LearningSession
+      await tx.learningSession.deleteMany({ where: { userId } });
+
+      // Delete UserAchievement
+      await tx.userAchievement.deleteMany({ where: { userId } });
+
+      // Delete UserStats
+      await tx.userStats.deleteMany({ where: { userId } });
+
+      // Delete Payment
+      await tx.payment.deleteMany({ where: { userId } });
+
+      // Finally delete the user
+      await tx.user.delete({ where: { id: userId } });
+    });
+
+    console.log('[Users/delete] Account deleted:', user.email);
+
+    res.json({ success: true, message: '회원 탈퇴가 완료되었습니다.' });
+  } catch (error) {
+    console.error('[Users/delete] Error:', error);
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
 // Sample seed words for quick database population
 const sampleWords = [
   // CSAT L1 (10 words)
