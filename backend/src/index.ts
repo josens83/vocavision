@@ -38,6 +38,9 @@ import packageRoutes from './routes/package.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { rateLimiter } from './middleware/rateLimiter.middleware';
 
+// Jobs
+import { startSubscriptionJobs } from './jobs/subscriptionRenewal';
+
 // Load environment variables
 dotenv.config();
 
@@ -174,6 +177,12 @@ const server = app.listen(PORT, () => {
   logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
   logger.info(`💚 Health Check: http://localhost:${PORT}/health`);
+
+  // Start subscription renewal cron jobs
+  if (process.env.NODE_ENV === 'production' || process.env.ENABLE_CRON === 'true') {
+    startSubscriptionJobs();
+    logger.info(`⏰ Subscription cron jobs started`);
+  }
 });
 
 // Graceful shutdown

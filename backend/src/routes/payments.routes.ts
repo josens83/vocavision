@@ -10,6 +10,9 @@ import {
   getPaymentHistory,
   recordPaymentFailure,
   issueBillingKey,
+  deleteBillingKey,
+  updateAutoRenewal,
+  getBillingInfo,
 } from '../controllers/payments.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 
@@ -148,5 +151,58 @@ router.get('/history', authenticateToken, getPaymentHistory);
  *         description: 빌링키 발급 완료
  */
 router.post('/billing/issue', authenticateToken, issueBillingKey);
+
+/**
+ * @swagger
+ * /payments/billing:
+ *   delete:
+ *     summary: 빌링키 삭제 (결제 수단 해제)
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 결제 수단 삭제 완료
+ */
+router.delete('/billing', authenticateToken, deleteBillingKey);
+
+/**
+ * @swagger
+ * /payments/billing/auto-renewal:
+ *   patch:
+ *     summary: 자동 갱신 설정 변경
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - autoRenewal
+ *             properties:
+ *               autoRenewal:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: 자동 갱신 설정 변경 완료
+ */
+router.patch('/billing/auto-renewal', authenticateToken, updateAutoRenewal);
+
+/**
+ * @swagger
+ * /payments/billing/info:
+ *   get:
+ *     summary: 결제 수단 정보 조회
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 결제 수단 정보
+ */
+router.get('/billing/info', authenticateToken, getBillingInfo);
 
 export default router;

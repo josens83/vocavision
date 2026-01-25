@@ -159,7 +159,9 @@ export const getSubscriptionStatus = async (
         subscriptionPlan: true,
         subscriptionStart: true,
         subscriptionEnd: true,
-        trialEnd: true
+        trialEnd: true,
+        autoRenewal: true,
+        billingKey: true,
       }
     });
 
@@ -167,7 +169,13 @@ export const getSubscriptionStatus = async (
       throw new AppError('User not found', 404);
     }
 
-    res.json({ subscription: user });
+    res.json({
+      subscription: {
+        ...user,
+        hasBillingKey: !!user.billingKey,
+        billingKey: undefined, // 빌링키 자체는 노출하지 않음
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -180,6 +188,7 @@ export const cancelSubscription = async (
 ) => {
   try {
     const userId = req.userId!;
+    const { immediate = false } = req.body; // 즉시 해지 여부
 
     const user = await prisma.user.findUnique({
       where: { id: userId }
@@ -204,19 +213,36 @@ export const cancelSubscription = async (
       }
     }
 
-    // DB에서 구독 상태를 CANCELLED로 변경
-    // 만료일(subscriptionEnd)까지는 계속 이용 가능
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        subscriptionStatus: 'CANCELLED'
-      }
-    });
+    if (immediate) {
+      // 즉시 해지: 상태를 CANCELLED로 변경
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          subscriptionStatus: 'CANCELLED',
+          autoRenewal: false,
+        }
+      });
 
-    res.json({
-      message: 'Subscription cancelled successfully',
-      subscriptionEnd: user.subscriptionEnd
-    });
+      res.json({
+        message: '구독이 즉시 해지되었습니다.',
+        immediate: true,
+      });
+    } else {
+      // 일반 해지: autoRenewal만 false로 (만료일까지 이용 가능)
+      // subscriptionStatus는 ACTIVE 유지
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          autoRenewal: false,
+        }
+      });
+
+      res.json({
+        message: '구독이 취소되었습니다. 만료일까지 이용 가능합니다.',
+        subscriptionEnd: user.subscriptionEnd,
+        immediate: false,
+      });
+    }
   } catch (error) {
     next(error);
   }
