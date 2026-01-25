@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PLATFORM_STATS } from "@/constants/stats";
-import { useAuthStore } from "@/lib/store";
+import { useAuthStore, useUserSettingsStore } from "@/lib/store";
 import { getPlanDisplay } from "@/lib/subscription";
 import { progressAPI, userAPI } from "@/lib/api";
 
@@ -190,7 +190,10 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
     accuracy: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [dailyGoal, setDailyGoal] = useState(20);
+
+  // Zustand store에서 dailyGoal 관리 (전역 동기화)
+  const dailyGoal = useUserSettingsStore((state) => state.dailyGoal);
+  const setDailyGoal = useUserSettingsStore((state) => state.setDailyGoal);
 
   // Get last study info from localStorage (fallback to CSAT L1)
   const [lastStudy, setLastStudy] = useState<{ exam: string; level: string }>({ exam: 'CSAT', level: 'L1' });

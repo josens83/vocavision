@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
+import { useAuthStore, useExamCourseStore, useUserSettingsStore, ExamType } from '@/lib/store';
 import { progressAPI, wordsAPI, learningAPI } from '@/lib/api';
 import { canAccessExam as canAccessExamUtil, canAccessLevel as canAccessLevelUtil } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -88,6 +88,10 @@ export default function DashboardPage() {
   const setActiveExam = useExamCourseStore((state) => state.setActiveExam);
   const setActiveLevel = useExamCourseStore((state) => state.setActiveLevel);
 
+  // dailyGoal: Zustand store에서 관리 (Hero.tsx와 동기화)
+  const dailyGoal = useUserSettingsStore((state) => state.dailyGoal);
+  const setDailyGoal = useUserSettingsStore((state) => state.setDailyGoal);
+
   const [stats, setStats] = useState<UserStats | null>(null);
   const [dueReviewCount, setDueReviewCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -130,6 +134,11 @@ export default function DashboardPage() {
       ]);
       setStats(progressData.stats);
       setDueReviewCount(reviewsData.count || 0);
+
+      // 서버에서 dailyGoal 동기화
+      if (progressData.stats?.dailyGoal) {
+        setDailyGoal(progressData.stats.dailyGoal);
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -185,7 +194,6 @@ export default function DashboardPage() {
   const wordsInCurrentSet = learnedWords > 0 ? ((learnedWords - 1) % 20) + 1 : 0;
 
   const isCompleted = remainingWords === 0 && totalWords > 0;
-  const dailyGoal = 20;
   const todayRemaining = Math.min(dailyGoal, remainingWords);
   const estimatedMinutes = Math.ceil(todayRemaining * 0.3);
 

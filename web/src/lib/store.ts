@@ -203,6 +203,35 @@ export const useExamCourseStore = create<ExamCourseState>()(
   )
 );
 
+// ============================================
+// User Settings Store (dailyGoal 등)
+// ============================================
+const DEFAULT_DAILY_GOAL = 20;
+
+interface UserSettingsState {
+  dailyGoal: number;
+  setDailyGoal: (goal: number) => void;
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
+}
+
+export const useUserSettingsStore = create<UserSettingsState>()(
+  persist(
+    (set) => ({
+      dailyGoal: DEFAULT_DAILY_GOAL,
+      _hasHydrated: false,
+      setDailyGoal: (goal) => set({ dailyGoal: goal }),
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
+    }),
+    {
+      name: 'user-settings-storage',
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+    }
+  )
+);
+
 // Chat Message Types
 export interface ChatMessage {
   id: string;
