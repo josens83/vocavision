@@ -312,18 +312,25 @@ function LearnPageContent() {
             const words = sessionData.words || [];
             setReviews(words.map((word: Word) => ({ word })));
 
-            // localStorage에 저장된 더 진행된 인덱스 확인
-            const savedSession = loadLearningSession(examParam, levelParam);
+            // 서버 인덱스를 기본값으로 사용
             const serverIndex = sessionData.session.currentIndex;
+            const savedSession = loadLearningSession(examParam, levelParam);
             const localIndex = savedSession?.currentIndex || 0;
 
-            // 더 진행된 인덱스 사용 (같은 exam/level인 경우)
-            const restoreIndex = Math.max(serverIndex, localIndex);
+            // 서버 값을 우선 사용 (서버가 0이면 새 Set 시작)
+            // 단, 기존 세션이고 로컬이 더 진행됐으면 로컬 값 사용
+            const restoreIndex = sessionData.isExisting
+              ? Math.max(serverIndex, localIndex)
+              : serverIndex;
 
-            // 기존 세션이면 인덱스 복원
-            if (sessionData.isExisting && restoreIndex > 0) {
+            // 항상 Zustand에 인덱스 반영 (0이어도 반영해야 함!)
+            if (restoreIndex > 0 && sessionData.isExisting) {
               restoreSession(restoreIndex, savedSession?.ratings || {});
               setSessionRestored(true);
+            } else {
+              // 새 Set이거나 인덱스가 0이면 리셋
+              setCurrentIndex(0);
+              resetSession();
             }
 
             // localStorage 세션도 동기화 (폴백용)
@@ -332,7 +339,7 @@ function LearnPageContent() {
               level: levelParam,
               words,
               currentIndex: restoreIndex,
-              ratings: savedSession?.ratings || {},
+              ratings: restoreIndex > 0 ? (savedSession?.ratings || {}) : {},
               timestamp: Date.now(),
             });
           }
