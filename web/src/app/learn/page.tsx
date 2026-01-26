@@ -827,7 +827,7 @@ function LearnPageContent() {
     const wordsStudied = getWordsStudied();
     const wordsCorrect = getWordsCorrect();
     const percentage = wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0;
-    const completedSet = serverSession.currentSet + 1; // 방금 완료한 Set 번호
+    const completedSet = serverSession.completedSets; // 방금 완료한 Set 번호
     const totalSets = serverSession.totalSets;
     const totalReviewed = serverSession.totalReviewed;
     const hasNextSet = pendingNextSet && pendingNextSet.words && pendingNextSet.words.length > 0;
@@ -1012,12 +1012,16 @@ function LearnPageContent() {
 
             {/* Center - Course Info + Set Info */}
             <div className="text-center flex-1 min-w-0">
-              {examParam && !isDemo && (
+              {isReviewMode ? (
+                <span className="text-[15px] font-bold text-[#1c1c1e]">
+                  복습 <span className="text-gray-500 font-normal">· 플래시카드</span>
+                </span>
+              ) : examParam && !isDemo && (
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
                   <span className="text-[15px] font-bold text-[#1c1c1e]">
                     {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {getLevelName(examParam, levelParam)}</span>}
                   </span>
-                  {/* Set 정보 표시 */}
+                  {/* Set 정보 표시 (복습 모드에서는 숨김) */}
                   {serverSession && serverSession.totalSets > 0 && (
                     <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[12px] font-medium">
                       Set {serverSession.currentSet + 1}/{serverSession.totalSets}
@@ -1086,9 +1090,9 @@ function LearnPageContent() {
                 </button>
               )}
 
-              {/* Progress Count + Set Info (모바일) */}
+              {/* Progress Count + Set Info (모바일) - 복습 모드에서는 Set 숨김 */}
               <div className="flex items-center gap-2 shrink-0">
-                {serverSession && serverSession.totalSets > 0 && (
+                {!isReviewMode && serverSession && serverSession.totalSets > 0 && (
                   <span className="sm:hidden text-[12px] font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
                     Set {serverSession.currentSet + 1}
                   </span>
