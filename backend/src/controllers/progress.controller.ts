@@ -148,13 +148,12 @@ export const getDueReviews = async (
       };
     }
 
-    // 복습 대기 단어 조회 (정렬 기준 개선: nextReviewDate → incorrectCount 높은 순 → correctCount 낮은 순 → createdAt 오래된 순)
+    // 복습 대상 단어 조회 (학습한 모든 단어가 복습 가능)
+    // nextReviewDate 조건 제거 - 4지선다 퀴즈와 동일하게 학습한 모든 단어가 복습 대상
     const dueReviews = await prisma.userProgress.findMany({
       where: {
         userId,
-        nextReviewDate: {
-          lte: now
-        },
+        // nextReviewDate 조건 제거 - 학습한 모든 단어가 복습 가능
         word: wordWhere
       },
       include: {
