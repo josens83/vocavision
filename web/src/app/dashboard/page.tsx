@@ -191,8 +191,10 @@ export default function DashboardPage() {
   const remainingWords = Math.max(totalWords - learnedWords, 0);
   const progressPercent = totalWords > 0 ? Math.min(Math.round((learnedWords / totalWords) * 100), 100) : 0;
 
-  // Set 계산 (서버 세션이 있으면 서버 값 사용, 없으면 학습 완료 단어 기준)
-  const totalSets = Math.ceil(totalWords / 20);
+  // Set 계산 (서버 세션이 있으면 서버 값 사용, 없으면 계산)
+  const totalSets = learningSession
+    ? learningSession.totalSets
+    : Math.ceil(totalWords / 20);
   const currentSet = learningSession
     ? learningSession.currentSet + 1  // 서버는 0-indexed, UI는 1-indexed
     : (learnedWords > 0 ? Math.floor((learnedWords - 1) / 20) + 1 : 1);
