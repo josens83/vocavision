@@ -10,6 +10,7 @@ import {
   startLearningSession,
   updateSessionProgress,
   getSessionSet,
+  saveProgressBeacon,
 } from '../controllers/learning.controller';
 import { authenticateToken, requireSubscription } from '../middleware/auth.middleware';
 
@@ -391,6 +392,29 @@ router.post('/session/start', authenticateToken, startLearningSession);
  *         description: 세션을 찾을 수 없음
  */
 router.patch('/session/progress', authenticateToken, updateSessionProgress);
+
+/**
+ * @swagger
+ * /learning/session/progress-beacon:
+ *   post:
+ *     summary: 페이지 언로드 시 진행 위치 저장 (sendBeacon 전용)
+ *     tags: [Learning]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *             description: JSON 문자열 (sessionId, currentIndex, token)
+ *     responses:
+ *       200:
+ *         description: 저장 성공
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패
+ */
+router.post('/session/progress-beacon', saveProgressBeacon);
 
 /**
  * @swagger

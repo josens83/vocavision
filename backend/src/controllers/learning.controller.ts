@@ -816,6 +816,69 @@ export const updateSessionProgress = async (
 };
 
 /**
+ * sendBeacon을 통한 진행 위치 저장 (페이지 언로드 시)
+ * POST /learning/session/progress-beacon
+ * body: { sessionId, currentIndex, token }
+ */
+export const saveProgressBeacon = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // sendBeacon은 text/plain으로 보내므로 body 파싱 필요
+    let data: any;
+    if (typeof req.body === 'string') {
+      try {
+        data = JSON.parse(req.body);
+      } catch {
+        return res.status(400).json({ error: 'Invalid JSON' });
+      }
+    } else {
+      data = req.body;
+    }
+
+    const { sessionId, currentIndex, token } = data;
+
+    if (!sessionId || currentIndex === undefined || !token) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // 토큰 검증
+    const jwt = require('jsonwebtoken');
+    let userId: string;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.userId;
+    } catch {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    // 세션 업데이트
+    const session = await prisma.learningSession.findFirst({
+      where: {
+        id: sessionId,
+        userId,
+        status: 'IN_PROGRESS',
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    await prisma.learningSession.update({
+      where: { id: sessionId },
+      data: { currentIndex },
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * 특정 세트 단어 조회 (직접 이동용)
  * GET /learning/session/:sessionId/set/:setNumber
  */

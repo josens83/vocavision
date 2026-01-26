@@ -86,6 +86,7 @@ const corsOptions = {
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));  // Increased for base64 image uploads
+app.use(express.text({ type: 'text/plain' }));  // For sendBeacon text/plain requests
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(rateLimiter);
 
