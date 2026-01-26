@@ -200,7 +200,15 @@ export default function DashboardPage() {
     ? learningSession.currentIndex + 1  // 서버는 0-indexed, UI는 1-indexed (0 → "1/20")
     : (learnedWords > 0 ? ((learnedWords - 1) % 20) + 1 : 0);
 
-  const isCompleted = remainingWords === 0 && totalWords > 0;
+  // 마지막 Set의 단어 수 계산 (158개면 마지막 Set은 18개)
+  const isLastSet = currentSet === totalSets;
+  const wordsInLastSet = totalWords % 20 || 20;  // 나머지가 0이면 20
+  const wordsPerCurrentSet = isLastSet ? wordsInLastSet : 20;
+
+  // 학습 완료 여부 (세션 상태 또는 남은 단어 기준)
+  const isCompleted = (learningSession?.status === 'COMPLETED') ||
+    (remainingWords === 0 && totalWords > 0) ||
+    (learningSession && learningSession.totalReviewed >= totalWords && totalWords > 0);
   const todayRemaining = Math.min(dailyGoal, remainingWords);
   const estimatedMinutes = Math.ceil(todayRemaining * 0.3);
 
@@ -408,7 +416,7 @@ export default function DashboardPage() {
               </span>
               <span className="text-gray-400">•</span>
               <span className="text-gray-600 text-sm">
-                {wordsInCurrentSet} / 20
+                {wordsInCurrentSet} / {wordsPerCurrentSet}
               </span>
             </div>
           )}

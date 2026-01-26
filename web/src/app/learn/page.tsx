@@ -511,7 +511,10 @@ function LearnPageContent() {
         });
 
         if (result.isCompleted) {
-          // 전체 학습 완료
+          // 전체 학습 완료 - 서버 세션 업데이트 후 결과 표시
+          if (result.session) {
+            setServerSession(result.session);
+          }
           setShowResult(true);
           clearLearningSession();
           return; // 전체 완료 시 여기서 종료
