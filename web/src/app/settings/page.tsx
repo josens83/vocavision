@@ -455,12 +455,20 @@ function SettingsContent() {
 
                     {(subscription.subscriptionStatus === 'FREE' || subscription.subscriptionStatus === 'TRIAL' ||
                       (subscription.subscriptionStatus === 'CANCELLED' && (!subscription.subscriptionEnd || new Date(subscription.subscriptionEnd) < new Date()))) && (
-                      <Link
-                        href="/pricing"
-                        className="inline-block bg-[#14B8A6] text-white px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-[#0F766E] transition"
-                      >
-                        프리미엄 구독하기
-                      </Link>
+                      <div className="flex flex-col gap-3">
+                        <Link
+                          href="/pricing?plan=basic"
+                          className="inline-block bg-[#10B981] text-white px-6 py-3.5 rounded-[14px] font-semibold text-[15px] hover:bg-[#059669] transition text-center"
+                        >
+                          베이직 구독하기
+                        </Link>
+                        <Link
+                          href="/pricing?plan=premium"
+                          className="inline-block bg-gradient-to-r from-[#FF6B9D] to-[#A855F7] text-white px-6 py-3.5 rounded-[14px] font-semibold text-[15px] hover:shadow-md transition text-center"
+                        >
+                          프리미엄 구독하기
+                        </Link>
+                      </div>
                     )}
 
                     {/* 로그아웃 (일반 영역) */}
@@ -476,18 +484,18 @@ function SettingsContent() {
                     {/* 위험 영역 */}
                     <div className="border-t border-[#f0f0f0] pt-6 mt-2">
                       <h4 className="font-semibold text-[15px] mb-4 text-[#EF4444]">위험 영역</h4>
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-wrap gap-3">
                         {subscription.subscriptionStatus === 'ACTIVE' && (
                           <button
                             onClick={handleCancelSubscription}
-                            className="bg-[#FEF2F2] text-[#EF4444] px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-[#FEE2E2] transition text-left"
+                            className="bg-[#FEF2F2] text-[#EF4444] px-6 py-3.5 rounded-[14px] font-semibold text-[15px] hover:bg-[#FEE2E2] transition"
                           >
                             {getPlanName(subscription.subscriptionPlan)} 구독 취소
                           </button>
                         )}
                         <button
                           onClick={handleDeleteAccount}
-                          className="bg-[#FEF2F2] text-[#EF4444] px-6 py-3.5 rounded-xl font-semibold text-[15px] hover:bg-[#FEE2E2] transition text-left"
+                          className="bg-[#FEF2F2] text-[#EF4444] px-6 py-3.5 rounded-[14px] font-semibold text-[15px] hover:bg-[#FEE2E2] transition"
                         >
                           회원 탈퇴
                         </button>
