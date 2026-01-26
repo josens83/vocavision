@@ -336,7 +336,7 @@ export default function FlashCardGesture({
                 <span className="text-xs">모름</span>
               </button>
               <button
-                onClick={() => handleRating(3)}
+                onClick={() => handleRating(2)}
                 className="bg-amber-50 hover:bg-amber-100 text-amber-600 py-4 rounded-xl font-medium transition-colors"
               >
                 <span className="block text-xl mb-0.5">🤔</span>

@@ -8,6 +8,7 @@ import { progressAPI } from '@/lib/api';
 import { canAccessExam, canAccessLevel } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonCard } from '@/components/ui/Skeleton';
+import { ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 
 // ============================================
 // DashboardItem 컴포넌트 (은행 앱 스타일)
@@ -116,6 +117,8 @@ function ReviewPageContent() {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [dueWords, setDueWords] = useState<ReviewWord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [wordListPage, setWordListPage] = useState(1);
+  const WORDS_PER_PAGE = 10;
 
   // 필터 상태 (store 연동)
   const activeExam = useExamCourseStore((state) => state.activeExam);
@@ -180,9 +183,9 @@ function ReviewPageContent() {
       });
       setCurrentStreak(progressData.stats?.currentStreak || 0);
 
-      // Get sample of due words
+      // Get all due words for pagination
       if (data.reviews) {
-        setDueWords(data.reviews.slice(0, 5).map((r: any) => ({
+        setDueWords(data.reviews.map((r: any) => ({
           id: r.word.id,
           word: r.word.word,
           definitionKo: r.word.definitionKo || r.word.definition,
@@ -475,35 +478,85 @@ function ReviewPageContent() {
           </Link>
         </div>
 
-        {/* Due Words Preview (은행 앱 스타일) */}
+        {/* Due Words List with Pagination */}
         {dueWords.length > 0 && (
           <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-5 border-b border-[#f0f0f0]">
               <h3 className="text-[15px] font-bold text-[#1c1c1e]">복습 대기 중</h3>
             </div>
             <div className="divide-y divide-[#f0f0f0]">
-              {dueWords.map((word) => (
-                <Link
-                  key={word.id}
-                  href={`/words/${word.id}`}
-                  className="flex items-center justify-between p-4 hover:bg-gray-100 transition"
-                >
-                  <div>
-                    <p className="text-[15px] font-bold text-[#1c1c1e]">{word.word}</p>
-                    <p className="text-[13px] text-gray-500">{word.definitionKo}</p>
-                  </div>
-                  <div className="flex items-center gap-3 text-[13px]">
-                    <span className="text-[#10B981] font-semibold">✓ {word.correctCount}</span>
-                    <span className="text-[#EF4444] font-semibold">✗ {word.incorrectCount}</span>
-                  </div>
-                </Link>
-              ))}
+              {dueWords
+                .slice((wordListPage - 1) * WORDS_PER_PAGE, wordListPage * WORDS_PER_PAGE)
+                .map((word) => (
+                  <Link
+                    key={word.id}
+                    href={`/words/${word.id}`}
+                    className="flex items-center justify-between p-4 hover:bg-gray-50 transition"
+                  >
+                    <div>
+                      <p className="text-[15px] font-bold text-[#1c1c1e]">{word.word}</p>
+                      <p className="text-[13px] text-gray-500">{word.definitionKo}</p>
+                    </div>
+                    <div className="flex items-center gap-3 text-[13px]">
+                      <span className="text-[#10B981] font-semibold">✓ {word.correctCount}</span>
+                      <span className="text-[#EF4444] font-semibold">✗ {word.incorrectCount}</span>
+                    </div>
+                  </Link>
+                ))}
             </div>
-            {stats.dueToday > 5 && (
-              <div className="p-4 text-center border-t border-[#f0f0f0]">
-                <Link href="/learn?mode=review" className="text-purple-500 text-[14px] font-bold inline-flex items-center gap-1">
-                  전체 {stats.dueToday}개 보기 <ChevronRight className="w-4 h-4" />
-                </Link>
+
+            {/* Pagination */}
+            {dueWords.length > WORDS_PER_PAGE && (
+              <div className="p-4 border-t border-[#f0f0f0] flex items-center justify-between">
+                <p className="text-sm text-gray-500">
+                  전체 {dueWords.length}개 중 {(wordListPage - 1) * WORDS_PER_PAGE + 1}-
+                  {Math.min(wordListPage * WORDS_PER_PAGE, dueWords.length)}
+                </p>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setWordListPage(p => Math.max(1, p - 1))}
+                    disabled={wordListPage <= 1}
+                    className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  {Array.from({ length: Math.min(5, Math.ceil(dueWords.length / WORDS_PER_PAGE)) }, (_, i) => {
+                    const totalPages = Math.ceil(dueWords.length / WORDS_PER_PAGE);
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (wordListPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (wordListPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = wordListPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setWordListPage(pageNum)}
+                        className={`w-8 h-8 rounded-lg text-sm font-medium transition ${
+                          wordListPage === pageNum
+                            ? 'bg-purple-500 text-white'
+                            : 'hover:bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => setWordListPage(p => Math.min(Math.ceil(dueWords.length / WORDS_PER_PAGE), p + 1))}
+                    disabled={wordListPage >= Math.ceil(dueWords.length / WORDS_PER_PAGE)}
+                    className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRightIcon className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             )}
           </section>
