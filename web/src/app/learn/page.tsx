@@ -617,6 +617,9 @@ function LearnPageContent() {
       setCardRating(currentWordIndex, defaultRating);
     }
 
+    // Check if we've finished all words in current set (BEFORE advancing)
+    const isLastCard = currentWordIndex + 1 >= reviews.length;
+
     // localStorage 세션 업데이트 (rating + index)
     if (user && examParam && levelParam) {
       const session = loadLearningSession(examParam, levelParam);
@@ -624,18 +627,19 @@ function LearnPageContent() {
         if (!alreadyRated) {
           session.ratings[currentWord.id] = defaultRating;
         }
-        session.currentIndex = currentWordIndex + 1;
+        session.currentIndex = isLastCard ? 0 : currentWordIndex + 1;
         saveLearningSession(session);
       }
     }
 
-    // Advance to next word
-    goToNextCard();
-
-    // Check if we've finished all words in current set
-    if (currentWordIndex + 1 >= reviews.length) {
+    // 마지막 카드면 Set 완료 처리 (goToNextCard 전에!)
+    if (isLastCard) {
       handleSetComplete();
+      return; // Set 완료 화면으로 전환, goToNextCard 호출 안 함
     }
+
+    // Advance to next word (마지막이 아닐 때만)
+    goToNextCard();
   };
 
   const handleRestart = async () => {
@@ -1072,28 +1076,16 @@ function LearnPageContent() {
                 </div>
               </div>
 
-              {/* Next/Complete Button */}
-              {currentWordIndex >= reviews.length - 1 ? (
-                <button
-                  onClick={handleNext}
-                  className="flex items-center gap-1 px-4 py-1.5 rounded-[10px] text-[13px] font-bold transition shrink-0 bg-[#14B8A6] text-white hover:bg-[#0D9488] shadow-[0_2px_8px_rgba(20,184,166,0.3)]"
-                >
-                  <span>완료</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                </button>
-              ) : (
-                <button
-                  onClick={handleNext}
-                  className="flex items-center gap-1 px-2 py-1.5 rounded-[10px] text-[13px] font-medium transition shrink-0 text-gray-500 hover:text-[#1c1c1e] hover:bg-gray-100"
-                >
-                  <span className="hidden sm:inline">다음</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              )}
+              {/* Next Button (마지막 카드에서도 동일) */}
+              <button
+                onClick={handleNext}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-[10px] text-[13px] font-medium transition shrink-0 text-gray-500 hover:text-[#1c1c1e] hover:bg-gray-100"
+              >
+                <span className="hidden sm:inline">다음</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
 
               {/* Progress Count + Set Info (모바일) - 복습 모드에서는 Set 숨김 */}
               <div className="flex items-center gap-2 shrink-0">
