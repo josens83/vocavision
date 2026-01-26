@@ -585,7 +585,10 @@ export const getReviewQuiz = async (
           include: {
             visuals: { orderBy: { order: 'asc' } },
             mnemonics: { take: 1, orderBy: { rating: 'desc' } },
-            examLevels: { take: 1 },  // 레벨 정보 포함
+            // 요청된 레벨이 있으면 해당 레벨만 포함
+            examLevels: level && level !== 'all'
+              ? { where: { level: level as string }, take: 1 }
+              : { take: 1 },
           }
         }
       },
