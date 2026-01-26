@@ -63,10 +63,19 @@ const examInfo: Record<string, { name: string; icon: string }> = {
   TEPS: { name: 'TEPS', icon: '🎓' },
 };
 
-const levelInfo: Record<string, { name: string; description: string }> = {
-  L1: { name: '초급', description: '기초 필수 단어' },
-  L2: { name: '중급', description: '핵심 심화 단어' },
-  L3: { name: '고급', description: '고난도 단어' },
+// 시험별 레벨 정보 가져오기 함수 (TEPS는 L1/L2만)
+const getLevelInfo = (exam: string): Record<string, { name: string; description: string }> => {
+  if (exam === 'TEPS') {
+    return {
+      L1: { name: '기본', description: 'TEPS 기본 어휘' },
+      L2: { name: '필수', description: 'TEPS 필수 어휘' },
+    };
+  }
+  return {
+    L1: { name: '초급', description: '기초 필수 단어' },
+    L2: { name: '중급', description: '핵심 심화 단어' },
+    L3: { name: '고급', description: '고난도 단어' },
+  };
 };
 
 // 데모 모드용 샘플 데이터
@@ -337,7 +346,7 @@ function ReviewPageContent() {
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">레벨 선택</h3>
 
           <div className="flex gap-3">
-            {Object.entries(levelInfo).map(([key, info]) => {
+            {Object.entries(getLevelInfo(selectedExam)).map(([key, info]) => {
               const isLocked = !canAccessLevel(user, key);
               return (
                 <button

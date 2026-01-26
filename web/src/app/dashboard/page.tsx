@@ -211,7 +211,10 @@ export default function DashboardPage() {
   const isCompleted = (learningSession?.status === 'COMPLETED') ||
     (remainingWords === 0 && totalWords > 0) ||
     (learningSession && learningSession.totalReviewed >= totalWords && totalWords > 0);
-  const todayRemaining = Math.min(dailyGoal, remainingWords);
+
+  // 현재 Set에서 남은 단어 수 (Set당 최대 20개)
+  const currentSetRemaining = wordsPerCurrentSet - wordsInCurrentSet + 1;
+  const todayRemaining = Math.min(currentSetRemaining, remainingWords);
   const estimatedMinutes = Math.ceil(todayRemaining * 0.3);
 
   if (!hasHydrated || loading) {
