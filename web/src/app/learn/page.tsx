@@ -557,10 +557,14 @@ function LearnPageContent() {
   // 다음 Set으로 이동
   const handleContinueToNextSet = () => {
     if (pendingNextSet && examParam && levelParam) {
+      // 먼저 인덱스를 0으로 리셋 (새 Set 시작)
+      setCurrentIndex(0);
+      resetSession();
+
+      // 그 다음 새 데이터 설정
       setServerSession(pendingNextSet.session);
       setReviews(pendingNextSet.words.map((word: Word) => ({ word })));
       setTotalLearnedInLevel(pendingNextSet.session?.totalReviewed || 0);
-      resetSession();
 
       // localStorage도 업데이트
       saveLearningSession({
