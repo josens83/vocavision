@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSession, clearLearningSession } from '@/lib/store';
-import { progressAPI, wordsAPI, learningAPI } from '@/lib/api';
+import { progressAPI, wordsAPI, learningAPI, api } from '@/lib/api';
 import { canAccessContent } from '@/lib/subscription';
 import { motion } from 'framer-motion';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
@@ -700,6 +700,46 @@ function LearnPageContent() {
     }
   };
 
+  // 나가기 버튼 핸들러 - 현재 진행 위치를 서버에 저장
+  const handleExit = async () => {
+    // 서버 세션이 있으면 현재 위치 저장
+    if (serverSession && user) {
+      try {
+        await learningAPI.updateSessionProgress({
+          sessionId: serverSession.id,
+          currentIndex: currentWordIndex,
+        });
+      } catch (error) {
+        console.error('Failed to save progress on exit:', error);
+      }
+    }
+    router.push(user ? '/dashboard' : '/');
+  };
+
+  // beforeunload 이벤트 - 페이지 떠날 때 진행 위치 저장
+  useEffect(() => {
+    if (!serverSession || !user) return;
+
+    const saveProgressBeforeUnload = () => {
+      // sendBeacon으로 비동기 저장 (페이지 언로드 중에도 작동)
+      const token = localStorage.getItem('authToken');
+      if (token && serverSession) {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        navigator.sendBeacon(
+          `${apiUrl}/learning/session/progress-beacon`,
+          JSON.stringify({
+            sessionId: serverSession.id,
+            currentIndex: currentWordIndex,
+            token,
+          })
+        );
+      }
+    };
+
+    window.addEventListener('beforeunload', saveProgressBeforeUnload);
+    return () => window.removeEventListener('beforeunload', saveProgressBeforeUnload);
+  }, [serverSession, user, currentWordIndex]);
+
   if (!hasHydrated || loading) {
     return <LearnPageLoading />;
   }
@@ -961,7 +1001,7 @@ function LearnPageContent() {
           <div className="flex items-center justify-between gap-2">
             {/* Back Button */}
             <button
-              onClick={() => router.push(user ? '/dashboard' : '/')}
+              onClick={handleExit}
               className="flex items-center gap-1 text-gray-500 hover:text-[#1c1c1e] transition shrink-0"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
