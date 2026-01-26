@@ -5,7 +5,7 @@ import { useState, useEffect, ReactNode, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
-import { getPlanDisplay, isPremiumPlan } from "@/lib/subscription";
+import { getPlanDisplay, isPremiumPlan, canAccessExam, canAccessLevel } from "@/lib/subscription";
 import { useAuthRequired } from "@/components/ui/AuthRequiredModal";
 
 export interface NavItem {
@@ -111,14 +111,91 @@ export const authNavigationItems: NavItem[] = [
 // 기본 export (하위 호환성)
 export const navigationItems = authNavigationItems;
 
+// 권한별 라우팅 함수
+function getPermissionBasedHref(
+  originalHref: string,
+  user: any,
+  parentLabel: string
+): string {
+  // 비로그인 → 회원가입
+  if (!user) {
+    return '/auth/signup';
+  }
+
+  // URL에서 exam과 level 파싱
+  const url = new URL(originalHref, 'http://dummy');
+  const exam = url.searchParams.get('exam');
+  const level = url.searchParams.get('level');
+
+  if (!exam || !level) {
+    return originalHref; // exam/level이 없으면 원본 반환
+  }
+
+  const plan = (user as any)?.subscriptionPlan || 'FREE';
+
+  if (exam === 'CSAT') {
+    // 수능: 무료회원은 L1만 접근 가능
+    if (plan === 'FREE' && level !== 'L1') {
+      return '/pricing';
+    }
+    // 베이직/프리미엄은 전체 접근 가능
+    return `/dashboard?exam=CSAT&level=${level}`;
+  }
+
+  if (exam === 'TEPS') {
+    // TEPS: 프리미엄만 접근 가능
+    if (plan !== 'YEARLY' && plan !== 'FAMILY') {
+      return '/settings?tab=subscription';
+    }
+    return `/dashboard?exam=TEPS&level=${level}`;
+  }
+
+  return originalHref;
+}
+
+// 권한 상태 표시용 (잠금 아이콘 여부)
+function isMenuLocked(
+  originalHref: string,
+  user: any
+): boolean {
+  if (!user) return true;
+
+  const url = new URL(originalHref, 'http://dummy');
+  const exam = url.searchParams.get('exam');
+  const level = url.searchParams.get('level');
+
+  if (!exam || !level) return false;
+
+  const plan = (user as any)?.subscriptionPlan || 'FREE';
+
+  if (exam === 'CSAT') {
+    return plan === 'FREE' && level !== 'L1';
+  }
+
+  if (exam === 'TEPS') {
+    return plan !== 'YEARLY' && plan !== 'FAMILY';
+  }
+
+  return false;
+}
+
 interface NavDropdownProps {
   item: NavItem;
   isOpen: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  user?: any;
 }
 
-function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave }: NavDropdownProps) {
+function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave, user }: NavDropdownProps) {
+  const router = useRouter();
+
+  const handleItemClick = (e: React.MouseEvent, child: NavSubItem) => {
+    e.preventDefault();
+    const targetHref = getPermissionBasedHref(child.href, user, item.label);
+    router.push(targetHref);
+  };
+
   return (
     <div className="relative nav-item" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <button className={`nav-link flex items-center gap-2 whitespace-nowrap ${item.color || ""}`}>
@@ -130,23 +207,34 @@ function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave }: NavDropdownPr
       </button>
 
       <div className={`dropdown py-2 ${isOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2"}`}>
-        {item.children?.map((child, index) => (
-          child.isDivider ? (
+        {item.children?.map((child, index) => {
+          const locked = isMenuLocked(child.href, user);
+
+          return child.isDivider ? (
             <div key={`divider-${index}`} className="border-t border-slate-200 my-2" />
           ) : (
-            <Link key={child.href} href={child.href} className="dropdown-item group">
+            <button
+              key={child.href}
+              onClick={(e) => handleItemClick(e, child)}
+              className="dropdown-item group w-full text-left"
+            >
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   {child.icon && <span>{child.icon}</span>}
                   <span className="font-medium">{child.label}</span>
                   {child.badge && <span className="px-1.5 py-0.5 text-xs font-bold bg-study-flashcard text-slate-900 rounded">{child.badge}</span>}
+                  {locked && (
+                    <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  )}
                 </div>
                 {child.description && <p className="text-xs text-slate-400 mt-0.5">{child.description}</p>}
               </div>
               {child.count !== undefined && <span className="text-sm text-slate-400 group-hover:text-slate-600">{child.count}</span>}
-            </Link>
-          )
-        ))}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -330,10 +418,12 @@ interface MobileMenuProps {
   items: NavItem[];
   isAuthenticated: boolean;
   onAuthRequired?: (label: string) => void;
+  user?: any;
 }
 
-function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired }: MobileMenuProps) {
+function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, user }: MobileMenuProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -354,6 +444,12 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired }:
       onClose();
       onAuthRequired?.(item.label);
     }
+  };
+
+  const handleChildClick = (child: NavSubItem, parentLabel: string) => {
+    onClose();
+    const targetHref = getPermissionBasedHref(child.href, user, parentLabel);
+    router.push(targetHref);
   };
 
   return (
@@ -383,20 +479,31 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired }:
                     </button>
                     <div className={`overflow-hidden transition-all duration-300 ${expandedItem === item.label ? "max-h-96" : "max-h-0"}`}>
                       <div className="pl-12 py-2 space-y-1">
-                        {item.children.map((child, index) => (
-                          child.isDivider ? (
+                        {item.children.map((child, index) => {
+                          const locked = isMenuLocked(child.href, user);
+
+                          return child.isDivider ? (
                             <div key={`divider-${index}`} className="border-t border-slate-200 my-2" />
                           ) : (
-                            <Link key={child.href} href={child.href} onClick={onClose} className="flex items-center justify-between p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50">
+                            <button
+                              key={child.href}
+                              onClick={() => handleChildClick(child, item.label)}
+                              className="w-full flex items-center justify-between p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50 text-left"
+                            >
                               <div className="flex items-center gap-2">
                                 {child.icon && <span>{child.icon}</span>}
                                 <span className="text-sm font-medium">{child.label}</span>
                                 {child.badge && <span className="ml-2 px-1.5 py-0.5 text-xs font-bold bg-study-flashcard text-slate-900 rounded">{child.badge}</span>}
+                                {locked && (
+                                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                  </svg>
+                                )}
                               </div>
                               {child.count !== undefined && <span className="text-xs text-slate-400">{child.count}</span>}
-                            </Link>
-                          )
-                        ))}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </>
@@ -507,7 +614,7 @@ export default function Navigation() {
           <nav className="hidden lg:flex items-center gap-4">
             {(isAuthenticated ? authNavigationItems : guestNavigationItems).map((item) => (
               item.children ? (
-                <NavDropdown key={item.label} item={item} isOpen={openDropdown === item.label} onMouseEnter={() => setOpenDropdown(item.label)} onMouseLeave={() => setOpenDropdown(null)} />
+                <NavDropdown key={item.label} item={item} isOpen={openDropdown === item.label} onMouseEnter={() => setOpenDropdown(item.label)} onMouseLeave={() => setOpenDropdown(null)} user={user} />
               ) : item.href === "#" ? (
                 // "준비중" 항목 (TEPS, TOEFL 등)
                 <button
@@ -677,6 +784,7 @@ export default function Navigation() {
         items={isAuthenticated ? authNavigationItems : guestNavigationItems}
         isAuthenticated={isAuthenticated}
         onAuthRequired={handleAuthRequired}
+        user={user}
       />
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
