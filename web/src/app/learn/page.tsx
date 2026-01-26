@@ -244,9 +244,12 @@ function LearnPageContent() {
 
   const loadReviews = async (page = 1) => {
     try {
-      // 복습 모드: 복습할 단어 로드
+      // 복습 모드: 복습할 단어 로드 (exam/level 필터 적용)
       if (isReviewMode && user) {
-        const data = await progressAPI.getDueReviews();
+        const data = await progressAPI.getDueReviews({
+          examCategory: examParam || undefined,
+          level: levelParam || undefined,
+        });
         if (data.count === 0) {
           setReviews([]);
         } else {
