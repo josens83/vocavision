@@ -194,7 +194,7 @@ export default function DashboardPage() {
     ? learningSession.currentSet + 1  // 서버는 0-indexed, UI는 1-indexed
     : (learnedWords > 0 ? Math.floor((learnedWords - 1) / 20) + 1 : 1);
   const wordsInCurrentSet = learningSession
-    ? learningSession.currentIndex  // 서버의 currentIndex가 현재 Set 내 진행 위치
+    ? learningSession.currentIndex + 1  // 서버는 0-indexed, UI는 1-indexed (0 → "1/20")
     : (learnedWords > 0 ? ((learnedWords - 1) % 20) + 1 : 0);
 
   const isCompleted = remainingWords === 0 && totalWords > 0;
