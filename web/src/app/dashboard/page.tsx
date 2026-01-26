@@ -184,7 +184,10 @@ export default function DashboardPage() {
   const level = getLevelInfo(selectedExam, selectedLevel);
 
   const totalWords = examLevelTotalWords || level.wordCount;
-  const learnedWords = examLevelLearnedWords;
+  // learningSession이 있으면 totalReviewed 사용 (일관성 유지)
+  const learnedWords = learningSession
+    ? learningSession.totalReviewed
+    : examLevelLearnedWords;
   const remainingWords = Math.max(totalWords - learnedWords, 0);
   const progressPercent = totalWords > 0 ? Math.min(Math.round((learnedWords / totalWords) * 100), 100) : 0;
 
