@@ -20,10 +20,8 @@ const features: PlanFeature[] = [
   { name: "TEPS L1/L2/L3", free: false, basic: false, premium: true },
   { name: "AI 생성 이미지", free: "일부", basic: true, premium: true },
   { name: "플래시카드", free: true, basic: true, premium: true },
-  { name: "퀴즈 모드", free: "기본", basic: "전체", premium: "전체" },
-  { name: "학습 통계", free: "기본", basic: "상세", premium: "상세" },
-  { name: "오프라인 학습", free: false, basic: true, premium: true },
-  { name: "광고 없음", free: false, basic: true, premium: true },
+  { name: "퀴즈 모드", free: "전체", basic: "전체", premium: "전체" },
+  { name: "학습 통계", free: "상세", basic: "상세", premium: "상세" },
 ];
 
 export default function PricingPage() {
@@ -133,7 +131,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>기본 퀴즈 모드</span>
+                <span>전체 퀴즈 모드</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
@@ -202,10 +200,6 @@ export default function PricingPage() {
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
                 <span>상세 학습 통계</span>
               </li>
-              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
-                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>광고 없음</span>
-              </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
                 <span>TEPS 단어</span>
@@ -266,14 +260,6 @@ export default function PricingPage() {
               <li className="flex items-center gap-3 text-[13px]">
                 <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
                 <span>상세 학습 통계</span>
-              </li>
-              <li className="flex items-center gap-3 text-[13px]">
-                <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
-                <span>오프라인 학습</span>
-              </li>
-              <li className="flex items-center gap-3 text-[13px]">
-                <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
-                <span>광고 없음</span>
               </li>
             </ul>
           </div>
