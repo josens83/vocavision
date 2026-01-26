@@ -319,15 +319,15 @@ function LearnPageContent() {
             const serverIndex = sessionData.session.currentIndex;
             const savedSession = loadLearningSession(examParam, levelParam);
 
-            // 항상 Zustand에 서버 인덱스 반영
-            if (serverIndex > 0 && sessionData.isExisting) {
+            // 항상 서버 인덱스를 source of truth로 사용
+            if (sessionData.isExisting && serverIndex > 0) {
               // 기존 세션이고 진행 중이면 복원 (ratings는 로컬에서)
               restoreSession(serverIndex, savedSession?.ratings || {});
               setSessionRestored(true);
             } else {
-              // 새 Set이거나 인덱스가 0이면 리셋
-              setCurrentIndex(0);
+              // 새 세션이거나 인덱스가 0이면 리셋 (명시적으로 0 설정)
               resetSession();
+              setCurrentIndex(0);
             }
 
             // localStorage 세션도 서버 값으로 동기화
@@ -754,6 +754,17 @@ function LearnPageContent() {
     window.addEventListener('beforeunload', saveProgressBeforeUnload);
     return () => window.removeEventListener('beforeunload', saveProgressBeforeUnload);
   }, [serverSession, user, currentWordIndex]);
+
+  // 서버 세션이 업데이트될 때 currentWordIndex 동기화 (Set 전환 등)
+  useEffect(() => {
+    if (serverSession && !loading && reviews.length > 0) {
+      const serverIndex = serverSession.currentIndex;
+      // 서버 인덱스와 로컬 인덱스가 다르면 서버 값으로 동기화
+      if (currentWordIndex !== serverIndex && currentWordIndex >= reviews.length) {
+        setCurrentIndex(serverIndex);
+      }
+    }
+  }, [serverSession?.id, serverSession?.currentSet, loading, reviews.length]);
 
   if (!hasHydrated || loading) {
     return <LearnPageLoading />;

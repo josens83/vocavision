@@ -403,6 +403,10 @@ export default function DashboardPage() {
                 <span className="text-blue-600 font-semibold">
                   Set {currentSet} / {totalSets}
                 </span>
+                <span className="text-gray-400">•</span>
+                <span className="text-gray-600 text-sm">
+                  {wordsInCurrentSet} / {wordsPerCurrentSet}
+                </span>
               </div>
             )}
           </div>
