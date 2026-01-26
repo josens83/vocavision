@@ -51,7 +51,7 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Daily Goals
-  dailyGoal     Int       @default(10) // Daily word goal
+  dailyGoal     Int       @default(20) // Daily word goal
   dailyProgress Int       @default(0)  // Words studied today
   lastGoalReset DateTime?
 
