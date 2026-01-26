@@ -975,7 +975,7 @@ function LearnPageContent() {
     return <LearnPageLoading />;
   }
 
-  const progressPercent = ((currentWordIndex + 1) / reviews.length) * 100;
+  const progressPercent = ((safeIndex + 1) / reviews.length) * 100;
   // Calculate accuracy from cardRatings (prevents duplicate counting issue)
   const wordsStudied = getWordsStudied();
   const wordsCorrect = getWordsCorrect();
@@ -1102,7 +1102,7 @@ function LearnPageContent() {
                     Set {serverSession.currentSet + 1}
                   </span>
                 )}
-                <span className="text-[13px] font-bold text-[#14B8A6]">{currentWordIndex + 1}/{reviews.length}</span>
+                <span className="text-[13px] font-bold text-[#14B8A6]">{safeIndex + 1}/{reviews.length}</span>
               </div>
             </div>
           </div>
