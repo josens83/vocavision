@@ -966,8 +966,16 @@ function LearnPageContent() {
 
   const currentWord = reviews[currentWordIndex]?.word;
 
+  // currentWordIndex가 범위를 벗어나면 0으로 리셋
+  useEffect(() => {
+    if (reviews.length > 0 && currentWordIndex >= reviews.length) {
+      setCurrentIndex(0);
+    }
+  }, [reviews.length, currentWordIndex, setCurrentIndex]);
+
+  // currentWord가 없으면 로딩 화면 표시 (빈 화면 방지)
   if (!currentWord) {
-    return null;
+    return <LearnPageLoading />;
   }
 
   const progressPercent = ((currentWordIndex + 1) / reviews.length) * 100;
