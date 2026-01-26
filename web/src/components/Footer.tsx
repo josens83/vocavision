@@ -1,8 +1,42 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function Footer() {
+  const pathname = usePathname();
+
+  // 앱 영역 라우트 - Footer 숨김
+  const appRoutes = [
+    '/dashboard',
+    '/learn',
+    '/quiz',
+    '/flashcards',
+    '/review',
+    '/statistics',
+    '/my',
+    '/settings',
+    '/words',
+    '/bookmarks',
+    '/history',
+    '/notifications',
+    '/achievements',
+    '/collections',
+    '/decks',
+    '/checkout',
+  ];
+
+  // 인증/관리자 영역 - Footer 숨김
+  const hiddenRoutes = ['/auth', '/admin'];
+
+  // 앱 영역이거나 인증/관리자 영역이면 Footer 숨김
+  const isAppRoute = appRoutes.some(route => pathname?.startsWith(route));
+  const isHiddenRoute = hiddenRoutes.some(route => pathname?.startsWith(route));
+
+  if (isAppRoute || isHiddenRoute) {
+    return null;
+  }
+
   return (
     <footer className="bg-gray-900 text-gray-300">
       {/* 메인 푸터 */}
