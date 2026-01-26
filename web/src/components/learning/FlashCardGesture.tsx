@@ -322,32 +322,25 @@ export default function FlashCardGesture({
           {/* Divider */}
           <div className="border-t border-gray-100" />
 
-          {/* Rating Buttons */}
+          {/* Rating Buttons - 이분법 (모름/알았음) */}
           <div className="p-6 border-b border-gray-100">
             <p className="text-center text-gray-500 text-xs md:text-sm mb-3">
               이 단어를 알고 있었나요?
             </p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => handleRating(1)}
-                className="bg-rose-50 hover:bg-rose-100 text-rose-600 py-4 rounded-xl font-medium transition-colors"
+                className="bg-rose-50 hover:bg-rose-100 text-rose-600 py-5 rounded-xl font-medium transition-colors"
               >
-                <span className="block text-xl mb-0.5">😕</span>
-                <span className="text-xs">모름</span>
-              </button>
-              <button
-                onClick={() => handleRating(2)}
-                className="bg-amber-50 hover:bg-amber-100 text-amber-600 py-4 rounded-xl font-medium transition-colors"
-              >
-                <span className="block text-xl mb-0.5">🤔</span>
-                <span className="text-xs">애매함</span>
+                <span className="block text-2xl mb-1">😕</span>
+                <span className="text-sm font-semibold">모름</span>
               </button>
               <button
                 onClick={() => handleRating(5)}
-                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 py-4 rounded-xl font-medium transition-colors"
+                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 py-5 rounded-xl font-medium transition-colors"
               >
-                <span className="block text-xl mb-0.5">😊</span>
-                <span className="text-xs">알았음</span>
+                <span className="block text-2xl mb-1">😊</span>
+                <span className="text-sm font-semibold">알았음</span>
               </button>
             </div>
           </div>
