@@ -221,8 +221,20 @@ function QuizPageContent() {
 
     if (isCorrect) {
       setCorrectCount((prev) => prev + 1);
+      // 현재 문제의 correctCount도 업데이트 (UI 즉시 반영)
+      setQuestions((prev) =>
+        prev.map((q, idx) =>
+          idx === currentIndex ? { ...q, correctCount: q.correctCount + 1 } : q
+        )
+      );
     } else {
       setIncorrectCount((prev) => prev + 1);
+      // 현재 문제의 incorrectCount도 업데이트 (UI 즉시 반영)
+      setQuestions((prev) =>
+        prev.map((q, idx) =>
+          idx === currentIndex ? { ...q, incorrectCount: q.incorrectCount + 1 } : q
+        )
+      );
     }
 
     // 데모 모드에서는 학습 기록 저장 스킵
@@ -529,11 +541,11 @@ function QuizPageContent() {
           )}
         </div>
 
-        {/* 현재 진행 상황 */}
+        {/* 현재 단어 학습 기록 */}
         <div className="text-center text-sm text-gray-500">
-          <span className="text-green-600 font-medium">✓ {correctCount}</span>
+          <span className="text-green-600 font-medium">✓ {currentQuestion?.correctCount ?? 0}</span>
           <span className="mx-2">|</span>
-          <span className="text-red-500 font-medium">✗ {incorrectCount}</span>
+          <span className="text-red-500 font-medium">✗ {currentQuestion?.incorrectCount ?? 0}</span>
         </div>
       </div>
     </div>

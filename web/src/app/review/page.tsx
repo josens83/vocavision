@@ -159,6 +159,18 @@ function ReviewPageContent() {
     loadReviewData();
   }, [user, hasHydrated, router, selectedExam, selectedLevel, isDemo]);
 
+  // 페이지 포커스 시 데이터 새로고침 (퀴즈 완료 후 돌아올 때)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user && !isDemo) {
+        loadReviewData();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user, isDemo, selectedExam, selectedLevel]);
+
   const loadReviewData = async () => {
     setLoading(true);
     try {
