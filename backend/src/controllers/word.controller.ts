@@ -96,13 +96,14 @@ export const getWords = async (
       }
     }
 
-    // mode=weak: 복습 대상 단어 반환 (needsReview = true)
-    // 플래시카드에서 "모름/애매함" 선택한 단어들
+    // mode=weak: 복습 대상 단어 반환 (needsReview = true AND nextReviewDate <= NOW)
+    // 플래시카드에서 "모름/애매함" 선택한 단어들 중 오늘 복습 대기인 것만
     if (mode === 'weak' && userId) {
       const weakWordIds = await prisma.userProgress.findMany({
         where: {
           userId,
           needsReview: true,
+          nextReviewDate: { lte: new Date() },  // 오늘 또는 이전 날짜만
           word: {
             isActive: true,
             status: 'PUBLISHED',
