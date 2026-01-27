@@ -409,6 +409,8 @@ export const progressAPI = {
     responseTime?: number;
     learningMethod?: string;
     sessionId?: string;
+    examCategory?: string;
+    level?: string;
   }) => {
     if (isMockMode()) return mockProgressAPI.submitReview(data);
     const response = await api.post('/progress/review', data);
