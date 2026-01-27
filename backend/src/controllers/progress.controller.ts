@@ -224,7 +224,7 @@ export const getDueReviews = async (
     }));
 
     // 병렬로 통계 정보 조회
-    const [progressForStats, lastReviewRecord, weakWordsCount, completedTodayCount, bookmarkedCount] = await Promise.all([
+    const [progressForStats, lastReviewRecord, weakWordsCount, todayCorrectCount, bookmarkedCount] = await Promise.all([
       // 전체 학습 기록에서 정답률 계산
       prisma.userProgress.findMany({
         where: { userId, word: wordWhere },
@@ -251,12 +251,13 @@ export const getDueReviews = async (
         }
       }),
 
-      // 오늘 완료한 복습 수 (KST 기준) - 처음 학습이 아닌 실제 복습만 카운트
+      // 오늘 맞춘 복습 수 (KST 기준)
+      // 오늘 복습했고(lastReviewDate >= 오늘) + nextReviewDate가 오늘 이후인 단어 = 맞춘 단어
       prisma.userProgress.count({
         where: {
           userId,
           lastReviewDate: { gte: todayStartUTC },
-          createdAt: { lt: todayStartUTC },  // 오늘 이전에 생성된 단어만 (= 복습)
+          nextReviewDate: { gt: new Date() },  // 오늘 이후 = 맞춘 단어 (D+3로 설정됨)
           word: wordWhere
         }
       }),
@@ -285,7 +286,7 @@ export const getDueReviews = async (
       accuracy,
       lastReviewDate: lastReviewRecord?.lastReviewDate || null,
       weakCount: weakWordsCount,
-      completedToday: completedTodayCount,
+      todayCorrect: todayCorrectCount,
       totalReviewed: progressForStats.length,
       bookmarkedCount: bookmarkedCount
     });

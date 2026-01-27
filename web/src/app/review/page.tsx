@@ -44,7 +44,7 @@ interface ReviewStats {
   bookmarked: number;
   totalReviewed: number;
   accuracy?: number;
-  completedToday?: number;
+  todayCorrect?: number;
   lastReviewDate?: string;
 }
 
@@ -86,7 +86,7 @@ const DEMO_STATS: ReviewStats = {
   bookmarked: 5,
   totalReviewed: 120,
   accuracy: 78,
-  completedToday: 10,
+  todayCorrect: 10,
   lastReviewDate: new Date().toISOString(),
 };
 
@@ -111,7 +111,7 @@ function ReviewPageContent() {
     bookmarked: 0,
     totalReviewed: 0,
     accuracy: 0,
-    completedToday: 0,
+    todayCorrect: 0,
     lastReviewDate: undefined,
   });
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -205,7 +205,7 @@ function ReviewPageContent() {
         bookmarked: data.bookmarkedCount || 0,
         totalReviewed: data.totalReviewed || 0,
         accuracy: data.accuracy || 0,
-        completedToday: data.completedToday || 0,
+        todayCorrect: data.todayCorrect || 0,
         lastReviewDate: data.lastReviewDate,
       });
       setCurrentStreak(progressData.stats?.currentStreak || 0);
@@ -296,13 +296,13 @@ function ReviewPageContent() {
                   복습 시작
                 </Link>
               </>
-            ) : (stats.completedToday || 0) > 0 ? (
+            ) : (stats.todayCorrect || 0) > 0 ? (
               <>
                 <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
                   오늘 복습 완료! 🎉
                 </h2>
                 <p className="text-[14px] text-gray-500 mb-4">
-                  오늘 {stats.completedToday}개 복습을 완료했어요! 잘 하셨습니다.
+                  오늘 {stats.todayCorrect}개 복습을 완료했어요! 잘 하셨습니다.
                 </p>
               </>
             ) : stats.totalReviewed === 0 ? (
@@ -427,7 +427,7 @@ function ReviewPageContent() {
           <div className="flex justify-between items-center">
             <DashboardItem value={stats.dueToday} label="복습 대기" color="#A855F7" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-            <DashboardItem value={stats.completedToday || 0} label="오늘 완료" color="#F59E0B" />
+            <DashboardItem value={stats.todayCorrect || 0} label="오늘 맞춤" color="#F59E0B" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
             <DashboardItem value={`${stats.accuracy || 0}%`} label="복습 정답률" color="#10B981" />
           </div>
@@ -478,7 +478,7 @@ function ReviewPageContent() {
         </section>
 
         {/* 오늘 복습 완료 메시지 */}
-        {stats.dueToday === 0 && (stats.completedToday || 0) > 0 && (
+        {stats.dueToday === 0 && (stats.todayCorrect || 0) > 0 && (
           <section className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-2xl p-6 text-center">
             <div className="text-5xl mb-3">🎉</div>
             <h3 className="text-xl font-bold text-[#047857] mb-2">오늘 복습 완료!</h3>
