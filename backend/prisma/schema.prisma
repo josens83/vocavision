@@ -505,6 +505,8 @@ model UserProgress {
   id              String   @id @default(uuid())
   userId          String
   wordId          String
+  examCategory    ExamCategory  // 시험 카테고리 (CSAT, TEPS 등)
+  level           String        // 레벨 (L1, L2, L3 등)
 
   // Spaced Repetition (SM-2 Algorithm)
   easeFactor      Float    @default(2.5)
@@ -537,10 +539,11 @@ model UserProgress {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   word            Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, wordId])
+  @@unique([userId, wordId, examCategory, level])
   @@index([userId])
   @@index([nextReviewDate])
   @@index([needsReview])
+  @@index([examCategory, level])
 }
 
 enum MasteryLevel {
