@@ -526,6 +526,10 @@ model UserProgress {
   // 복습 퀴즈 정답 횟수 (복습 대상 단어 중 퀴즈 정답 횟수)
   reviewCorrectCount Int   @default(0)
 
+  // 복습 로직용 필드 (2일포함/1일쉼 + D+3 알았음)
+  initialRating   Int      @default(1)   // 첫 학습 시 rating (1=모름, 5=알았음)
+  learnedAt       DateTime @default(now()) // 첫 학습 날짜
+
   // Learning methods used
   usedImages      Boolean  @default(false)
   usedVideos      Boolean  @default(false)
