@@ -833,11 +833,13 @@ export const getMasteryDistribution = async (
       ? Math.round((correctWords / totalLearnedWords) * 100)
       : 0;
 
-    // 4. 복습 대상 단어들 조회 (needsReview=true)
+    // 4. 복습 대상 단어들 조회 (needsReview=true AND nextReviewDate <= NOW)
+    // 오늘 복습 대기인 단어만 포함
     const reviewWords = await prisma.userProgress.findMany({
       where: {
         userId,
         needsReview: true,
+        nextReviewDate: { lte: new Date() },  // 오늘 또는 이전 날짜만
         word: {
           examLevels: { some: wordFilter }
         }
@@ -1027,11 +1029,13 @@ export const getWeakWordsCount = async (
       };
     }
 
-    // 복습 대상 단어 수 조회 (needsReview = true)
+    // 복습 대상 단어 수 조회 (needsReview = true AND nextReviewDate <= NOW)
+    // 오늘 복습 대기인 단어만 카운트
     const weakCount = await prisma.userProgress.count({
       where: {
         userId,
         needsReview: true,
+        nextReviewDate: { lte: new Date() },  // 오늘 또는 이전 날짜만
         word: wordWhere
       }
     });
