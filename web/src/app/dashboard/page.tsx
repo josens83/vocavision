@@ -300,7 +300,12 @@ export default function DashboardPage() {
 
           <div className="flex gap-3">
             <button
-              onClick={() => setActiveExam('CSAT' as ExamType)}
+              onClick={() => {
+                setActiveExam('CSAT' as ExamType);
+                // 시험 변경 시 마지막 선택 레벨 복원
+                const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
+                setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
+              }}
               className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl transition-all ${
                 selectedExam === 'CSAT'
                   ? 'bg-teal-500 text-white'
@@ -315,6 +320,10 @@ export default function DashboardPage() {
               onClick={() => {
                 if (canAccessExam('TEPS')) {
                   setActiveExam('TEPS' as ExamType);
+                  // 시험 변경 시 마지막 선택 레벨 복원 (TEPS는 L1, L2만)
+                  const lastLevel = localStorage.getItem('dashboard_TEPS_level') || 'L1';
+                  const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
+                  setActiveLevel(validLevel as 'L1' | 'L2' | 'L3');
                 } else {
                   router.push('/pricing');
                 }
@@ -352,6 +361,8 @@ export default function DashboardPage() {
                       router.push('/pricing');
                     } else {
                       setActiveLevel(lvl);
+                      // 레벨 선택 시 localStorage에 저장
+                      localStorage.setItem(`dashboard_${selectedExam}_level`, lvl);
                     }
                   }}
                   className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all ${
