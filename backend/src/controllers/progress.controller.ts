@@ -222,7 +222,7 @@ export const getDueReviews = async (
     }));
 
     // 병렬로 통계 정보 조회
-    const [allProgress, lastReviewRecord, weakWordsCount, completedTodayCount, bookmarkedCount] = await Promise.all([
+    const [progressForStats, lastReviewRecord, weakWordsCount, completedTodayCount, bookmarkedCount] = await Promise.all([
       // 전체 학습 기록에서 정답률 계산
       prisma.userProgress.findMany({
         where: { userId, word: wordWhere },
@@ -270,7 +270,7 @@ export const getDueReviews = async (
     // 정답률 계산
     let totalCorrect = 0;
     let totalIncorrect = 0;
-    allProgress.forEach(p => {
+    progressForStats.forEach(p => {
       totalCorrect += p.correctCount;
       totalIncorrect += p.incorrectCount;
     });
@@ -284,7 +284,7 @@ export const getDueReviews = async (
       lastReviewDate: lastReviewRecord?.lastReviewDate || null,
       weakCount: weakWordsCount,
       completedToday: completedTodayCount,
-      totalReviewed: allProgress.length,
+      totalReviewed: progressForStats.length,
       bookmarkedCount: bookmarkedCount
     });
   } catch (error) {
