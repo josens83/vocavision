@@ -33,6 +33,8 @@ interface Word {
   etymology?: any;
   collocations?: any[];
   visuals?: WordVisual[];
+  examCategory?: string;
+  level?: string;
 }
 
 interface Review {
