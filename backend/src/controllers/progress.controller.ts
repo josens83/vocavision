@@ -310,24 +310,30 @@ export const submitReview = async (
     }
 
     // examCategory와 level이 없으면 Word에서 가져오기
-    let wordExamCategory = examCategory;
-    let wordLevel = level;
+    let wordExamCategory: ExamCategory;
+    let wordLevel: string;
 
-    if (!wordExamCategory || !wordLevel) {
-      const word = await prisma.word.findUnique({
-        where: { id: wordId },
-        include: {
-          examLevels: { take: 1 }
-        }
-      });
-
-      if (!word) {
-        throw new AppError('Word not found', 404);
+    // Word에서 기본값 가져오기 (examCategory와 level 모두)
+    const word = await prisma.word.findUnique({
+      where: { id: wordId },
+      include: {
+        examLevels: { take: 1 }
       }
+    });
 
-      wordExamCategory = wordExamCategory || word.examCategory;
-      wordLevel = wordLevel || word.examLevels?.[0]?.level || word.level || 'L1';
+    if (!word) {
+      throw new AppError('Word not found', 404);
     }
+
+    // examCategory: 프론트엔드에서 전달받은 값 > Word의 값
+    if (examCategory && Object.values(ExamCategory).includes(examCategory as ExamCategory)) {
+      wordExamCategory = examCategory as ExamCategory;
+    } else {
+      wordExamCategory = word.examCategory;
+    }
+
+    // level: 프론트엔드에서 전달받은 값 > Word의 examLevels > Word의 level > 기본값 'L1'
+    wordLevel = level || word.examLevels?.[0]?.level || word.level || 'L1';
 
     // Get or create progress (새 unique key: userId + wordId + examCategory + level)
     let progress = await prisma.userProgress.findUnique({
