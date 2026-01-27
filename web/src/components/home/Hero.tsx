@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore, useUserSettingsStore } from "@/lib/store";
 import { getPlanDisplay } from "@/lib/subscription";
@@ -140,6 +142,63 @@ function ActionCard({
 }
 
 // ============================================
+// 단어 찾기 카드 컴포넌트
+// ============================================
+function WordSearchCard() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push(`/words?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const popularWords = ['ephemeral', 'ubiquitous', 'pragmatic'];
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+      <div className="flex items-center gap-2 mb-3">
+        <Search className="w-5 h-5 text-teal-600" />
+        <h3 className="font-semibold text-gray-900">단어 찾기</h3>
+      </div>
+
+      {/* 검색창 */}
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="영어 단어를 검색하세요"
+          className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+        />
+        <button
+          onClick={handleSearch}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-colors"
+        >
+          <Search className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* 인기 검색어 태그 */}
+      <div className="mt-3 flex flex-wrap gap-2">
+        <span className="text-xs text-gray-500">인기:</span>
+        {popularWords.map((word) => (
+          <button
+            key={word}
+            onClick={() => router.push(`/words?search=${word}`)}
+            className="px-2 py-1 bg-gray-100 hover:bg-teal-50 text-gray-600 hover:text-teal-600 text-xs rounded-full transition-colors"
+          >
+            {word}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // 남은 일수 계산 헬퍼 함수
 // ============================================
 function getDaysRemaining(subscriptionEnd?: string) {
@@ -210,23 +269,6 @@ function MemberInfoCard() {
         </div>
       </div>
 
-      {/* 빠른 이동 버튼 */}
-      <div className="grid grid-cols-2 gap-3">
-        <Link
-          href="/dashboard"
-          className="flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-3 rounded-xl font-medium transition-colors"
-        >
-          <Icons.BookOpen />
-          <span className="text-sm">학습하기</span>
-        </Link>
-        <Link
-          href="/review"
-          className="flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-600 py-3 rounded-xl font-medium transition-colors"
-        >
-          <Icons.Brain />
-          <span className="text-sm">복습하기</span>
-        </Link>
-      </div>
     </div>
   );
 }
@@ -388,22 +430,8 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
         </div>
       )}
 
-      {/* 빠른 액션 카드들 (MenuCard 스타일) */}
-      <ActionCard
-        icon={<Icons.BookOpen />}
-        iconBg="bg-[#14B8A6] text-white"
-        category="학습하기"
-        title={`${examDisplayName} ${levelDisplayName} 이어서 학습`}
-        href={`/learn?exam=${lastStudy.exam.toLowerCase()}&level=${lastStudy.level}`}
-      />
-
-      <ActionCard
-        icon={<Icons.Brain />}
-        iconBg="bg-[#A855F7] text-white"
-        category="복습하기"
-        title={`${stats?.dueReviewCount || 0}개 복습 대기 중`}
-        href={`/review/quiz?exam=${lastStudy.exam}&level=${lastStudy.level}`}
-      />
+      {/* 단어 찾기 카드 */}
+      <WordSearchCard />
 
       <ActionCard
         icon={<Icons.ChartBar />}
@@ -577,7 +605,7 @@ function UnifiedMemberCard() {
       </div>
 
       {/* 중단: 학습 현황 통계 */}
-      <div className="grid grid-cols-3 gap-4 py-4 border-t border-b border-gray-100 mb-4">
+      <div className="grid grid-cols-3 gap-4 py-4 border-t border-gray-100">
         {loading ? (
           <>
             {[1, 2, 3].map((i) => (
@@ -605,23 +633,6 @@ function UnifiedMemberCard() {
         )}
       </div>
 
-      {/* 하단: 빠른 이동 버튼 */}
-      <div className="grid grid-cols-2 gap-3">
-        <Link
-          href="/dashboard"
-          className="flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-3 rounded-xl font-medium transition-colors"
-        >
-          <Icons.BookOpen />
-          <span className="text-sm">학습하기</span>
-        </Link>
-        <Link
-          href="/review"
-          className="flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-600 py-3 rounded-xl font-medium transition-colors"
-        >
-          <Icons.Brain />
-          <span className="text-sm">복습하기</span>
-        </Link>
-      </div>
     </div>
   );
 }
