@@ -301,6 +301,8 @@ export const submitReview = async (
     const userId = req.userId!;
     const { wordId, rating, responseTime, learningMethod, sessionId, examCategory, level } = req.body;
 
+    console.log('[submitReview] Request body:', { wordId, rating, examCategory, level, userId });
+
     if (!wordId || rating === undefined) {
       throw new AppError('Word ID and rating are required', 400);
     }
@@ -322,6 +324,7 @@ export const submitReview = async (
     });
 
     if (!word) {
+      console.error('[submitReview] Word not found:', wordId);
       throw new AppError('Word not found', 404);
     }
 
@@ -335,15 +338,21 @@ export const submitReview = async (
     // level: 프론트엔드에서 전달받은 값 > Word의 examLevels > Word의 level > 기본값 'L1'
     wordLevel = level || word.examLevels?.[0]?.level || word.level || 'L1';
 
-    // Get or create progress (새 unique key: userId + wordId + examCategory + level)
-    let progress = await prisma.userProgress.findUnique({
+    console.log('[submitReview] Resolved values:', { wordExamCategory, wordLevel });
+
+    // examCategory 유효성 검증
+    if (!wordExamCategory) {
+      console.error('[submitReview] examCategory is missing');
+      throw new AppError('examCategory is required', 400);
+    }
+
+    // Get or create progress (findFirst 사용 - Enum 타입 불일치 방지)
+    let progress = await prisma.userProgress.findFirst({
       where: {
-        userId_wordId_examCategory_level: {
-          userId,
-          wordId,
-          examCategory: wordExamCategory,
-          level: wordLevel
-        }
+        userId,
+        wordId,
+        examCategory: wordExamCategory,
+        level: wordLevel
       }
     });
 
@@ -412,15 +421,10 @@ export const submitReview = async (
       masteryLevel = 'LEARNING';
     }
 
-    // Update progress (새 unique key: userId + wordId + examCategory + level)
+    // Update progress (id로 직접 업데이트 - Enum 타입 불일치 방지)
     const updatedProgress = await prisma.userProgress.update({
       where: {
-        userId_wordId_examCategory_level: {
-          userId,
-          wordId,
-          examCategory: wordExamCategory,
-          level: wordLevel
-        }
+        id: progress.id
       },
       data: {
         easeFactor,
@@ -436,6 +440,8 @@ export const submitReview = async (
         reviewCorrectCount,
       }
     });
+
+    console.log('[submitReview] Updated progress:', { progressId: updatedProgress.id, examCategory: updatedProgress.examCategory });
 
     // Create review record
     await prisma.review.create({
@@ -641,9 +647,11 @@ export const getReviewQuiz = async (
       correctCount: { lt: 2 }, // 완료되지 않은 것만 (correctCount < 2)
     };
 
-    // examCategory 필터 (UserProgress.examCategory)
+    // examCategory 필터 (UserProgress.examCategory) - Enum 유효성 검증
     if (examCategory && examCategory !== 'all') {
-      progressWhere.examCategory = examCategory as ExamCategory;
+      if (Object.values(ExamCategory).includes(examCategory as ExamCategory)) {
+        progressWhere.examCategory = examCategory as ExamCategory;
+      }
     }
 
     // level 필터 (UserProgress.level)
@@ -688,13 +696,16 @@ export const getReviewQuiz = async (
     }
 
     // 오답 선택지용 단어들 가져오기 (같은 시험 카테고리에서)
-    const examCategoryFilter = examCategory && examCategory !== 'all'
-      ? examCategory as ExamCategory
-      : limitedReviews[0]?.word?.examCategory;
+    let examCategoryFilter: ExamCategory | undefined;
+    if (examCategory && examCategory !== 'all' && Object.values(ExamCategory).includes(examCategory as ExamCategory)) {
+      examCategoryFilter = examCategory as ExamCategory;
+    } else {
+      examCategoryFilter = limitedReviews[0]?.word?.examCategory;
+    }
 
     const otherWords = await prisma.word.findMany({
       where: {
-        examCategory: examCategoryFilter as ExamCategory,
+        examCategory: examCategoryFilter,
         id: { notIn: limitedReviews.map(r => r.wordId) },
         definitionKo: { not: null }
       },
