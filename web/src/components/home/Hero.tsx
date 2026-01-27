@@ -337,8 +337,10 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 회원 정보 카드 (프로필 + 플랜 + 빠른 버튼) */}
-      <MemberInfoCard />
+      {/* 모바일용 회원 정보 카드 (데스크톱에서는 왼쪽 통합 카드 사용) */}
+      <div className="lg:hidden">
+        <MemberInfoCard />
+      </div>
 
       {/* 오늘의 학습 현황 카드 - 모바일에서만 여기 표시 (은행 앱 스타일) */}
       {showStatsCard && (
@@ -470,9 +472,10 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
 }
 
 // ============================================
-// 데스크톱 왼쪽 열용 학습 현황 카드 (은행 앱 스타일)
+// 데스크톱 왼쪽 열용 통합 카드 (회원정보 + 학습현황)
 // ============================================
-function DesktopStatsCard() {
+function UnifiedMemberCard() {
+  const { user } = useAuthStore();
   const [stats, setStats] = useState<{
     currentStreak: number;
     totalWordsLearned: number;
@@ -480,6 +483,9 @@ function DesktopStatsCard() {
     accuracy: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
+  const plan = (user as any)?.subscriptionPlan || 'FREE';
 
   useEffect(() => {
     loadStats();
@@ -511,48 +517,111 @@ function DesktopStatsCard() {
     }
   };
 
+  if (!user) return null;
+
   return (
-    <div className="hidden lg:block bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 학습 현황</h3>
-        {!loading && stats && stats.currentStreak > 0 && (
-          <span className="text-[13px] text-[#14B8A6] font-semibold flex items-center gap-1">
-            🔥 {stats.currentStreak}일 연속
-          </span>
+    <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
+      {/* 상단: 프로필 + 스트릭 + 플랜 */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          {/* 프로필 아이콘 */}
+          <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-lg font-bold">
+              {user?.name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+            </span>
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900">{user?.name || '회원'}님</p>
+            <p className="text-sm text-gray-500 truncate max-w-[160px]">{user?.email}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          {/* 스트릭 */}
+          {!loading && stats && stats.currentStreak > 0 && (
+            <div className="flex items-center gap-1 text-orange-500">
+              <span>🔥</span>
+              <span className="font-semibold text-sm">{stats.currentStreak}일 연속</span>
+            </div>
+          )}
+
+          {/* 플랜 배지 */}
+          <div className="text-right">
+            {(plan === 'YEARLY' || plan === 'FAMILY') && (
+              <>
+                <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm font-medium">
+                  👑 프리미엄
+                </span>
+                {daysRemaining && (
+                  <p className="text-xs text-gray-500 mt-1">D-{daysRemaining}일</p>
+                )}
+              </>
+            )}
+            {plan === 'MONTHLY' && (
+              <>
+                <span className="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm font-medium">
+                  ✨ 베이직
+                </span>
+                {daysRemaining && (
+                  <p className="text-xs text-gray-500 mt-1">D-{daysRemaining}일</p>
+                )}
+              </>
+            )}
+            {plan === 'FREE' && (
+              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">
+                무료 플랜
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 중단: 학습 현황 통계 */}
+      <div className="grid grid-cols-3 gap-4 py-4 border-t border-b border-gray-100 mb-4">
+        {loading ? (
+          <>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="text-center">
+                <div className="h-7 w-14 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
+                <div className="h-3 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-[#3B82F6]">{stats?.totalWordsLearned || 0}</p>
+              <p className="text-sm text-gray-500">학습한 단어</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-[#F59E0B]">{stats?.dueReviewCount || 0}</p>
+              <p className="text-sm text-gray-500">복습 대기</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-[#10B981]">{stats?.accuracy || 0}%</p>
+              <p className="text-sm text-gray-500">정답률</p>
+            </div>
+          </>
         )}
       </div>
 
-      {loading ? (
-        <div className="flex justify-between items-center">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-2">
-              <div className="h-7 w-14 bg-slate-200 rounded animate-pulse" />
-              <div className="h-3 w-16 bg-slate-100 rounded animate-pulse" />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex justify-between items-center">
-          <DashboardItem
-            value={stats?.totalWordsLearned || 0}
-            label="학습한 단어"
-            color="#3B82F6"
-          />
-          <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-          <DashboardItem
-            value={stats?.dueReviewCount || 0}
-            label="복습 대기"
-            color="#F59E0B"
-          />
-          <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-          <DashboardItem
-            value={`${stats?.accuracy || 0}%`}
-            label="정답률"
-            color="#10B981"
-          />
-        </div>
-      )}
+      {/* 하단: 빠른 이동 버튼 */}
+      <div className="grid grid-cols-2 gap-3">
+        <Link
+          href="/dashboard"
+          className="flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-3 rounded-xl font-medium transition-colors"
+        >
+          <Icons.BookOpen />
+          <span className="text-sm">학습하기</span>
+        </Link>
+        <Link
+          href="/review"
+          className="flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-600 py-3 rounded-xl font-medium transition-colors"
+        >
+          <Icons.Brain />
+          <span className="text-sm">복습하기</span>
+        </Link>
+      </div>
     </div>
   );
 }
@@ -629,7 +698,7 @@ export default function Hero() {
             )}
 
             {/* 로그인 사용자: 데스크톱에서 왼쪽 아래에 학습 현황 카드 */}
-            {isLoggedIn && <DesktopStatsCard />}
+            {isLoggedIn && <UnifiedMemberCard />}
           </div>
 
           {/* 오른쪽 열: 액션 카드들 */}
