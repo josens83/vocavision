@@ -41,6 +41,40 @@ function calculateNextReview(
   };
 }
 
+// ============================================
+// 복습 대기 여부 판단 함수 (2일 포함/1일 쉼 + D+3 알았음)
+// ============================================
+function shouldShowInReview(progress: {
+  correctCount: number;
+  incorrectCount: number;
+  initialRating: number;
+  learnedAt: Date;
+}): boolean {
+  // 이미 완료된 단어는 제외 (correctCount >= 2)
+  if (progress.correctCount >= 2) {
+    return false;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const learnedAt = new Date(progress.learnedAt);
+  learnedAt.setHours(0, 0, 0, 0);
+  const daysSinceLearned = Math.floor((today.getTime() - learnedAt.getTime()) / (1000 * 60 * 60 * 24));
+
+  // "알았음"으로 학습 (rating 5) + 아직 틀린 적 없음 → D+3에만 표시
+  if (progress.initialRating === 5 && progress.incorrectCount === 0) {
+    return daysSinceLearned === 3;
+  }
+
+  // "모름" (rating 1-2) 또는 퀴즈에서 틀린 단어 → 2일 포함, 1일 쉼 패턴
+  // D+0, D+1: ✅ (cycleDay 0, 1)
+  // D+2: ❌ (cycleDay 2) - 쉬는 날
+  // D+3, D+4: ✅ (cycleDay 0, 1)
+  // D+5: ❌ (cycleDay 2) - 쉬는 날
+  const cycleDay = daysSinceLearned % 3;
+  return cycleDay !== 2;
+}
+
 export const getUserProgress = async (
   req: AuthRequest,
   res: Response,
@@ -148,12 +182,11 @@ export const getDueReviews = async (
       };
     }
 
-    // 복습 대상 단어 조회 (학습한 모든 단어가 복습 가능)
-    // nextReviewDate 조건 제거 - 4지선다 퀴즈와 동일하게 학습한 모든 단어가 복습 대상
-    const dueReviews = await prisma.userProgress.findMany({
+    // 복습 대상 후보 조회 (correctCount < 2인 단어)
+    const allProgress = await prisma.userProgress.findMany({
       where: {
         userId,
-        // nextReviewDate 조건 제거 - 학습한 모든 단어가 복습 가능
+        correctCount: { lt: 2 }, // 완료되지 않은 것만
         word: wordWhere
       },
       include: {
@@ -179,6 +212,14 @@ export const getDueReviews = async (
         { createdAt: 'asc' },        // 오래된 것 먼저
       ]
     });
+
+    // 오늘 복습 대기인 단어만 필터링 (2일 포함/1일 쉼 + D+3 알았음)
+    const dueReviews = allProgress.filter(p => shouldShowInReview({
+      correctCount: p.correctCount,
+      incorrectCount: p.incorrectCount,
+      initialRating: p.initialRating,
+      learnedAt: p.learnedAt,
+    }));
 
     // 병렬로 통계 정보 조회
     const [allProgress, lastReviewRecord, weakWordsCount, completedTodayCount, bookmarkedCount] = await Promise.all([
@@ -301,7 +342,7 @@ export const submitReview = async (
     });
 
     if (!progress) {
-      // Create new progress - 즉시 복습 가능하도록 현재 시간으로 설정
+      // Create new progress - 첫 학습 시 initialRating, learnedAt 저장
       const now = new Date();
 
       progress = await prisma.userProgress.create({
@@ -310,8 +351,10 @@ export const submitReview = async (
           wordId,
           examCategory: wordExamCategory,
           level: wordLevel,
-          nextReviewDate: now, // 오늘 학습 → 오늘 복습 가능
-          masteryLevel: 'NEW'
+          nextReviewDate: now,
+          masteryLevel: 'NEW',
+          initialRating: rating,  // 첫 학습 시 rating 저장 (1=모름, 5=알았음)
+          learnedAt: now,         // 첫 학습 날짜 저장
         }
       });
     }
@@ -576,7 +619,7 @@ export async function updateUserStats(userId: string) {
   });
 }
 
-// 복습 퀴즈 생성 API (needsReview = true인 단어 대상)
+// 복습 퀴즈 생성 API (2일 포함/1일 쉼 + D+3 알았음 로직)
 export const getReviewQuiz = async (
   req: AuthRequest,
   res: Response,
@@ -589,6 +632,7 @@ export const getReviewQuiz = async (
     // UserProgress 직접 필터 (examCategory, level 컬럼 사용)
     const progressWhere: any = {
       userId,
+      correctCount: { lt: 2 }, // 완료되지 않은 것만 (correctCount < 2)
     };
 
     // examCategory 필터 (UserProgress.examCategory)
@@ -601,16 +645,14 @@ export const getReviewQuiz = async (
       progressWhere.level = level as string;
     }
 
-    // 복습 대상 단어 가져오기 (한 번이라도 학습한 모든 단어)
-    // reviewCorrectCount 오름차순으로 정렬하여 덜 암기된 단어부터 출제
-    const dueReviews = await prisma.userProgress.findMany({
+    // 1. 복습 대상 후보 가져오기 (correctCount < 2)
+    const allProgress = await prisma.userProgress.findMany({
       where: progressWhere,
       include: {
         word: {
           include: {
             visuals: { orderBy: { order: 'asc' } },
             mnemonics: { take: 1, orderBy: { rating: 'desc' } },
-            // 요청된 레벨이 있으면 해당 레벨만 포함
             examLevels: level && level !== 'all'
               ? { where: { level: level as string }, take: 1 }
               : { take: 1 },
@@ -622,22 +664,32 @@ export const getReviewQuiz = async (
         { updatedAt: 'asc' },           // 오래 복습 안 한 것 먼저
         { createdAt: 'asc' },           // 오래된 것 먼저
       ],
-      take: parseInt(limit as string)
     });
 
-    if (dueReviews.length === 0) {
-      return res.json({ questions: [], count: 0 });
+    // 2. 오늘 복습 대기인 단어만 필터링 (2일 포함/1일 쉼 + D+3 알았음)
+    const dueReviews = allProgress.filter(p => shouldShowInReview({
+      correctCount: p.correctCount,
+      incorrectCount: p.incorrectCount,
+      initialRating: p.initialRating,
+      learnedAt: p.learnedAt,
+    }));
+
+    // 3. 제한 적용
+    const limitedReviews = dueReviews.slice(0, parseInt(limit as string));
+
+    if (limitedReviews.length === 0) {
+      return res.json({ questions: [], count: 0, totalDue: dueReviews.length });
     }
 
     // 오답 선택지용 단어들 가져오기 (같은 시험 카테고리에서)
     const examCategoryFilter = examCategory && examCategory !== 'all'
       ? examCategory as ExamCategory
-      : dueReviews[0]?.word?.examCategory;
+      : limitedReviews[0]?.word?.examCategory;
 
     const otherWords = await prisma.word.findMany({
       where: {
         examCategory: examCategoryFilter as ExamCategory,
-        id: { notIn: dueReviews.map(r => r.wordId) },
+        id: { notIn: limitedReviews.map(r => r.wordId) },
         definitionKo: { not: null }
       },
       select: {
@@ -649,7 +701,7 @@ export const getReviewQuiz = async (
     });
 
     // 퀴즈 생성
-    const questions = dueReviews.map(review => {
+    const questions = limitedReviews.map(review => {
       const word = review.word;
       const correctAnswer = word.definitionKo || word.definition;
 
