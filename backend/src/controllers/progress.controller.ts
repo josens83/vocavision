@@ -89,7 +89,7 @@ export const getUserProgress = async (
     todayStartKST.setUTCHours(0, 0, 0, 0);
     const todayStartUTC = new Date(todayStartKST.getTime() - 9 * 60 * 60 * 1000);
 
-    const [progress, stats, todayLearned] = await Promise.all([
+    const [progress, stats, todayLearned, todayKnown, totalLearned, totalKnown] = await Promise.all([
       // 기존 progress 조회 (examLevels 포함)
       prisma.userProgress.findMany({
         where: { userId },
@@ -126,22 +126,53 @@ export const getUserProgress = async (
         }
       }),
 
-      // 오늘 학습/복습한 고유 단어 수 (UserProgress.updatedAt 기준, KST)
+      // 오늘 학습한 단어 수 (learnedAt 기준)
       prisma.userProgress.count({
         where: {
           userId,
-          updatedAt: {
-            gte: todayStartUTC
-          }
+          learnedAt: { gte: todayStartUTC }
+        }
+      }),
+
+      // 오늘 "알았음" 선택한 단어 수 (initialRating >= 3)
+      prisma.userProgress.count({
+        where: {
+          userId,
+          learnedAt: { gte: todayStartUTC },
+          initialRating: { gte: 3 }
+        }
+      }),
+
+      // 전체 학습한 단어 수
+      prisma.userProgress.count({
+        where: { userId }
+      }),
+
+      // 전체 "알았음" 선택한 단어 수
+      prisma.userProgress.count({
+        where: {
+          userId,
+          initialRating: { gte: 3 }
         }
       })
     ]);
+
+    // 플래시카드 정답률 계산
+    const todayFlashcardAccuracy = todayLearned > 0
+      ? Math.round((todayKnown / todayLearned) * 100)
+      : 0;
+
+    const totalFlashcardAccuracy = totalLearned > 0
+      ? Math.round((totalKnown / totalLearned) * 100)
+      : 0;
 
     res.json({
       progress,
       stats: {
         ...stats,
-        todayWordsLearned: todayLearned
+        todayWordsLearned: todayLearned,
+        todayFlashcardAccuracy,    // 오늘 플래시카드 정답률
+        totalFlashcardAccuracy,    // 전체 플래시카드 정답률
       }
     });
   } catch (error) {

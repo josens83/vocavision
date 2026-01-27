@@ -309,7 +309,8 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
     totalWordsLearned: number;
     todayWordsLearned: number;
     dueReviewCount: number;
-    accuracy: number;
+    todayFlashcardAccuracy: number;  // 오늘 플래시카드 정답률
+    totalFlashcardAccuracy: number;  // 전체 플래시카드 정답률
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -355,7 +356,8 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
         totalWordsLearned: progressData.stats?.totalWordsLearned || 0,
         todayWordsLearned: progressData.stats?.todayWordsLearned || 0,
         dueReviewCount: reviewData.count || 0,
-        accuracy: reviewData.accuracy || 0,
+        todayFlashcardAccuracy: progressData.stats?.todayFlashcardAccuracy || 0,
+        totalFlashcardAccuracy: progressData.stats?.totalFlashcardAccuracy || 0,
       });
     } catch (error) {
       console.error('Failed to load stats:', error);
@@ -364,7 +366,8 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
         totalWordsLearned: 0,
         todayWordsLearned: 0,
         dueReviewCount: 0,
-        accuracy: 0,
+        todayFlashcardAccuracy: 0,
+        totalFlashcardAccuracy: 0,
       });
     } finally {
       setLoading(false);
@@ -423,7 +426,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
               />
               <div className="w-[1px] h-10 bg-[#f0f0f0]" />
               <DashboardItem
-                value={`${stats?.accuracy || 0}%`}
+                value={`${stats?.todayFlashcardAccuracy || 0}%`}
                 label="정답률"
                 color="#10B981"
               />
@@ -462,7 +465,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
               <p className="text-xs text-gray-500">누적 학습 단어</p>
             </div>
             <div className="bg-purple-50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-purple-600">{stats?.accuracy || 0}%</p>
+              <p className="text-2xl font-bold text-purple-600">{stats?.totalFlashcardAccuracy || 0}%</p>
               <p className="text-xs text-gray-500">전체 정답률</p>
             </div>
           </div>
@@ -546,7 +549,7 @@ function UnifiedMemberCard() {
     todayWordsLearned: number;  // 오늘 학습한 단어
     totalWordsLearned: number;  // 누적 학습한 단어
     dueReviewCount: number;
-    accuracy: number;
+    todayFlashcardAccuracy: number;  // 오늘 플래시카드 정답률
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -569,7 +572,7 @@ function UnifiedMemberCard() {
         todayWordsLearned: progressData.stats?.todayWordsLearned || 0,  // 오늘 데이터
         totalWordsLearned: progressData.stats?.totalWordsLearned || 0,  // 누적 데이터
         dueReviewCount: reviewData.count || 0,
-        accuracy: reviewData.accuracy || 0,
+        todayFlashcardAccuracy: progressData.stats?.todayFlashcardAccuracy || 0,
       });
     } catch (error) {
       console.error('Failed to load stats:', error);
@@ -578,7 +581,7 @@ function UnifiedMemberCard() {
         todayWordsLearned: 0,
         totalWordsLearned: 0,
         dueReviewCount: 0,
-        accuracy: 0,
+        todayFlashcardAccuracy: 0,
       });
     } finally {
       setLoading(false);
@@ -668,7 +671,7 @@ function UnifiedMemberCard() {
                 <p className="text-xs text-gray-500">복습 대기</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-[#10B981]">{stats?.accuracy || 0}%</p>
+                <p className="text-2xl font-bold text-[#10B981]">{stats?.todayFlashcardAccuracy || 0}%</p>
                 <p className="text-xs text-gray-500">정답률</p>
               </div>
             </>
