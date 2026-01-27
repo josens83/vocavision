@@ -152,8 +152,86 @@ function getDaysRemaining(subscriptionEnd?: string) {
 }
 
 // ============================================
-// 현재 플랜 배지 컴포넌트
+// 현재 플랜 배지 컴포넌트 -> 회원 정보 카드로 확장
 // ============================================
+function MemberInfoCard() {
+  const { user } = useAuthStore();
+  if (!user) return null;
+
+  const planInfo = getPlanDisplay(user);
+  const daysRemaining = getDaysRemaining(user.subscriptionEnd);
+  const plan = (user as any)?.subscriptionPlan || 'FREE';
+  const isPaid = plan !== 'FREE';
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+      {/* 상단: 프로필 + 플랜 배지 */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          {/* 프로필 아이콘 */}
+          <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-lg font-bold">
+              {user?.name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+            </span>
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900">{user?.name || '회원'}님</p>
+            <p className="text-sm text-gray-500 truncate max-w-[140px]">{user?.email}</p>
+          </div>
+        </div>
+
+        {/* 플랜 배지 + D-day */}
+        <div className="text-right">
+          {(plan === 'YEARLY' || plan === 'FAMILY') && (
+            <>
+              <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm font-medium">
+                👑 프리미엄
+              </span>
+              {daysRemaining && (
+                <p className="text-xs text-gray-500 mt-1">D-{daysRemaining}일</p>
+              )}
+            </>
+          )}
+          {plan === 'MONTHLY' && (
+            <>
+              <span className="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm font-medium">
+                ✨ 베이직
+              </span>
+              {daysRemaining && (
+                <p className="text-xs text-gray-500 mt-1">D-{daysRemaining}일</p>
+              )}
+            </>
+          )}
+          {plan === 'FREE' && (
+            <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">
+              무료 플랜
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 빠른 이동 버튼 */}
+      <div className="grid grid-cols-2 gap-3">
+        <Link
+          href="/dashboard"
+          className="flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-3 rounded-xl font-medium transition-colors"
+        >
+          <Icons.BookOpen />
+          <span className="text-sm">학습하기</span>
+        </Link>
+        <Link
+          href="/review"
+          className="flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-600 py-3 rounded-xl font-medium transition-colors"
+        >
+          <Icons.Brain />
+          <span className="text-sm">복습하기</span>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// 기존 CurrentPlanBadge 유지 (하위 호환성)
 function CurrentPlanBadge() {
   const { user } = useAuthStore();
   if (!user) return null;
@@ -259,8 +337,8 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 현재 플랜 표시 */}
-      <CurrentPlanBadge />
+      {/* 회원 정보 카드 (프로필 + 플랜 + 빠른 버튼) */}
+      <MemberInfoCard />
 
       {/* 오늘의 학습 현황 카드 - 모바일에서만 여기 표시 (은행 앱 스타일) */}
       {showStatsCard && (
