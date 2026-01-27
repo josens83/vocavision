@@ -258,7 +258,7 @@ export const submitReview = async (
 ) => {
   try {
     const userId = req.userId!;
-    const { wordId, rating, responseTime, learningMethod, sessionId } = req.body;
+    const { wordId, rating, responseTime, learningMethod, sessionId, examCategory, level } = req.body;
 
     if (!wordId || rating === undefined) {
       throw new AppError('Word ID and rating are required', 400);
@@ -268,12 +268,34 @@ export const submitReview = async (
       throw new AppError('Rating must be between 1 and 5', 400);
     }
 
-    // Get or create progress
+    // examCategory와 level이 없으면 Word에서 가져오기
+    let wordExamCategory = examCategory;
+    let wordLevel = level;
+
+    if (!wordExamCategory || !wordLevel) {
+      const word = await prisma.word.findUnique({
+        where: { id: wordId },
+        include: {
+          examLevels: { take: 1 }
+        }
+      });
+
+      if (!word) {
+        throw new AppError('Word not found', 404);
+      }
+
+      wordExamCategory = wordExamCategory || word.examCategory;
+      wordLevel = wordLevel || word.examLevels?.[0]?.level || word.level || 'L1';
+    }
+
+    // Get or create progress (새 unique key: userId + wordId + examCategory + level)
     let progress = await prisma.userProgress.findUnique({
       where: {
-        userId_wordId: {
+        userId_wordId_examCategory_level: {
           userId,
-          wordId
+          wordId,
+          examCategory: wordExamCategory,
+          level: wordLevel
         }
       }
     });
@@ -286,6 +308,8 @@ export const submitReview = async (
         data: {
           userId,
           wordId,
+          examCategory: wordExamCategory,
+          level: wordLevel,
           nextReviewDate: now, // 오늘 학습 → 오늘 복습 가능
           masteryLevel: 'NEW'
         }
@@ -339,12 +363,14 @@ export const submitReview = async (
       masteryLevel = 'LEARNING';
     }
 
-    // Update progress
+    // Update progress (새 unique key: userId + wordId + examCategory + level)
     const updatedProgress = await prisma.userProgress.update({
       where: {
-        userId_wordId: {
+        userId_wordId_examCategory_level: {
           userId,
-          wordId
+          wordId,
+          examCategory: wordExamCategory,
+          level: wordLevel
         }
       },
       data: {
@@ -458,17 +484,20 @@ export const getReviewHistory = async (
     });
 
     // Add nextReviewDate from UserProgress
+    // 새 스키마에서는 userId+wordId+examCategory+level로 unique하지만,
+    // 여기서는 가장 최근 progress를 찾아서 반환
     const reviewsWithNextDate = await Promise.all(
       reviews.map(async (review) => {
-        const progress = await prisma.userProgress.findUnique({
+        const progress = await prisma.userProgress.findFirst({
           where: {
-            userId_wordId: {
-              userId,
-              wordId: review.wordId,
-            },
+            userId,
+            wordId: review.wordId,
           },
           select: {
             nextReviewDate: true,
+          },
+          orderBy: {
+            updatedAt: 'desc',
           },
         });
 
@@ -557,29 +586,25 @@ export const getReviewQuiz = async (
     const userId = req.userId!;
     const { examCategory, level, limit = '10' } = req.query;
 
-    // 기본 where 조건
-    const wordWhere: any = {
-      examCategory: { not: 'CSAT_ARCHIVE' }
+    // UserProgress 직접 필터 (examCategory, level 컬럼 사용)
+    const progressWhere: any = {
+      userId,
     };
 
+    // examCategory 필터 (UserProgress.examCategory)
     if (examCategory && examCategory !== 'all') {
-      wordWhere.examCategory = examCategory as string;
+      progressWhere.examCategory = examCategory as ExamCategory;
     }
 
+    // level 필터 (UserProgress.level)
     if (level && level !== 'all') {
-      wordWhere.examLevels = {
-        some: { level: level as string }
-      };
+      progressWhere.level = level as string;
     }
 
     // 복습 대상 단어 가져오기 (한 번이라도 학습한 모든 단어)
     // reviewCorrectCount 오름차순으로 정렬하여 덜 암기된 단어부터 출제
     const dueReviews = await prisma.userProgress.findMany({
-      where: {
-        userId,
-        // needsReview 조건 제거 - 학습한 모든 단어가 복습 가능
-        word: wordWhere
-      },
+      where: progressWhere,
       include: {
         word: {
           include: {
