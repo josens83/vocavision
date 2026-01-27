@@ -489,6 +489,10 @@ function LearnPageContent() {
         rating,
         learningMethod: 'FLASHCARD',
         sessionId: sessionId || undefined,
+        examCategory: examParam || currentWord.examCategory || undefined,
+        level: levelParam || currentWord.level || undefined,
+      }).then(result => {
+        console.log('Review submitted:', result);
       }).catch(error => console.error('Failed to submit review:', error));
     }
 
@@ -1148,7 +1152,7 @@ function LearnPageContent() {
           hasPrevious={currentWordIndex > 0}
           hasNext={currentWordIndex < reviews.length - 1}
           hasExistingProgress={cardRatings[currentWordIndex] !== undefined}
-          isReviewMode={isReviewMode}
+          isReviewMode={isReviewMode || isBookmarksMode}
         />
         {/* Swipe Hint */}
         <div className="flex items-center justify-center gap-2 text-[#C8C8C8] text-[12px] mt-4">
