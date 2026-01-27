@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
-import { wordsAPI, progressAPI, pronunciationAPI } from '@/lib/api';
+import { wordsAPI, bookmarkAPI, pronunciationAPI } from '@/lib/api';
 import { LEVEL_INFO } from '@/constants/stats';
 
 // Types
@@ -178,6 +178,7 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     loadWord();
+    checkBookmarkStatus();
   }, [params.id]);
 
   const loadWord = async () => {
@@ -188,6 +189,16 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
       console.error('Failed to load word:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkBookmarkStatus = async () => {
+    if (!user) return;
+    try {
+      const isBookmarked = await bookmarkAPI.isBookmarked(params.id);
+      setBookmarked(isBookmarked);
+    } catch (error) {
+      console.error('Failed to check bookmark status:', error);
     }
   };
 
@@ -203,17 +214,21 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
     }
   }, [word, playingAudio]);
 
-  const handleAddToLearning = async () => {
-    if (!word) return;
+  const handleToggleBookmark = async () => {
+    if (!word || !user) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
     try {
-      await progressAPI.submitReview({
-        wordId: word.id,
-        rating: 1,
-        learningMethod: 'FLASHCARD',
-      });
-      alert('단어가 학습 목록에 추가되었습니다!');
+      if (bookmarked) {
+        await bookmarkAPI.removeBookmark(word.id);
+        setBookmarked(false);
+      } else {
+        await bookmarkAPI.addBookmark(word.id);
+        setBookmarked(true);
+      }
     } catch (error) {
-      console.error('Failed to add word:', error);
+      console.error('Failed to toggle bookmark:', error);
     }
   };
 
@@ -263,18 +278,16 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
               <Icons.ArrowLeft />
               <span className="hidden sm:inline">뒤로</span>
             </button>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setBookmarked(!bookmarked)}
-                className={`p-2 rounded-xl transition-all ${bookmarked ? 'text-amber-500 bg-amber-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-              >
-                {bookmarked ? <Icons.StarFilled /> : <Icons.Star />}
-              </button>
-              <button onClick={handleAddToLearning} className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition-colors text-sm">
-                <Icons.Plus />
-                <span className="hidden sm:inline">학습 추가</span>
-              </button>
-            </div>
+            <button
+              onClick={handleToggleBookmark}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors text-sm ${
+                bookmarked
+                  ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                  : 'bg-teal-500 hover:bg-teal-600 text-white'
+              }`}
+            >
+              <span>{bookmarked ? '북마크 해제' : '북마크 추가'}</span>
+            </button>
           </div>
         </div>
       </header>

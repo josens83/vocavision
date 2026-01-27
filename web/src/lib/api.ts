@@ -731,6 +731,43 @@ export const chatAPI = {
   },
 };
 
+// Bookmark API
+export const bookmarkAPI = {
+  // Get all bookmarks
+  getBookmarks: async () => {
+    const response = await api.get('/bookmarks');
+    return response.data;
+  },
+
+  // Add bookmark
+  addBookmark: async (wordId: string, notes?: string) => {
+    const response = await api.post('/bookmarks', { wordId, notes });
+    return response.data;
+  },
+
+  // Remove bookmark
+  removeBookmark: async (wordId: string) => {
+    const response = await api.delete(`/bookmarks/${wordId}`);
+    return response.data;
+  },
+
+  // Check if word is bookmarked
+  isBookmarked: async (wordId: string) => {
+    try {
+      const { bookmarks } = await bookmarkAPI.getBookmarks();
+      return bookmarks.some((b: { wordId: string }) => b.wordId === wordId);
+    } catch {
+      return false;
+    }
+  },
+
+  // Update bookmark notes
+  updateNotes: async (wordId: string, notes: string) => {
+    const response = await api.patch(`/bookmarks/${wordId}/notes`, { notes });
+    return response.data;
+  },
+};
+
 // Admin Image Generation API
 export const imageGenerationAPI = {
   // Get image generation status for all levels

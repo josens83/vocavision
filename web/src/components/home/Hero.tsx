@@ -151,10 +151,12 @@ function WordSearchCard() {
   const handleSearch = () => {
     if (searchQuery.trim()) {
       router.push(`/words?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/words');  // 빈 검색 시 단어 목록 페이지로
     }
   };
 
-  const popularWords = ['ephemeral', 'ubiquitous', 'pragmatic'];
+  const popularWords = ['contemporary', 'circumstance', 'nevertheless'];
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
