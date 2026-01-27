@@ -409,8 +409,8 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
           ) : (
             <div className="flex justify-between items-center">
               <DashboardItem
-                value={stats?.totalWordsLearned || 0}
-                label="학습한 단어"
+                value={stats?.todayWordsLearned || 0}
+                label="오늘 학습"
                 color="#3B82F6"
               />
               <div className="w-[1px] h-10 bg-[#f0f0f0]" />
@@ -433,13 +433,48 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
       {/* 단어 찾기 카드 */}
       <WordSearchCard />
 
-      <ActionCard
-        icon={<Icons.ChartBar />}
-        iconBg="bg-[#3B82F6] text-white"
-        category="학습 통계"
-        title="나의 학습 현황 확인"
-        href="/stats"
-      />
+      {/* 전체 학습 현황 카드 (누적 데이터) */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+        {/* 헤더 */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+            <Icons.ChartBar />
+          </div>
+          <h3 className="font-semibold text-gray-900">전체 학습 현황</h3>
+        </div>
+
+        {/* 누적 통계 그리드 */}
+        {loading ? (
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-gray-50 rounded-xl p-3 text-center">
+                <div className="h-7 w-14 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
+                <div className="h-3 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="bg-purple-50 rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-purple-600">{stats?.totalWordsLearned || 0}</p>
+              <p className="text-xs text-gray-500">누적 학습 단어</p>
+            </div>
+            <div className="bg-purple-50 rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-purple-600">{stats?.accuracy || 0}%</p>
+              <p className="text-xs text-gray-500">전체 정답률</p>
+            </div>
+          </div>
+        )}
+
+        {/* 자세히 보기 */}
+        <Link
+          href="/stats"
+          className="flex items-center justify-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium py-2 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
+        >
+          자세히 보기
+          <Icons.ChevronRight />
+        </Link>
+      </div>
 
       {/* 오늘의 목표 카드 (은행 앱 스타일) */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
@@ -506,7 +541,8 @@ function UnifiedMemberCard() {
   const { user } = useAuthStore();
   const [stats, setStats] = useState<{
     currentStreak: number;
-    totalWordsLearned: number;
+    todayWordsLearned: number;  // 오늘 학습한 단어
+    totalWordsLearned: number;  // 누적 학습한 단어
     dueReviewCount: number;
     accuracy: number;
   } | null>(null);
@@ -528,7 +564,8 @@ function UnifiedMemberCard() {
 
       setStats({
         currentStreak: progressData.stats?.currentStreak || 0,
-        totalWordsLearned: progressData.stats?.totalWordsLearned || 0,
+        todayWordsLearned: progressData.stats?.todayWordsLearned || 0,  // 오늘 데이터
+        totalWordsLearned: progressData.stats?.totalWordsLearned || 0,  // 누적 데이터
         dueReviewCount: reviewData.count || 0,
         accuracy: reviewData.accuracy || 0,
       });
@@ -536,6 +573,7 @@ function UnifiedMemberCard() {
       console.error('Failed to load stats:', error);
       setStats({
         currentStreak: 0,
+        todayWordsLearned: 0,
         totalWordsLearned: 0,
         dueReviewCount: 0,
         accuracy: 0,
@@ -604,33 +642,36 @@ function UnifiedMemberCard() {
         </div>
       </div>
 
-      {/* 중단: 학습 현황 통계 */}
-      <div className="grid grid-cols-3 gap-4 py-4 border-t border-gray-100">
-        {loading ? (
-          <>
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="text-center">
-                <div className="h-7 w-14 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
-                <div className="h-3 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
+      {/* 중단: 오늘의 학습 현황 통계 */}
+      <div className="py-4 border-t border-gray-100">
+        <p className="text-xs text-gray-400 text-center mb-3">오늘의 학습</p>
+        <div className="grid grid-cols-3 gap-4">
+          {loading ? (
+            <>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="text-center">
+                  <div className="h-7 w-14 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
+                  <div className="h-3 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-[#3B82F6]">{stats?.todayWordsLearned || 0}</p>
+                <p className="text-xs text-gray-500">오늘 학습</p>
               </div>
-            ))}
-          </>
-        ) : (
-          <>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-[#3B82F6]">{stats?.totalWordsLearned || 0}</p>
-              <p className="text-sm text-gray-500">학습한 단어</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-[#F59E0B]">{stats?.dueReviewCount || 0}</p>
-              <p className="text-sm text-gray-500">복습 대기</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-[#10B981]">{stats?.accuracy || 0}%</p>
-              <p className="text-sm text-gray-500">정답률</p>
-            </div>
-          </>
-        )}
+              <div className="text-center">
+                <p className="text-2xl font-bold text-[#F59E0B]">{stats?.dueReviewCount || 0}</p>
+                <p className="text-xs text-gray-500">복습 대기</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-[#10B981]">{stats?.accuracy || 0}%</p>
+                <p className="text-xs text-gray-500">정답률</p>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
     </div>
