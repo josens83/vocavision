@@ -362,14 +362,15 @@ export const submitReview = async (
       // Create new progress - 첫 학습 시 initialRating, learnedAt 저장
       const now = new Date();
 
-      // 첫 학습 시 nextReviewDate 설정
-      // rating 1-2 (모름): 오늘부터 바로 복습
-      // rating 4-5 (알았음): D+3에 복습
+      // 첫 학습 시 nextReviewDate 설정 (2버튼 시스템)
+      // 모름 (rating 1): 오늘부터 바로 복습
+      // 알았음 (rating 5): D+3에 복습
       const initialNextReviewDate = new Date();
-      if (rating >= 4) {
+      if (rating >= 3) {
+        // 알았음 → D+3에 복습
         initialNextReviewDate.setDate(initialNextReviewDate.getDate() + 3);
       }
-      // rating <= 2는 오늘 (이미 new Date()로 설정됨)
+      // 모름 (rating <= 2)은 오늘 (이미 new Date()로 설정됨)
 
       progress = await prisma.userProgress.create({
         data: {
@@ -393,20 +394,16 @@ export const submitReview = async (
       progress.repetitions
     );
 
-    // ===== nextReviewDate 설정 (복습 로직 개선) =====
-    // rating 1-2 (모름/애매함): 오늘부터 바로 복습 대기
-    // rating 4-5 (알았음): D+3에 복습 (3일 후)
-    // rating 3: SM-2 알고리즘 interval 사용
+    // ===== nextReviewDate 설정 (2버튼 시스템) =====
+    // 모름 (rating 1): 오늘부터 바로 복습 대기
+    // 알았음 (rating 5): D+3에 복습 (3일 후)
     const nextReviewDate = new Date();
     if (rating <= 2) {
-      // 모름/애매함 → 오늘부터 바로 복습 가능
+      // 모름 → 오늘부터 바로 복습 가능
       // nextReviewDate = now (이미 new Date()로 설정됨)
-    } else if (rating >= 4) {
-      // 알았음 → D+3에 복습
-      nextReviewDate.setDate(nextReviewDate.getDate() + 3);
     } else {
-      // rating 3 → SM-2 interval 사용
-      nextReviewDate.setDate(nextReviewDate.getDate() + interval);
+      // 알았음 (rating >= 3) → D+3에 복습
+      nextReviewDate.setDate(nextReviewDate.getDate() + 3);
     }
 
     // ===== 정확도/숙련도 로직 개편 =====
