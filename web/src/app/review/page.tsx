@@ -130,13 +130,28 @@ function ReviewPageContent() {
   const selectedExam = activeExam || 'CSAT';
   const selectedLevel = activeLevel || 'L1';
 
-  // 필터 변경 시 store 업데이트
+  // 초기 로드 시 localStorage에서 마지막 선택한 레벨 복원
+  useEffect(() => {
+    if (typeof window !== 'undefined' && activeExam) {
+      const lastLevel = localStorage.getItem(`review_${activeExam}_level`);
+      if (lastLevel && lastLevel !== activeLevel) {
+        setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
+      }
+    }
+  }, [activeExam]);
+
+  // 필터 변경 시 store 업데이트 + localStorage 저장
   const handleExamChange = (exam: string) => {
     setActiveExam(exam as ExamType);
+    // localStorage에서 마지막 선택한 레벨 가져오기
+    const lastLevel = localStorage.getItem(`review_${exam}_level`);
+    setActiveLevel((lastLevel || 'L1') as 'L1' | 'L2' | 'L3');
   };
 
   const handleLevelChange = (level: string) => {
     setActiveLevel(level as 'L1' | 'L2' | 'L3');
+    // localStorage에 마지막 선택한 레벨 저장
+    localStorage.setItem(`review_${selectedExam}_level`, level);
   };
 
   useEffect(() => {
@@ -482,7 +497,7 @@ function ReviewPageContent() {
             <p className="text-[12px] text-gray-500 mt-1">취약 단어</p>
           </Link>
           <Link
-            href="/bookmarks"
+            href="/learn?mode=bookmarks"
             className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 text-center hover:shadow-md transition"
           >
             <p className="text-[22px] font-bold text-[#F59E0B]">{stats.bookmarked}</p>

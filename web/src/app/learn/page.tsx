@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSession, clearLearningSession } from '@/lib/store';
-import { progressAPI, wordsAPI, learningAPI, api } from '@/lib/api';
+import { progressAPI, wordsAPI, learningAPI, bookmarkAPI, api } from '@/lib/api';
 import { canAccessContent } from '@/lib/subscription';
 import { motion } from 'framer-motion';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
@@ -123,6 +123,7 @@ function LearnPageContent() {
   const isDemo = searchParams.get('demo') === 'true' || searchParams.get('demo') === '1';
   const isReviewMode = searchParams.get('mode') === 'review';
   const isWeakMode = searchParams.get('mode') === 'weak';
+  const isBookmarksMode = searchParams.get('mode') === 'bookmarks';
   const isRestart = searchParams.get('restart') === 'true';
 
   const user = useAuthStore((state) => state.user);
@@ -155,12 +156,12 @@ function LearnPageContent() {
     }
   }, [hasHydrated, user, examParam, levelParam, isDemo]);
 
-  // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트 (복습 모드 제외)
+  // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트 (복습/북마크 모드 제외)
   useEffect(() => {
-    if (hasHydrated && !examParam && !isDemo && !isReviewMode && !isWeakMode) {
+    if (hasHydrated && !examParam && !isDemo && !isReviewMode && !isWeakMode && !isBookmarksMode) {
       router.replace(user ? '/dashboard' : '/');
     }
-  }, [hasHydrated, examParam, isDemo, isReviewMode, isWeakMode, user, router]);
+  }, [hasHydrated, examParam, isDemo, isReviewMode, isWeakMode, isBookmarksMode, user, router]);
   const {
     currentWordIndex,
     sessionId,
@@ -206,8 +207,8 @@ function LearnPageContent() {
   useEffect(() => {
     if (!hasHydrated) return;
 
-    // restart 모드이거나 데모/복습 모드면 세션 초기화
-    if (isRestart || isDemo || isReviewMode || isWeakMode) {
+    // restart 모드이거나 데모/복습/북마크 모드면 세션 초기화
+    if (isRestart || isDemo || isReviewMode || isWeakMode || isBookmarksMode) {
       resetSession();
       clearLearningSession();
     }
@@ -256,6 +257,16 @@ function LearnPageContent() {
           setReviews(data.reviews);
         }
         setTotalWordsInLevel(data.count || 0);
+      // 북마크 모드: 북마크된 단어 로드
+      } else if (isBookmarksMode && user) {
+        const data = await bookmarkAPI.getBookmarks();
+        const bookmarks = data.bookmarks || [];
+        if (bookmarks.length === 0) {
+          setReviews([]);
+        } else {
+          setReviews(bookmarks.map((b: { word: Word }) => ({ word: b.word })));
+        }
+        setTotalWordsInLevel(bookmarks.length);
       // Demo mode: use first 20 words from API directly
       } else if (isDemo && examParam) {
         const data = await wordsAPI.getWords({
@@ -1043,7 +1054,11 @@ function LearnPageContent() {
 
             {/* Center - Course Info + Set Info */}
             <div className="text-center flex-1 min-w-0">
-              {isReviewMode ? (
+              {isBookmarksMode ? (
+                <span className="text-[15px] font-bold text-[#1c1c1e]">
+                  북마크 <span className="text-gray-500 font-normal">· 플래시카드</span>
+                </span>
+              ) : isReviewMode ? (
                 <span className="text-[15px] font-bold text-[#1c1c1e]">
                   복습 <span className="text-gray-500 font-normal">· 플래시카드</span>
                 </span>
