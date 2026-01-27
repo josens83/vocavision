@@ -182,11 +182,13 @@ export const getDueReviews = async (
       };
     }
 
-    // 복습 대상 후보 조회 (correctCount < 2인 단어)
+    // 복습 대상 후보 조회 (correctCount < 2 AND nextReviewDate <= NOW)
+    // 오늘 복습 대기인 단어만 DB에서 조회
     const allProgress = await prisma.userProgress.findMany({
       where: {
         userId,
         correctCount: { lt: 2 }, // 완료되지 않은 것만
+        nextReviewDate: { lte: new Date() },  // 오늘 또는 이전 날짜만
         word: wordWhere
       },
       include: {
