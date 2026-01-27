@@ -676,6 +676,22 @@ function UnifiedMemberCard() {
         </div>
       </div>
 
+      {/* 하단: 학습하기 / 복습하기 버튼 */}
+      <div className="pt-4 border-t border-gray-100 flex gap-3">
+        <Link
+          href="/dashboard"
+          className="flex-1 py-3 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
+        >
+          학습하기
+        </Link>
+        <Link
+          href="/review"
+          className="flex-1 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold rounded-xl text-center transition-colors"
+        >
+          복습하기
+        </Link>
+      </div>
+
     </div>
   );
 }

@@ -455,18 +455,24 @@ function ReviewPageContent() {
             마지막 복습: {stats.lastReviewDate ? new Date(stats.lastReviewDate).toLocaleDateString('ko-KR') : '기록 없음'}
           </p>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Link
-              href={`/learn?mode=review&exam=${selectedExam}&level=${selectedLevel}`}
-              className="block bg-gray-100 hover:bg-gray-200 text-gray-500 py-3 rounded-xl font-semibold text-center transition-colors"
-            >
-              📚 플래시카드
-            </Link>
+          <div className="grid grid-cols-3 gap-3">
             <Link
               href={`/review/quiz?exam=${selectedExam}&level=${selectedLevel}`}
               className="block bg-gradient-to-r from-[#A855F7] to-[#EC4899] text-white py-3 rounded-xl font-bold text-center shadow-sm hover:shadow-md transition-shadow"
             >
-              🎯 4지선다 퀴즈
+              🎯 퀴즈
+            </Link>
+            <Link
+              href={`/learn?mode=review&exam=${selectedExam}&level=${selectedLevel}`}
+              className="block bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold text-center transition-colors"
+            >
+              📚 플래시카드
+            </Link>
+            <Link
+              href="/learn?mode=bookmarks"
+              className="block bg-amber-100 hover:bg-amber-200 text-amber-700 py-3 rounded-xl font-semibold text-center transition-colors"
+            >
+              ⭐ 북마크
             </Link>
           </div>
         </section>
@@ -479,31 +485,6 @@ function ReviewPageContent() {
             <p className="text-[#059669]">모든 복습을 마쳤습니다. 잘하셨어요!</p>
           </section>
         )}
-
-        {/* Review Categories (은행 앱 스타일) */}
-        <div className="grid grid-cols-3 gap-3">
-          <Link
-            href={`/learn?mode=review&exam=${selectedExam}&level=${selectedLevel}`}
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 text-center hover:shadow-md transition"
-          >
-            <p className="text-[22px] font-bold text-purple-500">{stats.dueToday}</p>
-            <p className="text-[12px] text-gray-500 mt-1">오늘 복습</p>
-          </Link>
-          <Link
-            href={`/learn?mode=weak&exam=${selectedExam}&level=${selectedLevel}`}
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 text-center hover:shadow-md transition"
-          >
-            <p className="text-[22px] font-bold text-[#EF4444]">{stats.weak}</p>
-            <p className="text-[12px] text-gray-500 mt-1">취약 단어</p>
-          </Link>
-          <Link
-            href="/learn?mode=bookmarks"
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 text-center hover:shadow-md transition"
-          >
-            <p className="text-[22px] font-bold text-[#F59E0B]">{stats.bookmarked}</p>
-            <p className="text-[12px] text-gray-500 mt-1">북마크</p>
-          </Link>
-        </div>
 
         {/* Due Words List with Pagination */}
         {dueWords.length > 0 && (
