@@ -82,6 +82,8 @@ interface FlashCardGestureProps {
   hasPrevious?: boolean;
   hasNext?: boolean;
   hasExistingProgress?: boolean;
+  /** 복습 모드 (rating 버튼 숨김, 이전/다음만 표시) */
+  isReviewMode?: boolean;
 }
 
 const SWIPE_HINT_KEY = 'vocavision_swipe_hint_count';
@@ -94,6 +96,7 @@ export default function FlashCardGesture({
   hasPrevious = false,
   hasNext = true,
   hasExistingProgress = false,
+  isReviewMode = false,
 }: FlashCardGestureProps) {
   const [showAnswer, setShowAnswer] = useState(false);
   const [showSwipeHint, setShowSwipeHint] = useState(true);
@@ -322,28 +325,57 @@ export default function FlashCardGesture({
           {/* Divider */}
           <div className="border-t border-gray-100" />
 
-          {/* Rating Buttons - 이분법 (모름/알았음) */}
-          <div className="p-6 border-b border-gray-100">
-            <p className="text-center text-gray-500 text-xs md:text-sm mb-3">
-              이 단어를 알고 있었나요?
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={() => handleRating(1)}
-                className="bg-rose-50 hover:bg-rose-100 text-rose-600 py-5 rounded-xl font-medium transition-colors"
-              >
-                <span className="block text-2xl mb-1">😕</span>
-                <span className="text-sm font-semibold">모름</span>
-              </button>
-              <button
-                onClick={() => handleRating(5)}
-                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 py-5 rounded-xl font-medium transition-colors"
-              >
-                <span className="block text-2xl mb-1">😊</span>
-                <span className="text-sm font-semibold">알았음</span>
-              </button>
+          {/* 학습 모드: Rating Buttons (모름/알았음) */}
+          {!isReviewMode && (
+            <div className="p-6 border-b border-gray-100">
+              <p className="text-center text-gray-500 text-xs md:text-sm mb-3">
+                이 단어를 알고 있었나요?
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => handleRating(1)}
+                  className="bg-rose-50 hover:bg-rose-100 text-rose-600 py-5 rounded-xl font-medium transition-colors"
+                >
+                  <span className="block text-2xl mb-1">😕</span>
+                  <span className="text-sm font-semibold">모름</span>
+                </button>
+                <button
+                  onClick={() => handleRating(5)}
+                  className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 py-5 rounded-xl font-medium transition-colors"
+                >
+                  <span className="block text-2xl mb-1">😊</span>
+                  <span className="text-sm font-semibold">알았음</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* 복습 모드: 이전/다음 네비게이션 */}
+          {isReviewMode && (
+            <div className="p-6 border-b border-gray-100">
+              <p className="text-center text-gray-500 text-xs md:text-sm mb-3">
+                복습 모드 - 빠르게 훑어보기
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={onPrevious}
+                  disabled={!hasPrevious}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  <span className="text-sm font-semibold">이전</span>
+                </button>
+                <button
+                  onClick={onNext}
+                  disabled={!hasNext}
+                  className="bg-teal-500 hover:bg-teal-600 text-white py-4 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <span className="text-sm font-semibold">다음</span>
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Answer Section */}
           <AnimatePresence mode="wait">
