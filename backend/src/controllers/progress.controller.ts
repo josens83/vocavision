@@ -491,6 +491,8 @@ export const submitReview = async (
         totalReviews: progress.totalReviews + 1,
         needsReview,
         reviewCorrectCount,
+        // 플래시카드 재선택 시 initialRating 업데이트 (FLASHCARD 학습만)
+        ...(learningMethod === 'FLASHCARD' || !learningMethod ? { initialRating: rating } : {}),
       }
     });
 
