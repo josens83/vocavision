@@ -548,8 +548,18 @@ function StatisticsPageContent() {
           </div>
 
           <div className="space-y-3">
-            {Object.entries(levelDist).map(([level, count]) => {
-              const total = Object.values(levelDist).reduce((a, b) => a + b, 0);
+            {Object.entries(levelDist)
+              .filter(([level]) => {
+                // TEPS는 L1, L2만 표시 (L3 없음)
+                if (levelProgressExam === 'TEPS' && level === 'L3') {
+                  return false;
+                }
+                return true;
+              })
+              .map(([level, count]) => {
+              const filteredLevelDist = Object.entries(levelDist)
+                .filter(([l]) => !(levelProgressExam === 'TEPS' && l === 'L3'));
+              const total = filteredLevelDist.reduce((a, [, c]) => a + c, 0);
               const percentage = total > 0 ? (count / total) * 100 : 0;
               const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
               const safeCount = isNaN(count) ? 0 : count;
