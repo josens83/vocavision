@@ -428,7 +428,7 @@ function StatisticsPageContent() {
               <span className="text-[18px] font-bold text-[#1c1c1e]">{masteryData.reviewTarget}개</span>
             </div>
             <p className="text-[12px] text-gray-500 mt-2">
-              모름/애매함으로 표시한 단어들 (복습 퀴즈에서 학습)
+              모름으로 표시한 단어들 (복습 퀴즈에서 학습)
             </p>
           </div>
 

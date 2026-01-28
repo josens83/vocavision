@@ -46,6 +46,8 @@ interface ReviewStats {
   accuracy?: number;
   todayCorrect?: number;
   lastReviewDate?: string;
+  tomorrowDue?: number;
+  thisWeekDue?: number;
 }
 
 interface ReviewWord {
@@ -88,6 +90,8 @@ const DEMO_STATS: ReviewStats = {
   accuracy: 78,
   todayCorrect: 10,
   lastReviewDate: new Date().toISOString(),
+  tomorrowDue: 12,
+  thisWeekDue: 25,
 };
 
 const DEMO_WORDS: ReviewWord[] = [
@@ -113,6 +117,8 @@ function ReviewPageContent() {
     accuracy: 0,
     todayCorrect: 0,
     lastReviewDate: undefined,
+    tomorrowDue: 0,
+    thisWeekDue: 0,
   });
   const [currentStreak, setCurrentStreak] = useState(0);
   const [dueWords, setDueWords] = useState<ReviewWord[]>([]);
@@ -207,6 +213,8 @@ function ReviewPageContent() {
         accuracy: data.accuracy || 0,
         todayCorrect: data.todayCorrect || 0,
         lastReviewDate: data.lastReviewDate,
+        tomorrowDue: data.tomorrowDue || 0,
+        thisWeekDue: data.thisWeekDue || 0,
       });
       setCurrentStreak(progressData.stats?.currentStreak || 0);
 
@@ -596,7 +604,9 @@ function ReviewPageContent() {
                   <p className="text-[12px] text-gray-500">내일 복습 예정</p>
                 </div>
               </div>
-              <span className="text-gray-500 font-bold">-</span>
+              <span className={`font-bold ${(stats.tomorrowDue || 0) > 0 ? 'text-blue-500' : 'text-gray-400'}`}>
+                {stats.tomorrowDue || 0}개
+              </span>
             </div>
 
             {/* 이번 주 */}
@@ -605,10 +615,12 @@ function ReviewPageContent() {
                 <span className="text-xl">🗓️</span>
                 <div>
                   <p className="text-[14px] font-semibold text-[#1c1c1e]">이번 주</p>
-                  <p className="text-[12px] text-gray-500">7일 이내</p>
+                  <p className="text-[12px] text-gray-500">2~7일 이내</p>
                 </div>
               </div>
-              <span className="text-gray-500 font-bold">-</span>
+              <span className={`font-bold ${(stats.thisWeekDue || 0) > 0 ? 'text-teal-500' : 'text-gray-400'}`}>
+                {stats.thisWeekDue || 0}개
+              </span>
             </div>
           </div>
         </section>
