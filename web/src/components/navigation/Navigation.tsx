@@ -47,8 +47,8 @@ export const guestNavigationItems: NavItem[] = [
     label: "TEPS",
     color: "text-teal-600",
     children: [
-      { label: "L1 기본 🔒", href: "/auth/register" },
-      { label: "L2 필수 🔒", href: "/auth/register" },
+      { label: "L1 기본", href: "/auth/register" },
+      { label: "L2 필수", href: "/auth/register" },
     ],
   },
   {
