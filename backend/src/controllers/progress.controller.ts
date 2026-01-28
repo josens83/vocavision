@@ -196,6 +196,19 @@ export const getDueReviews = async (
     todayStartKST.setUTCHours(0, 0, 0, 0);
     const todayStartUTC = new Date(todayStartKST.getTime() - 9 * 60 * 60 * 1000);
 
+    // KST 기준 내일 시작/끝 시간
+    const tomorrowStartKST = new Date(todayStartKST);
+    tomorrowStartKST.setDate(tomorrowStartKST.getDate() + 1);
+    const tomorrowStartUTC = new Date(tomorrowStartKST.getTime() - 9 * 60 * 60 * 1000);
+    const tomorrowEndKST = new Date(tomorrowStartKST);
+    tomorrowEndKST.setDate(tomorrowEndKST.getDate() + 1);
+    const tomorrowEndUTC = new Date(tomorrowEndKST.getTime() - 9 * 60 * 60 * 1000);
+
+    // KST 기준 이번 주 끝 (7일 후)
+    const weekEndKST = new Date(todayStartKST);
+    weekEndKST.setDate(weekEndKST.getDate() + 7);
+    const weekEndUTC = new Date(weekEndKST.getTime() - 9 * 60 * 60 * 1000);
+
     // 기본 where 조건
     const wordWhere: any = {
       isActive: true,
@@ -256,7 +269,7 @@ export const getDueReviews = async (
     }));
 
     // 병렬로 통계 정보 조회
-    const [progressForStats, lastReviewRecord, weakWordsCount, todayCorrectCount, bookmarkedCount] = await Promise.all([
+    const [progressForStats, lastReviewRecord, weakWordsCount, todayCorrectCount, bookmarkedCount, tomorrowDueCount, thisWeekDueCount] = await Promise.all([
       // 전체 학습 기록에서 정답률 계산
       prisma.userProgress.findMany({
         where: { userId, word: wordWhere },
@@ -303,7 +316,33 @@ export const getDueReviews = async (
         where: {
           userId
         }
-      }).catch(() => 0)  // Bookmark 테이블이 없을 경우 0 반환
+      }).catch(() => 0),  // Bookmark 테이블이 없을 경우 0 반환
+
+      // 내일 복습 예정 (nextReviewDate가 내일인 단어)
+      prisma.userProgress.count({
+        where: {
+          userId,
+          correctCount: { lt: 2 },
+          nextReviewDate: {
+            gte: tomorrowStartUTC,
+            lt: tomorrowEndUTC
+          },
+          word: wordWhere
+        }
+      }),
+
+      // 이번 주 복습 예정 (내일 이후 ~ 7일 이내)
+      prisma.userProgress.count({
+        where: {
+          userId,
+          correctCount: { lt: 2 },
+          nextReviewDate: {
+            gte: tomorrowEndUTC,
+            lt: weekEndUTC
+          },
+          word: wordWhere
+        }
+      })
     ]);
 
     // 정답률 계산
@@ -324,7 +363,9 @@ export const getDueReviews = async (
       weakCount: weakWordsCount,
       todayCorrect: todayCorrectCount,
       totalReviewed: progressForStats.length,
-      bookmarkedCount: bookmarkedCount
+      bookmarkedCount: bookmarkedCount,
+      tomorrowDue: tomorrowDueCount,
+      thisWeekDue: thisWeekDueCount
     });
   } catch (error) {
     next(error);
