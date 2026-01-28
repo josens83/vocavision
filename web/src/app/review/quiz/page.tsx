@@ -330,7 +330,7 @@ function QuizPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="no-pull-refresh min-h-screen bg-gray-50">
       {/* 데모 모드 배너 */}
       {isDemo && !user && (
         <div className="bg-amber-50 border-b border-amber-200 sticky top-0 z-20">
