@@ -469,21 +469,24 @@ function ReviewPageContent() {
           <div className="grid grid-cols-3 gap-3">
             <Link
               href={`/review/quiz?exam=${selectedExam}&level=${selectedLevel}`}
-              className="block bg-gradient-to-r from-[#A855F7] to-[#EC4899] text-white py-3 rounded-xl font-bold text-center shadow-sm hover:shadow-md transition-shadow"
+              className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#A855F7] to-[#EC4899] text-white py-3 rounded-xl font-bold shadow-sm hover:shadow-md transition-shadow"
             >
-              🎯 퀴즈
+              <span>🎯</span>
+              <span>퀴즈</span>
             </Link>
             <Link
               href={`/learn?mode=review&exam=${selectedExam}&level=${selectedLevel}`}
-              className="block bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold text-center transition-colors"
+              className="flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold transition-colors"
             >
-              📚 플래시카드
+              <span>📚</span>
+              <span>플래시카드</span>
             </Link>
             <Link
               href="/learn?mode=bookmarks"
-              className="block bg-amber-100 hover:bg-amber-200 text-amber-700 py-3 rounded-xl font-semibold text-center transition-colors"
+              className="flex items-center justify-center gap-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 py-3 rounded-xl font-semibold transition-colors"
             >
-              ⭐ 북마크
+              <span>⭐</span>
+              <span>북마크</span>
             </Link>
           </div>
         </section>
