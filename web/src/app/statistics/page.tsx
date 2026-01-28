@@ -399,7 +399,14 @@ function StatisticsPageContent() {
             <div className="flex gap-2 flex-shrink-0">
               <select
                 value={masteryExam}
-                onChange={(e) => setMasteryExam(e.target.value)}
+                onChange={(e) => {
+                  const newExam = e.target.value;
+                  setMasteryExam(newExam);
+                  // TEPS는 L1/L2만 유효 - L3 선택 시 전체로 리셋
+                  if (newExam === 'TEPS' && masteryLevel === 'L3') {
+                    setMasteryLevel('all');
+                  }
+                }}
                 className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
                 <option value="CSAT">수능</option>
@@ -413,7 +420,7 @@ function StatisticsPageContent() {
                 <option value="all">전체</option>
                 <option value="L1">L1</option>
                 <option value="L2">L2</option>
-                <option value="L3">L3</option>
+                {masteryExam !== 'TEPS' && <option value="L3">L3</option>}
               </select>
             </div>
           </div>
