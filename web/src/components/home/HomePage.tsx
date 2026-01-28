@@ -26,17 +26,19 @@ export default function HomePage() {
         <PopularWordsSection />
       </LazySection>
 
-      {/* CTA 섹션 */}
-      <section className="py-20 px-6 bg-gradient-to-br from-brand-primary to-brand-primary/80">
-        <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-display-md font-display font-bold mb-6">지금 바로 시작하세요</h2>
-          <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">매일 10분, 과학적인 학습 방법으로 영어 어휘력을 향상시키세요.</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a href="/learn?exam=CSAT" className="btn bg-white text-brand-primary hover:bg-white/90 hover:shadow-lg">무료로 시작하기</a>
-            <a href="/pricing" className="btn border-2 border-white/30 text-white hover:bg-white/10">요금제 보기</a>
+      {/* CTA 섹션 - 비로그인 사용자에게만 표시 */}
+      {!isLoggedIn && (
+        <section className="py-20 px-6 bg-gradient-to-br from-brand-primary to-brand-primary/80">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h2 className="text-display-md font-display font-bold mb-6">지금 바로 시작하세요</h2>
+            <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">매일 10분, 과학적인 학습 방법으로 영어 어휘력을 향상시키세요.</p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <a href="/learn?exam=CSAT" className="btn bg-white text-brand-primary hover:bg-white/90 hover:shadow-lg">무료로 시작하기</a>
+              <a href="/pricing" className="btn border-2 border-white/30 text-white hover:bg-white/10">요금제 보기</a>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
