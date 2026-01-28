@@ -156,7 +156,7 @@ function WordSearchCard() {
     }
   };
 
-  const popularWords = ['contemporary', 'circumstance', 'nevertheless'];
+  const popularWords = ['contemporary', 'circumstance', 'nevertheless', 'stimulate'];
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
@@ -213,7 +213,7 @@ function getDaysRemaining(subscriptionEnd?: string) {
 }
 
 // ============================================
-// 현재 플랜 배지 컴포넌트 -> 회원 정보 카드로 확장
+// 현재 플랜 배지 컴포넌트 -> 회원 정보 카드로 확장 (모바일 통합 카드)
 // ============================================
 function MemberInfoCard() {
   const { user } = useAuthStore();
@@ -251,9 +251,41 @@ function MemberInfoCard() {
 
   if (!user) return null;
 
-  const planInfo = getPlanDisplay(user);
-  const daysRemaining = getDaysRemaining(user.subscriptionEnd);
+  const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
+
+  useEffect(() => {
+    if (!user) return;
+    loadStats();
+  }, [user]);
+
+  const loadStats = async () => {
+    try {
+      const [progressData, reviewData] = await Promise.all([
+        progressAPI.getUserProgress(),
+        progressAPI.getDueReviews(),
+      ]);
+
+      setStats({
+        currentStreak: progressData.stats?.currentStreak || 0,
+        todayWordsLearned: progressData.stats?.todayWordsLearned || 0,
+        dueReviewCount: reviewData.count || 0,
+        todayFlashcardAccuracy: progressData.stats?.todayFlashcardAccuracy || 0,
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+      setStats({
+        currentStreak: 0,
+        todayWordsLearned: 0,
+        dueReviewCount: 0,
+        todayFlashcardAccuracy: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!user) return null;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
@@ -311,33 +343,36 @@ function MemberInfoCard() {
             </span>
           )}
         </div>
-        <div className="grid grid-cols-3 gap-4">
-          {loading ? (
-            <>
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="text-center">
-                  <div className="h-6 w-12 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
-                  <div className="h-3 w-14 bg-slate-100 rounded animate-pulse mx-auto" />
-                </div>
-              ))}
-            </>
-          ) : (
-            <>
-              <div className="text-center">
-                <p className="text-xl font-bold text-[#3B82F6]">{stats?.todayWordsLearned || 0}</p>
-                <p className="text-xs text-gray-500">오늘 학습</p>
+        {loading ? (
+          <div className="flex justify-between items-center">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                <div className="h-6 w-12 bg-slate-200 rounded animate-pulse" />
+                <div className="h-3 w-14 bg-slate-100 rounded animate-pulse" />
               </div>
-              <div className="text-center">
-                <p className="text-xl font-bold text-[#F59E0B]">{stats?.dueReviewCount || 0}</p>
-                <p className="text-xs text-gray-500">복습 대기</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xl font-bold text-[#10B981]">{stats?.todayFlashcardAccuracy || 0}%</p>
-                <p className="text-xs text-gray-500">정답률</p>
-              </div>
-            </>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex justify-between items-center">
+            <DashboardItem
+              value={stats?.todayWordsLearned || 0}
+              label="오늘 학습"
+              color="#3B82F6"
+            />
+            <div className="w-[1px] h-10 bg-[#f0f0f0]" />
+            <DashboardItem
+              value={stats?.dueReviewCount || 0}
+              label="복습 대기"
+              color="#F59E0B"
+            />
+            <div className="w-[1px] h-10 bg-[#f0f0f0]" />
+            <DashboardItem
+              value={`${stats?.todayFlashcardAccuracy || 0}%`}
+              label="정답률"
+              color="#10B981"
+            />
+          </div>
+        )}
       </div>
 
       {/* 하단: 학습하기 / 복습하기 버튼 */}
