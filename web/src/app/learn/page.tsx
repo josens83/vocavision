@@ -147,17 +147,6 @@ function LearnPageContent() {
     }
   }, [isDemo, user]);
 
-  // Pull-to-Refresh 비활성화 - body/html에 직접 적용
-  useEffect(() => {
-    document.body.style.overscrollBehaviorY = 'contain';
-    document.documentElement.style.overscrollBehaviorY = 'contain';
-
-    return () => {
-      document.body.style.overscrollBehaviorY = '';
-      document.documentElement.style.overscrollBehaviorY = '';
-    };
-  }, []);
-
   // 구독 기반 접근 제어
   useEffect(() => {
     if (!hasHydrated || isDemo) return;
