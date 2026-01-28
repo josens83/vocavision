@@ -170,6 +170,7 @@ export const getUserProgress = async (
       progress,
       stats: {
         ...stats,
+        totalWordsLearned: totalLearned,  // UserProgress 카운트 사용 (User 테이블 대신)
         todayWordsLearned: todayLearned,
         todayFlashcardAccuracy,    // 오늘 플래시카드 정답률
         totalFlashcardAccuracy,    // 전체 플래시카드 정답률
@@ -283,12 +284,16 @@ export const getDueReviews = async (
       }),
 
       // 오늘 맞춘 복습 수 (KST 기준)
-      // 오늘 복습했고(lastReviewDate >= 오늘) + nextReviewDate가 오늘 이후인 단어 = 맞춘 단어
+      // 복습에서 맞춘 단어만 카운트 (첫 학습 제외)
+      // - lastReviewDate >= 오늘 (오늘 복습함)
+      // - nextReviewDate > 오늘 (맞춰서 D+3로 설정됨)
+      // - learnedAt < 오늘 (오늘 이전에 학습한 단어 = 복습 대상)
       prisma.userProgress.count({
         where: {
           userId,
           lastReviewDate: { gte: todayStartUTC },
-          nextReviewDate: { gt: new Date() },  // 오늘 이후 = 맞춘 단어 (D+3로 설정됨)
+          nextReviewDate: { gt: new Date() },
+          learnedAt: { lt: todayStartUTC },  // 오늘 이전에 학습한 단어만 (첫 학습 제외)
           word: wordWhere
         }
       }),
@@ -461,8 +466,10 @@ export const submitReview = async (
       // reviewCorrectCount가 2 이상이면 복습 완료 (선택사항: needsReview를 false로 변경 가능)
     }
 
-    // 새로운 correctCount 계산
-    const newCorrectCount = isCorrectAnswer ? progress.correctCount + 1 : progress.correctCount;
+    // 새로운 correctCount 계산 (QUIZ에서만 증가)
+    // 플래시카드는 initialRating으로 정답률 계산, 복습 퀴즈는 correctCount/incorrectCount 사용
+    const isQuiz = learningMethod === 'QUIZ';
+    const newCorrectCount = (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount;
 
     // Determine mastery level based on correctCount
     let masteryLevel = progress.masteryLevel;
@@ -486,8 +493,9 @@ export const submitReview = async (
         nextReviewDate,
         lastReviewDate: new Date(),
         masteryLevel,
-        correctCount: isCorrectAnswer ? progress.correctCount + 1 : progress.correctCount,
-        incorrectCount: !isCorrectAnswer ? progress.incorrectCount + 1 : progress.incorrectCount,
+        // correctCount/incorrectCount: QUIZ에서만 증가 (플래시카드는 initialRating 사용)
+        correctCount: (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount,
+        incorrectCount: (!isCorrectAnswer && isQuiz) ? progress.incorrectCount + 1 : progress.incorrectCount,
         totalReviews: progress.totalReviews + 1,
         needsReview,
         reviewCorrectCount,
