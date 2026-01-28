@@ -472,16 +472,26 @@ export const submitReview = async (
       progress.repetitions
     );
 
-    // ===== nextReviewDate 설정 (2버튼 시스템) =====
-    // 모름 (rating 1): 오늘부터 바로 복습 대기
-    // 알았음 (rating 5): D+3에 복습 (3일 후)
+    // ===== nextReviewDate 설정 =====
+    // 플래시카드: 모름(rating 1) → 오늘, 알았음(rating 5) → D+3
+    // 복습 퀴즈: 정답 → D+1, 오답 → 오늘
     const nextReviewDate = new Date();
-    if (rating <= 2) {
-      // 모름 → 오늘부터 바로 복습 가능
-      // nextReviewDate = now (이미 new Date()로 설정됨)
+    const isQuiz = learningMethod === 'QUIZ';
+
+    if (isQuiz) {
+      // 복습 퀴즈
+      if (rating >= 3) {
+        // 정답 → D+1에 다시 복습
+        nextReviewDate.setDate(nextReviewDate.getDate() + 1);
+      }
+      // 오답 (rating <= 2) → 오늘 (바로 재복습)
     } else {
-      // 알았음 (rating >= 3) → D+3에 복습
-      nextReviewDate.setDate(nextReviewDate.getDate() + 3);
+      // 플래시카드
+      if (rating >= 3) {
+        // 알았음 → D+3에 복습
+        nextReviewDate.setDate(nextReviewDate.getDate() + 3);
+      }
+      // 모름 (rating <= 2) → 오늘 (바로 복습 대기)
     }
 
     // ===== 정확도/숙련도 로직 개편 =====
@@ -509,8 +519,12 @@ export const submitReview = async (
 
     // 새로운 correctCount 계산 (QUIZ에서만 증가)
     // 플래시카드는 initialRating으로 정답률 계산, 복습 퀴즈는 correctCount/incorrectCount 사용
-    const isQuiz = learningMethod === 'QUIZ';
     const newCorrectCount = (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount;
+
+    // ===== correctCount >= 2이면 복습 완료 =====
+    if (newCorrectCount >= 2) {
+      needsReview = false;
+    }
 
     // Determine mastery level based on correctCount
     let masteryLevel = progress.masteryLevel;
