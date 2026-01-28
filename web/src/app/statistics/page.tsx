@@ -455,38 +455,20 @@ function StatisticsPageContent() {
               </div>
             </div>
 
-            {/* 어느 정도 암기 */}
+            {/* 암기 완료 (어느 정도 암기 + 완전 암기 통합) */}
             <div className="w-full min-w-0">
               <div className="flex justify-between items-center mb-1.5 gap-2">
                 <span className="text-[13px] text-gray-500 truncate min-w-0">
-                  어느 정도 암기
+                  암기 완료
                 </span>
                 <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                  {masteryData.familiar.count}개 ({masteryData.familiar.percent}%)
-                </span>
-              </div>
-              <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500 bg-[#3B82F6]"
-                  style={{ width: `${Math.max(masteryData.familiar.percent, 0)}%` }}
-                />
-              </div>
-            </div>
-
-            {/* 완전 암기 */}
-            <div className="w-full min-w-0">
-              <div className="flex justify-between items-center mb-1.5 gap-2">
-                <span className="text-[13px] text-gray-500 truncate min-w-0">
-                  완전 암기
-                </span>
-                <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                  {masteryData.mastered.count}개 ({masteryData.mastered.percent}%)
+                  {masteryData.familiar.count + masteryData.mastered.count}개 ({masteryData.familiar.percent + masteryData.mastered.percent}%)
                 </span>
               </div>
               <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500 bg-[#10B981]"
-                  style={{ width: `${Math.max(masteryData.mastered.percent, 0)}%` }}
+                  style={{ width: `${Math.max(masteryData.familiar.percent + masteryData.mastered.percent, 0)}%` }}
                 />
               </div>
             </div>
