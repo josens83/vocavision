@@ -905,10 +905,11 @@ export const getReviewQuiz = async (
 };
 
 // 숙련도 분포 API (개편된 로직)
-// 모집단: needsReview=true인 단어들 (복습 대상)
-// - 복습 중: reviewCorrectCount = 0
-// - 어느 정도 암기: reviewCorrectCount = 1
-// - 완전 암기: reviewCorrectCount >= 2
+// 모집단: 전체 학습한 단어들
+// - 복습 대상 단어: initialRating = 1 (모름)
+// - 복습 중: correctCount = 1
+// - 어느 정도 암기: correctCount >= 2 AND correctCount < 5
+// - 완전 암기: correctCount >= 5
 export const getMasteryDistribution = async (
   req: AuthRequest,
   res: Response,
@@ -918,69 +919,75 @@ export const getMasteryDistribution = async (
     const userId = req.userId!;
     const { examCategory = 'CSAT', level = 'all' } = req.query;
 
-    // 1. 해당 시험/레벨 필터
-    const wordFilter: any = {
+    // 1. UserProgress 직접 필터 (examCategory, level 컬럼 사용)
+    const progressWhere: any = {
+      userId,
       examCategory: examCategory as string,
     };
     if (level && level !== 'all') {
-      wordFilter.level = level as string;
+      progressWhere.level = level as string;
     }
 
-    // 2. 전체 학습한 단어 수 (정확도 계산용)
+    // 2. 전체 학습한 단어 수
     const totalLearnedWords = await prisma.userProgress.count({
+      where: progressWhere
+    });
+
+    // 3. 복습 대상 단어 (initialRating = 1, 즉 "모름" 선택)
+    const needsReviewWords = await prisma.userProgress.count({
       where: {
-        userId,
-        word: {
-          examLevels: { some: wordFilter }
-        }
+        ...progressWhere,
+        initialRating: 1
       }
     });
 
-    // 3. 정답 처리된 단어 수 (needsReview=false 또는 correctCount > 0)
+    // 4. 숙련도 분포 계산 (correctCount 기준)
+    // - 복습 중: correctCount = 1
+    const reviewingCount = await prisma.userProgress.count({
+      where: {
+        ...progressWhere,
+        correctCount: 1
+      }
+    });
+
+    // - 어느 정도 암기: correctCount >= 2 AND correctCount < 5
+    const familiarCount = await prisma.userProgress.count({
+      where: {
+        ...progressWhere,
+        correctCount: { gte: 2, lt: 5 }
+      }
+    });
+
+    // - 완전 암기: correctCount >= 5
+    const masteredCount = await prisma.userProgress.count({
+      where: {
+        ...progressWhere,
+        correctCount: { gte: 5 }
+      }
+    });
+
+    // 5. 정확도 계산 (정답 처리된 단어 = needsReview=false)
     const correctWords = await prisma.userProgress.count({
       where: {
-        userId,
-        needsReview: false,
-        word: {
-          examLevels: { some: wordFilter }
-        }
+        ...progressWhere,
+        needsReview: false
       }
     });
 
-    // 정확도 계산
     const accuracy = totalLearnedWords > 0
       ? Math.round((correctWords / totalLearnedWords) * 100)
       : 0;
 
-    // 4. 복습 대상 단어들 조회 (needsReview=true AND nextReviewDate <= NOW)
-    // 오늘 복습 대기인 단어만 포함
-    const reviewWords = await prisma.userProgress.findMany({
-      where: {
-        userId,
-        needsReview: true,
-        nextReviewDate: { lte: new Date() },  // 오늘 또는 이전 날짜만
-        word: {
-          examLevels: { some: wordFilter }
-        }
-      },
-      select: {
-        reviewCorrectCount: true,
-      }
-    });
+    // 6. % 계산 (전체 학습 단어 대비)
+    const reviewingPercent = totalLearnedWords > 0 ? Math.round((reviewingCount / totalLearnedWords) * 100) : 0;
+    const familiarPercent = totalLearnedWords > 0 ? Math.round((familiarCount / totalLearnedWords) * 100) : 0;
+    const masteredPercent = totalLearnedWords > 0 ? Math.round((masteredCount / totalLearnedWords) * 100) : 0;
 
-    const totalReviewWords = reviewWords.length;
-
-    // 5. 숙련도 분포 계산 (복습 대상 단어 기준)
-    const reviewing = reviewWords.filter(w => w.reviewCorrectCount === 0).length;     // 복습 중
-    const familiar = reviewWords.filter(w => w.reviewCorrectCount === 1).length;      // 어느 정도 암기
-    const mastered = reviewWords.filter(w => w.reviewCorrectCount >= 2).length;       // 완전 암기
-
-    // % 계산 (복습 대상 단어 대비)
-    const reviewingPercent = totalReviewWords > 0 ? Math.round((reviewing / totalReviewWords) * 100) : 0;
-    const familiarPercent = totalReviewWords > 0 ? Math.round((familiar / totalReviewWords) * 100) : 0;
-    const masteredPercent = totalReviewWords > 0 ? Math.round((mastered / totalReviewWords) * 100) : 0;
-
-    // 6. 전체 단어 수 (진행률 표시용)
+    // 7. 전체 단어 수 (진행률 표시용)
+    const wordFilter: any = { examCategory: examCategory as string };
+    if (level && level !== 'all') {
+      wordFilter.level = level as string;
+    }
     const totalWords = await prisma.wordExamLevel.count({
       where: wordFilter,
     });
@@ -996,17 +1003,17 @@ export const getMasteryDistribution = async (
       },
       // 숙련도 분포 (복습 대상 단어 기준)
       mastery: {
-        reviewTarget: totalReviewWords,  // 복습 대상 단어 총 개수
+        reviewTarget: needsReviewWords,  // 복습 대상 단어 총 개수 (initialRating = 1)
         reviewing: {
-          count: reviewing,
+          count: reviewingCount,
           percent: reviewingPercent,
         },
         familiar: {
-          count: familiar,
+          count: familiarCount,
           percent: familiarPercent,
         },
         mastered: {
-          count: mastered,
+          count: masteredCount,
           percent: masteredPercent,
         },
       },
@@ -1019,9 +1026,9 @@ export const getMasteryDistribution = async (
       // 기존 호환성 유지 (deprecated)
       distribution: {
         notSeen: totalWords - totalLearnedWords,
-        learning: reviewing,
-        familiar: familiar,
-        mastered: mastered,
+        learning: reviewingCount,
+        familiar: familiarCount,
+        mastered: masteredCount,
       },
     });
   } catch (error) {
