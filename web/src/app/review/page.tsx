@@ -469,21 +469,21 @@ function ReviewPageContent() {
           <div className="flex gap-2">
             <Link
               href={`/review/quiz?exam=${selectedExam}&level=${selectedLevel}`}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#A855F7] to-[#EC4899] text-white py-3 rounded-xl font-bold shadow-sm hover:shadow-md transition-shadow"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#A855F7] to-[#EC4899] text-white py-3 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-shadow"
             >
               <span>🎯</span>
               <span>퀴즈</span>
             </Link>
             <Link
               href={`/learn?mode=review&exam=${selectedExam}&level=${selectedLevel}`}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold text-sm transition-colors"
             >
               <span>📚</span>
               <span>플래시카드</span>
             </Link>
             <Link
               href="/learn?mode=bookmarks"
-              className="flex-1 flex items-center justify-center gap-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 py-3 rounded-xl font-semibold transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 py-3 rounded-xl font-semibold text-sm transition-colors"
             >
               <span>⭐</span>
               <span>북마크</span>
