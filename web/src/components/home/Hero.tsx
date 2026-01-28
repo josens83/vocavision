@@ -183,14 +183,14 @@ function WordSearchCard() {
         </button>
       </div>
 
-      {/* 인기 검색어 태그 */}
-      <div className="mt-3 flex flex-wrap gap-2">
-        <span className="text-xs text-gray-500">인기:</span>
+      {/* 인기 검색어 태그 - 모바일에서도 한 줄 표시 */}
+      <div className="mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <span className="text-xs text-gray-500 flex-shrink-0">인기:</span>
         {popularWords.map((word) => (
           <button
             key={word}
             onClick={() => router.push(`/words?search=${word}`)}
-            className="px-2 py-1 bg-gray-100 hover:bg-teal-50 text-gray-600 hover:text-teal-600 text-xs rounded-full transition-colors"
+            className="px-2 py-1 bg-gray-100 hover:bg-teal-50 text-gray-600 hover:text-teal-600 text-xs rounded-full transition-colors flex-shrink-0"
           >
             {word}
           </button>
@@ -224,6 +224,32 @@ function MemberInfoCard() {
     todayFlashcardAccuracy: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const [progressData, reviewData] = await Promise.all([
+        progressAPI.getUserProgress(),
+        progressAPI.getDueReviews(),
+      ]);
+      setStats({
+        currentStreak: progressData.stats?.currentStreak || 0,
+        todayWordsLearned: progressData.stats?.todayWordsLearned || 0,
+        dueReviewCount: reviewData.count || 0,
+        todayFlashcardAccuracy: progressData.stats?.todayFlashcardAccuracy || 0,
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+      setStats({ currentStreak: 0, todayWordsLearned: 0, dueReviewCount: 0, todayFlashcardAccuracy: 0 });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!user) return null;
 
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
@@ -274,7 +300,6 @@ function MemberInfoCard() {
           </div>
           <div>
             <p className="font-semibold text-gray-900">{user?.name || '회원'}님</p>
-            <p className="text-sm text-gray-500 truncate max-w-[140px]">{user?.email}</p>
           </div>
         </div>
 
@@ -313,7 +338,7 @@ function MemberInfoCard() {
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs text-gray-400">오늘의 학습</p>
           {!loading && stats && stats.currentStreak > 0 && (
-            <span className="text-xs text-orange-500 font-semibold flex items-center gap-1">
+            <span className="text-xs text-orange-500 font-medium flex items-center gap-1">
               🔥 {stats.currentStreak}일 연속
             </span>
           )}
@@ -478,7 +503,8 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 모바일용 통합 회원 정보 카드 (프로필 + 학습현황 + 버튼 통합) */}
+      {/* 모바일용 회원 정보 카드 (데스크톱에서는 왼쪽 통합 카드 사용) */}
+      {/* 회원정보 + 학습현황 + 버튼이 통합된 카드 */}
       <div className="lg:hidden">
         <MemberInfoCard />
       </div>
