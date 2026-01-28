@@ -82,7 +82,7 @@ export function ContinueLearning({ session, className = "" }: ContinueLearningPr
             첫 번째 단어 학습을 시작하면 여기에 진행 상황이 표시됩니다.
           </p>
           <Link
-            href="/learn?exam=CSAT"
+            href="/learn?exam=CSAT&level=L1&demo=true"
             className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary text-white font-medium rounded-xl hover:bg-brand-primary/90 transition-colors"
           >
             <span>🚀</span>
