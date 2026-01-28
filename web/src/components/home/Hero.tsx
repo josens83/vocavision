@@ -159,7 +159,7 @@ function WordSearchCard() {
   const popularWords = ['contemporary', 'circumstance', 'nevertheless', 'stimulate'];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4 w-full max-w-full overflow-hidden">
       <div className="flex items-center gap-2 mb-3">
         <Search className="w-5 h-5 text-teal-600" />
         <h3 className="font-semibold text-gray-900">단어 찾기</h3>
@@ -262,26 +262,26 @@ function MemberInfoCard() {
   if (!user) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4 w-full max-w-full overflow-hidden">
       {/* 상단: 프로필 + 플랜 배지 */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-4 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           {/* 프로필 아이콘 */}
-          <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center">
+          <div className="w-12 h-12 flex-shrink-0 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center">
             <span className="text-white text-lg font-bold">
               {user?.name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
             </span>
           </div>
-          <div>
-            <p className="font-semibold text-gray-900">{user?.name || '회원'}님</p>
+          <div className="min-w-0">
+            <p className="font-semibold text-gray-900 truncate">{user?.name || '회원'}님</p>
           </div>
         </div>
 
         {/* 플랜 배지 + D-day */}
-        <div className="text-right">
+        <div className="text-right flex-shrink-0 ml-2">
           {(plan === 'YEARLY' || plan === 'FAMILY') && (
             <>
-              <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm font-medium">
+              <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
                 👑 프리미엄
               </span>
               {daysRemaining && (
@@ -291,7 +291,7 @@ function MemberInfoCard() {
           )}
           {plan === 'MONTHLY' && (
             <>
-              <span className="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm font-medium">
+              <span className="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
                 ✨ 베이직
               </span>
               {daysRemaining && (
@@ -300,7 +300,7 @@ function MemberInfoCard() {
             </>
           )}
           {plan === 'FREE' && (
-            <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">
+            <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
               무료 플랜
             </span>
           )}
@@ -487,7 +487,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
       <WordSearchCard />
 
       {/* 전체 학습 현황 카드 (누적 데이터) */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 w-full max-w-full overflow-hidden">
         {/* 헤더 */}
         <div className="flex items-center gap-2 mb-4">
           <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
@@ -530,13 +530,13 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
       </div>
 
       {/* 오늘의 목표 카드 (은행 앱 스타일) */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">⚡</span>
-            <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 목표</h3>
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 w-full max-w-full overflow-hidden">
+        <div className="flex items-center justify-between mb-4 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-lg flex-shrink-0">⚡</span>
+            <h3 className="text-[15px] font-bold text-[#1c1c1e] truncate">오늘의 목표</h3>
           </div>
-          <span className="text-[13px] text-[#14B8A6] font-semibold">
+          <span className="text-[13px] text-[#14B8A6] font-semibold flex-shrink-0 whitespace-nowrap">
             {progressPercent >= 100 ? '🎉 ' : ''}{progressPercent}% 달성
           </span>
         </div>
@@ -560,7 +560,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
         </p>
 
         {/* 목표 선택 버튼들 */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 min-w-0">
           {goalOptions.map((goal) => (
             <button
               key={goal}
@@ -572,7 +572,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
                   console.error('Failed to update daily goal:', error);
                 }
               }}
-              className={`flex-1 py-2.5 rounded-[12px] text-[14px] font-semibold transition-all ${
+              className={`flex-1 min-w-0 py-2.5 rounded-[12px] text-[14px] font-semibold transition-all ${
                 dailyGoal === goal
                   ? 'bg-[#14B8A6] text-white shadow-sm'
                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
