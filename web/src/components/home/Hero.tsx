@@ -69,8 +69,8 @@ const Icons = {
 // Hero 섹션 통계 (실제 데이터 기반)
 const stats = [
   { label: "수능 필수", value: PLATFORM_STATS.totalWords.toLocaleString(), suffix: "개" },
-  { label: "TEPS 어휘", value: PLATFORM_STATS.exams.TEPS.words.toLocaleString(), suffix: "개" },
-  { label: "학습 모드", value: String(PLATFORM_STATS.learningModes), suffix: "가지" },
+  { label: "TEPS 핵심", value: PLATFORM_STATS.exams.TEPS.words.toLocaleString(), suffix: "개" },
+  { label: "AI 콘텐츠", value: String(PLATFORM_STATS.learningModes), suffix: "단계" },
 ];
 
 const features = [
