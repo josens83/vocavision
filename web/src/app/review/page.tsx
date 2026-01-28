@@ -151,7 +151,10 @@ function ReviewPageContent() {
     setActiveExam(exam as ExamType);
     // localStorage에서 마지막 선택한 레벨 가져오기
     const lastLevel = localStorage.getItem(`review_${exam}_level`);
-    setActiveLevel((lastLevel || 'L1') as 'L1' | 'L2' | 'L3');
+    // TEPS는 L1/L2만 유효
+    const validLevels = exam === 'TEPS' ? ['L1', 'L2'] : ['L1', 'L2', 'L3'];
+    const level = lastLevel && validLevels.includes(lastLevel) ? lastLevel : 'L1';
+    setActiveLevel(level as 'L1' | 'L2' | 'L3');
   };
 
   const handleLevelChange = (level: string) => {
