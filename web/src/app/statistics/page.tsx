@@ -483,40 +483,74 @@ function StatisticsPageContent() {
           {/* 구분선 */}
           <div className="border-t border-gray-200 my-4" />
 
-          {/* 숙련도 분포 (% 포함) */}
+          {/* 숙련도 분포 (복습 대상 단어 기준 %) */}
           <div className="space-y-4 w-full min-w-0">
-            {/* 복습 중 */}
+            {/* 미복습 (아직 복습 시작 안 함) */}
+            {(() => {
+              const notStarted = masteryData.reviewTarget - masteryData.reviewing.count - masteryData.familiar.count - masteryData.mastered.count;
+              const notStartedPercent = masteryData.reviewTarget > 0
+                ? Math.round((notStarted / masteryData.reviewTarget) * 100)
+                : 0;
+              return notStarted > 0 ? (
+                <div className="w-full min-w-0">
+                  <div className="flex justify-between items-center mb-1.5 gap-2">
+                    <span className="text-[13px] text-gray-500 truncate min-w-0">
+                      미복습
+                    </span>
+                    <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
+                      {notStarted}개 ({notStartedPercent}%)
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500 bg-gray-400"
+                      style={{ width: `${notStartedPercent}%` }}
+                    />
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* 복습 중 (correctCount = 1) */}
             <div className="w-full min-w-0">
               <div className="flex justify-between items-center mb-1.5 gap-2">
                 <span className="text-[13px] text-gray-500 truncate min-w-0">
                   복습 중
                 </span>
                 <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                  {masteryData.reviewing.count}개 ({masteryData.reviewing.percent}%)
+                  {masteryData.reviewing.count}개 ({masteryData.reviewTarget > 0
+                    ? Math.round((masteryData.reviewing.count / masteryData.reviewTarget) * 100)
+                    : 0}%)
                 </span>
               </div>
               <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500 bg-[#F59E0B]"
-                  style={{ width: `${Math.max(masteryData.reviewing.percent, 0)}%` }}
+                  style={{ width: `${masteryData.reviewTarget > 0
+                    ? Math.round((masteryData.reviewing.count / masteryData.reviewTarget) * 100)
+                    : 0}%` }}
                 />
               </div>
             </div>
 
-            {/* 암기 완료 (어느 정도 암기 + 완전 암기 통합) */}
+            {/* 암기 완료 (correctCount >= 2) */}
             <div className="w-full min-w-0">
               <div className="flex justify-between items-center mb-1.5 gap-2">
                 <span className="text-[13px] text-gray-500 truncate min-w-0">
                   암기 완료
                 </span>
                 <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                  {masteryData.familiar.count + masteryData.mastered.count}개 ({masteryData.familiar.percent + masteryData.mastered.percent}%)
+                  {masteryData.familiar.count + masteryData.mastered.count}개 ({masteryData.reviewTarget > 0
+                    ? Math.round(((masteryData.familiar.count + masteryData.mastered.count) / masteryData.reviewTarget) * 100)
+                    : 0}%)
                 </span>
               </div>
               <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500 bg-[#10B981]"
-                  style={{ width: `${Math.max(masteryData.familiar.percent + masteryData.mastered.percent, 0)}%` }}
+                  style={{ width: `${masteryData.reviewTarget > 0
+                    ? Math.round(((masteryData.familiar.count + masteryData.mastered.count) / masteryData.reviewTarget) * 100)
+                    : 0}%` }}
                 />
               </div>
             </div>
