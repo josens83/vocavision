@@ -86,17 +86,6 @@ function QuizPageContent() {
 
   const currentQuestion = questions[currentIndex];
 
-  // Pull-to-Refresh 비활성화 - body/html에 직접 적용
-  useEffect(() => {
-    document.body.style.overscrollBehaviorY = 'contain';
-    document.documentElement.style.overscrollBehaviorY = 'contain';
-
-    return () => {
-      document.body.style.overscrollBehaviorY = '';
-      document.documentElement.style.overscrollBehaviorY = '';
-    };
-  }, []);
-
   // 퀴즈 로드
   useEffect(() => {
     if (!hasHydrated) return;
