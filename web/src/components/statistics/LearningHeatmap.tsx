@@ -159,6 +159,7 @@ export default function LearningHeatmap({
   // Calculate total stats
   const totalDays = heatmapData.filter((d) => d.count > 0).length;
   const totalWords = heatmapData.reduce((sum, d) => sum + d.count, 0);
+  const today = new Date().toISOString().split('T')[0];
   // Use override values from API if provided, otherwise calculate from heatmap data
   const currentStreak = currentStreakOverride ?? calculateCurrentStreak();
   const longestStreak = longestStreakOverride ?? calculateLongestStreak();
@@ -209,14 +210,23 @@ export default function LearningHeatmap({
       </div>
 
       {/* 요약 통계 */}
-      <div className="flex gap-4 mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-sm bg-[#14B8A6]" />
-          <span className="text-[12px] text-gray-500">{totalDays}일 학습</span>
+      <div className="flex flex-wrap gap-3 mb-4">
+        {/* 연속 학습 (가장 눈에 띄게) */}
+        {currentStreak > 0 && (
+          <div className="flex items-center gap-1.5 bg-orange-50 px-2 py-1 rounded-full">
+            <span className="text-[14px]">🔥</span>
+            <span className="text-[12px] font-semibold text-orange-600">{currentStreak}일 연속</span>
+          </div>
+        )}
+        {/* 총 학습일 */}
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-sm bg-[#14B8A6]" />
+          <span className="text-[12px] text-gray-500">총 {totalDays}일</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-sm bg-[#3B82F6]" />
-          <span className="text-[12px] text-gray-500">{totalWords}개 단어</span>
+        {/* 총 단어 */}
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-sm bg-[#3B82F6]" />
+          <span className="text-[12px] text-gray-500">총 {totalWords}개</span>
         </div>
       </div>
 
@@ -260,7 +270,9 @@ export default function LearningHeatmap({
                       onMouseLeave={handleMouseLeave}
                       className={`w-3 h-3 rounded-sm ${
                         day.date ? getColor(day.level) : 'bg-transparent'
-                      } ${day.date ? 'cursor-pointer' : ''}`}
+                      } ${day.date ? 'cursor-pointer' : ''} ${
+                        day.date === today ? 'ring-2 ring-[#14B8A6] ring-offset-1' : ''
+                      }`}
                       title={day.date ? `${day.date}: ${day.count} words` : ''}
                     />
                   ))}
@@ -271,11 +283,11 @@ export default function LearningHeatmap({
 
           {/* 범례 */}
           <div className="flex items-center justify-end gap-1 mt-3">
-            <span className="text-[10px] text-[#999999]">적음</span>
+            <span className="text-[10px] text-[#999999]">0</span>
             {([0, 1, 2, 3, 4] as const).map((level) => (
               <div key={level} className={`w-3 h-3 rounded-sm ${getColor(level)}`} />
             ))}
-            <span className="text-[10px] text-[#999999]">많음</span>
+            <span className="text-[10px] text-[#999999]">30+</span>
           </div>
         </div>
       </div>
@@ -307,10 +319,19 @@ export default function LearningHeatmap({
       {/* 격려 메시지 */}
       <div className="mt-4 p-4 bg-[#ECFDF5] rounded-xl">
         <p className="text-[13px] text-[#1c1c1e]">
-          💡 <strong>꾸준함이 핵심입니다!</strong>{' '}
-          {currentStreak > 0
-            ? `현재 ${currentStreak}일 연속 학습 중입니다. 계속 유지하세요!`
-            : '오늘 학습을 시작해서 스트릭을 쌓아보세요!'}
+          {currentStreak > 0 ? (
+            <>
+              🔥 <strong>{currentStreak}일 연속 학습 중!</strong>{' '}
+              {currentStreak >= 7
+                ? `대단해요! 일주일 넘게 꾸준히 하고 있어요.`
+                : `내일도 학습하면 ${currentStreak + 1}일 달성!`}
+            </>
+          ) : (
+            <>
+              💡 <strong>오늘 첫 학습을 시작해보세요!</strong>{' '}
+              하루 20개씩만 해도 한 달이면 600개!
+            </>
+          )}
         </p>
       </div>
     </section>
