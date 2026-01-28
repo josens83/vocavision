@@ -183,14 +183,14 @@ function WordSearchCard() {
         </button>
       </div>
 
-      {/* 인기 검색어 태그 - 모바일에서도 한 줄 표시 */}
-      <div className="mt-3 flex items-center gap-2 overflow-x-auto scrollbar-hide">
-        <span className="text-xs text-gray-500 flex-shrink-0">인기:</span>
+      {/* 인기 검색어 태그 - 모바일에서 줄바꿈 허용 */}
+      <div className="mt-3 flex items-center flex-wrap gap-2">
+        <span className="text-xs text-gray-500">인기:</span>
         {popularWords.map((word) => (
           <button
             key={word}
             onClick={() => router.push(`/words?search=${word}`)}
-            className="px-2 py-1 bg-gray-100 hover:bg-teal-50 text-gray-600 hover:text-teal-600 text-xs rounded-full transition-colors flex-shrink-0"
+            className="px-2 py-1 bg-gray-100 hover:bg-teal-50 text-gray-600 hover:text-teal-600 text-xs rounded-full transition-colors"
           >
             {word}
           </button>
@@ -823,7 +823,7 @@ export default function Hero() {
           </div>
 
           {/* 오른쪽 열: 액션 카드들 */}
-          <div className={`flex flex-col gap-4 w-full max-w-md mx-auto lg:mx-0 lg:max-w-lg ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
+          <div className={`flex flex-col gap-4 w-full max-w-full sm:max-w-md mx-auto lg:mx-0 lg:max-w-lg overflow-hidden ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
             {/* 섹션 안내 - 비로그인 시에만 표시 */}
             {!isLoggedIn && (
               <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
