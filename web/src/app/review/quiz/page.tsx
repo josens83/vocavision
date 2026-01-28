@@ -133,17 +133,20 @@ function QuizPageContent() {
   const loadDemoQuiz = async () => {
     setLoading(true);
     try {
-      // API에서 샘플 단어 20개 로드
+      // API에서 샘플 단어 15개 로드 (10문제 + 오답 선택지용)
       const data = await wordsAPI.getWords({
         examCategory: 'CSAT',
-        limit: 20,
+        limit: 15,
       });
 
       const words = data.words || [];
 
-      // 단어를 퀴즈 형식으로 변환
-      const quizQuestions: QuizQuestion[] = words.map((word: any) => {
-        // 오답 선택지 생성 (다른 단어들의 뜻에서 랜덤 선택)
+      // 10문제만 사용 (나머지는 오답 선택지용)
+      const quizWords = words.slice(0, 10);
+
+      // 단어를 퀴즈 형식으로 변환 (10문제만)
+      const quizQuestions: QuizQuestion[] = quizWords.map((word: any) => {
+        // 오답 선택지 생성 (전체 단어에서 랜덤 선택)
         const otherWords = words.filter((w: any) => w.id !== word.id);
         const shuffledOthers = otherWords.sort(() => Math.random() - 0.5).slice(0, 3);
 

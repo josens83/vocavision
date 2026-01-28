@@ -287,13 +287,13 @@ export const getDueReviews = async (
       // 복습에서 맞춘 단어만 카운트 (첫 학습 제외)
       // - lastReviewDate >= 오늘 (오늘 복습함)
       // - nextReviewDate > 오늘 (맞춰서 D+3로 설정됨)
-      // - learnedAt < 오늘 (오늘 이전에 학습한 단어 = 복습 대상)
+      // - totalReviews >= 2 (최소 2번 학습 = 첫 학습 + 복습)
       prisma.userProgress.count({
         where: {
           userId,
           lastReviewDate: { gte: todayStartUTC },
           nextReviewDate: { gt: new Date() },
-          learnedAt: { lt: todayStartUTC },  // 오늘 이전에 학습한 단어만 (첫 학습 제외)
+          totalReviews: { gte: 2 },  // 첫 학습(1회) 후 복습(2회+)한 단어만
           word: wordWhere
         }
       }),
