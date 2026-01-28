@@ -225,32 +225,6 @@ function MemberInfoCard() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadStats();
-  }, []);
-
-  const loadStats = async () => {
-    try {
-      const [progressData, reviewData] = await Promise.all([
-        progressAPI.getUserProgress(),
-        progressAPI.getDueReviews(),
-      ]);
-      setStats({
-        currentStreak: progressData.stats?.currentStreak || 0,
-        todayWordsLearned: progressData.stats?.todayWordsLearned || 0,
-        dueReviewCount: reviewData.count || 0,
-        todayFlashcardAccuracy: progressData.stats?.todayFlashcardAccuracy || 0,
-      });
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-      setStats({ currentStreak: 0, todayWordsLearned: 0, dueReviewCount: 0, todayFlashcardAccuracy: 0 });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!user) return null;
-
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
 
