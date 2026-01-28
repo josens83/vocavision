@@ -708,6 +708,7 @@ export const getReviewQuiz = async (
     const progressWhere: any = {
       userId,
       correctCount: { lt: 2 }, // 완료되지 않은 것만 (correctCount < 2)
+      nextReviewDate: { lte: new Date() }, // 오늘 또는 이전 날짜만 (복습 대기)
     };
 
     // examCategory 필터 (UserProgress.examCategory) - Enum 유효성 검증
