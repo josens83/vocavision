@@ -960,3 +960,11 @@ html, body {
     transform: rotateY(180deg);
   }
 }
+
+/* ============================================
+   Pull-to-Refresh 비활성화 (학습/퀴즈 페이지)
+   ============================================ */
+.no-pull-refresh {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}

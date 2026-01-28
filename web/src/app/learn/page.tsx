@@ -1025,7 +1025,7 @@ function LearnPageContent() {
   const accuracyPercent = wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
+    <div className="no-pull-refresh min-h-screen bg-[#FAFAFA] flex flex-col">
       {/* Demo Mode Banner for Guests */}
       {!user && (
         <div className="bg-[#FFF7ED] border-b border-[#FDBA74] sticky top-0 z-20">
