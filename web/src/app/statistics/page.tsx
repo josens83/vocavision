@@ -87,6 +87,47 @@ const DEMO_PROGRESS: Progress[] = [
   { id: '8', wordId: 'w8', masteryLevel: 'NEW', correctCount: 0, incorrectCount: 0, totalReviews: 0, lastReviewDate: null, needsReview: false, reviewCorrectCount: 0, word: { word: 'hypothesis', difficulty: 'EXPERT', level: 'L1', examCategory: 'TEPS' } },
 ];
 
+// 데모 모드용 히트맵 샘플 데이터 (최근 4주 학습 패턴)
+const generateDemoHeatmapData = () => {
+  const data: Array<{ date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }> = [];
+  const today = new Date();
+
+  for (let i = 364; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+
+    // 최근 30일만 학습 데이터 있음 (신규 사용자 시뮬레이션)
+    let count = 0;
+    let level: 0 | 1 | 2 | 3 | 4 = 0;
+
+    if (i <= 30) {
+      // 최근 30일: 평일에 더 많이 학습
+      const dayOfWeek = date.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+      if (!isWeekend && Math.random() > 0.3) {
+        count = Math.floor(Math.random() * 25) + 5; // 5-30개
+      } else if (isWeekend && Math.random() > 0.6) {
+        count = Math.floor(Math.random() * 15) + 3; // 3-18개
+      }
+    }
+
+    // level 결정
+    if (count === 0) level = 0;
+    else if (count < 10) level = 1;
+    else if (count < 20) level = 2;
+    else if (count < 30) level = 3;
+    else level = 4;
+
+    data.push({ date: dateStr, count, level });
+  }
+
+  return data;
+};
+
+const DEMO_HEATMAP_DATA = generateDemoHeatmapData();
+
 function StatisticsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -544,9 +585,9 @@ function StatisticsPageContent() {
         {/* 학습 활동 히트맵 (은행 앱 스타일) */}
         <div className="w-full max-w-full overflow-x-auto">
           <LearningHeatmap
-            data={heatmapData.length > 0 ? heatmapData : undefined}
-            currentStreakOverride={stats?.currentStreak || 0}
-            longestStreakOverride={stats?.longestStreak || 0}
+            data={isDemo ? DEMO_HEATMAP_DATA : (heatmapData.length > 0 ? heatmapData : undefined)}
+            currentStreakOverride={isDemo ? DEMO_STATS.currentStreak : (stats?.currentStreak || 0)}
+            longestStreakOverride={isDemo ? DEMO_STATS.longestStreak : (stats?.longestStreak || 0)}
           />
         </div>
       </div>
