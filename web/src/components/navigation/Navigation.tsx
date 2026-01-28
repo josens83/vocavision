@@ -45,8 +45,11 @@ export const guestNavigationItems: NavItem[] = [
   },
   {
     label: "TEPS",
-    href: "/auth/register",
     color: "text-teal-600",
+    children: [
+      { label: "L1 기본 🔒", href: "/auth/register" },
+      { label: "L2 필수 🔒", href: "/auth/register" },
+    ],
   },
   {
     label: "단어장",
@@ -378,7 +381,7 @@ function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   <span className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-bold">L3</span>
                   <div><div className="text-sm font-medium text-slate-900">고급 단어</div><div className="text-xs text-slate-500">{PLATFORM_STATS.levels.L3.toLocaleString()}개</div></div>
                 </Link>
-                <Link href="/learn?exam=CSAT" onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                <Link href="/learn?exam=CSAT&level=L1&demo=true" onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
                   <span className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">🎴</span>
                   <div><div className="text-sm font-medium text-slate-900">플래시카드</div><div className="text-xs text-slate-500">학습 시작</div></div>
                 </Link>

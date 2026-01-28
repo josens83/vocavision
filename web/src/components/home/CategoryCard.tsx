@@ -277,7 +277,7 @@ export const examCategories: ExamCategoryCardProps[] = [
     description: "수능 영어 1~2등급 목표 필수 어휘 (L1 기초 ~ L3 고급)",
     examType: "csat",
     wordCount: PLATFORM_STATS.totalWords,
-    href: "/learn?exam=CSAT",
+    href: "/learn?exam=CSAT&level=L1&demo=true",
     icon: "📝",
     isActive: true,
   },

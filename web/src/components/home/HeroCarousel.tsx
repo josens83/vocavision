@@ -35,7 +35,7 @@ const defaultSlides: HeroSlide[] = [
     subtitle: "매일 조금씩, 꾸준히 학습하세요",
     description: "오늘 학습할 단어가 준비되어 있어요. 지금 바로 시작해보세요!",
     ctaText: "학습 시작하기",
-    ctaHref: "/learn?exam=CSAT",
+    ctaHref: "/learn?exam=CSAT&level=L1&demo=true",
     bgGradient: "from-blue-600 via-indigo-600 to-cyan-600",
   },
   {

@@ -94,7 +94,7 @@ export default function StudyFAB() {
     {
       icon: <Icons.Flashcard />,
       label: "플래시카드",
-      href: "/learn?exam=CSAT",
+      href: "/learn?exam=CSAT&level=L1&demo=true",
       color: "bg-amber-500",
     },
     {
