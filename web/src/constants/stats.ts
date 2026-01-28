@@ -7,7 +7,7 @@
  */
 export const PLATFORM_STATS = {
   // 수능 단어 수 (기본 무료 제공)
-  totalWords: 2976,
+  totalWords: 3335,
 
   // 레벨별 단어 수 (CSAT 기준)
   levels: {
@@ -18,7 +18,7 @@ export const PLATFORM_STATS = {
 
   // 시험 카테고리
   exams: {
-    CSAT: { name: '수능', words: 2976, active: true },
+    CSAT: { name: '수능', words: 3335, active: true },
     TEPS: { name: 'TEPS', words: 6598, active: true, premium: true },
     TOEFL: { name: 'TOEFL', words: 4, active: false },
     TOEIC: { name: 'TOEIC', words: 5, active: false },
