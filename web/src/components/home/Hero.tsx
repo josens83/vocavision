@@ -156,7 +156,7 @@ function WordSearchCard() {
     }
   };
 
-  const popularWords = ['contemporary', 'circumstance', 'nevertheless'];
+  const popularWords = ['contemporary', 'circumstance', 'nevertheless', 'stimulate'];
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
@@ -213,16 +213,53 @@ function getDaysRemaining(subscriptionEnd?: string) {
 }
 
 // ============================================
-// 현재 플랜 배지 컴포넌트 -> 회원 정보 카드로 확장
+// 현재 플랜 배지 컴포넌트 -> 회원 정보 카드로 확장 (모바일 통합 카드)
 // ============================================
 function MemberInfoCard() {
   const { user } = useAuthStore();
-  if (!user) return null;
+  const [stats, setStats] = useState<{
+    currentStreak: number;
+    todayWordsLearned: number;
+    dueReviewCount: number;
+    todayFlashcardAccuracy: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const planInfo = getPlanDisplay(user);
-  const daysRemaining = getDaysRemaining(user.subscriptionEnd);
+  const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
-  const isPaid = plan !== 'FREE';
+
+  useEffect(() => {
+    if (!user) return;
+    loadStats();
+  }, [user]);
+
+  const loadStats = async () => {
+    try {
+      const [progressData, reviewData] = await Promise.all([
+        progressAPI.getUserProgress(),
+        progressAPI.getDueReviews(),
+      ]);
+
+      setStats({
+        currentStreak: progressData.stats?.currentStreak || 0,
+        todayWordsLearned: progressData.stats?.todayWordsLearned || 0,
+        dueReviewCount: reviewData.count || 0,
+        todayFlashcardAccuracy: progressData.stats?.todayFlashcardAccuracy || 0,
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+      setStats({
+        currentStreak: 0,
+        todayWordsLearned: 0,
+        dueReviewCount: 0,
+        todayFlashcardAccuracy: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!user) return null;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
@@ -271,6 +308,63 @@ function MemberInfoCard() {
         </div>
       </div>
 
+      {/* 중단: 오늘의 학습 현황 통계 */}
+      <div className="py-4 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-gray-400">오늘의 학습</p>
+          {!loading && stats && stats.currentStreak > 0 && (
+            <span className="text-xs text-orange-500 font-semibold flex items-center gap-1">
+              🔥 {stats.currentStreak}일 연속
+            </span>
+          )}
+        </div>
+        {loading ? (
+          <div className="flex justify-between items-center">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                <div className="h-6 w-12 bg-slate-200 rounded animate-pulse" />
+                <div className="h-3 w-14 bg-slate-100 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex justify-between items-center">
+            <DashboardItem
+              value={stats?.todayWordsLearned || 0}
+              label="오늘 학습"
+              color="#3B82F6"
+            />
+            <div className="w-[1px] h-10 bg-[#f0f0f0]" />
+            <DashboardItem
+              value={stats?.dueReviewCount || 0}
+              label="복습 대기"
+              color="#F59E0B"
+            />
+            <div className="w-[1px] h-10 bg-[#f0f0f0]" />
+            <DashboardItem
+              value={`${stats?.todayFlashcardAccuracy || 0}%`}
+              label="정답률"
+              color="#10B981"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* 하단: 학습하기 / 복습하기 버튼 */}
+      <div className="pt-4 border-t border-gray-100 flex gap-3">
+        <Link
+          href="/dashboard"
+          className="flex-1 py-3 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
+        >
+          학습하기
+        </Link>
+        <Link
+          href="/review"
+          className="flex-1 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold rounded-xl text-center transition-colors"
+        >
+          복습하기
+        </Link>
+      </div>
     </div>
   );
 }
@@ -384,56 +478,10 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 모바일용 회원 정보 카드 (데스크톱에서는 왼쪽 통합 카드 사용) */}
+      {/* 모바일용 통합 회원 정보 카드 (프로필 + 학습현황 + 버튼 통합) */}
       <div className="lg:hidden">
         <MemberInfoCard />
       </div>
-
-      {/* 오늘의 학습 현황 카드 - 모바일에서만 여기 표시 (은행 앱 스타일) */}
-      {showStatsCard && (
-        <div className="lg:hidden bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          {/* 헤더 */}
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[15px] font-bold text-[#1c1c1e]">오늘의 학습 현황</h3>
-            {!loading && stats && stats.currentStreak > 0 && (
-              <span className="text-[13px] text-[#14B8A6] font-semibold flex items-center gap-1">
-                🔥 {stats.currentStreak}일 연속
-              </span>
-            )}
-          </div>
-
-          {loading ? (
-            <div className="flex justify-between items-center">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="h-6 w-12 bg-slate-200 rounded animate-pulse" />
-                  <div className="h-3 w-14 bg-slate-100 rounded animate-pulse" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex justify-between items-center">
-              <DashboardItem
-                value={stats?.todayWordsLearned || 0}
-                label="오늘 학습"
-                color="#3B82F6"
-              />
-              <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-              <DashboardItem
-                value={stats?.dueReviewCount || 0}
-                label="복습 대기"
-                color="#F59E0B"
-              />
-              <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-              <DashboardItem
-                value={`${stats?.todayFlashcardAccuracy || 0}%`}
-                label="정답률"
-                color="#10B981"
-              />
-            </div>
-          )}
-        </div>
-      )}
 
       {/* 단어 찾기 카드 */}
       <WordSearchCard />
