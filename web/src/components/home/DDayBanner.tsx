@@ -100,23 +100,15 @@ export default function DDayBanner() {
 
             {/* 오른쪽: CTA - 비로그인 시에만 표시 */}
             {!isLoggedIn && (
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link
-                  href="/learn?exam=CSAT&level=L1"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition-colors"
-                >
-                  <span>무료로 시작하기</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </Link>
-                <Link
-                  href="/pricing"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium rounded-xl transition-colors"
-                >
-                  <span>요금제 보기</span>
-                </Link>
-              </div>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-xl transition-colors"
+              >
+                <span>요금제 보기</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
             )}
           </div>
         </div>

@@ -45,8 +45,8 @@ export const guestNavigationItems: NavItem[] = [
   },
   {
     label: "TEPS",
-    href: "#",
-    color: "text-slate-400",
+    href: "/auth/register",
+    color: "text-teal-600",
   },
   {
     label: "단어장",
@@ -119,7 +119,7 @@ function getPermissionBasedHref(
 ): string {
   // 비로그인 → 회원가입
   if (!user) {
-    return '/auth/signup';
+    return '/auth/register';
   }
 
   // URL에서 exam과 level 파싱
