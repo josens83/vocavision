@@ -5,7 +5,6 @@ import { OfflineBannerWrapper } from '@/components/errors/OfflineBannerWrapper';
 import Providers from '@/components/providers/Providers';
 import { Footer } from '@/components/Footer';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
-import StudyFAB from '@/components/ui/StudyFAB';
 import BottomTabBar from '@/components/navigation/BottomTabBar';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 
@@ -136,7 +135,6 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
-          <StudyFAB />
           <BottomTabBar />
           <ScrollToTop />
         </Providers>
