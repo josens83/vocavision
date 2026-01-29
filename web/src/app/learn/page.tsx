@@ -164,6 +164,36 @@ function LearnPageContent() {
       router.replace(user ? '/dashboard' : '/');
     }
   }, [hasHydrated, examParam, isDemo, isReviewMode, isWeakMode, isBookmarksMode, user, router]);
+
+  // Pull-to-Refresh 비활성화 (맨 위에서 아래로 당길 때만 방지)
+  useEffect(() => {
+    let startY = 0;
+    let isAtTop = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      startY = e.touches[0].pageY;
+      isAtTop = window.scrollY === 0;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const y = e.touches[0].pageY;
+      const isPullingDown = y > startY;
+
+      // 맨 위에서 아래로 당기는 경우만 방지
+      if (isAtTop && isPullingDown) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, []);
+
   const {
     currentWordIndex,
     sessionId,
