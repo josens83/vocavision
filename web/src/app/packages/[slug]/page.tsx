@@ -121,7 +121,10 @@ export default function PackageDetailPage() {
             </h1>
 
             <p className="text-xl text-white/90 mb-8 max-w-2xl">
-              {packageInfo.description || packageInfo.shortDesc || "TEPS 고득점을 위한 필수 단어장"}
+              {packageInfo.description || packageInfo.shortDesc ||
+                (slug === '2026-csat-analysis'
+                  ? '2026학년도 수능 영어영역 기출 단어 382개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
+                  : '고득점을 위한 필수 단어장')}
             </p>
 
             <div className="flex flex-wrap items-center gap-6 text-lg">
@@ -150,18 +153,37 @@ export default function PackageDetailPage() {
                   이런 분께 추천해요
                 </h2>
                 <ul className="space-y-3">
-                  <li className="flex items-start gap-3 text-gray-700">
-                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                    <span>TEPS 고득점을 목표로 하는 분</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-gray-700">
-                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                    <span>핵심 빈출 단어만 집중적으로 학습하고 싶은 분</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-gray-700">
-                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                    <span>단기간에 효율적으로 어휘력을 향상시키고 싶은 분</span>
-                  </li>
+                  {slug === '2026-csat-analysis' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>2026학년도 수능 영어 기출 분석이 필요한 수험생</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>듣기/독해 영역별로 체계적으로 학습하고 싶은 분</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>실제 수능에서 출제된 어휘를 완벽히 암기하고 싶은 분</span>
+                      </li>
+                    </>
+                  ) : (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>고득점을 목표로 하는 분</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>핵심 빈출 단어만 집중적으로 학습하고 싶은 분</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>단기간에 효율적으로 어휘력을 향상시키고 싶은 분</span>
+                      </li>
+                    </>
+                  )}
                 </ul>
               </div>
 
@@ -171,26 +193,49 @@ export default function PackageDetailPage() {
                   포함된 학습 콘텐츠
                 </h2>
                 <ul className="space-y-3">
-                  <li className="flex items-start gap-3 text-gray-700">
-                    <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                    <span><strong>{packageInfo.wordCount}개</strong> TEPS 최다 빈출 단어</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-gray-700">
-                    <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                    <span>단어별 <strong>상세 해설</strong> 및 예문</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-gray-700">
-                    <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                    <span><strong>플래시카드</strong> 학습 모드</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-gray-700">
-                    <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                    <span><strong>퀴즈</strong> 테스트 모드</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-gray-700">
-                    <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                    <span><strong>학습 진도</strong> 추적</span>
-                  </li>
+                  {slug === '2026-csat-analysis' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>382개</strong> 2026 수능 영어 기출 단어</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>유형별 분류:</strong> 듣기영역 100개 / 독해영역 2점 191개 / 독해영역 3점 91개</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span>단어별 <strong>AI 이미지 연상법</strong> + 어원 분석</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>스마트 복습</strong> 시스템</span>
+                      </li>
+                    </>
+                  ) : (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>{packageInfo.wordCount}개</strong> 핵심 빈출 단어</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span>단어별 <strong>상세 해설</strong> 및 예문</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>플래시카드</strong> 학습 모드</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>퀴즈</strong> 테스트 모드</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>학습 진도</strong> 추적</span>
+                      </li>
+                    </>
+                  )}
                 </ul>
               </div>
 

@@ -329,7 +329,7 @@ export default function DashboardPage() {
                 const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
                 setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
               }}
-              className={`flex flex-col items-center justify-center gap-1 py-4 rounded-xl transition-all ${
+              className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
                 selectedExam === 'CSAT'
                   ? 'bg-teal-500 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -347,7 +347,7 @@ export default function DashboardPage() {
                   const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
                   setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-4 rounded-xl transition-all ${
+                className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
                   selectedExam === 'CSAT_2026'
                     ? 'bg-emerald-500 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -370,7 +370,7 @@ export default function DashboardPage() {
                   router.push('/pricing');
                 }
               }}
-              className={`flex flex-col items-center justify-center gap-1 py-4 rounded-xl transition-all ${
+              className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
                 !canAccessExam('TEPS')
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : selectedExam === 'TEPS'
@@ -429,7 +429,7 @@ export default function DashboardPage() {
                   {selectedExam === 'CSAT_2026' ? (
                     // CSAT_2026: 한 줄로 표시
                     <span className="font-semibold text-sm">
-                      {lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_2' ? '독해 2점' : '독해 3점'}
+                      {lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_2' ? '독해영역 2점' : '독해영역 3점'}
                     </span>
                   ) : (
                     // 기존 CSAT/TEPS: 두 줄 유지
