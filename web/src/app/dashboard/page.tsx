@@ -149,6 +149,14 @@ export default function DashboardPage() {
     checkCsat2026Access();
   }, [hasHydrated, user]);
 
+  // CSAT_2026 접근권한 없으면 CSAT으로 fallback
+  useEffect(() => {
+    if (hasHydrated && activeExam === 'CSAT_2026' && !hasCsat2026Access) {
+      setActiveExam('CSAT' as ExamType);
+      setActiveLevel('L1');
+    }
+  }, [hasHydrated, activeExam, hasCsat2026Access, setActiveExam, setActiveLevel]);
+
   const loadData = async () => {
     try {
       const [progressData, reviewsData] = await Promise.all([
