@@ -299,26 +299,6 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
           <div className="grid md:grid-cols-2 gap-0">
             {/* Word Info */}
             <div className="p-6 md:p-8 flex flex-col justify-center">
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                {word.examLevels && word.examLevels.length > 0 ? (
-                  word.examLevels.map((el, idx) => {
-                    const style = examStyles[el.examCategory] || examStyles.CSAT;
-                    return (
-                      <span key={idx} className={`px-3 py-1 rounded-full text-sm font-medium ${style.bg} ${style.text}`}>
-                        {getExamLevelLabel(el.examCategory, el.level)}
-                      </span>
-                    );
-                  })
-                ) : (
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${levelStyle.bg} ${levelStyle.text}`}>
-                    {word.examCategory ? `${examStyles[word.examCategory]?.label || word.examCategory}${word.level ? `-${word.level}` : ''}` : levelStyle.label}
-                  </span>
-                )}
-                {word.partOfSpeech && (
-                  <span className="text-sm text-gray-500">{word.partOfSpeech}</span>
-                )}
-              </div>
-
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight mb-3">
                 {word.word}
               </h1>
@@ -699,30 +679,7 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
           </div>
         </section>
 
-        {/* Mobile bottom spacer */}
-        <div className="h-24 md:hidden" />
       </main>
-
-      {/* Mobile Fixed Bottom Action Bar */}
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 md:hidden z-40 safe-area-bottom">
-        <div className="flex gap-3 max-w-lg mx-auto">
-          <button
-            onClick={handlePlayPronunciation}
-            disabled={playingAudio}
-            className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium flex items-center justify-center gap-2 min-h-[48px] active:bg-gray-200 transition-colors"
-          >
-            <Icons.Speaker />
-            <span>{playingAudio ? '재생 중...' : '발음'}</span>
-          </button>
-          <Link
-            href={`/words/${word.id}/learn`}
-            className="flex-1 bg-teal-500 text-white py-3 rounded-xl font-medium text-center flex items-center justify-center gap-2 min-h-[48px] active:bg-teal-600 transition-colors"
-          >
-            <Icons.Play />
-            <span>학습하기</span>
-          </Link>
-        </div>
-      </div>
 
       {/* Fullscreen Image Modal */}
       <AnimatePresence>
