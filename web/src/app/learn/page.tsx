@@ -44,6 +44,7 @@ interface Review {
 // Exam name mapping
 const examNames: Record<string, string> = {
   CSAT: '수능',
+  CSAT_2026: '2026 기출',
   SAT: 'SAT',
   TOEFL: 'TOEFL',
   TOEIC: 'TOEIC',
@@ -52,6 +53,14 @@ const examNames: Record<string, string> = {
 
 // Level name mapping - exam-specific
 const getLevelName = (exam: string, level: string): string => {
+  if (exam === 'CSAT_2026') {
+    switch (level) {
+      case 'LISTENING': return '듣기영역';
+      case 'READING_2': return '독해 2점';
+      case 'READING_3': return '독해 3점';
+      default: return level;
+    }
+  }
   if (exam === 'TEPS') {
     return level === 'L1' ? '기본' : '필수';
   }
@@ -136,6 +145,7 @@ function LearnPageContent() {
   const MAX_DEMO_COUNT = 5;
   const [demoBlocked, setDemoBlocked] = useState(false);
   const [accessBlocked, setAccessBlocked] = useState(false);
+  const [packageBlocked, setPackageBlocked] = useState(false);
 
   // 체험 횟수 확인
   useEffect(() => {
@@ -147,15 +157,33 @@ function LearnPageContent() {
     }
   }, [isDemo, user]);
 
-  // 구독 기반 접근 제어
+  // 구독 기반 접근 제어 및 단품 구매 체크
   useEffect(() => {
     if (!hasHydrated || isDemo) return;
 
-    if (user && examParam && levelParam) {
-      if (!canAccessContent(user, examParam, levelParam)) {
-        setAccessBlocked(true);
+    const checkAccess = async () => {
+      if (user && examParam && levelParam) {
+        // CSAT_2026은 단품 구매 체크
+        if (examParam === 'CSAT_2026') {
+          try {
+            const response = await api.get('/packages/check-access?slug=2026-csat-analysis');
+            if (!response.data?.hasAccess) {
+              setPackageBlocked(true);
+            }
+          } catch (error) {
+            // API 에러 시 일단 접근 허용 (개발 중)
+            console.error('Package access check failed:', error);
+          }
+        } else {
+          // 기존 구독 기반 접근 제어
+          if (!canAccessContent(user, examParam, levelParam)) {
+            setAccessBlocked(true);
+          }
+        }
       }
-    }
+    };
+
+    checkAccess();
   }, [hasHydrated, user, examParam, levelParam, isDemo]);
 
   // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트 (복습/북마크 모드 제외)
@@ -815,6 +843,38 @@ function LearnPageContent() {
 
   if (!hasHydrated || loading) {
     return <LearnPageLoading />;
+  }
+
+  // 단품 구매 필요 (CSAT_2026)
+  if (packageBlocked && user) {
+    const levelName = examParam && levelParam ? getLevelName(examParam, levelParam) : levelParam;
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center">
+          <div className="text-6xl mb-4">📦</div>
+          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">단품 구매가 필요합니다</h2>
+          <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
+            <strong>2026 수능기출완전분석 {levelName}</strong> 콘텐츠는<br />
+            단품 구매 후 이용 가능합니다.
+          </p>
+          <div className="space-y-3">
+            <a
+              href="/packages/2026-csat-analysis"
+              className="block w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-[14px] rounded-xl hover:opacity-90 transition shadow-[0_4px_12px_rgba(16,185,129,0.3)]"
+            >
+              상품 보기
+            </a>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
+            >
+              대시보드로 돌아가기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // 구독 제한으로 접근 차단
