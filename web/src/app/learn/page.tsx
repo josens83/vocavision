@@ -163,7 +163,7 @@ function LearnPageContent() {
 
     const checkAccess = async () => {
       if (user && examParam && levelParam) {
-        // CSAT_2026은 단품 구매 체크
+        // CSAT_2026은 단품 구매 체크 (구독 체크 완전 우회)
         if (examParam === 'CSAT_2026') {
           try {
             const response = await api.get('/packages/check-access?slug=2026-csat-analysis');
@@ -171,14 +171,17 @@ function LearnPageContent() {
               setPackageBlocked(true);
             }
           } catch (error) {
-            // API 에러 시 일단 접근 허용 (개발 중)
+            // API 에러 시 차단 (안전하게 처리)
             console.error('Package access check failed:', error);
+            setPackageBlocked(true);
           }
-        } else {
-          // 기존 구독 기반 접근 제어
-          if (!canAccessContent(user, examParam, levelParam)) {
-            setAccessBlocked(true);
-          }
+          // CSAT_2026은 여기서 끝 - 구독 체크 하지 않음
+          return;
+        }
+
+        // 기존 구독 기반 접근 제어 (CSAT, TEPS 등)
+        if (!canAccessContent(user, examParam, levelParam)) {
+          setAccessBlocked(true);
         }
       }
     };
