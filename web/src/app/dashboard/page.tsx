@@ -409,15 +409,25 @@ export default function DashboardPage() {
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  <div className="flex items-center gap-1">
-                    <span className="font-bold">{displayName}</span>
-                    {isLocked && <span className="text-sm">🔒</span>}
-                  </div>
-                  <span className={`text-xs mt-1 ${
-                    isLocked ? 'text-gray-400' : selectedLevel === lvl ? (selectedExam === 'CSAT_2026' ? 'text-emerald-100' : 'text-blue-100') : 'text-gray-500'
-                  }`}>
-                    {levelLabel}
-                  </span>
+                  {selectedExam === 'CSAT_2026' ? (
+                    // CSAT_2026: 한 줄로 표시
+                    <span className="font-semibold text-sm">
+                      {lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_2' ? '독해 2점' : '독해 3점'}
+                    </span>
+                  ) : (
+                    // 기존 CSAT/TEPS: 두 줄 유지
+                    <>
+                      <div className="flex items-center gap-1">
+                        <span className="font-bold">{displayName}</span>
+                        {isLocked && <span className="text-sm">🔒</span>}
+                      </div>
+                      <span className={`text-xs mt-1 ${
+                        isLocked ? 'text-gray-400' : selectedLevel === lvl ? 'text-blue-100' : 'text-gray-500'
+                      }`}>
+                        {levelLabel}
+                      </span>
+                    </>
+                  )}
                 </button>
               );
             })}
