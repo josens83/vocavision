@@ -140,15 +140,18 @@ export const confirmPayment = async (
 
     // 2. 요청에서 직접 전달받은 파라미터 우선 사용
     let userId = req.body.userId || req.userId;
+    const paymentType = req.body.type; // 'package' 또는 undefined (구독)
+    const packageSlug = req.body.packageSlug;
+    const packageId = req.body.packageId;
+
+    // 구독 결제용 파라미터
     let plan = req.body.plan || 'basic';
     let billingCycle = req.body.billingCycle || 'monthly';
 
-    // orderId에서 정보 파싱 (fallback)
-    // orderId 형식: vv-{safeUserId}-{plan}-{billingCycle}-{timestamp}
-    if (!userId) {
+    // orderId에서 정보 파싱 (fallback) - 구독 결제용
+    if (!userId && !paymentType) {
       const orderParts = orderId.split('-');
       if (orderParts[0] === 'vv' && orderParts.length >= 5) {
-        // vv-safeUserId-plan-billingCycle-timestamp 형식
         plan = req.body.plan || orderParts[2] || plan;
         billingCycle = req.body.billingCycle || orderParts[3] || billingCycle;
       }
@@ -161,6 +164,96 @@ export const confirmPayment = async (
       });
     }
 
+    // ========== 패키지 구매 처리 ==========
+    if (paymentType === 'package') {
+      logger.info(`[Payments] Package purchase: userId=${userId}, packageSlug=${packageSlug}, amount=${amount}`);
+
+      // 패키지 정보 조회
+      const pkg = await prisma.productPackage.findFirst({
+        where: packageId ? { id: packageId } : { slug: packageSlug },
+      });
+
+      if (!pkg) {
+        return res.status(400).json({
+          success: false,
+          error: 'Package not found',
+        });
+      }
+
+      // 금액 검증 (패키지 가격과 일치하는지)
+      if (pkg.price !== amount) {
+        logger.error(`[Payments] Package amount mismatch: expected=${pkg.price}, received=${amount}`);
+        return res.status(400).json({
+          success: false,
+          error: 'Amount mismatch',
+        });
+      }
+
+      // 토스페이먼츠 결제 승인 API 호출
+      try {
+        const numericAmount = typeof amount === 'string' ? parseInt(amount, 10) : Number(amount);
+        const tossResponse = await confirmTossPayment(paymentKey, orderId, numericAmount);
+        logger.info(`[Payments] Toss confirm success for package:`, tossResponse.status);
+
+        // Payment 레코드 생성 (패키지 구매용)
+        const payment = await prisma.payment.create({
+          data: {
+            userId,
+            orderId,
+            orderName: pkg.name,
+            amount,
+            paymentKey,
+            plan: 'package',
+            billingCycle: 'one-time',
+            status: 'COMPLETED',
+            method: tossResponse.method,
+            paidAt: new Date(),
+          },
+        });
+
+        // UserPurchase 레코드 생성 (패키지 구매 내역)
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + (pkg.durationDays || 365));
+
+        await prisma.userPurchase.create({
+          data: {
+            userId,
+            packageId: pkg.id,
+            paymentId: payment.id,
+            amount,
+            status: 'ACTIVE',
+            purchasedAt: new Date(),
+            expiresAt,
+          },
+        });
+
+        logger.info(`[Payments] Package purchase completed: user=${userId}, package=${pkg.name}, expires=${expiresAt}`);
+
+        return res.json({
+          success: true,
+          data: {
+            orderId,
+            amount,
+            status: 'COMPLETED',
+            packageName: pkg.name,
+            expiresAt,
+          },
+        });
+
+      } catch (tossError: any) {
+        logger.error('[Payments] Toss API error for package:', {
+          message: tossError.message,
+          response: tossError.response?.data,
+        });
+        return res.status(400).json({
+          success: false,
+          error: tossError.response?.data?.message || tossError.message,
+          code: tossError.response?.data?.code,
+        });
+      }
+    }
+
+    // ========== 구독 결제 처리 ==========
     // 3. 기존 Payment 레코드 조회 (프론트엔드에서 먼저 생성했어야 함)
     let payment = await prisma.payment.findUnique({
       where: { orderId },
