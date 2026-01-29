@@ -1,8 +1,56 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import logger from '../utils/logger';
+import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
 
 const router = Router();
+
+/**
+ * GET /api/packages/check-access
+ * 단품 패키지 접근 권한 확인
+ */
+router.get('/check-access', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { slug } = req.query;
+    const userId = req.userId;
+
+    if (!slug || typeof slug !== 'string') {
+      return res.status(400).json({ error: 'slug is required' });
+    }
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // 1. 해당 패키지 찾기
+    const pkg = await prisma.productPackage.findUnique({
+      where: { slug },
+    });
+
+    if (!pkg) {
+      return res.status(404).json({ error: 'Package not found', hasAccess: false });
+    }
+
+    // 2. 구매 내역 확인 (ACTIVE 상태이고 만료되지 않은 것)
+    const purchase = await prisma.userPurchase.findFirst({
+      where: {
+        userId,
+        packageId: pkg.id,
+        status: 'ACTIVE',
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    logger.info(`[Packages] Access check - user: ${userId}, package: ${slug}, hasAccess: ${!!purchase}`);
+
+    return res.json({ hasAccess: !!purchase });
+  } catch (error) {
+    logger.error('[Packages] Error checking access:', error);
+    return res.status(500).json({ error: 'Internal server error', hasAccess: false });
+  }
+});
 
 /**
  * GET /api/packages
