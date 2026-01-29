@@ -242,6 +242,7 @@ export interface WordFilters {
 // ---------------------------------------------
 export const EXAM_CATEGORY_LABELS: Record<ExamCategory, string> = {
   CSAT: '수능',
+  CSAT_2026: '2026 기출',
   CSAT_BASIC: '기초수능',
   CSAT_ARCHIVE: '수능(Archive)',
   EBS: 'EBS',
@@ -254,6 +255,7 @@ export const EXAM_CATEGORY_LABELS: Record<ExamCategory, string> = {
 // Exam category badge colors
 export const EXAM_CATEGORY_COLORS: Record<ExamCategory, string> = {
   CSAT: 'bg-teal-500',
+  CSAT_2026: 'bg-emerald-500',
   CSAT_BASIC: 'bg-rose-400',
   CSAT_ARCHIVE: 'bg-gray-400',
   EBS: 'bg-emerald-500',
