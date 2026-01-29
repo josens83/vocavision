@@ -73,11 +73,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/flashcard" className="hover:text-white transition-colors">
-                  플래시카드
-                </Link>
-              </li>
-              <li>
                 <Link href="/pricing" className="hover:text-white transition-colors">
                   요금제
                 </Link>
