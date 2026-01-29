@@ -4,8 +4,8 @@ import { ExamCategory } from '@prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
 
-// 현재 서비스 중인 시험 카테고리 (CSAT, TEPS만 - 나머지는 준비중)
-const ACTIVE_EXAM_CATEGORIES: ExamCategory[] = ['CSAT', 'TEPS'];
+// 현재 서비스 중인 시험 카테고리 (CSAT, TEPS, CSAT_2026 - 나머지는 준비중)
+const ACTIVE_EXAM_CATEGORIES: ExamCategory[] = ['CSAT', 'TEPS', 'CSAT_2026'];
 
 export const getWords = async (
   req: Request,
