@@ -383,7 +383,7 @@ export default function DashboardPage() {
             ).map((lvl) => {
               const isLocked = selectedExam !== 'CSAT_2026' && !canAccessLevel(selectedExam, lvl as 'L1' | 'L2' | 'L3');
               const levelLabel = selectedExam === 'CSAT_2026'
-                ? (lvl === 'LISTENING' ? '듣기' : lvl === 'READING_2' ? '독해 2점' : '독해 3점')
+                ? (lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_2' ? '독해 2점' : '독해 3점')
                 : selectedExam === 'TEPS'
                   ? (lvl === 'L1' ? '기본' : '필수')
                   : (lvl === 'L1' ? '초급' : lvl === 'L2' ? '중급' : '고급');
