@@ -27,11 +27,11 @@ function getStaticPackages(): ProductPackage[] {
   return [
     {
       id: "static-1",
-      name: "수능 핵심 200",
-      slug: "csat-core-200",
-      shortDesc: "수능 영어에서 가장 자주 출제되는 핵심 200단어",
+      name: "2026 수능기출완전분석",
+      slug: "2026-csat-analysis",
+      shortDesc: "2026년 수능 기출문제 완전 분석, 출제 경향과 핵심 어휘",
       price: 3900,
-      durationDays: 365,
+      durationDays: 180, // 6개월
       badge: "BEST",
       isComingSoon: false,
       wordCount: 200,
@@ -41,22 +41,11 @@ function getStaticPackages(): ProductPackage[] {
       name: "EBS 연계어휘",
       slug: "ebs-vocab",
       shortDesc: "EBS 수능특강, 수능완성 연계 어휘 완벽 마스터",
-      price: 4900,
-      durationDays: 365,
-      badge: "대용량",
-      isComingSoon: false,
-      wordCount: 3837,
-    },
-    {
-      id: "static-3",
-      name: "2026 수능기출완전분석",
-      slug: "csat-2026-analysis",
-      shortDesc: "2026년 수능 기출문제 완전 분석, 출제 경향과 핵심 어휘",
-      price: 0,
-      durationDays: 365,
+      price: 7900,
+      durationDays: 180, // 6개월
       badge: "출시예정",
       isComingSoon: true,
-      wordCount: 0,
+      wordCount: 3837,
     },
   ];
 }
@@ -70,6 +59,8 @@ function getBadgeStyle(badge: string) {
       return "bg-blue-100 text-blue-700";
     case "출시예정":
       return "bg-gray-100 text-gray-500";
+    case "NEW":
+      return "bg-red-100 text-red-600";
     default:
       return "bg-gray-100 text-gray-600";
   }
