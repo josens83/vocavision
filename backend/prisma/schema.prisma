@@ -243,6 +243,7 @@ enum ContentStatus {
 // Exam Categories for Korean users
 enum ExamCategory {
   CSAT          // 수능 (대학수학능력시험) - L1 초급, L2 중급, L3 고급
+  CSAT_2026     // 2026 수능 기출 - LISTENING, READING_2, READING_3
   CSAT_BASIC    // 수능 기초 (중학 필수 어휘)
   CSAT_ARCHIVE  // 수능 아카이브 (보관용)
   EBS           // EBS 연계 어휘
