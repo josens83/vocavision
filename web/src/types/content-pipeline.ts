@@ -11,6 +11,7 @@ export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 
 export type ExamCategory =
   | 'CSAT'       // 수능
+  | 'CSAT_2026'  // 2026 수능기출
   | 'TOEIC'
   | 'TOEFL'
   | 'IELTS'

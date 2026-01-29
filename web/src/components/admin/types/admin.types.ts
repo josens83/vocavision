@@ -5,7 +5,7 @@
 // ---------------------------------------------
 // Enums
 // ---------------------------------------------
-export type ExamCategory = 'CSAT' | 'CSAT_BASIC' | 'CSAT_ARCHIVE' | 'EBS' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT';
+export type ExamCategory = 'CSAT' | 'CSAT_2026' | 'CSAT_BASIC' | 'CSAT_ARCHIVE' | 'EBS' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT';
 
 export type ContentStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'ARCHIVED';
 

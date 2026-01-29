@@ -173,7 +173,7 @@ export const useLearningStore = create<LearningState>()((set, get) => ({
 }));
 
 // Exam Course State - 시험별 코스 관리
-export type ExamType = 'CSAT' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT' | null;
+export type ExamType = 'CSAT' | 'CSAT_2026' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT' | null;
 export type LevelType = 'L1' | 'L2' | 'L3';
 
 interface ExamCourseState {
