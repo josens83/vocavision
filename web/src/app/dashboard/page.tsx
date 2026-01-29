@@ -36,13 +36,21 @@ function DashboardItem({ value, label, color, loading }: { value: string | numbe
 // Exam info
 const examInfo: Record<string, { name: string; icon: string; color: string }> = {
   CSAT: { name: '수능', icon: '📝', color: 'blue' },
-  TOEIC: { name: 'TOEIC', icon: '💼', color: 'green' },
-  TOEFL: { name: 'TOEFL', icon: '🌍', color: 'orange' },
+  CSAT_2026: { name: '2026 기출', icon: '📋', color: 'emerald' },
   TEPS: { name: 'TEPS', icon: '🎓', color: 'purple' },
 };
 
 // Level info - exam-specific
 const getLevelInfo = (exam: string, level: string) => {
+  if (exam === 'CSAT_2026') {
+    const csat2026Levels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
+      LISTENING: { name: '듣기', description: '듣기 영역 1~17번', target: '듣기 만점', wordCount: 100 },
+      READING_2: { name: '독해 2점', description: '독해 2점 문항', target: '기본 확보', wordCount: 191 },
+      READING_3: { name: '독해 3점', description: '고난도 3점 문항', target: '고득점', wordCount: 91 },
+    };
+    return csat2026Levels[level] || csat2026Levels.LISTENING;
+  }
+
   if (exam === 'TEPS') {
     const tepsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
       L1: { name: '기본', description: 'TEPS 기본 어휘', target: '기본 점수 목표', wordCount: 369 },
@@ -298,29 +306,46 @@ export default function DashboardPage() {
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
 
-          <div className="flex gap-3">
+          <div className="grid grid-cols-3 gap-3">
+            {/* 수능 버튼 */}
             <button
               onClick={() => {
                 setActiveExam('CSAT' as ExamType);
-                // 시험 변경 시 마지막 선택 레벨 복원
                 const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
                 setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
               }}
-              className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center gap-1 py-4 rounded-xl transition-all ${
                 selectedExam === 'CSAT'
                   ? 'bg-teal-500 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               <span className="text-xl">📝</span>
-              <span className="font-semibold">수능</span>
+              <span className="font-semibold text-sm">수능</span>
             </button>
 
+            {/* 2026 기출 버튼 */}
+            <button
+              onClick={() => {
+                setActiveExam('CSAT_2026' as ExamType);
+                const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
+                setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
+              }}
+              className={`flex flex-col items-center justify-center gap-1 py-4 rounded-xl transition-all ${
+                selectedExam === 'CSAT_2026'
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <span className="text-xl">📋</span>
+              <span className="font-semibold text-sm">2026 기출</span>
+            </button>
+
+            {/* TEPS 버튼 */}
             <button
               onClick={() => {
                 if (canAccessExam('TEPS')) {
                   setActiveExam('TEPS' as ExamType);
-                  // 시험 변경 시 마지막 선택 레벨 복원 (TEPS는 L1, L2만)
                   const lastLevel = localStorage.getItem('dashboard_TEPS_level') || 'L1';
                   const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
                   setActiveLevel(validLevel as 'L1' | 'L2' | 'L3');
@@ -328,7 +353,7 @@ export default function DashboardPage() {
                   router.push('/pricing');
                 }
               }}
-              className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center gap-1 py-4 rounded-xl transition-all ${
                 !canAccessExam('TEPS')
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : selectedExam === 'TEPS'
@@ -337,22 +362,34 @@ export default function DashboardPage() {
               }`}
             >
               <span className="text-xl">🎓</span>
-              <span className="font-semibold">TEPS</span>
-              {!canAccessExam('TEPS') && <span className="text-sm">🔒</span>}
+              <span className="font-semibold text-sm">TEPS</span>
+              {!canAccessExam('TEPS') && <span className="text-xs">🔒</span>}
             </button>
           </div>
         </section>
 
-        {/* 레벨 선택 섹션 */}
+        {/* 레벨/유형 선택 섹션 */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">레벨 선택</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            {selectedExam === 'CSAT_2026' ? '유형 선택' : '레벨 선택'}
+          </h3>
 
           <div className="flex gap-3">
-            {(selectedExam === 'TEPS' ? ['L1', 'L2'] as const : ['L1', 'L2', 'L3'] as const).map((lvl) => {
-              const isLocked = !canAccessLevel(selectedExam, lvl);
-              const levelLabel = selectedExam === 'TEPS'
-                ? (lvl === 'L1' ? '기본' : '필수')
-                : (lvl === 'L1' ? '초급' : lvl === 'L2' ? '중급' : '고급');
+            {(selectedExam === 'CSAT_2026'
+              ? ['LISTENING', 'READING_2', 'READING_3'] as const
+              : selectedExam === 'TEPS'
+                ? ['L1', 'L2'] as const
+                : ['L1', 'L2', 'L3'] as const
+            ).map((lvl) => {
+              const isLocked = selectedExam !== 'CSAT_2026' && !canAccessLevel(selectedExam, lvl as 'L1' | 'L2' | 'L3');
+              const levelLabel = selectedExam === 'CSAT_2026'
+                ? (lvl === 'LISTENING' ? '듣기' : lvl === 'READING_2' ? '독해 2점' : '독해 3점')
+                : selectedExam === 'TEPS'
+                  ? (lvl === 'L1' ? '기본' : '필수')
+                  : (lvl === 'L1' ? '초급' : lvl === 'L2' ? '중급' : '고급');
+              const displayName = selectedExam === 'CSAT_2026'
+                ? (lvl === 'LISTENING' ? '듣기' : lvl === 'READING_2' ? '2점' : '3점')
+                : lvl;
               return (
                 <button
                   key={lvl}
@@ -360,8 +397,7 @@ export default function DashboardPage() {
                     if (isLocked) {
                       router.push('/pricing');
                     } else {
-                      setActiveLevel(lvl);
-                      // 레벨 선택 시 localStorage에 저장
+                      setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
                       localStorage.setItem(`dashboard_${selectedExam}_level`, lvl);
                     }
                   }}
@@ -369,16 +405,16 @@ export default function DashboardPage() {
                     isLocked
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : selectedLevel === lvl
-                      ? 'bg-blue-500 text-white'
+                      ? selectedExam === 'CSAT_2026' ? 'bg-emerald-500 text-white' : 'bg-blue-500 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <div className="flex items-center gap-1">
-                    <span className="font-bold">{lvl}</span>
+                    <span className="font-bold">{displayName}</span>
                     {isLocked && <span className="text-sm">🔒</span>}
                   </div>
                   <span className={`text-xs mt-1 ${
-                    isLocked ? 'text-gray-400' : selectedLevel === lvl ? 'text-blue-100' : 'text-gray-500'
+                    isLocked ? 'text-gray-400' : selectedLevel === lvl ? (selectedExam === 'CSAT_2026' ? 'text-emerald-100' : 'text-blue-100') : 'text-gray-500'
                   }`}>
                     {levelLabel}
                   </span>
