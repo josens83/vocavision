@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore, useExamCourseStore, useUserSettingsStore, ExamType } from '@/lib/store';
-import { progressAPI, wordsAPI, learningAPI } from '@/lib/api';
+import { progressAPI, wordsAPI, learningAPI, api } from '@/lib/api';
 import { canAccessExam as canAccessExamUtil, canAccessLevel as canAccessLevelUtil } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
@@ -108,6 +108,7 @@ export default function DashboardPage() {
   const [examLevelLoading, setExamLevelLoading] = useState(false);
   const [weakWordCount, setWeakWordCount] = useState(0);
   const [learningSession, setLearningSession] = useState<LearningSessionData | null>(null);
+  const [hasCsat2026Access, setHasCsat2026Access] = useState(false);
 
   // 구독 상태에 따른 접근 권한 체크
   const canAccessExam = (exam: string) => canAccessExamUtil(user, exam);
@@ -133,6 +134,20 @@ export default function DashboardPage() {
     if (!hasHydrated || !user) return;
     loadExamLevelProgress();
   }, [activeExam, activeLevel, hasHydrated, user]);
+
+  // 2026 기출 단품 구매 여부 확인
+  useEffect(() => {
+    const checkCsat2026Access = async () => {
+      if (!hasHydrated || !user) return;
+      try {
+        const response = await api.get('/packages/check-access?slug=2026-csat-analysis');
+        setHasCsat2026Access(response.data?.hasAccess || false);
+      } catch (error) {
+        setHasCsat2026Access(false);
+      }
+    };
+    checkCsat2026Access();
+  }, [hasHydrated, user]);
 
   const loadData = async () => {
     try {
@@ -306,7 +321,7 @@ export default function DashboardPage() {
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className={`grid gap-3 ${hasCsat2026Access ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {/* 수능 버튼 */}
             <button
               onClick={() => {
@@ -324,22 +339,24 @@ export default function DashboardPage() {
               <span className="font-semibold text-sm">수능</span>
             </button>
 
-            {/* 2026 기출 버튼 */}
-            <button
-              onClick={() => {
-                setActiveExam('CSAT_2026' as ExamType);
-                const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
-                setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
-              }}
-              className={`flex flex-col items-center justify-center gap-1 py-4 rounded-xl transition-all ${
-                selectedExam === 'CSAT_2026'
-                  ? 'bg-emerald-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              <span className="text-xl">📋</span>
-              <span className="font-semibold text-sm">2026 기출</span>
-            </button>
+            {/* 2026 기출 버튼 - 단품 구매자만 표시 */}
+            {hasCsat2026Access && (
+              <button
+                onClick={() => {
+                  setActiveExam('CSAT_2026' as ExamType);
+                  const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
+                  setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
+                }}
+                className={`flex flex-col items-center justify-center gap-1 py-4 rounded-xl transition-all ${
+                  selectedExam === 'CSAT_2026'
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <span className="text-xl">📋</span>
+                <span className="font-semibold text-sm">2026 기출</span>
+              </button>
+            )}
 
             {/* TEPS 버튼 */}
             <button
