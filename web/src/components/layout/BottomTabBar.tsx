@@ -59,7 +59,7 @@ export default function BottomTabBar() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom md:hidden">
       <div className="max-w-lg mx-auto">
         <div className="grid grid-cols-4">
           {tabs.map((tab) => {
