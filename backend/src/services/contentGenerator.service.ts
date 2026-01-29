@@ -306,10 +306,10 @@ export async function saveGeneratedContent(
         pronunciation: generated.pronunciation.korean,
 
         // Morphology
-        prefix: generated.morphology.prefix?.part,
-        root: generated.morphology.root?.part,
-        suffix: generated.morphology.suffix?.part,
-        morphologyNote: generated.morphology.note,
+        prefix: generated.morphology?.prefix?.part,
+        root: generated.morphology?.root?.part,
+        suffix: generated.morphology?.suffix?.part,
+        morphologyNote: generated.morphology?.note,
 
         // Related words (arrays)
         synonymList: generated.relatedWords.synonyms,
