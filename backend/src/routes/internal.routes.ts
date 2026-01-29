@@ -1708,7 +1708,7 @@ router.get('/generate-content-continuous', async (req: Request, res: Response) =
     }
 
     const examCategory = req.query.examCategory as string;
-    const batchSize = Math.min(parseInt(req.query.batchSize as string) || 10, 50);
+    const batchSize = Math.min(parseInt(req.query.batchSize as string) || 50, 100);
 
     // Check if there's already a content generation session running
     const existingSession = Array.from(activeContentSessions.entries())
