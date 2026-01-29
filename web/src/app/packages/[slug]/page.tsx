@@ -161,7 +161,7 @@ export default function PackageDetailPage() {
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>듣기/독해 영역별로 체계적으로 학습하고 싶은 분</span>
+                        <span>듣기/독해 영역별로 체계적으로 단어를 학습하고 싶은 분</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />

@@ -63,6 +63,7 @@ interface Word {
   mnemonics?: any[];
   examples?: any[];
   rhymes?: any[];
+  rhymingWords?: string[];
   etymology?: any;
   collocations?: any[];
   visuals?: WordVisual[];
@@ -426,33 +427,10 @@ export default function FlashCardGesture({
                   />
                 )}
 
-                {/* Etymology */}
-                {word.etymology && (
-                  <div className="bg-purple-50 rounded-xl p-5">
-                    <p className="text-sm font-medium text-purple-600 mb-2">📚 어원</p>
-                    {word.etymology.origin && (
-                      <p className="text-gray-800 mb-2">{word.etymology.origin}</p>
-                    )}
-                    {word.etymology.breakdown && (
-                      <p className="text-gray-600 text-sm mb-2">
-                        <span className="font-medium">형태분석:</span> {word.etymology.breakdown}
-                      </p>
-                    )}
-                    {word.etymology.relatedWords && word.etymology.relatedWords.length > 0 && (
-                      <div className="mt-2">
-                        <span className="text-gray-500 text-sm">관련 단어: </span>
-                        <span className="text-purple-700 text-sm">
-                          {word.etymology.relatedWords.slice(0, 5).join(', ')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Examples */}
+                {/* 1. Examples (예문) */}
                 {examples.length > 0 && (
                   <div className="bg-blue-50 rounded-xl p-5">
-                    <p className="text-sm font-medium text-blue-600 mb-3">예문</p>
+                    <p className="text-sm font-medium text-blue-600 mb-3">✍️ 예문</p>
                     <div className="space-y-3">
                       {examples.map((ex, index) => (
                         <div key={ex.id || index} className={index > 0 ? "pt-3 border-t border-blue-100" : ""}>
@@ -470,27 +448,60 @@ export default function FlashCardGesture({
                   </div>
                 )}
 
-                {/* Mnemonic */}
-                {mnemonic && (
-                  <div className="bg-amber-50 rounded-xl p-5 border-l-4 border-amber-400">
-                    <p className="text-sm font-medium text-amber-700 mb-2">💡 연상법</p>
-                    <p className="text-gray-800">
-                      {mnemonic.content || mnemonic.koreanHint}
-                    </p>
+                {/* 2. Collocations (콜로케이션) */}
+                {word.collocations && word.collocations.length > 0 && (
+                  <div className="bg-green-50 rounded-xl p-5">
+                    <p className="text-sm font-medium text-green-600 mb-3">🔗 콜로케이션</p>
+                    <div className="space-y-2">
+                      {word.collocations.slice(0, 5).map((col: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="bg-green-100 text-green-800 px-3 py-1.5 rounded-lg text-sm font-medium">
+                            {col.phrase}
+                          </span>
+                          {col.meaning && (
+                            <span className="text-gray-500 text-sm">— {col.meaning}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
-                {/* Collocations */}
-                {word.collocations && word.collocations.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-400 mb-2">연어 표현</p>
+                {/* 3. Etymology (어원) */}
+                {word.etymology && word.etymology.origin && (
+                  <div className="bg-purple-50 rounded-xl p-5">
+                    <p className="text-sm font-medium text-purple-600 mb-2">📚 어원</p>
+                    <p className="text-gray-800">{word.etymology.origin}</p>
+                    {word.etymology.relatedWords && word.etymology.relatedWords.length > 0 && (
+                      <div className="mt-3">
+                        <span className="text-gray-500 text-sm">관련 단어: </span>
+                        <span className="text-purple-700 text-sm">
+                          {word.etymology.relatedWords.slice(0, 5).join(', ')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 4. 형태 분석 */}
+                {word.etymology?.breakdown && (
+                  <div className="bg-indigo-50 rounded-xl p-5">
+                    <p className="text-sm font-medium text-indigo-600 mb-2">🧩 형태 분석</p>
+                    <p className="text-gray-800">{word.etymology.breakdown}</p>
+                  </div>
+                )}
+
+                {/* 5. Rhyming (라이밍) */}
+                {word.rhymingWords && word.rhymingWords.length > 0 && (
+                  <div className="bg-pink-50 rounded-xl p-5">
+                    <p className="text-sm font-medium text-pink-600 mb-2">🎵 라이밍</p>
                     <div className="flex flex-wrap gap-2">
-                      {word.collocations.slice(0, 5).map((col: any, i: number) => (
+                      {word.rhymingWords.slice(0, 6).map((rhyme: string, i: number) => (
                         <span
                           key={i}
-                          className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full text-sm"
+                          className="bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full text-sm"
                         >
-                          {col.phrase}
+                          {rhyme}
                         </span>
                       ))}
                     </div>
