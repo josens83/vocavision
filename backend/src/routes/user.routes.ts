@@ -46,6 +46,25 @@ router.get('/me', authenticateToken, async (req: Request, res: Response) => {
         dailyGoal: true,
         dailyProgress: true,
         createdAt: true,
+        purchases: {
+          where: {
+            status: 'ACTIVE',
+            expiresAt: { gt: new Date() }
+          },
+          select: {
+            id: true,
+            packageId: true,
+            expiresAt: true,
+            package: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                examCategory: true,
+              }
+            }
+          }
+        },
       },
     });
 

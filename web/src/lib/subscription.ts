@@ -2,10 +2,23 @@
 // 구독 기반 접근 제어 유틸리티
 // ============================================
 
+interface Purchase {
+  id: string;
+  packageId: string;
+  expiresAt: string;
+  package: {
+    id: string;
+    slug: string;
+    name: string;
+    examCategory: string;
+  };
+}
+
 interface User {
   id: string;
   subscriptionPlan?: string | null;
   subscriptionStatus?: string | null;
+  purchases?: Purchase[];
 }
 
 export type SubscriptionTier = 'FREE' | 'BASIC' | 'PREMIUM';
@@ -135,4 +148,66 @@ export function isLevelLocked(user: User | null, exam: string, level: string): b
   const accessible = getAccessibleLevels(user);
   const examLevels = accessible[exam as keyof typeof accessible] || [];
   return !examLevels.includes(level);
+}
+
+// ============================================
+// 단품 구매 기반 접근 권한
+// ============================================
+
+/**
+ * 특정 시험 카테고리에 대한 단품 구매 여부 확인
+ */
+export function hasPurchasedExam(user: User | null, examCategory: string): boolean {
+  if (!user?.purchases) return false;
+  return user.purchases.some(p => p.package.examCategory === examCategory);
+}
+
+/**
+ * 프리미엄 또는 단품 구매로 시험에 접근 가능한지 확인
+ */
+export function canAccessExamWithPurchase(user: User | null, exam: string): boolean {
+  // 프리미엄 회원은 모든 것에 접근 가능
+  if (getSubscriptionTier(user) === 'PREMIUM') return true;
+
+  // CSAT는 모든 사용자 접근 가능
+  if (exam === 'CSAT') return true;
+
+  // CSAT_2026, EBS 등은 단품 구매 확인
+  if (hasPurchasedExam(user, exam)) return true;
+
+  // TEPS는 프리미엄만 (위에서 이미 체크됨)
+  return false;
+}
+
+/**
+ * 프리미엄 또는 단품 구매로 콘텐츠에 접근 가능한지 확인
+ * - 프리미엄: 모든 콘텐츠 접근 가능
+ * - 베이직: CSAT 전체 레벨
+ * - 무료: CSAT L1만
+ * - 단품 구매: 해당 시험 전체 레벨
+ */
+export function canAccessContentWithPurchase(user: User | null, exam: string, level: string): boolean {
+  // 프리미엄 회원은 모든 것에 접근 가능
+  if (getSubscriptionTier(user) === 'PREMIUM') return true;
+
+  // 단품 구매한 시험은 전체 레벨 접근 가능
+  if (hasPurchasedExam(user, exam)) return true;
+
+  // 기존 구독 기반 접근 권한 체크
+  return canAccessExam(user, exam) && canAccessLevel(user, level);
+}
+
+/**
+ * 대시보드에서 표시할 모든 시험 목록 (자물쇠 포함)
+ */
+export function getAvailableExams(user: User | null): { exam: string; locked: boolean; reason?: string }[] {
+  const tier = getSubscriptionTier(user);
+
+  const exams = [
+    { exam: 'CSAT', locked: false },
+    { exam: 'CSAT_2026', locked: !canAccessExamWithPurchase(user, 'CSAT_2026'), reason: '단품 구매 필요' },
+    { exam: 'TEPS', locked: tier !== 'PREMIUM', reason: '프리미엄 전용' },
+  ];
+
+  return exams;
 }

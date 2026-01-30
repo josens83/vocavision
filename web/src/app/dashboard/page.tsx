@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore, useExamCourseStore, useUserSettingsStore, ExamType } from '@/lib/store';
 import { progressAPI, wordsAPI, learningAPI, api } from '@/lib/api';
-import { canAccessExam as canAccessExamUtil, canAccessLevel as canAccessLevelUtil } from '@/lib/subscription';
+import { canAccessExamWithPurchase, canAccessContentWithPurchase, getAvailableExams, getSubscriptionTier } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 
@@ -110,9 +110,11 @@ export default function DashboardPage() {
   const [learningSession, setLearningSession] = useState<LearningSessionData | null>(null);
   const [hasCsat2026Access, setHasCsat2026Access] = useState(false);
 
-  // 구독 상태에 따른 접근 권한 체크
-  const canAccessExam = (exam: string) => canAccessExamUtil(user, exam);
-  const canAccessLevel = (exam: string, level: string) => canAccessLevelUtil(user, level);
+  // 구독 + 단품 구매 상태에 따른 접근 권한 체크
+  const canAccessExam = (exam: string) => canAccessExamWithPurchase(user, exam);
+  const canAccessLevel = (exam: string, level: string) => canAccessContentWithPurchase(user, exam, level);
+  const availableExams = getAvailableExams(user);
+  const isPremium = getSubscriptionTier(user) === 'PREMIUM';
 
   // Calendar data
   const today = new Date();
