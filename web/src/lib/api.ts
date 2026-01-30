@@ -363,18 +363,35 @@ export const pronunciationAPI = {
     }
   },
 
-  // 발음 재생
+  // 발음 재생 (Free Dictionary API 우선, 실패 시 Web Speech API fallback)
   playPronunciation: async (word: string): Promise<boolean> => {
     const { audioUrl } = await pronunciationAPI.getPronunciation(word);
-    if (!audioUrl) return false;
 
-    try {
-      const audio = new Audio(audioUrl);
-      await audio.play();
-      return true;
-    } catch {
-      return false;
+    // 1. Free Dictionary API 오디오가 있으면 사용
+    if (audioUrl) {
+      try {
+        const audio = new Audio(audioUrl);
+        await audio.play();
+        return true;
+      } catch {
+        // 오디오 재생 실패 시 fallback으로 진행
+      }
     }
+
+    // 2. Web Speech API fallback (브라우저 TTS)
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    return false;
   },
 };
 

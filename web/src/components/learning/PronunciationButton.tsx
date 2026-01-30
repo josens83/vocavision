@@ -70,24 +70,52 @@ export default function PronunciationButton({
         setPhonetic(data.phonetic);
       }
 
-      if (!data.audioUrl) {
-        setError(true);
-        return;
-      }
-
-      // Stop any currently playing audio
+      // Stop any currently playing audio or speech
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
 
-      // Play new audio
-      const audio = new Audio(data.audioUrl);
-      audioRef.current = audio;
+      // 1. Free Dictionary API 오디오가 있으면 사용
+      if (data.audioUrl) {
+        try {
+          const audio = new Audio(data.audioUrl);
+          audioRef.current = audio;
+          await audio.play();
+          return;
+        } catch {
+          // 오디오 재생 실패 시 fallback으로 진행
+        }
+      }
 
-      await audio.play();
+      // 2. Web Speech API fallback (브라우저 TTS)
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setError(true);
+      }
     } catch (err) {
       console.error('Failed to play pronunciation:', err);
+
+      // Try fallback on error
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(word);
+          utterance.lang = 'en-US';
+          utterance.rate = 0.9;
+          window.speechSynthesis.speak(utterance);
+          return;
+        } catch {
+          // Fallback also failed
+        }
+      }
       setError(true);
     } finally {
       setIsLoading(false);
