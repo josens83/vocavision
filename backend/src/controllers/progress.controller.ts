@@ -426,13 +426,11 @@ export const submitReview = async (
       throw new AppError('examCategory is required', 400);
     }
 
-    // Get or create progress (findFirst 사용 - Enum 타입 불일치 방지)
+    // Get or create progress (userId + wordId만으로 검색 - Unique constraint는 이 조합)
     let progress = await prisma.userProgress.findFirst({
       where: {
         userId,
         wordId,
-        examCategory: wordExamCategory,
-        level: wordLevel
       }
     });
 
