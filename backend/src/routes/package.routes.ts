@@ -22,7 +22,20 @@ router.get('/check-access', authenticateToken, async (req: AuthRequest, res: Res
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    // 1. 해당 패키지 찾기
+    // 1. 사용자 정보 확인 (프리미엄 체크용)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionPlan: true, subscriptionStatus: true },
+    });
+
+    // 2. 프리미엄 회원은 모든 패키지 접근 가능
+    const isPremium = user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY';
+    if (isPremium) {
+      logger.info(`[Packages] Access check - user: ${userId}, package: ${slug}, hasAccess: true (PREMIUM)`);
+      return res.json({ hasAccess: true, reason: 'premium' });
+    }
+
+    // 3. 해당 패키지 찾기
     const pkg = await prisma.productPackage.findUnique({
       where: { slug },
     });
@@ -31,7 +44,7 @@ router.get('/check-access', authenticateToken, async (req: AuthRequest, res: Res
       return res.status(404).json({ error: 'Package not found', hasAccess: false });
     }
 
-    // 2. 구매 내역 확인 (ACTIVE 상태이고 만료되지 않은 것)
+    // 4. 구매 내역 확인 (ACTIVE 상태이고 만료되지 않은 것)
     const purchase = await prisma.userPurchase.findFirst({
       where: {
         userId,
