@@ -60,7 +60,6 @@ router.get('/me', authenticateToken, async (req: Request, res: Response) => {
                 id: true,
                 slug: true,
                 name: true,
-                examCategory: true,
               }
             }
           }

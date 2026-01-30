@@ -10,7 +10,6 @@ interface Purchase {
     id: string;
     slug: string;
     name: string;
-    examCategory: string;
   };
 }
 
@@ -154,12 +153,19 @@ export function isLevelLocked(user: User | null, exam: string, level: string): b
 // 단품 구매 기반 접근 권한
 // ============================================
 
+// slug → examCategory 매핑
+const slugToExamMap: Record<string, string> = {
+  '2026-csat-analysis': 'CSAT_2026',
+  'ebs-vocab': 'EBS',
+  'csat-core-200': 'CSAT_CORE',
+};
+
 /**
  * 특정 시험 카테고리에 대한 단품 구매 여부 확인
  */
 export function hasPurchasedExam(user: User | null, examCategory: string): boolean {
   if (!user?.purchases) return false;
-  return user.purchases.some(p => p.package.examCategory === examCategory);
+  return user.purchases.some(p => slugToExamMap[p.package.slug] === examCategory);
 }
 
 /**
