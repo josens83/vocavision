@@ -873,12 +873,17 @@ export default function Hero() {
                 <div className="relative z-10">
                   <h4 className="text-lg font-semibold mb-2">60초 안에 체험해보세요!</h4>
                   <p className="text-white/80 mb-4">회원가입 없이 샘플 단어로 빠르게 체험</p>
-                  <Link href="/learn?exam=CSAT&level=L1&demo=true" className="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
-                    <span>맛보기 시작</span>
-                    <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </Link>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Link href="/learn?exam=CSAT&level=L1&demo=true" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
+                      <span>맛보기 시작</span>
+                      <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </Link>
+                    <Link href="/auth/login" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white/20 text-white hover:bg-white/30 border border-white/30 rounded-lg font-medium transition-colors">
+                      <span>수능 기초단어 학습</span>
+                    </Link>
+                  </div>
                 </div>
                 <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full" />
               </div>

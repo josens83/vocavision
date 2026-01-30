@@ -274,8 +274,8 @@ export default function PricingPage() {
             필요한 콘텐츠만 골라서 구매하세요. 구독 없이 영구 이용 가능!
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* 수능 핵심 200 */}
+          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {/* 2026 수능기출완전분석 - 베스트 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#F59E0B] text-white text-[11px] font-bold px-3 py-1 rounded-full">
@@ -284,37 +284,37 @@ export default function PricingPage() {
               </div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-[#F59E0B] to-[#EF4444] rounded-xl flex items-center justify-center">
-                  <span className="text-white text-xl">🎯</span>
+                  <span className="text-white text-xl">📝</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">수능 핵심 200</h3>
-                  <p className="text-[12px] text-[#999999]">200개 단어</p>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">2026 수능기출완전분석</h3>
+                  <p className="text-[12px] text-[#999999]">521개 단어</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
-                수능 영어에서 가장 자주 출제되는 핵심 200단어를 집중 학습하세요.
+                2026년 수능 기출문제 완전 분석. 듣기/독해 영역별 핵심 어휘를 한 번에!
               </p>
               <div className="flex items-end gap-1 mb-4">
                 <span className="text-[28px] font-bold text-[#1c1c1e]">₩3,900</span>
-                <span className="text-[#999999] text-[12px] mb-1">일회성</span>
+                <span className="text-[#999999] text-[12px] mb-1">6개월</span>
               </div>
               <button
-                onClick={() => router.push("/checkout?product=csat-core-200")}
+                onClick={() => router.push("/checkout?product=2026-csat-analysis")}
                 className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#F59E0B] text-white hover:bg-[#D97706] transition-colors"
               >
                 구매하기
               </button>
             </div>
 
-            {/* EBS 연계어휘 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
+            {/* EBS 연계어휘 - 출시예정 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative opacity-75">
               <div className="absolute -top-3 right-4">
-                <span className="bg-[#3B82F6] text-white text-[11px] font-bold px-3 py-1 rounded-full">
-                  대용량
+                <span className="bg-[#999999] text-white text-[11px] font-bold px-3 py-1 rounded-full">
+                  출시예정
                 </span>
               </div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#3B82F6] to-[#6366F1] rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#9CA3AF] to-[#6B7280] rounded-xl flex items-center justify-center">
                   <span className="text-white text-xl">📚</span>
                 </div>
                 <div>
@@ -324,37 +324,6 @@ export default function PricingPage() {
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
                 EBS 수능특강, 수능완성에서 나오는 연계 어휘를 완벽하게 마스터하세요.
-              </p>
-              <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">₩4,900</span>
-                <span className="text-[#999999] text-[12px] mb-1">일회성</span>
-              </div>
-              <button
-                onClick={() => router.push("/checkout?product=ebs-vocab")}
-                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#3B82F6] text-white hover:bg-[#2563EB] transition-colors"
-              >
-                구매하기
-              </button>
-            </div>
-
-            {/* 2026년 수능기출완전분석 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative opacity-75">
-              <div className="absolute -top-3 right-4">
-                <span className="bg-[#999999] text-white text-[11px] font-bold px-3 py-1 rounded-full">
-                  출시예정
-                </span>
-              </div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#9CA3AF] to-[#6B7280] rounded-xl flex items-center justify-center">
-                  <span className="text-white text-xl">📝</span>
-                </div>
-                <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">2026 수능기출완전분석</h3>
-                  <p className="text-[12px] text-[#999999]">출시 준비중</p>
-                </div>
-              </div>
-              <p className="text-gray-500 text-[13px] mb-4">
-                2026년 수능 기출문제 완전 분석. 출제 경향과 핵심 어휘를 한 번에!
               </p>
               <div className="flex items-end gap-1 mb-4">
                 <span className="text-[28px] font-bold text-[#C8C8C8]">가격 미정</span>
