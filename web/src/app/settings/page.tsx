@@ -7,6 +7,7 @@ import { useAuthStore } from '@/lib/store';
 import { useToast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmModal';
 import { useClearAllCache } from '@/hooks/useQueries';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -222,14 +223,17 @@ function SettingsContent() {
 
   if (!hasHydrated) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-[#14B8A6] border-t-transparent rounded-full" />
-      </div>
+      <DashboardLayout>
+        <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-4 border-[#14B8A6] border-t-transparent rounded-full" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
+    <DashboardLayout>
+      <div className="min-h-screen bg-[#FAFAFA]">
       {/* Header (은행 앱 스타일) */}
       <header className="bg-white border-b border-[#f0f0f0] sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -517,16 +521,19 @@ function SettingsContent() {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 
 export default function SettingsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-[#14B8A6] border-t-transparent rounded-full" />
-      </div>
+      <DashboardLayout>
+        <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-4 border-[#14B8A6] border-t-transparent rounded-full" />
+        </div>
+      </DashboardLayout>
     }>
       <SettingsContent />
     </Suspense>

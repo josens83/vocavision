@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { getPlanDisplay, isPremiumPlan } from '@/lib/subscription';
-import TabLayout from '@/components/layout/TabLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useClearAllCache } from '@/hooks/useQueries';
 
 // ChevronRight 아이콘
@@ -38,11 +38,11 @@ export default function MyPage() {
 
   if (!_hasHydrated) {
     return (
-      <TabLayout>
+      <DashboardLayout>
         <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
           <div className="animate-spin w-8 h-8 border-4 border-[#14B8A6] border-t-transparent rounded-full" />
         </div>
-      </TabLayout>
+      </DashboardLayout>
     );
   }
 
@@ -53,7 +53,7 @@ export default function MyPage() {
   const currentSub = getPlanDisplay(user);
 
   return (
-    <TabLayout>
+    <DashboardLayout>
       <div className="min-h-screen bg-[#FAFAFA]">
         <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
 
@@ -201,6 +201,6 @@ export default function MyPage() {
 
         </div>
       </div>
-    </TabLayout>
+    </DashboardLayout>
   );
 }
