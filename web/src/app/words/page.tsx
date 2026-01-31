@@ -105,7 +105,7 @@ function WordsPageContent() {
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState(initialSearch);
-  const [examCategory, setExamCategory] = useState('');
+  const [examCategory, setExamCategory] = useState('CSAT');
   const [level, setLevel] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
