@@ -1,4 +1,4 @@
-// Force redeploy - 2026-01-31 v2 (fix exam order)
+// Force redeploy - 2026-01-31 v3 (fix exam order: 수능→TEPS→2026기출)
 'use client';
 
 import { useEffect } from 'react';
@@ -34,7 +34,7 @@ function DashboardItem({ value, label, color, loading }: { value: string | numbe
   );
 }
 
-// Exam info
+// Exam info (순서: 수능 → TEPS → 2026 기출)
 const examInfo: Record<string, { name: string; icon: string; color: string }> = {
   CSAT: { name: '수능', icon: '📝', color: 'blue' },
   TEPS: { name: 'TEPS', icon: '🎓', color: 'purple' },
@@ -167,13 +167,13 @@ export default function DashboardPage() {
     }
   }, [user, hasHydrated, router]);
 
-  // CSAT_2026 접근권한 없으면 CSAT으로 fallback
+  // CSAT_2026 접근권한 없으면 CSAT으로 fallback (프리미엄도 접근 가능)
   useEffect(() => {
-    if (hasHydrated && activeExam === 'CSAT_2026' && !hasCsat2026Access) {
+    if (hasHydrated && activeExam === 'CSAT_2026' && !hasCsat2026Access && !isPremium) {
       setActiveExam('CSAT' as ExamType);
       setActiveLevel('L1');
     }
-  }, [hasHydrated, activeExam, hasCsat2026Access, setActiveExam, setActiveLevel]);
+  }, [hasHydrated, activeExam, hasCsat2026Access, isPremium, setActiveExam, setActiveLevel]);
 
   // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
   useEffect(() => {
@@ -302,7 +302,7 @@ export default function DashboardPage() {
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
 
-          <div className={`grid gap-3 ${hasCsat2026Access ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          <div className={`grid gap-3 ${(hasCsat2026Access || isPremium) ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {/* 수능 버튼 */}
             <button
               onMouseEnter={() => {
@@ -323,29 +323,6 @@ export default function DashboardPage() {
               <span className="text-xl">📝</span>
               <span className="font-semibold text-sm">수능</span>
             </button>
-
-            {/* 2026 기출 버튼 - 단품 구매자만 표시 */}
-            {hasCsat2026Access && (
-              <button
-                onMouseEnter={() => {
-                  const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
-                  prefetchDashboard('CSAT_2026', lastLevel);
-                }}
-                onClick={() => {
-                  setActiveExam('CSAT_2026' as ExamType);
-                  const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
-                  setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
-                }}
-                className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
-                  selectedExam === 'CSAT_2026'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <span className="text-xl">📋</span>
-                <span className="font-semibold text-sm">2026 기출</span>
-              </button>
-            )}
 
             {/* TEPS 버튼 */}
             <button
@@ -378,6 +355,29 @@ export default function DashboardPage() {
               <span className="font-semibold text-sm">TEPS</span>
               {!canAccessExam('TEPS') && <span className="text-xs">🔒</span>}
             </button>
+
+            {/* 2026 기출 버튼 - 프리미엄 또는 단품 구매자만 표시 */}
+            {(hasCsat2026Access || isPremium) && (
+              <button
+                onMouseEnter={() => {
+                  const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
+                  prefetchDashboard('CSAT_2026', lastLevel);
+                }}
+                onClick={() => {
+                  setActiveExam('CSAT_2026' as ExamType);
+                  const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
+                  setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
+                }}
+                className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
+                  selectedExam === 'CSAT_2026'
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <span className="text-xl">📋</span>
+                <span className="font-semibold text-sm">2026 기출</span>
+              </button>
+            )}
           </div>
         </section>
 

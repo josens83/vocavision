@@ -1,4 +1,4 @@
-// Force redeploy - 2026-01-31 v2 (fix exam order and access control)
+// Force redeploy - 2026-01-31 v3 (fix exam order + level labels)
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
@@ -61,11 +61,11 @@ interface ReviewWord {
   incorrectCount: number;
 }
 
-// Dashboard와 동일한 시험 순서: 수능 → 2026 기출 → TEPS
+// 시험 순서: 수능 → TEPS → 2026 기출 (단품은 오른쪽에 배치)
 const examInfo: Record<string, { name: string; icon: string }> = {
   CSAT: { name: '수능', icon: '📝' },
-  CSAT_2026: { name: '2026 기출', icon: '📋' },
   TEPS: { name: 'TEPS', icon: '🎓' },
+  CSAT_2026: { name: '2026 기출', icon: '📋' },
 };
 
 // 시험별 레벨 정보 가져오기 함수 (TEPS는 L1/L2만)
@@ -78,9 +78,9 @@ const getLevelInfo = (exam: string): Record<string, { name: string; description:
   }
   if (exam === 'CSAT_2026') {
     return {
-      LISTENING: { name: '듣기', description: '2026 수능 듣기 영역' },
-      READING_2: { name: '독해(2점)', description: '2026 수능 독해 2점' },
-      READING_3: { name: '독해(3점)', description: '2026 수능 독해 3점' },
+      LISTENING: { name: '듣기영역', description: '2026 수능 듣기 영역' },
+      READING_2: { name: '독해영역 2점', description: '2026 수능 독해 2점' },
+      READING_3: { name: '독해영역 3점', description: '2026 수능 독해 3점' },
     };
   }
   return {
@@ -151,8 +151,8 @@ function ReviewPageContent() {
   const { data: csat2026AccessData } = usePackageAccess('2026-csat-analysis', !!user);
   const hasCsat2026Access = csat2026AccessData?.hasAccess || false;
 
-  // 구독 상태 확인 (2026 기출은 단품 구매자만 접근 가능, 프리미엄도 불가)
-  // const isPremium = user?.subscriptionStatus === 'active' && user?.subscriptionPlan !== 'FREE';
+  // 구독 상태 확인 (프리미엄 회원은 모든 단품 접근 가능)
+  const isPremium = user?.subscriptionStatus === 'active' && user?.subscriptionPlan !== 'FREE';
 
   // React Query 데이터에서 추출
   const stats: ReviewStats = isDemo ? DEMO_STATS : {
@@ -332,10 +332,10 @@ function ReviewPageContent() {
 
           <div className="flex gap-3">
             {Object.entries(examInfo)
-              .filter(([key]) => key !== 'CSAT_2026' || hasCsat2026Access)
+              .filter(([key]) => key !== 'CSAT_2026' || hasCsat2026Access || isPremium)
               .map(([key, info]) => {
-              // CSAT_2026은 단품 구매 여부로 체크, 나머지는 구독 권한으로 체크
-              const isLocked = key === 'CSAT_2026' ? !hasCsat2026Access : !canAccessExam(user, key);
+              // CSAT_2026은 프리미엄 또는 단품 구매, 나머지는 구독 권한으로 체크
+              const isLocked = key === 'CSAT_2026' ? !(hasCsat2026Access || isPremium) : !canAccessExam(user, key);
               return (
                 <button
                   key={key}
@@ -375,9 +375,11 @@ function ReviewPageContent() {
           </div>
         </section>
 
-        {/* 레벨 선택 (은행 앱 스타일) */}
+        {/* 레벨/유형 선택 (은행 앱 스타일) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">레벨 선택</h3>
+          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">
+            {selectedExam === 'CSAT_2026' ? '유형 선택' : '레벨 선택'}
+          </h3>
 
           <div className="flex gap-3">
             {Object.entries(getLevelInfo(selectedExam)).map(([key, info]) => {
@@ -405,19 +407,27 @@ function ReviewPageContent() {
                       : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                   }`}
                 >
-                  <div className="flex items-center gap-1">
-                    <span className="font-bold text-[16px]">{key}</span>
-                    {isLocked && <span className="text-sm">🔒</span>}
-                  </div>
-                  <span className={`text-[12px] mt-1 ${
-                    isLocked
-                      ? 'text-[#999999]'
-                      : selectedLevel === key
-                      ? 'text-blue-100'
-                      : 'text-[#999999]'
-                  }`}>
-                    {info.name}
-                  </span>
+                  {selectedExam === 'CSAT_2026' ? (
+                    // CSAT_2026: 한 줄로 표시 (Dashboard와 동일)
+                    <span className="font-semibold text-sm">{info.name}</span>
+                  ) : (
+                    // 기존 CSAT/TEPS: 두 줄 유지
+                    <>
+                      <div className="flex items-center gap-1">
+                        <span className="font-bold text-[16px]">{key}</span>
+                        {isLocked && <span className="text-sm">🔒</span>}
+                      </div>
+                      <span className={`text-[12px] mt-1 ${
+                        isLocked
+                          ? 'text-[#999999]'
+                          : selectedLevel === key
+                          ? 'text-blue-100'
+                          : 'text-[#999999]'
+                      }`}>
+                        {info.name}
+                      </span>
+                    </>
+                  )}
                 </button>
               );
             })}
