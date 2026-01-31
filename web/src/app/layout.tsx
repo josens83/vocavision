@@ -88,11 +88,12 @@ export const metadata: Metadata = {
   applicationName: 'VocaVision AI',
   category: 'education',
 
-  // 검증 (나중에 추가)
-  // verification: {
-  //   google: 'google-site-verification-code',
-  //   naver: 'naver-site-verification-code',
-  // },
+  // 사이트 소유 확인
+  verification: {
+    other: {
+      'naver-site-verification': '6441ff858511a40b6f042e7d0d771f8026a93471',
+    },
+  },
 };
 
 export default function RootLayout({
