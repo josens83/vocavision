@@ -90,6 +90,7 @@ export const metadata: Metadata = {
 
   // 사이트 소유 확인
   verification: {
+    google: 'KmcZnbsxKMk9XpW3_UrrtXPh-kevM3EI0ra_Trmme5Y',
     other: {
       'naver-site-verification': '6441ff858511a40b6f042e7d0d771f8026a93471',
     },
