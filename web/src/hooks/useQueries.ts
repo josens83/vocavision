@@ -73,3 +73,56 @@ export function useInvalidateDashboard() {
     }
   };
 }
+
+/**
+ * 복습 대기 단어 목록 훅
+ * - 시험/레벨별 복습 대기 단어 조회
+ * - 30초 캐시
+ */
+export function useDueReviews(examCategory: string, level: string, enabled = true) {
+  return useQuery({
+    queryKey: ['dueReviews', examCategory, level],
+    queryFn: () => progressAPI.getDueReviews({ examCategory, level }),
+    enabled,
+    placeholderData: (previousData) => previousData,
+  });
+}
+
+/**
+ * 복습 데이터 프리패치 훅
+ */
+export function usePrefetchReviews() {
+  const queryClient = useQueryClient();
+
+  return (examCategory: string, level: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ['dueReviews', examCategory, level],
+      queryFn: () => progressAPI.getDueReviews({ examCategory, level }),
+      staleTime: 30_000,
+    });
+  };
+}
+
+/**
+ * 복습 캐시 무효화 훅
+ * - 퀴즈 완료 후 복습 데이터 새로고침 필요 시 사용
+ */
+export function useInvalidateReviews() {
+  const queryClient = useQueryClient();
+
+  return (examCategory?: string, level?: string) => {
+    if (examCategory && level) {
+      queryClient.invalidateQueries({
+        queryKey: ['dueReviews', examCategory, level],
+      });
+    } else {
+      queryClient.invalidateQueries({
+        queryKey: ['dueReviews'],
+      });
+    }
+    // 대시보드도 같이 무효화 (dueReviewCount 갱신)
+    queryClient.invalidateQueries({
+      queryKey: ['dashboardSummary'],
+    });
+  };
+}
