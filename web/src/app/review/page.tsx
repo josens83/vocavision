@@ -8,7 +8,7 @@ import { canAccessExam, canAccessLevel } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
-import { useDueReviews, useDashboardSummary, usePrefetchReviews } from '@/hooks/useQueries';
+import { useDueReviews, useDashboardSummary, usePrefetchReviews, usePackageAccess } from '@/hooks/useQueries';
 
 // ============================================
 // DashboardItem 컴포넌트 (은행 앱 스타일)
@@ -64,6 +64,7 @@ interface ReviewWord {
 const examInfo: Record<string, { name: string; icon: string }> = {
   CSAT: { name: '수능', icon: '📝' },
   TEPS: { name: 'TEPS', icon: '🎓' },
+  CSAT_2026: { name: '2026 기출', icon: '📋' },
 };
 
 // 시험별 레벨 정보 가져오기 함수 (TEPS는 L1/L2만)
@@ -72,6 +73,13 @@ const getLevelInfo = (exam: string): Record<string, { name: string; description:
     return {
       L1: { name: '기본', description: 'TEPS 기본 어휘' },
       L2: { name: '필수', description: 'TEPS 필수 어휘' },
+    };
+  }
+  if (exam === 'CSAT_2026') {
+    return {
+      LISTENING: { name: '듣기', description: '2026 수능 듣기 영역' },
+      READING_2: { name: '독해(2점)', description: '2026 수능 독해 2점' },
+      READING_3: { name: '독해(3점)', description: '2026 수능 독해 3점' },
     };
   }
   return {
@@ -138,6 +146,10 @@ function ReviewPageContent() {
   // 프리패치 훅
   const prefetchReviews = usePrefetchReviews();
 
+  // 2026 기출 접근 권한 확인
+  const { data: csat2026AccessData } = usePackageAccess('2026-csat-analysis', !!user);
+  const hasCsat2026Access = csat2026AccessData?.hasAccess || false;
+
   // React Query 데이터에서 추출
   const stats: ReviewStats = isDemo ? DEMO_STATS : {
     dueToday: reviewData?.count || 0,
@@ -180,9 +192,13 @@ function ReviewPageContent() {
     setActiveExam(exam as ExamType);
     // localStorage에서 마지막 선택한 레벨 가져오기
     const lastLevel = localStorage.getItem(`review_${exam}_level`);
-    // TEPS는 L1/L2만 유효
-    const validLevels = exam === 'TEPS' ? ['L1', 'L2'] : ['L1', 'L2', 'L3'];
-    const level = lastLevel && validLevels.includes(lastLevel) ? lastLevel : 'L1';
+    // 시험별 유효 레벨 설정
+    const validLevels = exam === 'TEPS'
+      ? ['L1', 'L2']
+      : exam === 'CSAT_2026'
+      ? ['LISTENING', 'READING_2', 'READING_3']
+      : ['L1', 'L2', 'L3'];
+    const level = lastLevel && validLevels.includes(lastLevel) ? lastLevel : validLevels[0];
     setActiveLevel(level as 'L1' | 'L2' | 'L3');
   };
 
@@ -311,7 +327,9 @@ function ReviewPageContent() {
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">시험 선택</h3>
 
           <div className="flex gap-3">
-            {Object.entries(examInfo).map(([key, info]) => {
+            {Object.entries(examInfo)
+              .filter(([key]) => key !== 'CSAT_2026' || hasCsat2026Access)
+              .map(([key, info]) => {
               const isLocked = !canAccessExam(user, key);
               return (
                 <button
@@ -319,8 +337,8 @@ function ReviewPageContent() {
                   onMouseEnter={() => {
                     if (!isLocked) {
                       const lastLevel = localStorage.getItem(`review_${key}_level`) || 'L1';
-                      const validLevels = key === 'TEPS' ? ['L1', 'L2'] : ['L1', 'L2', 'L3'];
-                      const level = validLevels.includes(lastLevel) ? lastLevel : 'L1';
+                      const validLevels = key === 'TEPS' ? ['L1', 'L2'] : key === 'CSAT_2026' ? ['LISTENING', 'READING_2', 'READING_3'] : ['L1', 'L2', 'L3'];
+                      const level = validLevels.includes(lastLevel) ? lastLevel : validLevels[0];
                       prefetchReviews(key, level);
                     }
                   }}
@@ -337,6 +355,8 @@ function ReviewPageContent() {
                       : selectedExam === key
                       ? key === 'CSAT'
                         ? 'bg-[#14B8A6] text-white shadow-sm'
+                        : key === 'CSAT_2026'
+                        ? 'bg-[#F59E0B] text-white shadow-sm'
                         : 'bg-[#A855F7] text-white shadow-sm'
                       : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                   }`}
