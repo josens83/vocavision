@@ -1,4 +1,4 @@
-// Force redeploy - 2026-01-31
+// Force redeploy - 2026-01-31 v2 (fix exam order and access control)
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
@@ -61,11 +61,11 @@ interface ReviewWord {
   incorrectCount: number;
 }
 
-// Dashboard와 동일한 시험/레벨 정보 (수능, TEPS만)
+// Dashboard와 동일한 시험 순서: 수능 → 2026 기출 → TEPS
 const examInfo: Record<string, { name: string; icon: string }> = {
   CSAT: { name: '수능', icon: '📝' },
-  TEPS: { name: 'TEPS', icon: '🎓' },
   CSAT_2026: { name: '2026 기출', icon: '📋' },
+  TEPS: { name: 'TEPS', icon: '🎓' },
 };
 
 // 시험별 레벨 정보 가져오기 함수 (TEPS는 L1/L2만)
@@ -151,8 +151,8 @@ function ReviewPageContent() {
   const { data: csat2026AccessData } = usePackageAccess('2026-csat-analysis', !!user);
   const hasCsat2026Access = csat2026AccessData?.hasAccess || false;
 
-  // 구독 상태 확인 (프리미엄 회원은 2026 기출 접근 가능)
-  const isPremium = user?.subscriptionStatus === 'active' && user?.subscriptionPlan !== 'FREE';
+  // 구독 상태 확인 (2026 기출은 단품 구매자만 접근 가능, 프리미엄도 불가)
+  // const isPremium = user?.subscriptionStatus === 'active' && user?.subscriptionPlan !== 'FREE';
 
   // React Query 데이터에서 추출
   const stats: ReviewStats = isDemo ? DEMO_STATS : {
@@ -332,9 +332,10 @@ function ReviewPageContent() {
 
           <div className="flex gap-3">
             {Object.entries(examInfo)
-              .filter(([key]) => key !== 'CSAT_2026' || hasCsat2026Access || isPremium)
+              .filter(([key]) => key !== 'CSAT_2026' || hasCsat2026Access)
               .map(([key, info]) => {
-              const isLocked = !canAccessExam(user, key);
+              // CSAT_2026은 단품 구매 여부로 체크, 나머지는 구독 권한으로 체크
+              const isLocked = key === 'CSAT_2026' ? !hasCsat2026Access : !canAccessExam(user, key);
               return (
                 <button
                   key={key}
