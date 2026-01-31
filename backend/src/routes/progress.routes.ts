@@ -9,7 +9,8 @@ import {
   getReviewQuiz,
   getMasteryDistribution,
   getActivityHeatmap,
-  getWeakWordsCount
+  getWeakWordsCount,
+  getDashboardSummary
 } from '../controllers/progress.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 
@@ -51,6 +52,31 @@ const router = Router();
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/', authenticateToken, getUserProgress);
+
+/**
+ * @swagger
+ * /progress/dashboard-summary:
+ *   get:
+ *     summary: 대시보드 요약 데이터 (경량화)
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: examCategory
+ *         schema:
+ *           type: string
+ *         description: 시험 카테고리 (CSAT, TEPS, CSAT_2026)
+ *       - in: query
+ *         name: level
+ *         schema:
+ *           type: string
+ *         description: 레벨 (L1, L2, L3, LISTENING 등)
+ *     responses:
+ *       200:
+ *         description: 대시보드 요약 데이터
+ */
+router.get('/dashboard-summary', authenticateToken, getDashboardSummary);
 
 /**
  * @swagger
