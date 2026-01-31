@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { useToast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmModal';
+import { useClearAllCache } from '@/hooks/useQueries';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -28,6 +29,7 @@ function SettingsContent() {
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const logout = useAuthStore((state) => state.logout);
   const refreshUser = useAuthStore((state) => state.refreshUser);
+  const clearAllCache = useClearAllCache();
 
   const toast = useToast();
   const confirm = useConfirm();
@@ -152,6 +154,7 @@ function SettingsContent() {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success('회원 탈퇴 완료', '이용해 주셔서 감사합니다');
+      clearAllCache();
       logout();
       router.push('/');
     } catch (error) {
@@ -210,6 +213,7 @@ function SettingsContent() {
     });
 
     if (confirmed) {
+      clearAllCache();
       logout();
       toast.info('로그아웃 완료', '안녕히 가세요!');
       router.push('/');

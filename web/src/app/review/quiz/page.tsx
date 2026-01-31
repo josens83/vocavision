@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ArrowLeft, Volume2 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { progressAPI, learningAPI, wordsAPI } from '@/lib/api';
+import { useInvalidateReviews } from '@/hooks/useQueries';
 
 interface QuizOption {
   text: string;
@@ -71,6 +72,9 @@ function QuizPageContent() {
   const examParam = searchParams.get('exam');
   const levelParam = searchParams.get('level');
   const isDemo = searchParams.get('demo') === 'true';
+
+  // 캐시 무효화 훅
+  const invalidateReviews = useInvalidateReviews();
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -310,6 +314,9 @@ function QuizPageContent() {
 
   // 퀴즈 완료
   const handleComplete = () => {
+    // 복습 캐시 무효화 (퀴즈 완료 후 데이터 갱신)
+    invalidateReviews(examParam?.toUpperCase() || undefined, levelParam || undefined);
+
     // 🚀 낙관적 UI: 먼저 결과 페이지로 이동
     router.push(`/review/quiz/result?correct=${correctCount}&total=${questions.length}${examParam ? `&exam=${examParam}` : ''}${levelParam ? `&level=${levelParam}` : ''}${isDemo ? '&demo=true' : ''}`);
 

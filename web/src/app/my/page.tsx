@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { getPlanDisplay, isPremiumPlan } from '@/lib/subscription';
 import TabLayout from '@/components/layout/TabLayout';
+import { useClearAllCache } from '@/hooks/useQueries';
 
 // ChevronRight 아이콘
 function ChevronRight({ className }: { className?: string }) {
@@ -19,6 +20,7 @@ function ChevronRight({ className }: { className?: string }) {
 export default function MyPage() {
   const router = useRouter();
   const { user, _hasHydrated, logout } = useAuthStore();
+  const clearAllCache = useClearAllCache();
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -29,6 +31,7 @@ export default function MyPage() {
   }, [user, _hasHydrated, router]);
 
   const handleLogout = () => {
+    clearAllCache();
     logout();
     router.push('/');
   };
