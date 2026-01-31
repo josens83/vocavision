@@ -7,7 +7,8 @@ import { Search } from "lucide-react";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore, useUserSettingsStore, useExamCourseStore } from "@/lib/store";
 import { getPlanDisplay } from "@/lib/subscription";
-import { progressAPI, userAPI } from "@/lib/api";
+import { userAPI } from "@/lib/api";
+import { useDashboardSummary } from "@/hooks/useQueries";
 
 // ============================================
 // 브랜드 컬러 시스템 (은행 앱 스타일)
@@ -219,48 +220,24 @@ function MemberInfoCard() {
   const { user } = useAuthStore();
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
-  const [stats, setStats] = useState<{
-    currentStreak: number;
-    todayWordsLearned: number;
-    dueReviewCount: number;
-    todayFlashcardAccuracy: number;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
 
-  useEffect(() => {
-    if (!user) return;
-    loadStats();
-  }, [user]);
+  // React Query: 캐싱된 대시보드 데이터 사용
+  const { data: summaryData, isLoading: loading } = useDashboardSummary(
+    activeExam || 'CSAT',
+    activeLevel || 'L1',
+    !!user
+  );
 
-  const loadStats = async () => {
-    try {
-      // 최적화: getDashboardSummary 1개 API로 통합
-      const summaryData = await progressAPI.getDashboardSummary(
-        activeExam || 'CSAT',
-        activeLevel || 'L1'
-      );
-
-      setStats({
-        currentStreak: summaryData.stats?.currentStreak || 0,
-        todayWordsLearned: summaryData.stats?.todayWordsLearned || 0,
-        dueReviewCount: summaryData.dueReviewCount || 0,
-        todayFlashcardAccuracy: summaryData.stats?.todayFlashcardAccuracy || 0,
-      });
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-      setStats({
-        currentStreak: 0,
-        todayWordsLearned: 0,
-        dueReviewCount: 0,
-        todayFlashcardAccuracy: 0,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 데이터 추출
+  const stats = summaryData ? {
+    currentStreak: summaryData.stats?.currentStreak || 0,
+    todayWordsLearned: summaryData.stats?.todayWordsLearned || 0,
+    dueReviewCount: summaryData.dueReviewCount || 0,
+    todayFlashcardAccuracy: summaryData.stats?.todayFlashcardAccuracy || 0,
+  } : null;
 
   if (!user) return null;
 
@@ -402,15 +379,6 @@ function CurrentPlanBadge() {
 function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean }) {
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
-  const [stats, setStats] = useState<{
-    currentStreak: number;
-    totalWordsLearned: number;
-    todayWordsLearned: number;
-    dueReviewCount: number;
-    todayFlashcardAccuracy: number;  // 오늘 플래시카드 정답률
-    totalFlashcardAccuracy: number;  // 전체 플래시카드 정답률
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
 
   // Zustand store에서 dailyGoal 관리 (전역 동기화)
   const dailyGoal = useUserSettingsStore((state) => state.dailyGoal);
@@ -433,45 +401,29 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
     }
   }, []);
 
+  // React Query: 캐싱된 대시보드 데이터 사용
+  const { data: summaryData, isLoading: loading } = useDashboardSummary(
+    activeExam || 'CSAT',
+    activeLevel || 'L1',
+    true
+  );
+
+  // dailyGoal 동기화
   useEffect(() => {
-    loadStats();
-  }, []);
-
-  const loadStats = async () => {
-    try {
-      // 최적화: getDashboardSummary 1개 API로 통합
-      const summaryData = await progressAPI.getDashboardSummary(
-        activeExam || 'CSAT',
-        activeLevel || 'L1'
-      );
-
-      // dailyGoal도 설정
-      if (summaryData.stats?.dailyGoal) {
-        setDailyGoal(summaryData.stats.dailyGoal);
-      }
-
-      setStats({
-        currentStreak: summaryData.stats?.currentStreak || 0,
-        totalWordsLearned: summaryData.stats?.totalWordsLearned || 0,
-        todayWordsLearned: summaryData.stats?.todayWordsLearned || 0,
-        dueReviewCount: summaryData.dueReviewCount || 0,
-        todayFlashcardAccuracy: summaryData.stats?.todayFlashcardAccuracy || 0,
-        totalFlashcardAccuracy: summaryData.stats?.totalFlashcardAccuracy || 0,
-      });
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-      setStats({
-        currentStreak: 0,
-        totalWordsLearned: 0,
-        todayWordsLearned: 0,
-        dueReviewCount: 0,
-        todayFlashcardAccuracy: 0,
-        totalFlashcardAccuracy: 0,
-      });
-    } finally {
-      setLoading(false);
+    if (summaryData?.stats?.dailyGoal) {
+      setDailyGoal(summaryData.stats.dailyGoal);
     }
-  };
+  }, [summaryData?.stats?.dailyGoal, setDailyGoal]);
+
+  // 데이터 추출
+  const stats = summaryData ? {
+    currentStreak: summaryData.stats?.currentStreak || 0,
+    totalWordsLearned: summaryData.stats?.totalWordsLearned || 0,
+    todayWordsLearned: summaryData.stats?.todayWordsLearned || 0,
+    dueReviewCount: summaryData.dueReviewCount || 0,
+    todayFlashcardAccuracy: summaryData.stats?.todayFlashcardAccuracy || 0,
+    totalFlashcardAccuracy: summaryData.stats?.totalFlashcardAccuracy || 0,
+  } : null;
 
   const todayProgress = stats?.todayWordsLearned || 0;
   const progressPercent = Math.round((todayProgress / dailyGoal) * 100);
@@ -600,50 +552,25 @@ function UnifiedMemberCard() {
   const { user } = useAuthStore();
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
-  const [stats, setStats] = useState<{
-    currentStreak: number;
-    todayWordsLearned: number;  // 오늘 학습한 단어
-    totalWordsLearned: number;  // 누적 학습한 단어
-    dueReviewCount: number;
-    todayFlashcardAccuracy: number;  // 오늘 플래시카드 정답률
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
 
-  useEffect(() => {
-    loadStats();
-  }, []);
+  // React Query: 캐싱된 대시보드 데이터 사용
+  const { data: summaryData, isLoading: loading } = useDashboardSummary(
+    activeExam || 'CSAT',
+    activeLevel || 'L1',
+    !!user
+  );
 
-  const loadStats = async () => {
-    try {
-      // 최적화: getDashboardSummary 1개 API로 통합
-      const summaryData = await progressAPI.getDashboardSummary(
-        activeExam || 'CSAT',
-        activeLevel || 'L1'
-      );
-
-      setStats({
-        currentStreak: summaryData.stats?.currentStreak || 0,
-        todayWordsLearned: summaryData.stats?.todayWordsLearned || 0,  // 오늘 데이터
-        totalWordsLearned: summaryData.stats?.totalWordsLearned || 0,  // 누적 데이터
-        dueReviewCount: summaryData.dueReviewCount || 0,
-        todayFlashcardAccuracy: summaryData.stats?.todayFlashcardAccuracy || 0,
-      });
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-      setStats({
-        currentStreak: 0,
-        todayWordsLearned: 0,
-        totalWordsLearned: 0,
-        dueReviewCount: 0,
-        todayFlashcardAccuracy: 0,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 데이터 추출
+  const stats = summaryData ? {
+    currentStreak: summaryData.stats?.currentStreak || 0,
+    todayWordsLearned: summaryData.stats?.todayWordsLearned || 0,
+    totalWordsLearned: summaryData.stats?.totalWordsLearned || 0,
+    dueReviewCount: summaryData.dueReviewCount || 0,
+    todayFlashcardAccuracy: summaryData.stats?.todayFlashcardAccuracy || 0,
+  } : null;
 
   if (!user) return null;
 
