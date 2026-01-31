@@ -7,9 +7,11 @@ import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import Navigation from "@/components/navigation/Navigation";
 import { confirmPayment } from "@/lib/payments/toss";
 import { useAuthStore } from "@/lib/store";
+import { useQueryClient } from "@tanstack/react-query";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -60,6 +62,9 @@ function SuccessContent() {
           } catch (e) {
             console.error('Failed to refresh user:', e);
           }
+          // 패키지 접근 권한 캐시 무효화 (결제 완료 후 권한 갱신)
+          queryClient.invalidateQueries({ queryKey: ['packageAccess'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
         } else {
           setStatus("error");
           setErrorMessage(result.error || "결제 승인에 실패했습니다.");

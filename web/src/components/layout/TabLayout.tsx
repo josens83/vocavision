@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BottomTabBar from './BottomTabBar';
 import { useAuthStore } from '@/lib/store';
+import { useClearAllCache } from '@/hooks/useQueries';
 
 interface TabLayoutProps {
   children: ReactNode;
@@ -21,6 +22,7 @@ export default function TabLayout({
 }: TabLayoutProps) {
   const router = useRouter();
   const { user, logout, _hasHydrated } = useAuthStore();
+  const clearAllCache = useClearAllCache();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -36,6 +38,7 @@ export default function TabLayout({
   }, []);
 
   const handleLogout = () => {
+    clearAllCache();
     logout();
     router.push('/');
   };

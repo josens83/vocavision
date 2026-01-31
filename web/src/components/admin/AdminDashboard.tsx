@@ -22,6 +22,7 @@ import { BatchImageGenerationModal } from './BatchImageGenerationModal';
 import { VocaWord, VocaContentFull } from './types/admin.types';
 import { useWordDetail, useDashboardStats } from './hooks/useAdminApi';
 import { useAuthStore } from '@/lib/store';
+import { useClearAllCache } from '@/hooks/useQueries';
 
 // ---------------------------------------------
 // Sidebar Navigation
@@ -267,15 +268,17 @@ const Header: React.FC = () => {
 export const AdminDashboard: React.FC = () => {
   const router = useRouter();
   const { logout } = useAuthStore();
+  const clearAllCache = useClearAllCache();
 
   // Navigation state
   const [activeNav, setActiveNav] = useState('dashboard');
 
   // Logout handler
   const handleLogout = useCallback(() => {
+    clearAllCache();
     logout();
     router.push('/');
-  }, [logout, router]);
+  }, [clearAllCache, logout, router]);
 
   // Modal states
   const [showWordForm, setShowWordForm] = useState(false);

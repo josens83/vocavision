@@ -7,6 +7,7 @@ import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
 import { getPlanDisplay, isPremiumPlan, canAccessExam, canAccessLevel } from "@/lib/subscription";
 import { useAuthRequired } from "@/components/ui/AuthRequiredModal";
+import { useClearAllCache } from "@/hooks/useQueries";
 
 export interface NavItem {
   label: string;
@@ -556,6 +557,7 @@ export default function Navigation() {
 
   const { user, logout, _hasHydrated } = useAuthStore();
   const { showAuthRequired } = useAuthRequired();
+  const clearAllCache = useClearAllCache();
   const isAuthenticated = !!user;
 
   // Mock streak - 실제로는 user 객체에서 가져와야 함
@@ -593,6 +595,7 @@ export default function Navigation() {
 
 
   const handleLogout = () => {
+    clearAllCache();
     logout();
     window.location.href = '/';
   };

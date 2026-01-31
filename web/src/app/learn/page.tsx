@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSession, clearLearningSession } from '@/lib/store';
 import { progressAPI, wordsAPI, learningAPI, bookmarkAPI, api } from '@/lib/api';
 import { canAccessContent } from '@/lib/subscription';
+import { useInvalidateDashboard } from '@/hooks/useQueries';
 import { motion } from 'framer-motion';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
@@ -139,6 +140,9 @@ function LearnPageContent() {
 
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
+
+  // 캐시 무효화 훅
+  const invalidateDashboard = useInvalidateDashboard();
 
   // Demo 체험 횟수 관리 (localStorage) - 최대 5회 허용
   const DEMO_KEY = 'vocavision_demo_count';
@@ -601,6 +605,8 @@ function LearnPageContent() {
           setShowSetComplete(false);
           setShowResult(true);
           clearLearningSession();
+          // 대시보드 캐시 무효화 (학습 완료 후 데이터 갱신)
+          invalidateDashboard(examParam, levelParam || undefined);
           return;
         }
 
@@ -624,6 +630,8 @@ function LearnPageContent() {
 
     setShowResult(true);
     clearLearningSession();  // 세션 완료 시 클리어
+    // 대시보드 캐시 무효화 (학습 완료 후 데이터 갱신)
+    invalidateDashboard(examParam, levelParam || undefined);
     // 비로그인 데모 사용자의 경우 체험 횟수 증가
     if (isDemo && !user && typeof window !== 'undefined') {
       const currentCount = parseInt(localStorage.getItem(DEMO_KEY) || '0', 10);

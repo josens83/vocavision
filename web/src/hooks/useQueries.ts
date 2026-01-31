@@ -219,3 +219,15 @@ export function useReviewQuiz(
     staleTime: 60_000, // 1분 캐시
   });
 }
+
+/**
+ * 전체 캐시 클리어 훅
+ * - 로그아웃 시 모든 캐시 초기화에 사용
+ */
+export function useClearAllCache() {
+  const queryClient = useQueryClient();
+
+  return () => {
+    queryClient.clear();
+  };
+}
