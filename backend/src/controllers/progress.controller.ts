@@ -1249,14 +1249,13 @@ export const getDashboardSummary = async (
           userId,
           examCategory: examCategory as ExamCategory,
           level: level as string,
-          status: { in: ['IN_PROGRESS', 'PAUSED'] }
+          status: 'IN_PROGRESS'
         },
         orderBy: { updatedAt: 'desc' },
         select: {
           id: true,
           currentSet: true,
           currentIndex: true,
-          totalSets: true,
           completedSets: true,
           totalWords: true,
           totalReviewed: true,
