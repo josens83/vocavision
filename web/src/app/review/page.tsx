@@ -150,6 +150,9 @@ function ReviewPageContent() {
   const { data: csat2026AccessData } = usePackageAccess('2026-csat-analysis', !!user);
   const hasCsat2026Access = csat2026AccessData?.hasAccess || false;
 
+  // 구독 상태 확인 (프리미엄 회원은 2026 기출 접근 가능)
+  const isPremium = user?.subscriptionStatus === 'active' && user?.subscriptionPlan !== 'FREE';
+
   // React Query 데이터에서 추출
   const stats: ReviewStats = isDemo ? DEMO_STATS : {
     dueToday: reviewData?.count || 0,
@@ -328,7 +331,7 @@ function ReviewPageContent() {
 
           <div className="flex gap-3">
             {Object.entries(examInfo)
-              .filter(([key]) => key !== 'CSAT_2026' || hasCsat2026Access)
+              .filter(([key]) => key !== 'CSAT_2026' || hasCsat2026Access || isPremium)
               .map(([key, info]) => {
               const isLocked = !canAccessExam(user, key);
               return (
