@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, useExamCourseStore } from '@/lib/store';
 import { getPlanDisplay } from '@/lib/subscription';
+import { usePrefetchDashboard, usePrefetchReviews, usePrefetchStatistics } from '@/hooks/useQueries';
 
 interface SidebarItem {
   label: string;
@@ -85,10 +86,30 @@ const bottomItems: SidebarItem[] = [
 export default function DashboardSidebar() {
   const pathname = usePathname();
   const { user } = useAuthStore();
+  const { activeExam, activeLevel } = useExamCourseStore();
+
+  // 프리패치 훅
+  const prefetchDashboard = usePrefetchDashboard();
+  const prefetchReviews = usePrefetchReviews();
+  const prefetchStatistics = usePrefetchStatistics();
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
     return pathname.startsWith(href);
+  };
+
+  // 사이드바 아이템별 프리패치 핸들러
+  const handlePrefetch = (href: string) => {
+    const exam = activeExam || 'CSAT';
+    const level = activeLevel || 'L1';
+
+    if (href === '/dashboard') {
+      prefetchDashboard(exam, level);
+    } else if (href === '/review') {
+      prefetchReviews(exam, level);
+    } else if (href === '/stats') {
+      prefetchStatistics();
+    }
   };
 
   return (
@@ -145,6 +166,7 @@ export default function DashboardSidebar() {
           <Link
             key={item.href}
             href={item.href}
+            onMouseEnter={() => handlePrefetch(item.href)}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
               isActive(item.href)
                 ? 'bg-teal-50 text-teal-600'
