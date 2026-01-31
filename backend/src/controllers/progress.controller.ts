@@ -472,17 +472,15 @@ export const submitReview = async (
 
     // ===== nextReviewDate 설정 =====
     // 플래시카드: 모름(rating 1) → 오늘, 알았음(rating 5) → D+3
-    // 복습 퀴즈: 정답 → D+1, 오답 → 오늘
+    // 복습 퀴즈: 정답이든 오답이든 오늘은 끝, 내일 다시
     const nextReviewDate = new Date();
     const isQuiz = learningMethod === 'QUIZ';
 
     if (isQuiz) {
-      // 복습 퀴즈
-      if (rating >= 3) {
-        // 정답 → D+1에 다시 복습
-        nextReviewDate.setDate(nextReviewDate.getDate() + 1);
-      }
-      // 오답 (rating <= 2) → 오늘 (바로 재복습)
+      // 복습 퀴즈 - 정답이든 오답이든 오늘은 끝, 내일 다시
+      // 정답: correctCount++ (자동), 내일 복습
+      // 오답: incorrectCount++ (자동), 내일 복습
+      nextReviewDate.setDate(nextReviewDate.getDate() + 1);  // D+1 (내일)
     } else {
       // 플래시카드
       if (rating >= 3) {
