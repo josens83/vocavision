@@ -1184,6 +1184,12 @@ export const getDashboardSummary = async (
     const userId = req.userId!;
     const { examCategory = 'CSAT', level = 'L1' } = req.query;
 
+    // KST 기준 오늘 시작 시간 (00:00:00)
+    const now = new Date();
+    const todayStartKST = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    todayStartKST.setUTCHours(0, 0, 0, 0);
+    const todayStartUTC = new Date(todayStartKST.getTime() - 9 * 60 * 60 * 1000);
+
     // 단일 병렬 쿼리로 모든 필요 데이터 조회
     const [
       userStats,
@@ -1191,7 +1197,12 @@ export const getDashboardSummary = async (
       totalWordsCount,
       learnedWordsCount,
       weakWordsCount,
-      learningSession
+      learningSession,
+      // Hero 컴포넌트용 추가 통계
+      todayLearned,
+      todayKnown,
+      totalLearned,
+      totalKnown
     ] = await Promise.all([
       // 1. 유저 통계 (streak, dailyGoal)
       prisma.user.findUnique({
@@ -1261,11 +1272,55 @@ export const getDashboardSummary = async (
           totalReviewed: true,
           status: true,
         }
+      }),
+
+      // 7. 오늘 학습한 단어 수 (Hero용)
+      prisma.userProgress.count({
+        where: {
+          userId,
+          learnedAt: { gte: todayStartUTC }
+        }
+      }),
+
+      // 8. 오늘 "알았음" 선택한 단어 수 (Hero용)
+      prisma.userProgress.count({
+        where: {
+          userId,
+          learnedAt: { gte: todayStartUTC },
+          initialRating: { gte: 3 }
+        }
+      }),
+
+      // 9. 전체 학습한 단어 수 (Hero용)
+      prisma.userProgress.count({
+        where: { userId }
+      }),
+
+      // 10. 전체 "알았음" 선택한 단어 수 (Hero용)
+      prisma.userProgress.count({
+        where: {
+          userId,
+          initialRating: { gte: 3 }
+        }
       })
     ]);
 
+    // 플래시카드 정답률 계산
+    const todayFlashcardAccuracy = todayLearned > 0
+      ? Math.round((todayKnown / todayLearned) * 100)
+      : 0;
+    const totalFlashcardAccuracy = totalLearned > 0
+      ? Math.round((totalKnown / totalLearned) * 100)
+      : 0;
+
     res.json({
-      stats: userStats,
+      stats: {
+        ...userStats,
+        totalWordsLearned: totalLearned,
+        todayWordsLearned: todayLearned,
+        todayFlashcardAccuracy,
+        totalFlashcardAccuracy,
+      },
       dueReviewCount,
       totalWords: totalWordsCount,
       learnedWords: learnedWordsCount,
