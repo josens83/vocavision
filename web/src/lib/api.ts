@@ -402,6 +402,10 @@ export const progressAPI = {
     const response = await api.get('/progress');
     return response.data;
   },
+  getDashboardSummary: async (examCategory: string, level: string) => {
+    const response = await api.get(`/progress/dashboard-summary?examCategory=${examCategory}&level=${level}`);
+    return response.data;
+  },
   getDueReviews: async (params?: { examCategory?: string; level?: string }) => {
     if (isMockMode()) return mockProgressAPI.getDueReviews();
     const queryParams = new URLSearchParams();

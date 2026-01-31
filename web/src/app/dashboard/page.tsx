@@ -123,33 +123,51 @@ export default function DashboardPage() {
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 
+  // 통합 대시보드 로딩 함수 (최적화)
+  const loadDashboard = async () => {
+    setLoading(true);
+    setExamLevelLoading(true);
+
+    try {
+      const examCategory = activeExam || 'CSAT';
+      const level = activeLevel || 'L1';
+
+      // 병렬 요청: 대시보드 요약 + 2026 기출 접근 권한
+      const [summaryData, csat2026Access] = await Promise.all([
+        progressAPI.getDashboardSummary(examCategory, level),
+        api.get('/packages/check-access?slug=2026-csat-analysis').catch(() => ({ data: { hasAccess: false } }))
+      ]);
+
+      // 대시보드 요약 데이터 설정
+      setStats(summaryData.stats);
+      setDueReviewCount(summaryData.dueReviewCount || 0);
+      setExamLevelTotalWords(summaryData.totalWords || 0);
+      setExamLevelLearnedWords(summaryData.learnedWords || 0);
+      setWeakWordCount(summaryData.weakWordsCount || 0);
+      setLearningSession(summaryData.learningSession);
+      setHasCsat2026Access(csat2026Access.data?.hasAccess || false);
+
+      // dailyGoal 동기화
+      if (summaryData.stats?.dailyGoal) {
+        setDailyGoal(summaryData.stats.dailyGoal);
+      }
+    } catch (error) {
+      console.error('Failed to load dashboard:', error);
+    } finally {
+      setLoading(false);
+      setExamLevelLoading(false);
+    }
+  };
+
+  // 통합 useEffect: 로그인 체크 + 대시보드 로딩
   useEffect(() => {
     if (!hasHydrated) return;
     if (!user) {
       router.push('/auth/login');
       return;
     }
-    loadData();
-  }, [user, hasHydrated, router]);
-
-  useEffect(() => {
-    if (!hasHydrated || !user) return;
-    loadExamLevelProgress();
-  }, [activeExam, activeLevel, hasHydrated, user]);
-
-  // 2026 기출 단품 구매 여부 확인
-  useEffect(() => {
-    const checkCsat2026Access = async () => {
-      if (!hasHydrated || !user) return;
-      try {
-        const response = await api.get('/packages/check-access?slug=2026-csat-analysis');
-        setHasCsat2026Access(response.data?.hasAccess || false);
-      } catch (error) {
-        setHasCsat2026Access(false);
-      }
-    };
-    checkCsat2026Access();
-  }, [hasHydrated, user]);
+    loadDashboard();
+  }, [user, hasHydrated, activeExam, activeLevel]);
 
   // CSAT_2026 접근권한 없으면 CSAT으로 fallback
   useEffect(() => {
@@ -158,58 +176,6 @@ export default function DashboardPage() {
       setActiveLevel('L1');
     }
   }, [hasHydrated, activeExam, hasCsat2026Access, setActiveExam, setActiveLevel]);
-
-  const loadData = async () => {
-    try {
-      const [progressData, reviewsData] = await Promise.all([
-        progressAPI.getUserProgress(),
-        progressAPI.getDueReviews(),
-      ]);
-      setStats(progressData.stats);
-      setDueReviewCount(reviewsData.count || 0);
-
-      // 서버에서 dailyGoal 동기화
-      if (progressData.stats?.dailyGoal) {
-        setDailyGoal(progressData.stats.dailyGoal);
-      }
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadExamLevelProgress = async () => {
-    setExamLevelLoading(true);
-    setExamLevelLearnedWords(0);
-    setExamLevelTotalWords(0);
-    setWeakWordCount(0);
-    setLearningSession(null);
-
-    try {
-      const examCategory = activeExam || 'CSAT';
-      const level = activeLevel || 'L1';
-
-      const [totalData, unlearnedData, weakData, sessionData] = await Promise.all([
-        wordsAPI.getWords({ examCategory, level, limit: 1 }),
-        wordsAPI.getWords({ examCategory, level, limit: 1, excludeLearned: true }),
-        progressAPI.getWeakWordsCount({ examCategory, level }),
-        learningAPI.getSession(examCategory, level).catch(() => ({ session: null })),
-      ]);
-
-      const totalWords = totalData.pagination?.total || 0;
-      const unlearnedWords = unlearnedData.pagination?.total || 0;
-
-      setExamLevelTotalWords(totalWords);
-      setExamLevelLearnedWords(totalWords - unlearnedWords);
-      setWeakWordCount(weakData.count || 0);
-      setLearningSession(sessionData.session);
-    } catch (error) {
-      console.error('Failed to load exam/level progress:', error);
-    } finally {
-      setExamLevelLoading(false);
-    }
-  };
 
   const selectedExam = activeExam || 'CSAT';
   const selectedLevel = activeLevel || 'L1';

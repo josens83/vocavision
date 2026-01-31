@@ -1169,3 +1169,111 @@ export const getWeakWordsCount = async (
     next(error);
   }
 };
+
+/**
+ * 대시보드 요약 API (경량화)
+ * GET /progress/dashboard-summary
+ * Query: examCategory, level
+ */
+export const getDashboardSummary = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId!;
+    const { examCategory = 'CSAT', level = 'L1' } = req.query;
+
+    // 단일 병렬 쿼리로 모든 필요 데이터 조회
+    const [
+      userStats,
+      dueReviewCount,
+      totalWordsCount,
+      learnedWordsCount,
+      weakWordsCount,
+      learningSession
+    ] = await Promise.all([
+      // 1. 유저 통계 (streak, dailyGoal)
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          currentStreak: true,
+          longestStreak: true,
+          lastActiveDate: true,
+          dailyGoal: true,
+          totalWordsLearned: true,
+        }
+      }),
+
+      // 2. 복습 대기 단어 수 (needsReview AND nextReviewDate <= NOW)
+      prisma.userProgress.count({
+        where: {
+          userId,
+          needsReview: true,
+          nextReviewDate: { lte: new Date() },
+          examCategory: examCategory as ExamCategory,
+          level: level as string,
+        }
+      }),
+
+      // 3. 전체 단어 수
+      prisma.wordExamLevel.count({
+        where: {
+          examCategory: examCategory as ExamCategory,
+          level: level as string,
+        }
+      }),
+
+      // 4. 학습 완료 단어 수
+      prisma.userProgress.count({
+        where: {
+          userId,
+          examCategory: examCategory as ExamCategory,
+          level: level as string,
+        }
+      }),
+
+      // 5. 취약 단어 수 (needsReview = true)
+      prisma.userProgress.count({
+        where: {
+          userId,
+          needsReview: true,
+          examCategory: examCategory as ExamCategory,
+          level: level as string,
+        }
+      }),
+
+      // 6. 학습 세션
+      prisma.learningSession.findFirst({
+        where: {
+          userId,
+          examCategory: examCategory as ExamCategory,
+          level: level as string,
+          status: { in: ['IN_PROGRESS', 'PAUSED'] }
+        },
+        orderBy: { updatedAt: 'desc' },
+        select: {
+          id: true,
+          currentSet: true,
+          currentIndex: true,
+          totalSets: true,
+          completedSets: true,
+          totalWords: true,
+          totalReviewed: true,
+          status: true,
+        }
+      })
+    ]);
+
+    res.json({
+      stats: userStats,
+      dueReviewCount,
+      totalWords: totalWordsCount,
+      learnedWords: learnedWordsCount,
+      weakWordsCount,
+      learningSession,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
