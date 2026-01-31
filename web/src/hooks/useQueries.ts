@@ -144,6 +144,33 @@ export function useStatistics(enabled = true) {
 }
 
 /**
+ * 통계 페이지 프리패치 훅
+ * - 사이드바 hover 시 미리 로딩
+ */
+export function usePrefetchStatistics() {
+  const queryClient = useQueryClient();
+
+  return () => {
+    queryClient.prefetchQuery({
+      queryKey: ['statistics'],
+      queryFn: async () => {
+        const response = await api.get('/progress');
+        return response.data;
+      },
+      staleTime: 30_000,
+    });
+    queryClient.prefetchQuery({
+      queryKey: ['activityHeatmap'],
+      queryFn: async () => {
+        const response = await api.get('/progress/activity');
+        return response.data;
+      },
+      staleTime: 60_000,
+    });
+  };
+}
+
+/**
  * 학습 활동 히트맵 훅
  * - 1분 캐시 (자주 변경되지 않음)
  */

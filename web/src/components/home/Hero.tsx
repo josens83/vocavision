@@ -8,7 +8,7 @@ import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore, useUserSettingsStore, useExamCourseStore } from "@/lib/store";
 import { getPlanDisplay } from "@/lib/subscription";
 import { userAPI } from "@/lib/api";
-import { useDashboardSummary } from "@/hooks/useQueries";
+import { useDashboardSummary, usePrefetchDashboard, usePrefetchReviews } from "@/hooks/useQueries";
 
 // ============================================
 // 브랜드 컬러 시스템 (은행 앱 스타일)
@@ -224,6 +224,10 @@ function MemberInfoCard() {
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
 
+  // 프리패치 훅
+  const prefetchDashboard = usePrefetchDashboard();
+  const prefetchReviews = usePrefetchReviews();
+
   // React Query: 캐싱된 대시보드 데이터 사용
   const { data: summaryData, isLoading: loading } = useDashboardSummary(
     activeExam || 'CSAT',
@@ -333,12 +337,14 @@ function MemberInfoCard() {
       <div className="pt-4 border-t border-gray-100 flex gap-3">
         <Link
           href="/dashboard"
+          onMouseEnter={() => prefetchDashboard(activeExam || 'CSAT', activeLevel || 'L1')}
           className="flex-1 py-3 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
         >
           학습하기
         </Link>
         <Link
           href="/review"
+          onMouseEnter={() => prefetchReviews(activeExam || 'CSAT', activeLevel || 'L1')}
           className="flex-1 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold rounded-xl text-center transition-colors"
         >
           복습하기
@@ -556,6 +562,10 @@ function UnifiedMemberCard() {
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
 
+  // 프리패치 훅
+  const prefetchDashboard = usePrefetchDashboard();
+  const prefetchReviews = usePrefetchReviews();
+
   // React Query: 캐싱된 대시보드 데이터 사용
   const { data: summaryData, isLoading: loading } = useDashboardSummary(
     activeExam || 'CSAT',
@@ -667,12 +677,14 @@ function UnifiedMemberCard() {
       <div className="pt-4 border-t border-gray-100 flex gap-3">
         <Link
           href="/dashboard"
+          onMouseEnter={() => prefetchDashboard(activeExam || 'CSAT', activeLevel || 'L1')}
           className="flex-1 py-3 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
         >
           학습하기
         </Link>
         <Link
           href="/review"
+          onMouseEnter={() => prefetchReviews(activeExam || 'CSAT', activeLevel || 'L1')}
           className="flex-1 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold rounded-xl text-center transition-colors"
         >
           복습하기
