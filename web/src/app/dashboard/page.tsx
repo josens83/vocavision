@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore, useExamCourseStore, useUserSettingsStore, ExamType } from '@/lib/store';
@@ -38,6 +38,17 @@ const examInfo: Record<string, { name: string; icon: string; color: string }> = 
   CSAT: { name: '수능', icon: '📝', color: 'blue' },
   CSAT_2026: { name: '2026 기출', icon: '📋', color: 'emerald' },
   TEPS: { name: 'TEPS', icon: '🎓', color: 'purple' },
+};
+
+// Get valid level for exam (TEPS only has L1, L2)
+const getValidLevelForExam = (exam: string, level: string): string => {
+  if (exam === 'TEPS') {
+    return ['L1', 'L2'].includes(level) ? level : 'L1';
+  }
+  if (exam === 'CSAT_2026') {
+    return ['LISTENING', 'READING_2', 'READING_3'].includes(level) ? level : 'LISTENING';
+  }
+  return ['L1', 'L2', 'L3'].includes(level) ? level : 'L1';
 };
 
 // Level info - exam-specific
@@ -81,7 +92,6 @@ interface LearningSessionData {
   totalWords: number;
   currentSet: number;
   currentIndex: number;
-  totalSets: number;
   completedSets: number;
   totalReviewed: number;
   status: string;
@@ -123,14 +133,24 @@ export default function DashboardPage() {
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 
+  // 이전 시험/레벨 추적 (부분 로딩용)
+  const prevExamRef = useRef(activeExam);
+  const prevLevelRef = useRef(activeLevel);
+  const isInitialLoadRef = useRef(true);
+
   // 통합 대시보드 로딩 함수 (최적화)
-  const loadDashboard = async () => {
-    setLoading(true);
-    setExamLevelLoading(true);
+  const loadDashboard = async (isPartialLoad = false) => {
+    // 부분 로딩: examLevelLoading만, 전체 로딩: 둘 다
+    if (isPartialLoad) {
+      setExamLevelLoading(true);
+    } else {
+      setLoading(true);
+      setExamLevelLoading(true);
+    }
 
     try {
       const examCategory = activeExam || 'CSAT';
-      const level = activeLevel || 'L1';
+      const level = getValidLevelForExam(examCategory, activeLevel || 'L1');
 
       // 병렬 요청: 대시보드 요약 + 2026 기출 접근 권한
       const [summaryData, csat2026Access] = await Promise.all([
@@ -159,15 +179,29 @@ export default function DashboardPage() {
     }
   };
 
-  // 통합 useEffect: 로그인 체크 + 대시보드 로딩
+  // 초기 로딩 (로그인 체크)
   useEffect(() => {
     if (!hasHydrated) return;
     if (!user) {
       router.push('/auth/login');
       return;
     }
-    loadDashboard();
-  }, [user, hasHydrated, activeExam, activeLevel]);
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+      loadDashboard(false);  // 전체 로딩
+    }
+  }, [user, hasHydrated, router]);
+
+  // 시험/레벨 변경 시 부분 로딩
+  useEffect(() => {
+    if (!hasHydrated || !user || isInitialLoadRef.current) return;
+
+    if (prevExamRef.current !== activeExam || prevLevelRef.current !== activeLevel) {
+      prevExamRef.current = activeExam;
+      prevLevelRef.current = activeLevel;
+      loadDashboard(true);  // 부분 로딩
+    }
+  }, [activeExam, activeLevel, hasHydrated, user]);
 
   // CSAT_2026 접근권한 없으면 CSAT으로 fallback
   useEffect(() => {
@@ -176,6 +210,15 @@ export default function DashboardPage() {
       setActiveLevel('L1');
     }
   }, [hasHydrated, activeExam, hasCsat2026Access, setActiveExam, setActiveLevel]);
+
+  // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
+  useEffect(() => {
+    if (!hasHydrated || !activeExam) return;
+    const validLevel = getValidLevelForExam(activeExam, activeLevel || 'L1');
+    if (validLevel !== activeLevel) {
+      setActiveLevel(validLevel as 'L1' | 'L2' | 'L3');
+    }
+  }, [hasHydrated, activeExam, activeLevel, setActiveLevel]);
 
   const selectedExam = activeExam || 'CSAT';
   const selectedLevel = activeLevel || 'L1';
@@ -190,10 +233,8 @@ export default function DashboardPage() {
   const remainingWords = Math.max(totalWords - learnedWords, 0);
   const progressPercent = totalWords > 0 ? Math.min(Math.round((learnedWords / totalWords) * 100), 100) : 0;
 
-  // Set 계산 (서버 세션이 있으면 서버 값 사용, 없으면 계산)
-  const totalSets = learningSession
-    ? learningSession.totalSets
-    : Math.ceil(totalWords / 20);
+  // Set 계산 (세션의 totalWords 또는 전체 totalWords 기준으로 계산)
+  const totalSets = Math.ceil((learningSession?.totalWords || totalWords) / 20);
   const currentSet = learningSession
     ? learningSession.currentSet + 1  // 서버는 0-indexed, UI는 1-indexed
     : (learnedWords > 0 ? Math.floor((learnedWords - 1) / 20) + 1 : 1);
