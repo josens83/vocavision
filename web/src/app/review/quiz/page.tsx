@@ -272,9 +272,9 @@ function QuizPageContent() {
     // 데모 모드에서는 학습 기록 저장 스킵
     if (isDemo) return;
 
-    // 학습 기록 저장
-    try {
-      await learningAPI.recordLearning({
+    // 🚀 학습 기록 저장 (백그라운드에서 병렬 처리 - 응답 기다리지 않음)
+    Promise.all([
+      learningAPI.recordLearning({
         wordId: currentQuestion.wordId,
         quizType: 'ENG_TO_KOR',
         isCorrect,
@@ -282,19 +282,17 @@ function QuizPageContent() {
         correctAnswer: currentQuestion.correctAnswer,
         responseTime,
         sessionId: sessionId || undefined,
-      });
-
-      // 복습 결과 제출 (SM-2 알고리즘 업데이트)
-      await progressAPI.submitReview({
+      }),
+      progressAPI.submitReview({
         wordId: currentQuestion.wordId,
         rating: isCorrect ? 4 : 2, // 4: Easy, 2: Hard
         responseTime,
         learningMethod: 'QUIZ',
         sessionId: sessionId || undefined,
-      });
-    } catch (error) {
+      }),
+    ]).catch((error) => {
       console.error('Failed to record answer:', error);
-    }
+    });
   };
 
   // 다음 문제
@@ -311,20 +309,20 @@ function QuizPageContent() {
   };
 
   // 퀴즈 완료
-  const handleComplete = async () => {
-    // 데모 모드에서는 세션 종료 스킵
-    if (!isDemo && sessionId) {
-      try {
-        await progressAPI.endSession({
-          sessionId,
-          wordsStudied: questions.length,
-          wordsCorrect: correctCount,
-        });
-      } catch (error) {
-        console.error('Failed to end session:', error);
-      }
-    }
+  const handleComplete = () => {
+    // 🚀 낙관적 UI: 먼저 결과 페이지로 이동
     router.push(`/review/quiz/result?correct=${correctCount}&total=${questions.length}${examParam ? `&exam=${examParam}` : ''}${levelParam ? `&level=${levelParam}` : ''}${isDemo ? '&demo=true' : ''}`);
+
+    // 백그라운드에서 세션 종료 (데모 모드 제외)
+    if (!isDemo && sessionId) {
+      progressAPI.endSession({
+        sessionId,
+        wordsStudied: questions.length,
+        wordsCorrect: correctCount,
+      }).catch((error) => {
+        console.error('Failed to end session:', error);
+      });
+    }
   };
 
   // 로딩 상태

@@ -176,3 +176,19 @@ export function useMasteryDistribution(examCategory: string, level: string, enab
     placeholderData: (previousData) => previousData,
   });
 }
+
+/**
+ * 복습 퀴즈 데이터 훅
+ * - 1분 캐시
+ */
+export function useReviewQuiz(
+  params: { examCategory?: string; level?: string; limit?: number },
+  enabled = true
+) {
+  return useQuery({
+    queryKey: ['reviewQuiz', params.examCategory, params.level, params.limit],
+    queryFn: () => progressAPI.getReviewQuiz(params),
+    enabled,
+    staleTime: 60_000, // 1분 캐시
+  });
+}
