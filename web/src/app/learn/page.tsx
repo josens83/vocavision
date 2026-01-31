@@ -585,39 +585,41 @@ function LearnPageContent() {
   const handleSetComplete = async () => {
     // 서버 세션이 있으면 세트 완료 처리
     if (serverSession && user && examParam && levelParam) {
-      try {
-        const result = await learningAPI.updateSessionProgress({
-          sessionId: serverSession.id,
-          completedSet: true,
-        });
+      // 🚀 낙관적 UI: 먼저 Set 완료 화면 표시
+      setShowSetComplete(true);
 
+      // 백그라운드에서 API 호출 (응답 기다리지 않음)
+      learningAPI.updateSessionProgress({
+        sessionId: serverSession.id,
+        completedSet: true,
+      }).then((result) => {
         if (result.isCompleted) {
-          // 전체 학습 완료 - 서버 세션 업데이트 후 결과 표시
+          // 전체 학습 완료
           if (result.session) {
             setServerSession(result.session);
           }
+          setShowSetComplete(false);
           setShowResult(true);
           clearLearningSession();
-          return; // 전체 완료 시 여기서 종료
+          return;
         }
 
-        // Set 완료 - 중간 화면 표시 (다음 단어 유무와 상관없이 일관되게)
+        // Set 완료 - 세션 및 다음 Set 데이터 업데이트
         if (result.session) {
           setServerSession(result.session);
         }
 
         if (result.words && result.words.length > 0) {
-          // 다음 Set 데이터 저장
           setPendingNextSet({
             session: result.session,
             words: result.words,
           });
         }
-        setShowSetComplete(true);
-        return; // Set 완료 화면 표시
-      } catch (error) {
+      }).catch((error) => {
         console.error('Failed to update server session:', error);
-      }
+      });
+
+      return; // 즉시 반환 (UI는 이미 전환됨)
     }
 
     setShowResult(true);
