@@ -4,11 +4,11 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
-import { progressAPI } from '@/lib/api';
 import { canAccessExam, canAccessLevel } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { useDueReviews, useDashboardSummary, usePrefetchReviews } from '@/hooks/useQueries';
 
 // ============================================
 // DashboardItem 컴포넌트 (은행 앱 스타일)
@@ -109,20 +109,6 @@ function ReviewPageContent() {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
-  const [stats, setStats] = useState<ReviewStats>({
-    dueToday: 0,
-    weak: 0,
-    bookmarked: 0,
-    totalReviewed: 0,
-    accuracy: 0,
-    todayCorrect: 0,
-    lastReviewDate: undefined,
-    tomorrowDue: 0,
-    thisWeekDue: 0,
-  });
-  const [currentStreak, setCurrentStreak] = useState(0);
-  const [dueWords, setDueWords] = useState<ReviewWord[]>([]);
-  const [loading, setLoading] = useState(true);
   const [wordListPage, setWordListPage] = useState(1);
   const WORDS_PER_PAGE = 10;
 
@@ -135,6 +121,49 @@ function ReviewPageContent() {
   // store 연동 (기본값: CSAT, L1)
   const selectedExam = activeExam || 'CSAT';
   const selectedLevel = activeLevel || 'L1';
+
+  // React Query: 복습 데이터 + 대시보드 요약 (streak 등)
+  const { data: reviewData, isLoading: reviewLoading, isFetching: reviewFetching } = useDueReviews(
+    selectedExam,
+    selectedLevel,
+    !!user && hasHydrated && !isDemo
+  );
+
+  const { data: summaryData } = useDashboardSummary(
+    selectedExam,
+    selectedLevel,
+    !!user && hasHydrated && !isDemo
+  );
+
+  // 프리패치 훅
+  const prefetchReviews = usePrefetchReviews();
+
+  // React Query 데이터에서 추출
+  const stats: ReviewStats = isDemo ? DEMO_STATS : {
+    dueToday: reviewData?.count || 0,
+    weak: reviewData?.weakCount || 0,
+    bookmarked: reviewData?.bookmarkedCount || 0,
+    totalReviewed: reviewData?.totalReviewed || 0,
+    accuracy: reviewData?.accuracy || 0,
+    todayCorrect: reviewData?.todayCorrect || 0,
+    lastReviewDate: reviewData?.lastReviewDate,
+    tomorrowDue: reviewData?.tomorrowDue || 0,
+    thisWeekDue: reviewData?.thisWeekDue || 0,
+  };
+
+  const currentStreak = isDemo ? 7 : (summaryData?.stats?.currentStreak || 0);
+
+  const dueWords: ReviewWord[] = isDemo ? DEMO_WORDS : (reviewData?.reviews?.map((r: any) => ({
+    id: r.word.id,
+    word: r.word.word,
+    definitionKo: r.word.definitionKo || r.word.definition,
+    lastReviewed: r.lastReviewed,
+    nextReview: r.nextReview,
+    correctCount: r.correctCount || 0,
+    incorrectCount: r.incorrectCount || 0,
+  })) || []);
+
+  const loading = reviewLoading && !isDemo;
 
   // 초기 로드 시 localStorage에서 마지막 선택한 레벨 복원
   useEffect(() => {
@@ -163,82 +192,13 @@ function ReviewPageContent() {
     localStorage.setItem(`review_${selectedExam}_level`, level);
   };
 
+  // 로그인 체크
   useEffect(() => {
     if (!hasHydrated) return;
-
-    // 데모 모드일 경우 샘플 데이터 사용
-    if (isDemo && !user) {
-      setStats(DEMO_STATS);
-      setDueWords(DEMO_WORDS);
-      setCurrentStreak(7);
-      setLoading(false);
-      return;
-    }
-
-    if (!user) {
+    if (!user && !isDemo) {
       router.push('/auth/login');
-      return;
     }
-
-    loadReviewData();
-  }, [user, hasHydrated, router, selectedExam, selectedLevel, isDemo]);
-
-  // 페이지 포커스 시 데이터 새로고침 (퀴즈 완료 후 돌아올 때)
-  useEffect(() => {
-    const handleFocus = () => {
-      if (user && !isDemo) {
-        loadReviewData();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [user, isDemo, selectedExam, selectedLevel]);
-
-  const loadReviewData = async () => {
-    setLoading(true);
-    try {
-      const params = {
-        examCategory: selectedExam,
-        level: selectedLevel,
-      };
-
-      const [data, progressData] = await Promise.all([
-        progressAPI.getDueReviews(params),
-        progressAPI.getUserProgress(),
-      ]);
-
-      setStats({
-        dueToday: data.count || 0,
-        weak: data.weakCount || 0,
-        bookmarked: data.bookmarkedCount || 0,
-        totalReviewed: data.totalReviewed || 0,
-        accuracy: data.accuracy || 0,
-        todayCorrect: data.todayCorrect || 0,
-        lastReviewDate: data.lastReviewDate,
-        tomorrowDue: data.tomorrowDue || 0,
-        thisWeekDue: data.thisWeekDue || 0,
-      });
-      setCurrentStreak(progressData.stats?.currentStreak || 0);
-
-      // Get all due words for pagination
-      if (data.reviews) {
-        setDueWords(data.reviews.map((r: any) => ({
-          id: r.word.id,
-          word: r.word.word,
-          definitionKo: r.word.definitionKo || r.word.definition,
-          lastReviewed: r.lastReviewed,
-          nextReview: r.nextReview,
-          correctCount: r.correctCount || 0,
-          incorrectCount: r.incorrectCount || 0,
-        })));
-      }
-    } catch (error) {
-      console.error('Failed to load review data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, hasHydrated, router, isDemo]);
 
   if (!hasHydrated || loading) {
     return (
@@ -356,6 +316,14 @@ function ReviewPageContent() {
               return (
                 <button
                   key={key}
+                  onMouseEnter={() => {
+                    if (!isLocked) {
+                      const lastLevel = localStorage.getItem(`review_${key}_level`) || 'L1';
+                      const validLevels = key === 'TEPS' ? ['L1', 'L2'] : ['L1', 'L2', 'L3'];
+                      const level = validLevels.includes(lastLevel) ? lastLevel : 'L1';
+                      prefetchReviews(key, level);
+                    }
+                  }}
                   onClick={() => {
                     if (isLocked) {
                       router.push('/pricing');
@@ -392,6 +360,11 @@ function ReviewPageContent() {
               return (
                 <button
                   key={key}
+                  onMouseEnter={() => {
+                    if (!isLocked) {
+                      prefetchReviews(selectedExam, key);
+                    }
+                  }}
                   onClick={() => {
                     if (isLocked) {
                       router.push('/pricing');
