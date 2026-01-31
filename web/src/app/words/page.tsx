@@ -9,7 +9,8 @@ import { wordsAPI } from '@/lib/api';
 import { EmptySearchResults } from '@/components/ui/EmptyState';
 import { SkeletonWordCard } from '@/components/ui/Skeleton';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { getAccessibleLevels, isLevelLocked, isExamLocked } from '@/lib/subscription';
+import { getAccessibleLevels, isLevelLocked, isExamLocked, getSubscriptionTier } from '@/lib/subscription';
+import { usePackageAccess } from '@/hooks/useQueries';
 
 interface Word {
   id: string;
@@ -95,6 +96,11 @@ function WordsPageContent() {
   // 접근 가능 레벨 계산 (디버깅/표시용)
   const accessibleLevels = getAccessibleLevels(user);
 
+  // 2026 기출 접근 권한 체크
+  const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user);
+  const hasCsat2026Access = accessData?.hasAccess || false;
+  const isPremium = getSubscriptionTier(user) === 'PREMIUM';
+
   // 잠금 체크 헬퍼 함수 (공통 유틸 사용)
   const checkExamLocked = (exam: string) => isExamLocked(user, exam);
   const checkLevelLocked = (exam: string, level: string) => isLevelLocked(user, exam, level);
@@ -161,7 +167,11 @@ function WordsPageContent() {
     TEPS: {
       L1: 'TEPS L1',
       L2: 'TEPS L2',
-      L3: 'TEPS L3',
+    },
+    CSAT_2026: {
+      LISTENING: '듣기영역',
+      READING_2: '독해영역 2점',
+      READING_3: '독해영역 3점',
     },
   };
 
@@ -251,39 +261,87 @@ function WordsPageContent() {
                 {checkExamLocked('TEPS') && <Lock className="w-3 h-3" />}
                 TEPS
               </button>
+              {/* 2026 기출 - 프리미엄 또는 단품 구매자만 */}
+              {(hasCsat2026Access || isPremium) && (
+                <button
+                  onClick={() => {
+                    setExamCategory('CSAT_2026');
+                    setLevel('');
+                    setPage(1);
+                  }}
+                  className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
+                    examCategory === 'CSAT_2026'
+                      ? 'bg-[#10B981] text-white'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  2026 기출
+                </button>
+              )}
             </div>
           </div>
 
           {/* 레벨 필터 */}
           <div>
-            <h4 className="text-[13px] text-gray-500 font-medium mb-2">레벨</h4>
+            <h4 className="text-[13px] text-gray-500 font-medium mb-2">
+              {examCategory === 'CSAT_2026' ? '유형 선택' : '레벨'}
+            </h4>
             <div className="flex gap-2 flex-wrap">
-              {['', 'L1', 'L2', 'L3'].map((lvl) => {
-                const locked = lvl !== '' && examCategory && checkLevelLocked(examCategory, lvl);
-                return (
-                  <button
-                    key={lvl}
-                    onClick={() => {
-                      if (locked) {
-                        router.push('/pricing');
-                        return;
-                      }
-                      setLevel(lvl);
-                      setPage(1);
-                    }}
-                    className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
-                      locked
-                        ? 'bg-gray-100 text-[#999999] cursor-pointer'
-                        : level === lvl
-                          ? 'bg-[#3B82F6] text-white'
+              {/* CSAT_2026일 때는 다른 레벨 옵션 */}
+              {examCategory === 'CSAT_2026' ? (
+                <>
+                  {['', 'LISTENING', 'READING_2', 'READING_3'].map((lvl) => (
+                    <button
+                      key={lvl}
+                      onClick={() => {
+                        setLevel(lvl);
+                        setPage(1);
+                      }}
+                      className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all ${
+                        level === lvl
+                          ? 'bg-[#10B981] text-white'
                           : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                    }`}
-                  >
-                    {locked && <Lock className="w-3 h-3" />}
-                    {lvl === '' ? '전체' : lvl}
-                  </button>
-                );
-              })}
+                      }`}
+                    >
+                      {lvl === '' ? '전체' :
+                       lvl === 'LISTENING' ? '듣기영역' :
+                       lvl === 'READING_2' ? '독해영역 2점' : '독해영역 3점'}
+                    </button>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {/* 기존 L1/L2/L3 - TEPS일 때 L3 숨김 */}
+                  {['', 'L1', 'L2', 'L3']
+                    .filter((lvl) => !(examCategory === 'TEPS' && lvl === 'L3'))
+                    .map((lvl) => {
+                      const locked = lvl !== '' && examCategory && checkLevelLocked(examCategory, lvl);
+                      return (
+                        <button
+                          key={lvl}
+                          onClick={() => {
+                            if (locked) {
+                              router.push('/pricing');
+                              return;
+                            }
+                            setLevel(lvl);
+                            setPage(1);
+                          }}
+                          className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
+                            locked
+                              ? 'bg-gray-100 text-[#999999] cursor-pointer'
+                              : level === lvl
+                                ? 'bg-[#3B82F6] text-white'
+                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
+                        >
+                          {locked && <Lock className="w-3 h-3" />}
+                          {lvl === '' ? '전체' : lvl}
+                        </button>
+                      );
+                    })}
+                </>
+              )}
             </div>
           </div>
         </section>
@@ -354,8 +412,8 @@ function WordsPageContent() {
   );
 }
 
-// 서비스 중인 시험만 표시 (CSAT, TEPS - 나머지는 준비중)
-const ACTIVE_EXAM_CATEGORIES = ['CSAT', 'TEPS'];
+// 서비스 중인 시험만 표시 (CSAT, TEPS, CSAT_2026)
+const ACTIVE_EXAM_CATEGORIES = ['CSAT', 'TEPS', 'CSAT_2026'];
 
 function WordCard({
   word,
@@ -389,7 +447,9 @@ function WordCard({
             <span className={`text-[11px] px-2 py-1 rounded-full font-medium ${
               word.examCategory === 'CSAT'
                 ? 'bg-[#ECFDF5] text-[#14B8A6]'
-                : 'bg-[#F3E8FF] text-purple-500'
+                : word.examCategory === 'CSAT_2026'
+                  ? 'bg-[#D1FAE5] text-[#059669]'
+                  : 'bg-[#F3E8FF] text-purple-500'
             }`}>
               {badgeLabel}
             </span>
