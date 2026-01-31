@@ -170,30 +170,47 @@ export function hasPurchasedExam(user: User | null, examCategory: string): boole
 
 /**
  * 프리미엄 또는 단품 구매로 시험에 접근 가능한지 확인
+ * - CSAT_2026: 단품 구매자만 (프리미엄도 별도 구매 필요)
+ * - TEPS: 프리미엄만
+ * - CSAT: 모든 사용자
  */
 export function canAccessExamWithPurchase(user: User | null, exam: string): boolean {
-  // 프리미엄 회원은 모든 것에 접근 가능
-  if (getSubscriptionTier(user) === 'PREMIUM') return true;
-
   // CSAT는 모든 사용자 접근 가능
   if (exam === 'CSAT') return true;
 
-  // CSAT_2026, EBS 등은 단품 구매 확인
+  // CSAT_2026은 단품 구매자만 (프리미엄 회원도 별도 구매 필요)
+  if (exam === 'CSAT_2026') {
+    return hasPurchasedExam(user, exam);
+  }
+
+  // TEPS는 프리미엄만
+  if (exam === 'TEPS') {
+    return getSubscriptionTier(user) === 'PREMIUM';
+  }
+
+  // 프리미엄 회원은 나머지에 접근 가능
+  if (getSubscriptionTier(user) === 'PREMIUM') return true;
+
+  // 다른 단품 구매 확인
   if (hasPurchasedExam(user, exam)) return true;
 
-  // TEPS는 프리미엄만 (위에서 이미 체크됨)
   return false;
 }
 
 /**
  * 프리미엄 또는 단품 구매로 콘텐츠에 접근 가능한지 확인
- * - 프리미엄: 모든 콘텐츠 접근 가능
+ * - 프리미엄: CSAT 전체, TEPS 전체 (단, CSAT_2026은 별도 구매 필요)
  * - 베이직: CSAT 전체 레벨
  * - 무료: CSAT L1만
  * - 단품 구매: 해당 시험 전체 레벨
  */
 export function canAccessContentWithPurchase(user: User | null, exam: string, level: string): boolean {
-  // 프리미엄 회원은 모든 것에 접근 가능
+  // CSAT_2026은 단품 구매자만 (프리미엄 회원도 별도 구매 필요)
+  if (exam === 'CSAT_2026') {
+    return hasPurchasedExam(user, exam);
+  }
+
+  // 프리미엄 회원은 나머지 모든 것에 접근 가능
   if (getSubscriptionTier(user) === 'PREMIUM') return true;
 
   // 단품 구매한 시험은 전체 레벨 접근 가능
