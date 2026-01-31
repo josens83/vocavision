@@ -205,6 +205,31 @@ export function useMasteryDistribution(examCategory: string, level: string, enab
 }
 
 /**
+ * 숙련도 분포 프리패치 훅
+ * - 콤보박스 hover 시 미리 로딩
+ */
+export function usePrefetchMasteryDistribution() {
+  const queryClient = useQueryClient();
+
+  return (examCategory: string, level: string) => {
+    // 이미 캐시에 있으면 스킵
+    const existing = queryClient.getQueryData(['masteryDistribution', examCategory, level]);
+    if (existing) return;
+
+    queryClient.prefetchQuery({
+      queryKey: ['masteryDistribution', examCategory, level],
+      queryFn: async () => {
+        const response = await api.get('/progress/mastery', {
+          params: { examCategory, level },
+        });
+        return response.data;
+      },
+      staleTime: 30_000,
+    });
+  };
+}
+
+/**
  * 복습 퀴즈 데이터 훅
  * - 1분 캐시
  */

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LearningHeatmap from '@/components/statistics/LearningHeatmap';
-import { useStatistics, useActivityHeatmap, useMasteryDistribution } from '@/hooks/useQueries';
+import { useStatistics, useActivityHeatmap, useMasteryDistribution, usePrefetchMasteryDistribution } from '@/hooks/useQueries';
 
 // Benchmarking: Advanced statistics dashboard
 // Phase 2-2: 고급 통계 및 예측 분석 대시보드
@@ -148,6 +148,7 @@ function StatisticsPageContent() {
     masteryLevel,
     !!user && hasHydrated && !isDemo
   );
+  const prefetchMastery = usePrefetchMasteryDistribution();
 
   // 데이터 추출
   const stats: UserStats | null = isDemo ? DEMO_STATS : (statisticsData?.stats || null);
@@ -253,12 +254,30 @@ function StatisticsPageContent() {
   };
 
   // 정확도 계산 (API 데이터 또는 데모 데이터 사용)
-  const getAccuracyData = () => {
-    if (masteryDist && !isDemo) {
-      return masteryDist.accuracy;
+  // ⚠️ 콤보박스와 무관하게 전체 데이터 기준으로 계산
+  const getTotalAccuracy = () => {
+    if (isDemo) {
+      // 데모 모드: 전체 DEMO_PROGRESS 기준
+      const correctWords = progress.filter(p => !p.needsReview).length;
+      const totalLearned = progress.length;
+      return {
+        correctWords,
+        totalLearnedWords: totalLearned,
+        percent: totalLearned > 0 ? Math.round((correctWords / totalLearned) * 100) : 0,
+      };
     }
-    const demoData = getDemoMasteryData();
-    return demoData.accuracy;
+
+    // 실제 데이터: 전체 progress 배열 기준
+    if (!progress || progress.length === 0) {
+      return { correctWords: 0, totalLearnedWords: 0, percent: 0 };
+    }
+    const correctWords = progress.filter(p => !p.needsReview).length;
+    const totalLearned = progress.length;
+    return {
+      correctWords,
+      totalLearnedWords: totalLearned,
+      percent: totalLearned > 0 ? Math.round((correctWords / totalLearned) * 100) : 0,
+    };
   };
 
   // 숙련도 분포 데이터
@@ -271,7 +290,7 @@ function StatisticsPageContent() {
   };
 
   const levelDist = getLevelDistribution();
-  const accuracyData = getAccuracyData();
+  const totalAccuracy = getTotalAccuracy();
   const masteryData = getMasteryData();
 
   // 레벨별 배경색 (은행 앱 스타일)
@@ -377,9 +396,9 @@ function StatisticsPageContent() {
               <span className="text-2xl">✅</span>
               <span className="text-[12px] text-[#10B981] font-medium">정확도</span>
             </div>
-            <p className="text-[28px] font-bold text-[#10B981]">{accuracyData.percent}%</p>
+            <p className="text-[28px] font-bold text-[#10B981]">{totalAccuracy.percent}%</p>
             <p className="text-[11px] text-gray-500 mt-1">
-              {accuracyData.correctWords}/{accuracyData.totalLearnedWords} 단어
+              {totalAccuracy.correctWords}/{totalAccuracy.totalLearnedWords} 단어
             </p>
           </div>
         </div>
@@ -393,6 +412,15 @@ function StatisticsPageContent() {
             <div className="flex gap-2 flex-shrink-0">
               <select
                 value={masteryExam}
+                onMouseEnter={() => {
+                  // 모든 시험 옵션 프리패치
+                  prefetchMastery('CSAT', masteryLevel);
+                  prefetchMastery('TEPS', masteryLevel === 'L3' ? 'all' : masteryLevel);
+                }}
+                onFocus={() => {
+                  prefetchMastery('CSAT', masteryLevel);
+                  prefetchMastery('TEPS', masteryLevel === 'L3' ? 'all' : masteryLevel);
+                }}
                 onChange={(e) => {
                   const newExam = e.target.value;
                   setMasteryExam(newExam);
@@ -408,6 +436,23 @@ function StatisticsPageContent() {
               </select>
               <select
                 value={masteryLevel}
+                onMouseEnter={() => {
+                  // 모든 레벨 옵션 프리패치
+                  prefetchMastery(masteryExam, 'all');
+                  prefetchMastery(masteryExam, 'L1');
+                  prefetchMastery(masteryExam, 'L2');
+                  if (masteryExam !== 'TEPS') {
+                    prefetchMastery(masteryExam, 'L3');
+                  }
+                }}
+                onFocus={() => {
+                  prefetchMastery(masteryExam, 'all');
+                  prefetchMastery(masteryExam, 'L1');
+                  prefetchMastery(masteryExam, 'L2');
+                  if (masteryExam !== 'TEPS') {
+                    prefetchMastery(masteryExam, 'L3');
+                  }
+                }}
                 onChange={(e) => setMasteryLevel(e.target.value)}
                 className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
