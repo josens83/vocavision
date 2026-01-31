@@ -126,3 +126,53 @@ export function useInvalidateReviews() {
     });
   };
 }
+
+/**
+ * 전체 통계 데이터 훅 (stats + progress)
+ * - 30초 캐시
+ */
+export function useStatistics(enabled = true) {
+  return useQuery({
+    queryKey: ['statistics'],
+    queryFn: async () => {
+      const response = await api.get('/progress');
+      return response.data;
+    },
+    enabled,
+    staleTime: 30_000,
+  });
+}
+
+/**
+ * 학습 활동 히트맵 훅
+ * - 1분 캐시 (자주 변경되지 않음)
+ */
+export function useActivityHeatmap(enabled = true) {
+  return useQuery({
+    queryKey: ['activityHeatmap'],
+    queryFn: async () => {
+      const response = await api.get('/progress/activity');
+      return response.data;
+    },
+    enabled,
+    staleTime: 60_000, // 1분 캐시
+  });
+}
+
+/**
+ * 숙련도 분포 훅 (시험/레벨별)
+ * - 시험/레벨 변경 시 이전 데이터 유지
+ */
+export function useMasteryDistribution(examCategory: string, level: string, enabled = true) {
+  return useQuery({
+    queryKey: ['masteryDistribution', examCategory, level],
+    queryFn: async () => {
+      const response = await api.get('/progress/mastery', {
+        params: { examCategory, level },
+      });
+      return response.data;
+    },
+    enabled,
+    placeholderData: (previousData) => previousData,
+  });
+}

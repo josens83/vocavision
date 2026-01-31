@@ -4,14 +4,12 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
-import axios from 'axios';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LearningHeatmap from '@/components/statistics/LearningHeatmap';
+import { useStatistics, useActivityHeatmap, useMasteryDistribution } from '@/hooks/useQueries';
 
 // Benchmarking: Advanced statistics dashboard
 // Phase 2-2: 고급 통계 및 예측 분석 대시보드
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 interface UserStats {
   totalWordsLearned: number;
@@ -135,12 +133,6 @@ function StatisticsPageContent() {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [progress, setProgress] = useState<Progress[]>([]);
-  const [masteryDist, setMasteryDist] = useState<MasteryDistribution | null>(null);
-  const [heatmapData, setHeatmapData] = useState<Array<{ date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }>>([]);
-  const [loading, setLoading] = useState(true);
-
   // 숙련도 분포 필터 (독립적)
   const [masteryExam, setMasteryExam] = useState<string>('CSAT');
   const [masteryLevel, setMasteryLevel] = useState<string>('all');
@@ -148,67 +140,28 @@ function StatisticsPageContent() {
   // 레벨별 학습 현황 필터 (독립적)
   const [levelProgressExam, setLevelProgressExam] = useState<string>('CSAT');
 
+  // React Query 훅
+  const { data: statisticsData, isLoading: statsLoading } = useStatistics(!!user && hasHydrated && !isDemo);
+  const { data: activityData } = useActivityHeatmap(!!user && hasHydrated && !isDemo);
+  const { data: masteryDist, isFetching: masteryFetching } = useMasteryDistribution(
+    masteryExam,
+    masteryLevel,
+    !!user && hasHydrated && !isDemo
+  );
+
+  // 데이터 추출
+  const stats: UserStats | null = isDemo ? DEMO_STATS : (statisticsData?.stats || null);
+  const progress: Progress[] = isDemo ? DEMO_PROGRESS : (statisticsData?.progress || []);
+  const heatmapData = activityData?.heatmapData || [];
+  const loading = statsLoading && !isDemo;
+
+  // 로그인 체크
   useEffect(() => {
     if (!hasHydrated) return;
-
-    // 데모 모드일 경우 샘플 데이터 사용
-    if (isDemo && !user) {
-      setStats(DEMO_STATS);
-      setProgress(DEMO_PROGRESS);
-      setLoading(false);
-      return;
-    }
-
-    if (!user) {
+    if (!isDemo && !user) {
       router.push('/auth/login');
-      return;
     }
-
-    loadStatistics();
   }, [user, hasHydrated, router, isDemo]);
-
-  const loadStatistics = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-
-      const [progressResponse, activityResponse] = await Promise.all([
-        axios.get(`${API_URL}/progress`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get(`${API_URL}/progress/activity`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      setStats(progressResponse.data.stats);
-      setProgress(progressResponse.data.progress || []);
-      setHeatmapData(activityResponse.data.heatmapData || []);
-    } catch (error) {
-      console.error('Failed to load statistics:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 숙련도 분포 로드 (시험/레벨 변경 시 - 독립적)
-  useEffect(() => {
-    if (!hasHydrated || !user || isDemo) return;
-
-    const loadMasteryDistribution = async () => {
-      try {
-        const token = localStorage.getItem('authToken');
-        const response = await axios.get(`${API_URL}/progress/mastery`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { examCategory: masteryExam, level: masteryLevel },
-        });
-        setMasteryDist(response.data);
-      } catch (error) {
-        console.error('Failed to load mastery distribution:', error);
-      }
-    };
-
-    loadMasteryDistribution();
-  }, [masteryExam, masteryLevel, user, hasHydrated, isDemo]);
 
   // 필터링된 progress (examLevels 기반) - 레벨별 학습 현황용
   const getFilteredProgress = (exam: string, level?: string) => {
