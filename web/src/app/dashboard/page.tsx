@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore, useExamCourseStore, useUserSettingsStore, ExamType } from '@/lib/store';
-import { progressAPI, wordsAPI, learningAPI, api } from '@/lib/api';
 import { canAccessExamWithPurchase, canAccessContentWithPurchase, getAvailableExams, getSubscriptionTier } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
+import { useDashboardSummary, usePackageAccess, usePrefetchDashboard } from '@/hooks/useQueries';
 
 // ============================================
 // DashboardItem 컴포넌트 (미니멀 스타일)
@@ -110,15 +110,40 @@ export default function DashboardPage() {
   const dailyGoal = useUserSettingsStore((state) => state.dailyGoal);
   const setDailyGoal = useUserSettingsStore((state) => state.setDailyGoal);
 
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [dueReviewCount, setDueReviewCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [examLevelTotalWords, setExamLevelTotalWords] = useState(0);
-  const [examLevelLearnedWords, setExamLevelLearnedWords] = useState(0);
-  const [examLevelLoading, setExamLevelLoading] = useState(false);
-  const [weakWordCount, setWeakWordCount] = useState(0);
-  const [learningSession, setLearningSession] = useState<LearningSessionData | null>(null);
-  const [hasCsat2026Access, setHasCsat2026Access] = useState(false);
+  // React Query: 대시보드 데이터 캐싱
+  const examCategory = activeExam || 'CSAT';
+  const validLevel = getValidLevelForExam(examCategory, activeLevel || 'L1');
+
+  const {
+    data: summaryData,
+    isLoading: summaryLoading,
+    isFetching: summaryFetching
+  } = useDashboardSummary(examCategory, validLevel, !!user && hasHydrated);
+
+  const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user && hasHydrated);
+
+  // 프리패치 훅 (hover 시 미리 로딩)
+  const prefetchDashboard = usePrefetchDashboard();
+
+  // React Query 데이터에서 추출
+  const stats = summaryData?.stats || null;
+  const dueReviewCount = summaryData?.dueReviewCount || 0;
+  const examLevelTotalWords = summaryData?.totalWords || 0;
+  const examLevelLearnedWords = summaryData?.learnedWords || 0;
+  const weakWordCount = summaryData?.weakWordsCount || 0;
+  const learningSession = summaryData?.learningSession || null;
+  const hasCsat2026Access = accessData?.hasAccess || false;
+
+  // 로딩 상태
+  const loading = summaryLoading;
+  const examLevelLoading = summaryFetching && !summaryData;
+
+  // dailyGoal 동기화
+  useEffect(() => {
+    if (summaryData?.stats?.dailyGoal) {
+      setDailyGoal(summaryData.stats.dailyGoal);
+    }
+  }, [summaryData?.stats?.dailyGoal, setDailyGoal]);
 
   // 구독 + 단품 구매 상태에 따른 접근 권한 체크
   const canAccessExam = (exam: string) => canAccessExamWithPurchase(user, exam);
@@ -133,75 +158,13 @@ export default function DashboardPage() {
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 
-  // 이전 시험/레벨 추적 (부분 로딩용)
-  const prevExamRef = useRef(activeExam);
-  const prevLevelRef = useRef(activeLevel);
-  const isInitialLoadRef = useRef(true);
-
-  // 통합 대시보드 로딩 함수 (최적화)
-  const loadDashboard = async (isPartialLoad = false) => {
-    // 부분 로딩: examLevelLoading만, 전체 로딩: 둘 다
-    if (isPartialLoad) {
-      setExamLevelLoading(true);
-    } else {
-      setLoading(true);
-      setExamLevelLoading(true);
-    }
-
-    try {
-      const examCategory = activeExam || 'CSAT';
-      const level = getValidLevelForExam(examCategory, activeLevel || 'L1');
-
-      // 병렬 요청: 대시보드 요약 + 2026 기출 접근 권한
-      const [summaryData, csat2026Access] = await Promise.all([
-        progressAPI.getDashboardSummary(examCategory, level),
-        api.get('/packages/check-access?slug=2026-csat-analysis').catch(() => ({ data: { hasAccess: false } }))
-      ]);
-
-      // 대시보드 요약 데이터 설정
-      setStats(summaryData.stats);
-      setDueReviewCount(summaryData.dueReviewCount || 0);
-      setExamLevelTotalWords(summaryData.totalWords || 0);
-      setExamLevelLearnedWords(summaryData.learnedWords || 0);
-      setWeakWordCount(summaryData.weakWordsCount || 0);
-      setLearningSession(summaryData.learningSession);
-      setHasCsat2026Access(csat2026Access.data?.hasAccess || false);
-
-      // dailyGoal 동기화
-      if (summaryData.stats?.dailyGoal) {
-        setDailyGoal(summaryData.stats.dailyGoal);
-      }
-    } catch (error) {
-      console.error('Failed to load dashboard:', error);
-    } finally {
-      setLoading(false);
-      setExamLevelLoading(false);
-    }
-  };
-
-  // 초기 로딩 (로그인 체크)
+  // 로그인 체크
   useEffect(() => {
     if (!hasHydrated) return;
     if (!user) {
       router.push('/auth/login');
-      return;
-    }
-    if (isInitialLoadRef.current) {
-      isInitialLoadRef.current = false;
-      loadDashboard(false);  // 전체 로딩
     }
   }, [user, hasHydrated, router]);
-
-  // 시험/레벨 변경 시 부분 로딩
-  useEffect(() => {
-    if (!hasHydrated || !user || isInitialLoadRef.current) return;
-
-    if (prevExamRef.current !== activeExam || prevLevelRef.current !== activeLevel) {
-      prevExamRef.current = activeExam;
-      prevLevelRef.current = activeLevel;
-      loadDashboard(true);  // 부분 로딩
-    }
-  }, [activeExam, activeLevel, hasHydrated, user]);
 
   // CSAT_2026 접근권한 없으면 CSAT으로 fallback
   useEffect(() => {
@@ -341,6 +304,10 @@ export default function DashboardPage() {
           <div className={`grid gap-3 ${hasCsat2026Access ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {/* 수능 버튼 */}
             <button
+              onMouseEnter={() => {
+                const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
+                prefetchDashboard('CSAT', lastLevel);
+              }}
               onClick={() => {
                 setActiveExam('CSAT' as ExamType);
                 const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
@@ -359,6 +326,10 @@ export default function DashboardPage() {
             {/* 2026 기출 버튼 - 단품 구매자만 표시 */}
             {hasCsat2026Access && (
               <button
+                onMouseEnter={() => {
+                  const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
+                  prefetchDashboard('CSAT_2026', lastLevel);
+                }}
                 onClick={() => {
                   setActiveExam('CSAT_2026' as ExamType);
                   const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
@@ -377,6 +348,13 @@ export default function DashboardPage() {
 
             {/* TEPS 버튼 */}
             <button
+              onMouseEnter={() => {
+                if (canAccessExam('TEPS')) {
+                  const lastLevel = localStorage.getItem('dashboard_TEPS_level') || 'L1';
+                  const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
+                  prefetchDashboard('TEPS', validLevel);
+                }
+              }}
               onClick={() => {
                 if (canAccessExam('TEPS')) {
                   setActiveExam('TEPS' as ExamType);
@@ -427,6 +405,11 @@ export default function DashboardPage() {
               return (
                 <button
                   key={lvl}
+                  onMouseEnter={() => {
+                    if (!isLocked) {
+                      prefetchDashboard(selectedExam, lvl);
+                    }
+                  }}
                   onClick={() => {
                     if (isLocked) {
                       router.push('/pricing');
