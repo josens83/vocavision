@@ -272,8 +272,14 @@ function WordsPageContent() {
               {examCategory === 'CSAT_2026' ? '유형 선택' : '레벨'}
             </h4>
             <div className="flex gap-2 flex-wrap">
-              {/* CSAT_2026일 때는 다른 레벨 옵션 */}
-              {examCategory === 'CSAT_2026' ? (
+              {/* 시험 "전체" 선택 시 레벨도 "전체"만 표시 */}
+              {examCategory === '' ? (
+                <button
+                  className="px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all bg-[#1c1c1e] text-white"
+                >
+                  전체
+                </button>
+              ) : examCategory === 'CSAT_2026' ? (
                 <>
                   {['', 'LISTENING', 'READING_2', 'READING_3'].map((lvl) => (
                     <button
