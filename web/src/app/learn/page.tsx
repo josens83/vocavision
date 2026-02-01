@@ -45,7 +45,7 @@ interface Review {
 // Exam name mapping
 const examNames: Record<string, string> = {
   CSAT: '수능',
-  CSAT_2026: '2026 기출',
+  CSAT_2026: '2026 수능 기출',
   SAT: 'SAT',
   TOEFL: 'TOEFL',
   TOEIC: 'TOEIC',

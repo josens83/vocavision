@@ -38,7 +38,7 @@ function DashboardItem({ value, label, color, loading }: { value: string | numbe
 const examInfo: Record<string, { name: string; icon: string; color: string }> = {
   CSAT: { name: '수능', icon: '📝', color: 'blue' },
   TEPS: { name: 'TEPS', icon: '🎓', color: 'purple' },
-  CSAT_2026: { name: '2026 기출', icon: '📋', color: 'emerald' },
+  CSAT_2026: { name: '2026 수능 기출', icon: '📋', color: 'emerald' },
 };
 
 // Get valid level for exam (TEPS only has L1, L2)
