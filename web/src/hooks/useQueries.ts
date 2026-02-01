@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { progressAPI, api } from '@/lib/api';
+import { progressAPI, api, wordsAPI } from '@/lib/api';
 
 /**
  * 대시보드 요약 데이터 훅
@@ -254,5 +254,68 @@ export function useClearAllCache() {
 
   return () => {
     queryClient.clear();
+  };
+}
+
+/**
+ * 단어 검색 훅
+ * - 30초 캐시로 필터 변경 시 빠른 응답
+ * - 이전 데이터 유지로 깜빡임 방지
+ */
+export function useWordsSearch(
+  params: {
+    page: number;
+    limit?: number;
+    examCategory?: string;
+    level?: string;
+    search?: string;
+  },
+  enabled = true
+) {
+  return useQuery({
+    queryKey: ['wordsSearch', params.examCategory, params.level, params.search, params.page],
+    queryFn: () => wordsAPI.getWords({
+      page: params.page,
+      limit: params.limit || 20,
+      examCategory: params.examCategory || undefined,
+      level: params.level || undefined,
+      search: params.search || undefined,
+    }),
+    enabled,
+    staleTime: 30_000, // 30초 캐시
+    placeholderData: (previousData) => previousData, // 이전 데이터 유지
+  });
+}
+
+/**
+ * 단어 검색 프리패치 훅
+ * - 시험/레벨 버튼 hover 시 미리 로딩
+ */
+export function usePrefetchWordsSearch() {
+  const queryClient = useQueryClient();
+
+  return (params: {
+    examCategory?: string;
+    level?: string;
+    page?: number;
+  }) => {
+    const page = params.page || 1;
+
+    // 이미 캐시에 있으면 스킵
+    const existing = queryClient.getQueryData([
+      'wordsSearch', params.examCategory, params.level, '', page
+    ]);
+    if (existing) return;
+
+    queryClient.prefetchQuery({
+      queryKey: ['wordsSearch', params.examCategory, params.level, '', page],
+      queryFn: () => wordsAPI.getWords({
+        page,
+        limit: 20,
+        examCategory: params.examCategory || undefined,
+        level: params.level || undefined,
+      }),
+      staleTime: 30_000,
+    });
   };
 }

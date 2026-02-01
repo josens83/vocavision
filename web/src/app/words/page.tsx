@@ -1,16 +1,15 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, Search } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
-import { wordsAPI } from '@/lib/api';
 import { EmptySearchResults } from '@/components/ui/EmptyState';
 import { SkeletonWordCard } from '@/components/ui/Skeleton';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { getAccessibleLevels, isLevelLocked, isExamLocked, getSubscriptionTier } from '@/lib/subscription';
-import { usePackageAccess } from '@/hooks/useQueries';
+import { usePackageAccess, useWordsSearch, usePrefetchWordsSearch } from '@/hooks/useQueries';
 
 interface Word {
   id: string;
@@ -108,53 +107,35 @@ function WordsPageContent() {
   // Get initial search from URL parameter
   const initialSearch = searchParams.get('search') || '';
 
-  const [words, setWords] = useState<Word[]>([]);
-  const [loading, setLoading] = useState(true);
+  // 필터 상태
   const [search, setSearch] = useState(initialSearch);
   const [examCategory, setExamCategory] = useState('CSAT');
   const [level, setLevel] = useState('');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [initialLoadDone, setInitialLoadDone] = useState(false);
+  // 검색 트리거용 상태 (Enter 누를 때만 검색 실행)
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
 
-  // Initial load with URL search param
-  useEffect(() => {
-    loadWords();
-    setInitialLoadDone(true);
-  }, []);
+  // React Query 훅
+  const { data, isLoading } = useWordsSearch({
+    page,
+    limit: 20,
+    examCategory: examCategory || undefined,
+    level: level || undefined,
+    search: searchQuery || undefined,
+  }, !!user);
 
-  // Reload when filters change (after initial load)
-  useEffect(() => {
-    if (initialLoadDone) {
-      loadWords();
-    }
-  }, [page, examCategory, level]);
+  const prefetchWords = usePrefetchWordsSearch();
 
-  const loadWords = async () => {
-    setLoading(true);
-    try {
-      const data = await wordsAPI.getWords({
-        page,
-        limit: 20,
-        examCategory: examCategory || undefined,
-        level: level || undefined,
-        search: search || undefined,
-      });
-      setWords(data.words);
-      setTotalPages(data.pagination.totalPages);
-      setTotalCount(data.pagination.total || data.words.length);
-    } catch (error) {
-      console.error('Failed to load words:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 데이터 추출
+  const words = data?.words || [];
+  const totalPages = data?.pagination?.totalPages || 1;
+  const totalCount = data?.pagination?.total || 0;
+  const loading = isLoading;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    loadWords();
+    setSearchQuery(search); // 검색 쿼리 업데이트로 React Query가 자동 refetch
   };
 
   // Exam + Level 배지 라벨
@@ -204,6 +185,7 @@ function WordsPageContent() {
             <h4 className="text-[13px] text-gray-500 font-medium mb-2">시험</h4>
             <div className="flex gap-2 flex-wrap">
               <button
+                onMouseEnter={() => prefetchWords({ examCategory: '' })}
                 onClick={() => {
                   setExamCategory('');
                   setLevel('');
@@ -218,6 +200,7 @@ function WordsPageContent() {
                 전체
               </button>
               <button
+                onMouseEnter={() => prefetchWords({ examCategory: 'CSAT' })}
                 onClick={() => {
                   const locked = checkExamLocked('CSAT');
                   if (locked) {
@@ -240,6 +223,7 @@ function WordsPageContent() {
                 수능
               </button>
               <button
+                onMouseEnter={() => prefetchWords({ examCategory: 'TEPS' })}
                 onClick={() => {
                   const locked = checkExamLocked('TEPS');
                   if (locked) {
@@ -264,6 +248,7 @@ function WordsPageContent() {
               {/* 2026 기출 - 프리미엄 또는 단품 구매자만 */}
               {(hasCsat2026Access || isPremium) && (
                 <button
+                  onMouseEnter={() => prefetchWords({ examCategory: 'CSAT_2026' })}
                   onClick={() => {
                     setExamCategory('CSAT_2026');
                     setLevel('');
@@ -293,6 +278,7 @@ function WordsPageContent() {
                   {['', 'LISTENING', 'READING_2', 'READING_3'].map((lvl) => (
                     <button
                       key={lvl}
+                      onMouseEnter={() => prefetchWords({ examCategory, level: lvl })}
                       onClick={() => {
                         setLevel(lvl);
                         setPage(1);
@@ -319,6 +305,7 @@ function WordsPageContent() {
                       return (
                         <button
                           key={lvl}
+                          onMouseEnter={() => prefetchWords({ examCategory, level: lvl })}
                           onClick={() => {
                             if (locked) {
                               router.push('/pricing');
