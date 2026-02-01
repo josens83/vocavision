@@ -127,7 +127,7 @@ function WordsPageContent() {
   const prefetchWords = usePrefetchWordsSearch();
 
   // 데이터 추출
-  const words = data?.words || [];
+  const words: Word[] = data?.words || [];
   const totalPages = data?.pagination?.totalPages || 1;
   const totalCount = data?.pagination?.total || 0;
   const loading = isLoading;
