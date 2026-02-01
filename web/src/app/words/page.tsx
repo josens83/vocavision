@@ -355,10 +355,11 @@ function WordsPageContent() {
             query={search || examCategory || level}
             onClear={() => {
               setSearch('');
+              setSearchQuery(''); // 검색 쿼리도 초기화
               setExamCategory('');
               setLevel('');
               setPage(1);
-              loadWords();
+              // React Query가 자동으로 refetch
             }}
           />
         ) : (
