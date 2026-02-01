@@ -275,7 +275,7 @@ function WordsPageContent() {
                       : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                   }`}
                 >
-                  2026 기출
+                  2026 수능 기출
                 </button>
               )}
             </div>
@@ -336,7 +336,10 @@ function WordsPageContent() {
                           }`}
                         >
                           {locked && <Lock className="w-3 h-3" />}
-                          {lvl === '' ? '전체' : lvl}
+                          {lvl === '' ? '전체' :
+                           examCategory === 'TEPS' ?
+                             (lvl === 'L1' ? '기본' : '필수') :
+                             (lvl === 'L1' ? '초급' : lvl === 'L2' ? '중급' : '고급')}
                         </button>
                       );
                     })}

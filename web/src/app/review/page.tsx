@@ -65,7 +65,7 @@ interface ReviewWord {
 const examInfo: Record<string, { name: string; icon: string }> = {
   CSAT: { name: '수능', icon: '📝' },
   TEPS: { name: 'TEPS', icon: '🎓' },
-  CSAT_2026: { name: '2026 기출', icon: '📋' },
+  CSAT_2026: { name: '2026 수능 기출', icon: '📋' },
 };
 
 // 시험별 레벨 정보 가져오기 함수 (TEPS는 L1/L2만)
