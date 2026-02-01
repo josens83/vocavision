@@ -375,7 +375,7 @@ export default function DashboardPage() {
                 }`}
               >
                 <span className="text-xl">📋</span>
-                <span className="font-semibold text-sm">2026 기출</span>
+                <span className="font-semibold text-sm">2026 수능 기출</span>
               </button>
             )}
           </div>
