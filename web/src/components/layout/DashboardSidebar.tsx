@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore, useExamCourseStore } from '@/lib/store';
-import { getPlanDisplay } from '@/lib/subscription';
+import { getPlanDisplay, isFreeUser } from '@/lib/subscription';
 import { usePrefetchDashboard, usePrefetchReviews, usePrefetchStatistics } from '@/hooks/useQueries';
 
 interface SidebarItem {
@@ -11,6 +11,7 @@ interface SidebarItem {
   href: string;
   icon: React.ReactNode;
   badge?: string | number;
+  requiresPremium?: boolean;
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -40,6 +41,7 @@ const sidebarItems: SidebarItem[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </svg>
     ),
+    requiresPremium: true,
   },
   {
     label: '단어 찾기',
@@ -162,26 +164,34 @@ export default function DashboardSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {sidebarItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            onMouseEnter={() => handlePrefetch(item.href)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-              isActive(item.href)
-                ? 'bg-teal-50 text-teal-600'
-                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-            }`}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-            {item.badge && (
-              <span className="ml-auto bg-teal-100 text-teal-600 text-xs font-bold px-2 py-0.5 rounded-full">
-                {item.badge}
-              </span>
-            )}
-          </Link>
-        ))}
+        {sidebarItems.map((item) => {
+          const showLock = item.requiresPremium && isFreeUser(user);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onMouseEnter={() => handlePrefetch(item.href)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+                isActive(item.href)
+                  ? 'bg-teal-50 text-teal-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+              {showLock && (
+                <svg className="w-4 h-4 ml-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              )}
+              {item.badge && !showLock && (
+                <span className="ml-auto bg-teal-100 text-teal-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Bottom Items */}

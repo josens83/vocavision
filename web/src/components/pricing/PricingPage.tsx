@@ -14,14 +14,14 @@ interface PlanFeature {
 }
 
 const features: PlanFeature[] = [
-  { name: "수능 L1 단어", free: true, basic: true, premium: true },
-  { name: "수능 L2 단어", free: false, basic: true, premium: true },
-  { name: "수능 L3 단어", free: false, basic: true, premium: true },
+  { name: "수능 L1 초급", free: true, basic: true, premium: true },
+  { name: "수능 L2 중급", free: false, basic: true, premium: true },
+  { name: "수능 L3 고급", free: false, basic: true, premium: true },
   { name: "TEPS L1/L2/L3", free: false, basic: false, premium: true },
   { name: "AI 생성 이미지", free: "일부", basic: true, premium: true },
   { name: "플래시카드", free: true, basic: true, premium: true },
   { name: "퀴즈 모드", free: "전체", basic: "전체", premium: "전체" },
-  { name: "학습 통계", free: "상세", basic: "상세", premium: "상세" },
+  { name: "학습 통계", free: false, basic: "상세", premium: "상세" },
 ];
 
 export default function PricingPage() {
@@ -123,7 +123,7 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>수능 L1 단어 (800+개)</span>
+                <span>수능 L1 초급 (800+개)</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -135,80 +135,23 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
-                <span>수능 L2/L3 단어</span>
+                <span>수능 L2 중급/L3 고급</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
-                <span>TEPS 단어</span>
+                <span>학습 통계</span>
               </li>
             </ul>
           </div>
 
-          {/* 베이직 플랜 */}
-          <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(20,184,166,0.15)] border-2 border-[#14B8A6] p-7 relative">
+          {/* 프리미엄 플랜 - 가운데 배치 */}
+          <div className="bg-gradient-to-br from-[#A855F7] to-[#7C3AED] rounded-2xl shadow-[0_4px_20px_rgba(168,85,247,0.25)] p-7 relative text-white">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <span className="bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white text-[12px] font-bold px-5 py-1.5 rounded-full shadow-lg">
+              <span className="bg-gradient-to-r from-[#F59E0B] to-[#EF4444] text-white text-[12px] font-bold px-5 py-1.5 rounded-full shadow-lg">
                 인기
               </span>
             </div>
 
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 bg-[#ECFDF5] rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-[#14B8A6]" />
-              </div>
-              <h3 className="text-[18px] font-bold text-[#1c1c1e]">베이직</h3>
-            </div>
-
-            <div className="mb-5">
-              <span className="text-[36px] font-bold text-[#14B8A6]">
-                ₩{currentPrices.basic.toLocaleString()}
-              </span>
-              <span className="text-[#999999] text-[14px]">/{isYearly ? "년" : "월"}</span>
-              {isYearly && (
-                <p className="text-[13px] text-[#10B981] mt-1 font-medium">
-                  월 ₩{Math.round(currentPrices.basic / 12).toLocaleString()}{" "}
-                  (20% 할인)
-                </p>
-              )}
-            </div>
-
-            <p className="text-gray-500 text-[13px] mb-6">
-              수능 영어 완벽 대비를 원하는 분께 추천
-            </p>
-
-            <button
-              onClick={() => handlePlanSelect("basic")}
-              className="block w-full py-3.5 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#14B8A6] text-white hover:bg-[#0D9488] transition-colors shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
-            >
-              베이직 시작하기
-            </button>
-
-            <ul className="mt-7 space-y-3">
-              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
-                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>수능 L1/L2/L3 전체 (3,300+개)</span>
-              </li>
-              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
-                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>AI 생성 이미지 전체</span>
-              </li>
-              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
-                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>전체 퀴즈 모드</span>
-              </li>
-              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
-                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>상세 학습 통계</span>
-              </li>
-              <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
-                <X className="w-5 h-5 flex-shrink-0" />
-                <span>TEPS 단어</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* 프리미엄 플랜 */}
-          <div className="bg-gradient-to-br from-[#A855F7] to-[#7C3AED] rounded-2xl shadow-[0_4px_20px_rgba(168,85,247,0.25)] p-7 relative text-white">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
                 <Crown className="w-5 h-5 text-[#FCD34D]" />
@@ -243,7 +186,7 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px]">
                 <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
-                <span>수능 L1/L2/L3 전체</span>
+                <span>수능 L1 초급/L2 중급/L3 고급 전체</span>
               </li>
               <li className="flex items-center gap-3 text-[13px]">
                 <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
@@ -263,6 +206,63 @@ export default function PricingPage() {
               </li>
             </ul>
           </div>
+
+          {/* 베이직 플랜 */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-7 relative">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-11 h-11 bg-[#ECFDF5] rounded-xl flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-[#14B8A6]" />
+              </div>
+              <h3 className="text-[18px] font-bold text-[#1c1c1e]">베이직</h3>
+            </div>
+
+            <div className="mb-5">
+              <span className="text-[36px] font-bold text-[#14B8A6]">
+                ₩{currentPrices.basic.toLocaleString()}
+              </span>
+              <span className="text-[#999999] text-[14px]">/{isYearly ? "년" : "월"}</span>
+              {isYearly && (
+                <p className="text-[13px] text-[#10B981] mt-1 font-medium">
+                  월 ₩{Math.round(currentPrices.basic / 12).toLocaleString()}{" "}
+                  (20% 할인)
+                </p>
+              )}
+            </div>
+
+            <p className="text-gray-500 text-[13px] mb-6">
+              수능 영어 완벽 대비를 원하는 분께 추천
+            </p>
+
+            <button
+              onClick={() => handlePlanSelect("basic")}
+              className="block w-full py-3.5 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#14B8A6] text-white hover:bg-[#0D9488] transition-colors shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
+            >
+              베이직 시작하기
+            </button>
+
+            <ul className="mt-7 space-y-3">
+              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
+                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
+                <span>수능 L1 초급/L2 중급/L3 고급 전체 (3,300+개)</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
+                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
+                <span>AI 생성 이미지 전체</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
+                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
+                <span>전체 퀴즈 모드</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
+                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
+                <span>상세 학습 통계</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
+                <X className="w-5 h-5 flex-shrink-0" />
+                <span>TEPS 단어</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* 단품 상품 */}
@@ -271,7 +271,7 @@ export default function PricingPage() {
             단품 상품
           </h2>
           <p className="text-[14px] text-gray-500 text-center mb-8">
-            필요한 콘텐츠만 골라서 구매하세요. 구독 없이 영구 이용 가능!
+            필요한 콘텐츠만 골라서 구매하세요. 구독 없이 바로 이용!
           </p>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
