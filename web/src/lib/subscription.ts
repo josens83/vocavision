@@ -89,6 +89,23 @@ export function isPremiumPlan(user: { subscriptionPlan?: string | null } | null)
   return user.subscriptionPlan === 'YEARLY' || user.subscriptionPlan === 'FAMILY';
 }
 
+/**
+ * 무료 사용자인지 확인
+ */
+export function isFreeUser(user: User | null): boolean {
+  if (!user) return true;
+  const plan = user.subscriptionPlan;
+  const status = user.subscriptionStatus;
+
+  // YEARLY 또는 FAMILY = 프리미엄
+  if (plan === 'YEARLY' || plan === 'FAMILY') return false;
+
+  // MONTHLY + ACTIVE = 베이직
+  if (plan === 'MONTHLY' && status === 'ACTIVE') return false;
+
+  return true;
+}
+
 export function getSubscriptionTier(user: User | null): SubscriptionTier {
   if (!user) return 'FREE';
 
