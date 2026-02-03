@@ -5,7 +5,7 @@ import { useState, useEffect, ReactNode, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
-import { getPlanDisplay, isPremiumPlan, canAccessExam, canAccessLevel } from "@/lib/subscription";
+import { getPlanDisplay, isPremiumPlan, canAccessExam, canAccessLevel, isLevelLocked } from "@/lib/subscription";
 import { useAuthRequired } from "@/components/ui/AuthRequiredModal";
 import { useClearAllCache } from "@/hooks/useQueries";
 
@@ -39,17 +39,17 @@ export const guestNavigationItems: NavItem[] = [
     color: "text-blue-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
     children: [
-      { label: "L1 초급", href: "/learn?exam=CSAT&level=L1" },
-      { label: "L2 중급", href: "/learn?exam=CSAT&level=L2" },
-      { label: "L3 고급", href: "/learn?exam=CSAT&level=L3" },
+      { label: "L1(초급)", href: "/learn?exam=CSAT&level=L1" },
+      { label: "L2(중급)", href: "/learn?exam=CSAT&level=L2" },
+      { label: "L3(고급)", href: "/learn?exam=CSAT&level=L3" },
     ],
   },
   {
     label: "TEPS",
     color: "text-teal-600",
     children: [
-      { label: "L1 기본", href: "/auth/register" },
-      { label: "L2 필수", href: "/auth/register" },
+      { label: "L1(기본)", href: "/auth/register" },
+      { label: "L2(필수)", href: "/auth/register" },
     ],
   },
   {
@@ -73,9 +73,9 @@ export const authNavigationItems: NavItem[] = [
     color: "text-blue-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
     children: [
-      { label: "L1 초급", href: "/learn?exam=CSAT&level=L1" },
-      { label: "L2 중급", href: "/learn?exam=CSAT&level=L2" },
-      { label: "L3 고급", href: "/learn?exam=CSAT&level=L3" },
+      { label: "L1(초급)", href: "/learn?exam=CSAT&level=L1" },
+      { label: "L2(중급)", href: "/learn?exam=CSAT&level=L2" },
+      { label: "L3(고급)", href: "/learn?exam=CSAT&level=L3" },
     ],
   },
   {
@@ -83,8 +83,8 @@ export const authNavigationItems: NavItem[] = [
     color: "text-teal-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>,
     children: [
-      { label: "L1 기본", href: "/learn?exam=TEPS&level=L1" },
-      { label: "L2 필수", href: "/learn?exam=TEPS&level=L2" },
+      { label: "L1(기본)", href: "/learn?exam=TEPS&level=L1" },
+      { label: "L2(필수)", href: "/learn?exam=TEPS&level=L2" },
     ],
   },
   {
@@ -116,6 +116,7 @@ export const authNavigationItems: NavItem[] = [
 export const navigationItems = authNavigationItems;
 
 // 권한별 라우팅 함수
+// subscription.ts의 유틸리티 사용
 function getPermissionBasedHref(
   originalHref: string,
   user: any,
@@ -135,29 +136,20 @@ function getPermissionBasedHref(
     return originalHref; // exam/level이 없으면 원본 반환
   }
 
-  const plan = (user as any)?.subscriptionPlan || 'FREE';
-
-  if (exam === 'CSAT') {
-    // 수능: 무료회원은 L1만 접근 가능
-    if (plan === 'FREE' && level !== 'L1') {
-      return '/pricing';
+  // 잠금 상태면 적절한 업그레이드 페이지로 이동
+  if (isLevelLocked(user, exam, level)) {
+    if (exam === 'TEPS') {
+      return '/pricing'; // TEPS는 프리미엄 필요
     }
-    // 베이직/프리미엄은 전체 접근 가능
-    return `/dashboard?exam=CSAT&level=${level}`;
+    return '/pricing'; // 수능 L2/L3는 베이직 이상 필요
   }
 
-  if (exam === 'TEPS') {
-    // TEPS: 프리미엄만 접근 가능
-    if (plan !== 'YEARLY' && plan !== 'FAMILY') {
-      return '/settings?tab=subscription';
-    }
-    return `/dashboard?exam=TEPS&level=${level}`;
-  }
-
-  return originalHref;
+  // 접근 가능하면 대시보드로 이동
+  return `/dashboard?exam=${exam}&level=${level}`;
 }
 
 // 권한 상태 표시용 (잠금 아이콘 여부)
+// subscription.ts의 isLevelLocked 유틸리티 사용
 function isMenuLocked(
   originalHref: string,
   user: any
@@ -170,17 +162,8 @@ function isMenuLocked(
 
   if (!exam || !level) return false;
 
-  const plan = (user as any)?.subscriptionPlan || 'FREE';
-
-  if (exam === 'CSAT') {
-    return plan === 'FREE' && level !== 'L1';
-  }
-
-  if (exam === 'TEPS') {
-    return plan !== 'YEARLY' && plan !== 'FAMILY';
-  }
-
-  return false;
+  // 중앙화된 구독 유틸리티 사용
+  return isLevelLocked(user, exam, level);
 }
 
 interface NavDropdownProps {
