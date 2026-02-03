@@ -302,13 +302,13 @@ function StatisticsPageContent() {
   };
 
   const levelLabels = {
-    L1: 'L1(초급)',
+    L1: 'L1(기초)',
     L2: 'L2(중급)',
     L3: 'L3(고급)',
   };
 
   const levelNames = {
-    L1: '초급',
+    L1: '기초',
     L2: '중급',
     L3: '고급',
   };

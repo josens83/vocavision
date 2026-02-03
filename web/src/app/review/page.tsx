@@ -85,7 +85,7 @@ const getLevelInfo = (exam: string): Record<string, { name: string; description:
     };
   }
   return {
-    L1: { name: 'L1(초급)', description: '기초 필수 단어' },
+    L1: { name: 'L1(기초)', description: '기초 필수 단어' },
     L2: { name: 'L2(중급)', description: '핵심 심화 단어' },
     L3: { name: 'L3(고급)', description: '고난도 단어' },
   };
