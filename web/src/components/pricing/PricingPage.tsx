@@ -14,10 +14,10 @@ interface PlanFeature {
 }
 
 const features: PlanFeature[] = [
-  { name: "수능 L1 초급", free: true, basic: true, premium: true },
-  { name: "수능 L2 중급", free: false, basic: true, premium: true },
-  { name: "수능 L3 고급", free: false, basic: true, premium: true },
-  { name: "TEPS L1/L2/L3", free: false, basic: false, premium: true },
+  { name: "수능 L1(초급)", free: true, basic: true, premium: true },
+  { name: "수능 L2(중급)", free: false, basic: true, premium: true },
+  { name: "수능 L3(고급)", free: false, basic: true, premium: true },
+  { name: "TEPS L1(기본)/L2(필수)", free: false, basic: false, premium: true },
   { name: "AI 생성 이미지", free: "일부", basic: true, premium: true },
   { name: "플래시카드", free: true, basic: true, premium: true },
   { name: "퀴즈 모드", free: "전체", basic: "전체", premium: "전체" },
@@ -123,7 +123,7 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>수능 L1 초급 (800+개)</span>
+                <span>수능 L1(초급) (800+개)</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -135,7 +135,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
-                <span>수능 L2 중급/L3 고급</span>
+                <span>수능 L2(중급)/L3(고급)</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
@@ -186,11 +186,11 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px]">
                 <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
-                <span>수능 L1 초급/L2 중급/L3 고급 전체</span>
+                <span>수능 L1(초급)/L2(중급)/L3(고급) 전체</span>
               </li>
               <li className="flex items-center gap-3 text-[13px]">
                 <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
-                <span className="font-semibold">TEPS L1/L2/L3 전체</span>
+                <span className="font-semibold">TEPS L1(기본)/L2(필수) 전체</span>
               </li>
               <li className="flex items-center gap-3 text-[13px]">
                 <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
@@ -243,7 +243,7 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>수능 L1 초급/L2 중급/L3 고급 전체 (3,300+개)</span>
+                <span>수능 L1(초급)/L2(중급)/L3(고급) 전체 (3,300+개)</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -471,7 +471,7 @@ export default function PricingPage() {
               지금 바로 영어 단어 학습을 시작하세요!
             </h2>
             <p className="text-white/80 text-[14px] mb-8 max-w-2xl mx-auto leading-relaxed">
-              무료로 수능 L1 필수 단어 800개를 학습하고,
+              무료로 수능 L1(초급) 필수 단어 800개를 학습하고,
               <br />
               업그레이드하면 전체 3,300개+ 단어를 잠금 해제하세요.
             </p>

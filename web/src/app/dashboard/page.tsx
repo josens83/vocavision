@@ -64,17 +64,18 @@ const getLevelInfo = (exam: string, level: string) => {
   }
 
   if (exam === 'TEPS') {
+    // TEPS는 L1, L2만 (L3 없음)
     const tepsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: '기본', description: 'TEPS 기본 어휘', target: '기본 점수 목표', wordCount: 369 },
-      L2: { name: '필수', description: 'TEPS 필수 어휘', target: '고득점 목표', wordCount: 136 },
+      L1: { name: 'L1(기본)', description: 'TEPS 기본 어휘', target: '기본 점수 목표', wordCount: 369 },
+      L2: { name: 'L2(필수)', description: 'TEPS 필수 어휘', target: '고득점 목표', wordCount: 136 },
     };
     return tepsLevels[level] || tepsLevels.L1;
   }
 
   const defaultLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-    L1: { name: '초급', description: '기초 필수 단어', target: '3등급 목표', wordCount: 882 },
-    L2: { name: '중급', description: '핵심 심화 단어', target: '2등급 목표', wordCount: 748 },
-    L3: { name: '고급', description: '고난도 단어', target: '1등급 목표', wordCount: 157 },
+    L1: { name: 'L1(초급)', description: '기초 필수 단어', target: '3등급 목표', wordCount: 882 },
+    L2: { name: 'L2(중급)', description: '핵심 심화 단어', target: '2등급 목표', wordCount: 748 },
+    L3: { name: 'L3(고급)', description: '고난도 단어', target: '1등급 목표', wordCount: 157 },
   };
   return defaultLevels[level] || defaultLevels.L1;
 };

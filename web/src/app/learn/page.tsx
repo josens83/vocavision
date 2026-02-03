@@ -63,22 +63,23 @@ const getLevelName = (exam: string, level: string): string => {
     }
   }
   if (exam === 'TEPS') {
-    return level === 'L1' ? '기본' : '필수';
+    // TEPS는 L1, L2만 (L3 없음)
+    return level === 'L1' ? 'L1(기본)' : 'L2(필수)';
   }
   // CSAT 및 기타
   switch (level) {
-    case 'L1': return '초급';
-    case 'L2': return '중급';
-    case 'L3': return '고급';
+    case 'L1': return 'L1(초급)';
+    case 'L2': return 'L2(중급)';
+    case 'L3': return 'L3(고급)';
     default: return level;
   }
 };
 
 // 기존 호환용 (CSAT 기본값)
 const levelNames: Record<string, string> = {
-  L1: '초급',
-  L2: '중급',
-  L3: '고급',
+  L1: 'L1(초급)',
+  L2: 'L2(중급)',
+  L3: 'L3(고급)',
 };
 
 // Loading fallback component
@@ -273,6 +274,15 @@ function LearnPageContent() {
 
   useEffect(() => {
     if (!hasHydrated) return;
+
+    // 일반 학습 모드에서는 examParam이 있어야 진행 (searchParams 대기)
+    // 복습/북마크 모드는 examParam 없이도 진행 가능
+    if (!isDemo && !isReviewMode && !isWeakMode && !isBookmarksMode) {
+      if (!examParam) {
+        // searchParams가 아직 준비되지 않음 - 로딩 상태 유지
+        return;
+      }
+    }
 
     // restart 모드이거나 데모/복습/북마크 모드면 세션 초기화
     if (isRestart || isDemo || isReviewMode || isWeakMode || isBookmarksMode) {

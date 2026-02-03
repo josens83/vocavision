@@ -11,16 +11,16 @@ const examOptions: { key: ExamType; name: string; icon: string }[] = [
 // 레벨 정보 - 시험별 다른 표시
 const getLevelOptions = (exam: ExamType) => {
   if (exam === 'TEPS') {
+    // TEPS는 L1, L2만 (L3 없음)
     return [
-      { key: 'L1' as LevelType, name: '고급어휘 L1', description: 'TEPS 고급 어휘' },
-      { key: 'L2' as LevelType, name: '고급어휘 L2', description: 'TEPS 심화 어휘' },
-      { key: 'L3' as LevelType, name: '고급어휘 L3', description: 'TEPS 최고급 어휘' },
+      { key: 'L1' as LevelType, name: 'L1(기본)', description: 'TEPS 기본 어휘' },
+      { key: 'L2' as LevelType, name: 'L2(필수)', description: 'TEPS 필수 어휘' },
     ];
   }
   return [
-    { key: 'L1' as LevelType, name: '초급', description: '기초 필수 단어' },
-    { key: 'L2' as LevelType, name: '중급', description: '핵심 심화 단어' },
-    { key: 'L3' as LevelType, name: '고급', description: '고난도 단어' },
+    { key: 'L1' as LevelType, name: 'L1(초급)', description: '기초 필수 단어' },
+    { key: 'L2' as LevelType, name: 'L2(중급)', description: '핵심 심화 단어' },
+    { key: 'L3' as LevelType, name: 'L3(고급)', description: '고난도 단어' },
   ];
 };
 
@@ -31,6 +31,7 @@ export default function ExamLevelSelector() {
   const setActiveLevel = useExamCourseStore((state) => state.setActiveLevel);
 
   const selectedExam = activeExam || 'CSAT';
+  const selectedLevel = activeLevel || 'L1';
   const levelOptions = getLevelOptions(selectedExam);
 
   return (
@@ -44,7 +45,7 @@ export default function ExamLevelSelector() {
               key={exam.key}
               onClick={() => setActiveExam(exam.key)}
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all ${
-                activeExam === exam.key
+                selectedExam === exam.key
                   ? 'bg-teal-500 text-white shadow-lg shadow-pink-500/25'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
@@ -65,13 +66,12 @@ export default function ExamLevelSelector() {
               key={level.key}
               onClick={() => setActiveLevel(level.key)}
               className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
-                activeLevel === level.key
+                selectedLevel === level.key
                   ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <span className="block">{level.key}</span>
-              <span className="block text-xs opacity-80">{level.name}</span>
+              <span className="block">{level.name}</span>
             </button>
           ))}
         </div>
