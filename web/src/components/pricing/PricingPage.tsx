@@ -430,9 +430,8 @@ export default function PricingPage() {
                 </span>
               </summary>
               <p className="mt-4 text-[13px] text-gray-500 leading-relaxed">
-                네, 언제든지 플랜을 업그레이드하거나 다운그레이드할 수 있습니다.
-                업그레이드 시 즉시 적용되며, 다운그레이드는 현재 결제 기간이
-                끝난 후 적용됩니다.
+                네, 언제든지 플랜을 업그레이드할 수 있습니다. 업그레이드 시 즉시
+                적용됩니다. 다운그레이드는 현재 결제 기간 만료 후 자동 적용됩니다.
               </p>
             </details>
 
@@ -445,7 +444,8 @@ export default function PricingPage() {
               </summary>
               <p className="mt-4 text-[13px] text-gray-500 leading-relaxed">
                 결제 후 7일 이내에 환불 요청하시면 전액 환불해 드립니다. 7일
-                이후에는 남은 기간에 대한 부분 환불이 가능합니다.
+                이후에는 남은 기간에 따라 부분 환불이 가능하며, 자세한 사항은
+                고객센터로 문의해 주세요.
               </p>
             </details>
 
@@ -457,8 +457,7 @@ export default function PricingPage() {
                 </span>
               </summary>
               <p className="mt-4 text-[13px] text-gray-500 leading-relaxed">
-                신용카드, 체크카드, 계좌이체를 지원합니다. 토스페이먼츠를 통해
-                안전하게 결제됩니다.
+                신용카드를 지원하며, 토스페이먼츠를 통해 안전하게 결제됩니다.
               </p>
             </details>
           </div>
@@ -471,9 +470,9 @@ export default function PricingPage() {
               지금 바로 영어 단어 학습을 시작하세요!
             </h2>
             <p className="text-white/80 text-[14px] mb-8 max-w-2xl mx-auto leading-relaxed">
-              무료로 수능 L1(기초) 필수 단어 800개를 학습하고,
+              무료로 수능 L1(기초) 필수 단어 880개+를 학습하고,
               <br />
-              업그레이드하면 전체 3,300개+ 단어를 잠금 해제하세요.
+              업그레이드해서 전체 2,500개+ 단어를 잠금 해제하세요.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
