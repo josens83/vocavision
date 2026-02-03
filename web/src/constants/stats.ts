@@ -21,8 +21,8 @@ export const PLATFORM_STATS = {
     CSAT: { name: '수능', words: 1787, active: true },
     TEPS: { name: 'TEPS', words: 388, active: true, premium: true },
     TOEFL: { name: 'TOEFL', words: 4, active: false },
-    TOEIC: { name: 'TOEIC', words: 5, active: false },
-    SAT: { name: 'SAT', words: 5, active: false },
+    TOEIC: { name: 'TOEIC', words: 3, active: false },
+    SAT: { name: 'SAT', words: 3, active: false },
   },
 
   // 프리미엄 통계

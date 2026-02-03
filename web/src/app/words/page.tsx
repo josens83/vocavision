@@ -332,7 +332,7 @@ function WordsPageContent() {
                           {lvl === '' ? '전체' :
                            examCategory === 'TEPS' ?
                              (lvl === 'L1' ? 'L1(기본)' : 'L2(필수)') :
-                             (lvl === 'L1' ? 'L1(초급)' : lvl === 'L2' ? 'L2(중급)' : 'L3(고급)')}
+                             (lvl === 'L1' ? 'L1(기초)' : lvl === 'L2' ? 'L2(중급)' : 'L3(고급)')}
                         </button>
                       );
                     })}

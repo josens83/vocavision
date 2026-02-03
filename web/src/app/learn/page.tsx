@@ -68,7 +68,7 @@ const getLevelName = (exam: string, level: string): string => {
   }
   // CSAT 및 기타
   switch (level) {
-    case 'L1': return 'L1(초급)';
+    case 'L1': return 'L1(기초)';
     case 'L2': return 'L2(중급)';
     case 'L3': return 'L3(고급)';
     default: return level;
@@ -77,7 +77,7 @@ const getLevelName = (exam: string, level: string): string => {
 
 // 기존 호환용 (CSAT 기본값)
 const levelNames: Record<string, string> = {
-  L1: 'L1(초급)',
+  L1: 'L1(기초)',
   L2: 'L2(중급)',
   L3: 'L3(고급)',
 };

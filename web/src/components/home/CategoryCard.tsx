@@ -134,9 +134,9 @@ export function CategoryGrid({ children, columns = 4 }: CategoryGridProps) {
 }
 
 export const vocaVisionCategories: CategoryCardProps[] = [
-  { title: "L1 기초", description: "수능 필수 기본 어휘를 학습합니다.", level: "beginner", wordCount: PLATFORM_STATS.levels.L1, href: "/learn?exam=CSAT&level=L1" },
-  { title: "L2 중급", description: "실력 향상을 위한 중급 수준의 단어입니다.", level: "intermediate", wordCount: PLATFORM_STATS.levels.L2, href: "/learn?exam=CSAT&level=L2" },
-  { title: "L3 고급", description: "1등급 목표 고급 어휘입니다.", level: "advanced", wordCount: PLATFORM_STATS.levels.L3, href: "/learn?exam=CSAT&level=L3" },
+  { title: "L1(기초)", description: "수능 필수 기본 어휘를 학습합니다.", level: "beginner", wordCount: PLATFORM_STATS.levels.L1, href: "/learn?exam=CSAT&level=L1" },
+  { title: "L2(중급)", description: "실력 향상을 위한 중급 수준의 단어입니다.", level: "intermediate", wordCount: PLATFORM_STATS.levels.L2, href: "/learn?exam=CSAT&level=L2" },
+  { title: "L3(고급)", description: "1등급 목표 고급 어휘입니다.", level: "advanced", wordCount: PLATFORM_STATS.levels.L3, href: "/learn?exam=CSAT&level=L3" },
 ];
 
 // 시험 기반 카테고리
@@ -274,7 +274,7 @@ export const examCategories: ExamCategoryCardProps[] = [
   {
     title: "수능",
     fullName: "대학수학능력시험",
-    description: "수능 영어 1~2등급 목표 필수 어휘 (L1 기초 ~ L3 고급)",
+    description: "수능 영어 1~2등급 목표 필수 어휘 (L1(기초) ~ L3(고급))",
     examType: "csat",
     wordCount: PLATFORM_STATS.totalWords,
     href: "/learn?exam=CSAT&level=L1&demo=true",
