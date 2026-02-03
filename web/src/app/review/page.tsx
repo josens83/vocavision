@@ -71,9 +71,10 @@ const examInfo: Record<string, { name: string; icon: string }> = {
 // 시험별 레벨 정보 가져오기 함수 (TEPS는 L1/L2만)
 const getLevelInfo = (exam: string): Record<string, { name: string; description: string }> => {
   if (exam === 'TEPS') {
+    // TEPS는 L1, L2만 (L3 없음)
     return {
-      L1: { name: '기본', description: 'TEPS 기본 어휘' },
-      L2: { name: '필수', description: 'TEPS 필수 어휘' },
+      L1: { name: 'L1(기본)', description: 'TEPS 기본 어휘' },
+      L2: { name: 'L2(필수)', description: 'TEPS 필수 어휘' },
     };
   }
   if (exam === 'CSAT_2026') {
@@ -84,9 +85,9 @@ const getLevelInfo = (exam: string): Record<string, { name: string; description:
     };
   }
   return {
-    L1: { name: '초급', description: '기초 필수 단어' },
-    L2: { name: '중급', description: '핵심 심화 단어' },
-    L3: { name: '고급', description: '고난도 단어' },
+    L1: { name: 'L1(초급)', description: '기초 필수 단어' },
+    L2: { name: 'L2(중급)', description: '핵심 심화 단어' },
+    L3: { name: 'L3(고급)', description: '고난도 단어' },
   };
 };
 

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
+import { isFreeUser } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LearningHeatmap from '@/components/statistics/LearningHeatmap';
 import { useStatistics, useActivityHeatmap, useMasteryDistribution, usePrefetchMasteryDistribution } from '@/hooks/useQueries';
@@ -301,9 +302,9 @@ function StatisticsPageContent() {
   };
 
   const levelLabels = {
-    L1: '초급 (L1)',
-    L2: '중급 (L2)',
-    L3: '고급 (L3)',
+    L1: 'L1(초급)',
+    L2: 'L2(중급)',
+    L3: 'L3(고급)',
   };
 
   const levelNames = {
@@ -325,6 +326,41 @@ function StatisticsPageContent() {
             </div>
             <div className="bg-white rounded-2xl p-5 h-64 mb-6" />
             <div className="bg-white rounded-2xl p-5 h-64" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // 무료 회원 접근 제한 (데모 모드는 허용)
+  if (!isDemo && isFreeUser(user)) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 lg:p-8 max-w-5xl mx-auto">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+            {/* 자물쇠 아이콘 */}
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+              <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+
+            {/* 안내 텍스트 */}
+            <h2 className="text-[20px] font-bold text-[#1c1c1e] mb-3">
+              베이직/프리미엄 회원 전용 기능입니다
+            </h2>
+            <p className="text-[14px] text-gray-500 mb-6 max-w-sm">
+              학습 통계를 확인하려면<br />
+              베이직 또는 프리미엄으로 업그레이드하세요.
+            </p>
+
+            {/* 요금제 확인 버튼 */}
+            <Link
+              href="/pricing"
+              className="bg-[#14B8A6] text-white px-6 py-3 rounded-xl font-semibold text-[14px] hover:bg-[#0D9488] transition-colors shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
+            >
+              요금제 확인하기
+            </Link>
           </div>
         </div>
       </DashboardLayout>
