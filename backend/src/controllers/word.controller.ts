@@ -3,6 +3,7 @@ import { prisma } from '../index';
 import { ExamCategory } from '@prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
+import appCache from '../lib/cache';
 
 // 현재 서비스 중인 시험 카테고리 (CSAT, TEPS, CSAT_2026 - 나머지는 준비중)
 const ACTIVE_EXAM_CATEGORIES: ExamCategory[] = ['CSAT', 'TEPS', 'CSAT_2026'];
@@ -201,6 +202,10 @@ export const getWords = async (
       words = wordsResult;
     }
 
+    // 🚀 목록 데이터는 공유 가능, 1분 캐시 (fields=list 모드에서 특히 효과적)
+    if (fields === 'list') {
+      res.set('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=300');
+    }
     res.json({
       data: words,
       words,
@@ -223,6 +228,12 @@ export const getWordById = async (
 ) => {
   try {
     const { id } = req.params;
+
+    // 🚀 캐시 확인 (TTL 10분)
+    const cached = appCache.getWord(id);
+    if (cached) {
+      return res.json(cached);
+    }
 
     // Only return PUBLISHED words to users
     const word = await prisma.word.findFirst({
@@ -250,7 +261,9 @@ export const getWordById = async (
       throw new AppError('Word not found', 404);
     }
 
-    res.json({ word });
+    const response = { word };
+    appCache.setWord(id, response);  // 캐시 저장
+    res.json(response);
   } catch (error) {
     next(error);
   }

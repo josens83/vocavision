@@ -857,4 +857,54 @@ router.get('/migration/cloudinary-to-supabase/status', getCloudinaryMigrationPro
  */
 router.post('/migration/cloudinary-to-supabase/stop', stopCloudinaryMigration);
 
+// ============================================
+// 🚀 Cache Monitoring (Phase 3)
+// ============================================
+import appCache from '../lib/cache';
+
+/**
+ * @swagger
+ * /admin/cache/stats:
+ *   get:
+ *     summary: Get cache statistics
+ *     tags: [Admin - Cache]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cache statistics
+ */
+router.get('/cache/stats', authOrSecretKey, async (req: Request, res: Response) => {
+  const stats = appCache.getStats();
+  const keys = appCache.getKeys();
+  res.json({
+    hits: stats.hits,
+    misses: stats.misses,
+    hitRate: stats.hits + stats.misses > 0
+      ? Math.round((stats.hits / (stats.hits + stats.misses)) * 100)
+      : 0,
+    keys: stats.keys,
+    keyList: keys,
+    ksize: stats.ksize,
+    vsize: stats.vsize,
+  });
+});
+
+/**
+ * @swagger
+ * /admin/cache/clear:
+ *   post:
+ *     summary: Clear all cache entries
+ *     tags: [Admin - Cache]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cache cleared
+ */
+router.post('/cache/clear', authOrSecretKey, async (req: Request, res: Response) => {
+  appCache.invalidateAll();
+  res.json({ message: 'Cache cleared', timestamp: new Date().toISOString() });
+});
+
 export default router;

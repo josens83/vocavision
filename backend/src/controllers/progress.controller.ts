@@ -3,6 +3,7 @@ import { prisma } from '../index';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { ExamCategory } from '@prisma/client';
+import appCache from '../lib/cache';
 
 // Spaced Repetition Algorithm (SM-2)
 function calculateNextReview(
@@ -351,6 +352,8 @@ export const getDueReviews = async (
     const totalAttempts = totalCorrect + totalIncorrect;
     const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
 
+    // 🚀 사용자별 복습 데이터, 짧은 캐시
+    res.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=30');
     res.json({
       reviews: dueReviews,
       count: dueReviews.length,
@@ -1241,13 +1244,19 @@ export const getDashboardSummary = async (
         }
       }),
 
-      // 3. 전체 단어 수
-      prisma.wordExamLevel.count({
-        where: {
-          examCategory: examCategory as ExamCategory,
-          level: level as string,
-        }
-      }),
+      // 3. 전체 단어 수 (🚀 캐시 사용 - TTL 1시간)
+      (async () => {
+        const cached = appCache.getWordCount(examCategory as string, level as string);
+        if (cached !== undefined) return cached;
+        const count = await prisma.wordExamLevel.count({
+          where: {
+            examCategory: examCategory as ExamCategory,
+            level: level as string,
+          }
+        });
+        appCache.setWordCount(examCategory as string, level as string, count);
+        return count;
+      })(),
 
       // 4. 학습 완료 단어 수
       prisma.userProgress.count({
@@ -1327,6 +1336,8 @@ export const getDashboardSummary = async (
       ? Math.round((totalKnown / totalLearned) * 100)
       : 0;
 
+    // 🚀 사용자별 데이터이므로 private, 30초 캐시
+    res.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
     res.json({
       stats: {
         ...userStats,
