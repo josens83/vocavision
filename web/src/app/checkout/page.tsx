@@ -42,11 +42,10 @@ const plans: Record<PlanType, PlanInfo> = {
     name: "베이직",
     description: "수능 영어 완벽 대비를 원하는 분께 추천",
     features: [
-      "수능 L1/L2/L3 전체 (3,300+개)",
+      "수능 L1(기초)/L2(중급)/L3(고급) 전체",
       "AI 생성 이미지 전체",
       "전체 퀴즈 모드",
       "상세 학습 통계",
-      "광고 없음",
     ],
     prices: {
       monthly: 4900,
@@ -57,13 +56,11 @@ const plans: Record<PlanType, PlanInfo> = {
     name: "프리미엄",
     description: "수능 + TEPS 완벽 대비를 원하는 분께 추천",
     features: [
-      "수능 L1/L2/L3 전체",
-      "TEPS L1/L2/L3 전체",
+      "수능 L1(기초)/L2(중급)/L3(고급) 전체",
+      "TEPS L1(기본)/L2(필수) 전체",
       "AI 생성 이미지 전체",
       "전체 퀴즈 모드",
       "상세 학습 통계",
-      "오프라인 학습",
-      "광고 없음",
     ],
     prices: {
       monthly: 9900,

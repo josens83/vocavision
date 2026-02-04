@@ -191,8 +191,8 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Check if user uses social login
-    if (user.provider !== 'LOCAL' || !user.password) {
+    // Check if user uses social login (provider 'local' = email signup)
+    if (user.provider !== 'local' || !user.password) {
       return res.status(400).json({ error: 'Password change is not available for social login users' });
     }
 

@@ -107,6 +107,7 @@ export default function DashboardPage() {
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
   const setActiveExam = useExamCourseStore((state) => state.setActiveExam);
   const setActiveLevel = useExamCourseStore((state) => state.setActiveLevel);
+  const examHasHydrated = useExamCourseStore((state) => state._hasHydrated);
 
   // dailyGoal: Zustand store에서 관리 (Hero.tsx와 동기화)
   const dailyGoal = useUserSettingsStore((state) => state.dailyGoal);
@@ -177,13 +178,15 @@ export default function DashboardPage() {
   }, [hasHydrated, activeExam, hasCsat2026Access, isPremium, setActiveExam, setActiveLevel]);
 
   // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
+  // 하이드레이션 후 activeLevel이 없으면 L1 자동 설정
   useEffect(() => {
-    if (!hasHydrated || !activeExam) return;
+    if (!hasHydrated || !examHasHydrated || !activeExam) return;
     const validLevel = getValidLevelForExam(activeExam, activeLevel || 'L1');
-    if (validLevel !== activeLevel) {
+    // activeLevel이 null/undefined이거나 유효하지 않으면 강제 설정
+    if (!activeLevel || validLevel !== activeLevel) {
       setActiveLevel(validLevel as 'L1' | 'L2' | 'L3');
     }
-  }, [hasHydrated, activeExam, activeLevel, setActiveLevel]);
+  }, [hasHydrated, examHasHydrated, activeExam, activeLevel, setActiveLevel]);
 
   const selectedExam = activeExam || 'CSAT';
   const selectedLevel = activeLevel || 'L1';
@@ -222,7 +225,7 @@ export default function DashboardPage() {
   const todayRemaining = Math.min(currentSetRemaining, remainingWords);
   const estimatedMinutes = Math.ceil(todayRemaining * 0.3);
 
-  if (!hasHydrated || loading) {
+  if (!hasHydrated || !examHasHydrated || loading) {
     return (
       <DashboardLayout>
         <SkeletonDashboard />
