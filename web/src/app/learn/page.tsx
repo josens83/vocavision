@@ -296,10 +296,8 @@ function LearnPageContent() {
     // Guest users can also learn - don't redirect to login
     loadReviews();
 
-    // Only start session for logged-in users
-    if (user) {
-      startSession();
-    }
+    // 🚀 통계 세션은 첫 답변 시 지연 시작 (서버 부하 감소)
+    // startSession()은 handleAnswer에서 lazy하게 호출
 
     // Save last study info to localStorage (for "이어서 학습" button)
     if (examParam && levelParam && !isDemo && !isReviewMode) {
@@ -559,6 +557,11 @@ function LearnPageContent() {
 
     if (!currentWord) return;
 
+    // 🚀 통계 세션이 없으면 첫 답변 시 지연 시작 (서버 부하 감소)
+    if (user && !sessionId) {
+      startSession();
+    }
+
     // Only submit progress for logged-in users
     if (user) {
       progressAPI.submitReview({
@@ -787,7 +790,7 @@ function LearnPageContent() {
           });
         }
         setLoading(false);
-        startSession();
+        // 🚀 통계 세션은 handleAnswer에서 lazy 시작
         return;
       } catch (error) {
         console.error('Failed to restart server session:', error);
@@ -797,9 +800,7 @@ function LearnPageContent() {
 
     // 폴백
     loadReviews();
-    if (user) {
-      startSession();
-    }
+    // 🚀 통계 세션은 handleAnswer에서 lazy 시작
   };
 
   const handleNextBatch = async () => {
@@ -810,9 +811,7 @@ function LearnPageContent() {
       setShowResult(false);
       setLoading(true);
       loadReviews(currentPage + 1);
-      if (user) {
-        startSession();
-      }
+      // 🚀 통계 세션은 handleAnswer에서 lazy 시작
     }
   };
 

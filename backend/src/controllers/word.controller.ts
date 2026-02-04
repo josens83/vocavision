@@ -23,6 +23,7 @@ export const getWords = async (
       excludeLearned,
       shuffle,
       mode,
+      fields,  // 'list' | 'full' (기본값: 'full')
     } = req.query;
 
     const pageNum = parseInt(page as string);
@@ -133,23 +134,33 @@ export const getWords = async (
     let total: number;
     let words;
 
-    const wordInclude = {
-      images: { take: 1 },
-      mnemonics: {
-        take: 1,
-        orderBy: { rating: 'desc' } as const,
-      },
-      examples: { take: 3 },
-      etymology: true,
-      collocations: { take: 5 },
-      visuals: { orderBy: { order: 'asc' } as const },
-      // 서비스 중인 시험(CSAT, TEPS)의 배지만 표시
-      examLevels: {
-        where: {
-          examCategory: { in: ACTIVE_EXAM_CATEGORIES },
-        },
-      },
-    };
+    // 🚀 fields='list': 목록용 경량 쿼리 (배지만), fields='full': 학습용 전체 데이터
+    const wordInclude = fields === 'list'
+      ? {
+          // 목록용: 시험 배지만 (6개 JOIN 제거 → 1개만)
+          examLevels: {
+            where: { examCategory: { in: ACTIVE_EXAM_CATEGORIES } },
+            select: { examCategory: true, level: true },
+          },
+        }
+      : {
+          // 학습용: 기존 전체 include (하위호환)
+          images: { take: 1 },
+          mnemonics: {
+            take: 1,
+            orderBy: { rating: 'desc' } as const,
+          },
+          examples: { take: 3 },
+          etymology: true,
+          collocations: { take: 5 },
+          visuals: { orderBy: { order: 'asc' } as const },
+          // 서비스 중인 시험(CSAT, TEPS)의 배지만 표시
+          examLevels: {
+            where: {
+              examCategory: { in: ACTIVE_EXAM_CATEGORIES },
+            },
+          },
+        };
 
     // If shuffle is requested, fetch more and randomize
     if (shuffle === 'true') {

@@ -8,6 +8,69 @@ import { updateUserStats } from './progress.controller';
 // QuizType enum (matches Prisma schema)
 type QuizType = 'LEVEL_TEST' | 'ENG_TO_KOR' | 'KOR_TO_ENG' | 'FLASHCARD' | 'SPELLING';
 
+// 🚀 플래시카드 UI에 필요한 Word 필드만 select (include 대신 사용)
+const FLASHCARD_WORD_SELECT = {
+  id: true,
+  word: true,
+  definition: true,
+  definitionKo: true,
+  partOfSpeech: true,
+  pronunciation: true,
+  phonetic: true,
+  ipaUs: true,
+  ipaUk: true,
+  audioUrlUs: true,
+  audioUrlUk: true,
+  examCategory: true,
+  level: true,
+  rhymingWords: true,
+  // legacy 이미지 필드 (하위호환)
+  imageConceptUrl: true,
+  imageMnemonicUrl: true,
+  imageRhymeUrl: true,
+  imageConceptCaption: true,
+  imageMnemonicCaption: true,
+  imageRhymeCaption: true,
+  // 관계 데이터 (select로 필요 필드만)
+  visuals: {
+    orderBy: { order: 'asc' } as const,
+    select: {
+      type: true,
+      imageUrl: true,
+      labelEn: true,
+      labelKo: true,
+      captionEn: true,
+      captionKo: true,
+      order: true,
+    }
+  },
+  mnemonics: {
+    take: 1,
+    orderBy: { rating: 'desc' } as const,
+    select: {
+      content: true,
+      koreanHint: true,
+      imageUrl: true,
+    }
+  },
+  examples: {
+    take: 2,
+    select: {
+      sentence: true,
+      translation: true,
+    }
+  },
+  etymology: {
+    select: {
+      origin: true,
+      rootWords: true,
+      evolution: true,
+      relatedWords: true,
+      breakdown: true,
+    }
+  },
+};
+
 // Lazy initialization of OpenAI client
 let openai: OpenAI | null = null;
 
@@ -23,6 +86,10 @@ const getOpenAIClient = (): OpenAI => {
   return openai;
 };
 
+/**
+ * @deprecated 프론트엔드에서 미사용 - 향후 제거 예정
+ * 플래시카드 학습에 필요한 데이터는 startSession, resumeSession에서 제공
+ */
 export const getLearningMethods = async (
   req: AuthRequest,
   res: Response,
@@ -33,17 +100,15 @@ export const getLearningMethods = async (
 
     const word = await prisma.word.findUnique({
       where: { id: wordId },
-      include: {
-        images: true,
-        videos: true,
-        rhymes: true,
-        mnemonics: {
-          orderBy: { rating: 'desc' },
-        },
-        etymology: true,
-        examples: true,
-        synonyms: true,
-        antonyms: true,
+      select: {
+        id: true,
+        word: true,
+        definition: true,
+        definitionKo: true,
+        mnemonics: { select: { content: true, koreanHint: true, imageUrl: true } },
+        etymology: { select: { origin: true, breakdown: true } },
+        examples: { take: 3, select: { sentence: true, translation: true } },
+        rhymes: { take: 3, select: { rhymingWord: true } },
       },
     });
 
@@ -51,17 +116,14 @@ export const getLearningMethods = async (
       throw new AppError('Word not found', 404);
     }
 
+    // 🚀 경량화된 응답 (deprecated 함수이지만 호환성 유지)
     res.json({
       word,
       methods: {
-        images: word.images,
-        videos: word.videos,
         rhymes: word.rhymes,
         mnemonics: word.mnemonics,
         etymology: word.etymology,
         examples: word.examples,
-        synonyms: word.synonyms,
-        antonyms: word.antonyms,
       },
     });
   } catch (error) {
@@ -497,12 +559,7 @@ export const getLearningSession = async (
       where: {
         id: { in: currentSetWordIds },
       },
-      include: {
-        visuals: { orderBy: { order: 'asc' } },
-        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
-        examples: { take: 2 },
-        etymology: true,
-      },
+      select: FLASHCARD_WORD_SELECT,
     });
 
     // wordOrder 순서대로 정렬
@@ -593,12 +650,7 @@ export const startLearningSession = async (
 
         const words = await prisma.word.findMany({
           where: { id: { in: currentSetWordIds } },
-          include: {
-            visuals: { orderBy: { order: 'asc' } },
-            mnemonics: { take: 1, orderBy: { rating: 'desc' } },
-            examples: { take: 2 },
-            etymology: true,
-          },
+          select: FLASHCARD_WORD_SELECT,
         });
 
         const orderedWords = currentSetWordIds
@@ -667,12 +719,7 @@ export const startLearningSession = async (
 
     const words = await prisma.word.findMany({
       where: { id: { in: firstSetWordIds } },
-      include: {
-        visuals: { orderBy: { order: 'asc' } },
-        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
-        examples: { take: 2 },
-        etymology: true,
-      },
+      select: FLASHCARD_WORD_SELECT,
     });
 
     const orderedWords = firstSetWordIds
@@ -781,12 +828,7 @@ export const updateSessionProgress = async (
 
       const words = await prisma.word.findMany({
         where: { id: { in: nextSetWordIds } },
-        include: {
-          visuals: { orderBy: { order: 'asc' } },
-          mnemonics: { take: 1, orderBy: { rating: 'desc' } },
-          examples: { take: 2 },
-          etymology: true,
-        },
+        select: FLASHCARD_WORD_SELECT,
       });
 
       nextWords = nextSetWordIds
@@ -927,12 +969,7 @@ export const getSessionSet = async (
 
     const words = await prisma.word.findMany({
       where: { id: { in: setWordIds } },
-      include: {
-        visuals: { orderBy: { order: 'asc' } },
-        mnemonics: { take: 1, orderBy: { rating: 'desc' } },
-        examples: { take: 2 },
-        etymology: true,
-      },
+      select: FLASHCARD_WORD_SELECT,
     });
 
     const orderedWords = setWordIds

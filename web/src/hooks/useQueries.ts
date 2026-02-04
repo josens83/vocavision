@@ -283,6 +283,7 @@ export function useWordsSearch(
       examCategory: params.examCategory || undefined,
       level: params.level || undefined,
       search: params.search || undefined,
+      fields: 'list', // 🚀 목록용 경량 쿼리 (6개 JOIN 제거)
     }),
     enabled,
     staleTime: 30_000, // 30초 캐시
@@ -317,6 +318,7 @@ export function usePrefetchWordsSearch() {
         limit: 20,
         examCategory: params.examCategory || undefined,
         level: params.level || undefined,
+        fields: 'list', // 🚀 목록용 경량 쿼리 (6개 JOIN 제거)
       }),
       staleTime: 30_000,
     });
