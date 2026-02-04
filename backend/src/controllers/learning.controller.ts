@@ -657,6 +657,8 @@ export const startLearningSession = async (
           .map(id => words.find(w => w.id === id))
           .filter(Boolean);
 
+        // 🚀 세션 데이터는 캐시하면 안 됨
+        res.set('Cache-Control', 'private, no-store');
         return res.json({
           session: {
             id: existingSession.id,
@@ -726,6 +728,8 @@ export const startLearningSession = async (
       .map(id => words.find(w => w.id === id))
       .filter(Boolean);
 
+    // 🚀 세션 데이터는 캐시하면 안 됨
+    res.set('Cache-Control', 'private, no-store');
     res.status(201).json({
       session: {
         id: newSession.id,

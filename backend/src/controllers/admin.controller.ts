@@ -7,6 +7,7 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
 import logger from '../utils/logger';
+import appCache from '../lib/cache';
 import {
   generateAndUploadImage,
   generateConceptPrompt,
@@ -841,6 +842,10 @@ export const updateWordContent = async (
         }
       }
     });
+
+    // 🚀 캐시 무효화
+    appCache.invalidateWord(wordId);
+    appCache.invalidateWordCounts();
 
     // Fetch updated word with content
     const updatedWord = await prisma.word.findUnique({
@@ -1838,6 +1843,9 @@ export const updateWordVisuals = async (
         updatedVisuals.push(visual);
       }
     }
+
+    // 🚀 캐시 무효화
+    appCache.invalidateWord(wordId);
 
     // Create audit log
     await createAuditLog(

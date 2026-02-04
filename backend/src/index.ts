@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
@@ -52,6 +53,17 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet());
+
+// 🚀 Response Compression (60~80% 응답 크기 감소)
+app.use(compression({
+  level: 6,              // 압축 레벨 (1~9, 6이 속도/크기 최적 밸런스)
+  threshold: 1024,       // 1KB 이상만 압축
+  filter: (req, res) => {
+    // x-no-compression 헤더가 있으면 압축 건너뜀
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  },
+}));
 
 // CORS configuration - allow multiple origins
 const allowedOrigins = [
