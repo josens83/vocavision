@@ -620,7 +620,10 @@ function LearnPageContent() {
           return;
         }
 
-        // Set 완료 - 세션 및 다음 Set 데이터 업데이트
+        // Set 완료 (중간 Set) - 세션 및 다음 Set 데이터 업데이트
+        // 대시보드 캐시 무효화 (학습 데이터 갱신)
+        invalidateDashboard(examParam, levelParam || undefined);
+
         if (result.session) {
           setServerSession(result.session);
         }
@@ -826,6 +829,8 @@ function LearnPageContent() {
         console.error('Failed to save progress on exit:', error);
       }
     }
+    // 대시보드 캐시 무효화 (학습 데이터 갱신)
+    invalidateDashboard(examParam, levelParam || undefined);
     router.push(user ? '/dashboard' : '/');
   };
 
@@ -889,7 +894,10 @@ function LearnPageContent() {
               상품 보기
             </a>
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => {
+                invalidateDashboard(examParam, levelParam || undefined);
+                router.push('/dashboard');
+              }}
               className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
               대시보드로 돌아가기
@@ -922,7 +930,10 @@ function LearnPageContent() {
               플랜 업그레이드
             </a>
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => {
+                invalidateDashboard(examParam, levelParam || undefined);
+                router.push('/dashboard');
+              }}
               className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
               대시보드로 돌아가기
@@ -1072,7 +1083,10 @@ function LearnPageContent() {
             )}
 
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => {
+                invalidateDashboard(examParam, levelParam || undefined);
+                router.push('/dashboard');
+              }}
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
             >
               나중에 계속하기
