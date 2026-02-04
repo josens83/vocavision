@@ -77,13 +77,15 @@ export function useInvalidateDashboard() {
 /**
  * 복습 대기 단어 목록 훅
  * - 시험/레벨별 복습 대기 단어 조회
- * - 30초 캐시
+ * - 30초 캐시로 시험/레벨 전환 시 즉시 표시
  */
 export function useDueReviews(examCategory: string, level: string, enabled = true) {
   return useQuery({
     queryKey: ['dueReviews', examCategory, level],
     queryFn: () => progressAPI.getDueReviews({ examCategory, level }),
     enabled,
+    staleTime: 30_000,   // 30초간 캐시 유효 (재방문 시 즉시 표시)
+    gcTime: 5 * 60_000,  // 5분간 캐시 보관
     placeholderData: (previousData) => previousData,
   });
 }
@@ -231,7 +233,7 @@ export function usePrefetchMasteryDistribution() {
 
 /**
  * 복습 퀴즈 데이터 훅
- * - 1분 캐시
+ * - 1분 캐시로 퀴즈 재시작 시 즉시 표시
  */
 export function useReviewQuiz(
   params: { examCategory?: string; level?: string; limit?: number },
@@ -241,7 +243,8 @@ export function useReviewQuiz(
     queryKey: ['reviewQuiz', params.examCategory, params.level, params.limit],
     queryFn: () => progressAPI.getReviewQuiz(params),
     enabled,
-    staleTime: 60_000, // 1분 캐시
+    staleTime: 60_000,   // 1분간 캐시 유효
+    gcTime: 5 * 60_000,  // 5분간 캐시 보관
   });
 }
 
