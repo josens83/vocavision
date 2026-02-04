@@ -549,6 +549,10 @@ model UserProgress {
   @@index([nextReviewDate])
   @@index([needsReview])
   @@index([examCategory, level])
+  // 🚀 /review 페이지 최적화용 복합 인덱스
+  @@index([userId, examCategory, level, correctCount])        // getDueReviews 메인 쿼리
+  @@index([userId, examCategory, level, lastReviewDate])      // 마지막 복습 날짜 조회
+  @@index([userId, correctCount, nextReviewDate])             // 내일/이번주 예정 카운트
 }
 
 enum MasteryLevel {

@@ -227,56 +227,50 @@ export const getDueReviews = async (
       };
     }
 
-    // 복습 대상 후보 조회 (correctCount < 2 AND nextReviewDate <= NOW)
-    // 오늘 복습 대기인 단어만 DB에서 조회
-    const allProgress = await prisma.userProgress.findMany({
-      where: {
-        userId,
-        correctCount: { lt: 2 }, // 완료되지 않은 것만
-        nextReviewDate: { lte: new Date() },  // 오늘 또는 이전 날짜만
-        word: wordWhere
-      },
-      include: {
-        word: {
-          include: {
-            images: { take: 1 },
-            videos: { take: 1 },
-            rhymes: { take: 3 },
-            mnemonics: {
-              take: 1,
-              orderBy: { rating: 'desc' }
-            },
-            etymology: true,
-            visuals: { orderBy: { order: 'asc' } },  // 3-이미지 시각화
-            examLevels: true,  // 프론트엔드에서 시험/레벨 정보 표시용
+    // 🚀 메인 쿼리 + 7개 통계 쿼리 = 8개 전부 병렬 실행 (워터폴 제거)
+    const [
+      allProgress,
+      progressForStats,
+      lastReviewRecord,
+      weakWordsCount,
+      todayCorrectCount,
+      bookmarkedCount,
+      tomorrowDueCount,
+      thisWeekDueCount
+    ] = await Promise.all([
+      // 1. 복습 대상 후보 조회 (경량화된 include - 필요한 필드만)
+      prisma.userProgress.findMany({
+        where: {
+          userId,
+          correctCount: { lt: 2 },
+          nextReviewDate: { lte: new Date() },
+          word: wordWhere
+        },
+        include: {
+          word: {
+            select: {
+              id: true,
+              word: true,
+              definitionKo: true,
+              definition: true,
+            }
           }
-        }
-      },
-      orderBy: [
-        { nextReviewDate: 'asc' },
-        { incorrectCount: 'desc' },  // 틀린 횟수 많은 것 먼저
-        { correctCount: 'asc' },     // 맞은 횟수 적은 것 먼저
-        { createdAt: 'asc' },        // 오래된 것 먼저
-      ]
-    });
+        },
+        orderBy: [
+          { nextReviewDate: 'asc' },
+          { incorrectCount: 'desc' },
+          { correctCount: 'asc' },
+          { createdAt: 'asc' },
+        ]
+      }),
 
-    // 오늘 복습 대기인 단어만 필터링 (2일 포함/1일 쉼 + D+3 알았음)
-    const dueReviews = allProgress.filter(p => shouldShowInReview({
-      correctCount: p.correctCount,
-      incorrectCount: p.incorrectCount,
-      initialRating: p.initialRating,
-      learnedAt: p.learnedAt,
-    }));
-
-    // 병렬로 통계 정보 조회
-    const [progressForStats, lastReviewRecord, weakWordsCount, todayCorrectCount, bookmarkedCount, tomorrowDueCount, thisWeekDueCount] = await Promise.all([
-      // 전체 학습 기록에서 정답률 계산
+      // 2. 전체 학습 기록에서 정답률 계산
       prisma.userProgress.findMany({
         where: { userId, word: wordWhere },
         select: { correctCount: true, incorrectCount: true }
       }),
 
-      // 마지막 복습 날짜 조회 (해당 시험/레벨의 가장 최근 lastReviewDate)
+      // 3. 마지막 복습 날짜 조회
       prisma.userProgress.findFirst({
         where: {
           userId,
@@ -287,7 +281,7 @@ export const getDueReviews = async (
         select: { lastReviewDate: true }
       }),
 
-      // 취약 단어 수 (incorrectCount > 0인 단어)
+      // 4. 취약 단어 수 (incorrectCount > 0인 단어)
       prisma.userProgress.count({
         where: {
           userId,
@@ -296,29 +290,23 @@ export const getDueReviews = async (
         }
       }),
 
-      // 오늘 맞춘 복습 수 (KST 기준)
-      // 복습에서 맞춘 단어만 카운트 (첫 학습 제외)
-      // - lastReviewDate >= 오늘 (오늘 복습함)
-      // - nextReviewDate > 오늘 (맞춰서 D+3로 설정됨)
-      // - totalReviews >= 2 (최소 2번 학습 = 첫 학습 + 복습)
+      // 5. 오늘 맞춘 복습 수 (KST 기준)
       prisma.userProgress.count({
         where: {
           userId,
           lastReviewDate: { gte: todayStartUTC },
           nextReviewDate: { gt: new Date() },
-          totalReviews: { gte: 2 },  // 첫 학습(1회) 후 복습(2회+)한 단어만
+          totalReviews: { gte: 2 },
           word: wordWhere
         }
       }),
 
-      // 북마크 수 (Bookmark 테이블 - word 관계 없음, userId만 필터)
+      // 6. 북마크 수
       prisma.bookmark.count({
-        where: {
-          userId
-        }
-      }).catch(() => 0),  // Bookmark 테이블이 없을 경우 0 반환
+        where: { userId }
+      }).catch(() => 0),
 
-      // 내일 복습 예정 (nextReviewDate가 내일인 단어)
+      // 7. 내일 복습 예정
       prisma.userProgress.count({
         where: {
           userId,
@@ -331,7 +319,7 @@ export const getDueReviews = async (
         }
       }),
 
-      // 이번 주 복습 예정 (내일 이후 ~ 7일 이내)
+      // 8. 이번 주 복습 예정
       prisma.userProgress.count({
         where: {
           userId,
@@ -344,6 +332,14 @@ export const getDueReviews = async (
         }
       })
     ]);
+
+    // 오늘 복습 대기인 단어만 필터링 (2일 포함/1일 쉼 + D+3 알았음)
+    const dueReviews = allProgress.filter(p => shouldShowInReview({
+      correctCount: p.correctCount,
+      incorrectCount: p.incorrectCount,
+      initialRating: p.initialRating,
+      learnedAt: p.learnedAt,
+    }));
 
     // 정답률 계산
     let totalCorrect = 0;
@@ -774,17 +770,37 @@ export const getReviewQuiz = async (
       progressWhere.level = level as string;
     }
 
-    // 1. 복습 대상 후보 가져오기 (correctCount < 2)
+    // 1. 복습 대상 후보 가져오기 (correctCount < 2) - 🚀 필요한 필드만 select
     const allProgress = await prisma.userProgress.findMany({
       where: progressWhere,
       include: {
         word: {
-          include: {
-            visuals: { orderBy: { order: 'asc' } },
-            mnemonics: { take: 1, orderBy: { rating: 'desc' } },
+          select: {
+            id: true,
+            word: true,
+            definitionKo: true,
+            definition: true,
+            partOfSpeech: true,
+            pronunciation: true,
+            phonetic: true,
+            ipaUs: true,
+            ipaUk: true,
+            audioUrlUs: true,
+            audioUrlUk: true,
+            examCategory: true,
+            level: true,
+            visuals: {
+              select: { type: true, imageUrl: true },
+              orderBy: { order: 'asc' }
+            },
+            mnemonics: {
+              select: { imageUrl: true },
+              take: 1,
+              orderBy: { rating: 'desc' }
+            },
             examLevels: level && level !== 'all'
-              ? { where: { level: level as string }, take: 1 }
-              : { take: 1 },
+              ? { select: { level: true }, where: { level: level as string }, take: 1 }
+              : { select: { level: true }, take: 1 },
           }
         }
       },
