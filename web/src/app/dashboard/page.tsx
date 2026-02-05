@@ -1,8 +1,8 @@
 // Force redeploy - 2026-01-31 v3 (fix exam order: 수능→TEPS→2026기출)
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore, useExamCourseStore, useUserSettingsStore, ExamType } from '@/lib/store';
 import { canAccessExamWithPurchase, canAccessContentWithPurchase, getAvailableExams, getSubscriptionTier } from '@/lib/subscription';
@@ -99,8 +99,9 @@ interface LearningSessionData {
   status: string;
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const activeExam = useExamCourseStore((state) => state.activeExam);
@@ -168,6 +169,29 @@ export default function DashboardPage() {
       router.push('/auth/login');
     }
   }, [user, hasHydrated, router]);
+
+  // URL 쿼리 파라미터 → Zustand store 동기화
+  useEffect(() => {
+    if (!hasHydrated || !examHasHydrated) return;
+
+    const examParam = searchParams.get('exam')?.toUpperCase();
+    const levelParam = searchParams.get('level')?.toUpperCase();
+
+    if (!examParam) return; // 쿼리 파라미터 없으면 Zustand 기존값 유지 (재방문 시나리오)
+
+    // 유효한 시험인지 확인
+    const validExams = ['CSAT', 'TEPS', 'CSAT_2026'];
+    if (validExams.includes(examParam)) {
+      setActiveExam(examParam as ExamType);
+
+      // 레벨도 함께 왔으면 설정
+      const validLevel = getValidLevelForExam(examParam, levelParam || 'L1');
+      setActiveLevel(validLevel as 'L1' | 'L2' | 'L3');
+
+      // 개별 localStorage도 업데이트 (시험 탭 전환 시 사용)
+      localStorage.setItem(`dashboard_${examParam}_level`, validLevel);
+    }
+  }, [hasHydrated, examHasHydrated, searchParams, setActiveExam, setActiveLevel]);
 
   // CSAT_2026 접근권한 없으면 CSAT으로 fallback (프리미엄도 접근 가능)
   useEffect(() => {
@@ -620,5 +644,14 @@ export default function DashboardPage() {
         </section>
       </div>
     </DashboardLayout>
+  );
+}
+
+// Suspense wrapper (useSearchParams requires Suspense boundary in Next.js 14+)
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><SkeletonDashboard /></DashboardLayout>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
