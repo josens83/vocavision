@@ -3,16 +3,16 @@ import { progressAPI, api, wordsAPI } from '@/lib/api';
 
 /**
  * 대시보드 요약 데이터 훅
- * - 학습 후 즉시 갱신을 위해 staleTime 짧게 설정
- * - placeholderData 제거: 항상 최신 데이터 표시
+ * - staleTime: 0 → 마운트 시 항상 refetch (최신 데이터 보장)
+ * - placeholderData: 이전 캐시 데이터 먼저 표시 (0 방지) → 새 데이터로 교체
  */
 export function useDashboardSummary(examCategory: string, level: string, enabled = true) {
   return useQuery({
     queryKey: ['dashboardSummary', examCategory, level],
     queryFn: () => progressAPI.getDashboardSummary(examCategory, level),
     enabled,
-    staleTime: 10_000, // 10초간만 fresh (학습 후 빠른 갱신)
-    refetchOnMount: 'always', // 마운트 시 항상 refetch
+    staleTime: 0, // 마운트 시 항상 refetch (최신 데이터 보장)
+    placeholderData: (previousData: any) => previousData, // 이전 캐시 데이터 표시 (0 방지)
   });
 }
 
