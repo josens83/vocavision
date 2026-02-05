@@ -410,13 +410,13 @@ function LearnPageContent() {
               const serverIndex = sessionData.session.currentIndex;
               const savedSession = loadLearningSession(examParam, levelParam);
 
-              // 항상 서버 인덱스를 source of truth로 사용
-              if (sessionData.isExisting && serverIndex > 0) {
-                // 기존 세션이고 진행 중이면 복원 (ratings는 로컬에서)
+              // 기존 세션이면 복원 (serverIndex가 0이어도 Set 중간에서 재개하는 경우)
+              if (sessionData.isExisting) {
+                // 기존 세션 복원 (ratings는 로컬에서, index는 서버에서)
                 restoreSession(serverIndex, savedSession?.ratings || {});
                 setSessionRestored(true);
               } else {
-                // 새 세션이거나 인덱스가 0이면 리셋 (명시적으로 0 설정)
+                // 완전히 새 세션이면 리셋
                 resetSession();
                 setCurrentIndex(0);
               }
@@ -427,7 +427,7 @@ function LearnPageContent() {
                 level: levelParam,
                 words,
                 currentIndex: serverIndex,
-                ratings: serverIndex > 0 ? (savedSession?.ratings || {}) : {},
+                ratings: sessionData.isExisting ? (savedSession?.ratings || {}) : {},
                 timestamp: Date.now(),
               });
             } else {
