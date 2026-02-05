@@ -1336,10 +1336,8 @@ export const getDashboardSummary = async (
       ? Math.round((totalKnown / totalLearned) * 100)
       : 0;
 
-    // 🔴 학습 후 즉시 갱신 필요 → 캐시 비활성화
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
+    // 학습 후 갱신 필요 → no-cache로 매번 검증, 네트워크 실패 시 캐시 사용 가능
+    res.set('Cache-Control', 'private, no-cache');
     res.json({
       stats: {
         ...userStats,

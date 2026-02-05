@@ -718,6 +718,7 @@ function LearnPageContent() {
 
       setPendingNextSet(null);
       setShowSetComplete(false);
+      setOptimisticCompletedSet(null); // 다음 Set 시작 시 리셋
     }
   };
 
