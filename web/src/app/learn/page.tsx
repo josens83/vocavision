@@ -399,32 +399,43 @@ function LearnPageContent() {
 
             // 서버에서 받은 단어들 사용
             const words = sessionData.words || [];
-            setReviews(words.map((word: Word) => ({ word })));
 
-            // 서버 인덱스가 항상 source of truth (localStorage보다 우선)
-            const serverIndex = sessionData.session.currentIndex;
-            const savedSession = loadLearningSession(examParam, levelParam);
+            if (words.length > 0) {
+              setReviews(words.map((word: Word) => ({ word })));
 
-            // 항상 서버 인덱스를 source of truth로 사용
-            if (sessionData.isExisting && serverIndex > 0) {
-              // 기존 세션이고 진행 중이면 복원 (ratings는 로컬에서)
-              restoreSession(serverIndex, savedSession?.ratings || {});
-              setSessionRestored(true);
+              // 서버 인덱스가 항상 source of truth (localStorage보다 우선)
+              const serverIndex = sessionData.session.currentIndex;
+              const savedSession = loadLearningSession(examParam, levelParam);
+
+              // 항상 서버 인덱스를 source of truth로 사용
+              if (sessionData.isExisting && serverIndex > 0) {
+                // 기존 세션이고 진행 중이면 복원 (ratings는 로컬에서)
+                restoreSession(serverIndex, savedSession?.ratings || {});
+                setSessionRestored(true);
+              } else {
+                // 새 세션이거나 인덱스가 0이면 리셋 (명시적으로 0 설정)
+                resetSession();
+                setCurrentIndex(0);
+              }
+
+              // localStorage 세션도 서버 값으로 동기화
+              saveLearningSession({
+                exam: examParam,
+                level: levelParam,
+                words,
+                currentIndex: serverIndex,
+                ratings: serverIndex > 0 ? (savedSession?.ratings || {}) : {},
+                timestamp: Date.now(),
+              });
             } else {
-              // 새 세션이거나 인덱스가 0이면 리셋 (명시적으로 0 설정)
-              resetSession();
-              setCurrentIndex(0);
+              // 세션은 있지만 단어가 없으면 fallback
+              console.warn('Server session returned empty words, falling back to local');
+              await loadReviewsFallback(page);
             }
-
-            // localStorage 세션도 서버 값으로 동기화
-            saveLearningSession({
-              exam: examParam,
-              level: levelParam,
-              words,
-              currentIndex: serverIndex,
-              ratings: serverIndex > 0 ? (savedSession?.ratings || {}) : {},
-              timestamp: Date.now(),
-            });
+          } else {
+            // 세션 생성 실패 → fallback
+            console.warn('Server session returned null, falling back to local');
+            await loadReviewsFallback(page);
           }
         } catch (sessionError) {
           console.error('Server session failed, falling back to local:', sessionError);
@@ -991,6 +1002,36 @@ function LearnPageContent() {
   }
 
   if (reviews.length === 0) {
+    // 로그인 사용자 + exam/level 설정된 경우: 빈 상태는 일시적 오류일 가능성 높음
+    if (user && examParam && levelParam) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
+          <div className="bg-white rounded-2xl p-8 text-center border border-gray-200 max-w-md mx-auto">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">단어를 불러오지 못했어요</h3>
+            <p className="text-gray-500 mb-6 text-sm">네트워크 상태를 확인하고 다시 시도해주세요.</p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  loadReviews();
+                }}
+                className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white px-6 py-3 rounded-xl font-bold"
+              >
+                다시 시도
+              </button>
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium"
+              >
+                대시보드로 돌아가기
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
         <EmptyFirstTime type="words" />
