@@ -199,7 +199,7 @@ export const useExamCourseStore = create<ExamCourseState>()(
       setActiveLevel: (level) => set({ activeLevel: level }),
       setGoalScore: (score) => set({ goalScore: score }),
       setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
-      clearExam: () => set({ activeExam: null, activeLevel: 'L1', goalScore: null }),
+      clearExam: () => set({ activeExam: 'CSAT', activeLevel: 'L1', goalScore: null }),
     }),
     {
       name: 'exam-course-storage',
