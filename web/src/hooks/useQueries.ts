@@ -3,15 +3,16 @@ import { progressAPI, api, wordsAPI } from '@/lib/api';
 
 /**
  * 대시보드 요약 데이터 훅
- * - 30초 캐시로 페이지 이동 시 즉시 표시
- * - examCategory/level 변경 시 이전 데이터 유지 (깜빡임 방지)
+ * - 학습 후 즉시 갱신을 위해 staleTime 짧게 설정
+ * - placeholderData 제거: 항상 최신 데이터 표시
  */
 export function useDashboardSummary(examCategory: string, level: string, enabled = true) {
   return useQuery({
     queryKey: ['dashboardSummary', examCategory, level],
     queryFn: () => progressAPI.getDashboardSummary(examCategory, level),
     enabled,
-    placeholderData: (previousData) => previousData, // 이전 데이터 유지
+    staleTime: 10_000, // 10초간만 fresh (학습 후 빠른 갱신)
+    refetchOnMount: 'always', // 마운트 시 항상 refetch
   });
 }
 
@@ -55,6 +56,7 @@ export function usePrefetchDashboard() {
 /**
  * 대시보드 캐시 무효화 훅
  * - 학습 완료 후 데이터 새로고침 필요 시 사용
+ * - refetchType: 'active'로 즉시 refetch 보장
  */
 export function useInvalidateDashboard() {
   const queryClient = useQueryClient();
@@ -64,11 +66,13 @@ export function useInvalidateDashboard() {
       // 특정 시험/레벨만 무효화
       queryClient.invalidateQueries({
         queryKey: ['dashboardSummary', examCategory, level],
+        refetchType: 'active', // 즉시 refetch 보장
       });
     } else {
       // 모든 대시보드 캐시 무효화
       queryClient.invalidateQueries({
         queryKey: ['dashboardSummary'],
+        refetchType: 'active',
       });
     }
   };

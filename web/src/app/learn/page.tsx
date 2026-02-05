@@ -272,6 +272,9 @@ function LearnPageContent() {
     status: string;
   } | null>(null);
 
+  // 낙관적 UI용 세트 번호 (API 응답 전에 미리 표시)
+  const [optimisticCompletedSet, setOptimisticCompletedSet] = useState<number | null>(null);
+
   useEffect(() => {
     if (!hasHydrated) return;
 
@@ -613,7 +616,9 @@ function LearnPageContent() {
   const handleSetComplete = async () => {
     // 서버 세션이 있으면 세트 완료 처리
     if (serverSession && user && examParam && levelParam) {
-      // 🚀 낙관적 UI: 먼저 Set 완료 화면 표시
+      // 🔑 낙관적 UI: 현재 completedSets + 1로 먼저 설정
+      const completedSetNumber = (serverSession.completedSets || 0) + 1;
+      setOptimisticCompletedSet(completedSetNumber);
       setShowSetComplete(true);
 
       // 백그라운드에서 API 호출 (응답 기다리지 않음)
@@ -625,6 +630,7 @@ function LearnPageContent() {
           // 전체 학습 완료
           if (result.session) {
             setServerSession(result.session);
+            setOptimisticCompletedSet(result.session.completedSets);
           }
           setShowSetComplete(false);
           setShowResult(true);
@@ -640,6 +646,8 @@ function LearnPageContent() {
 
         if (result.session) {
           setServerSession(result.session);
+          // 서버 값으로 보정
+          setOptimisticCompletedSet(result.session.completedSets);
         }
 
         if (result.words && result.words.length > 0) {
@@ -1045,8 +1053,8 @@ function LearnPageContent() {
     const wordsCorrect = getWordsCorrect();
     const percentage = wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0;
 
-    // serverSession이 없으면 (fallback 모드) 기본값 사용
-    const completedSet = serverSession?.completedSets ?? 1;
+    // 🔑 낙관적 UI: optimisticCompletedSet 우선, 그 다음 serverSession, 마지막 fallback 1
+    const completedSet = optimisticCompletedSet ?? serverSession?.completedSets ?? 1;
     const totalSets = serverSession?.totalSets ?? (totalWordsInLevel > 0 ? Math.ceil(totalWordsInLevel / 20) : 1);
     const totalReviewed = serverSession?.totalReviewed ?? (totalLearnedInLevel + wordsStudied);
     const hasNextSet = serverSession
