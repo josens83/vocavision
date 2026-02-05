@@ -4,6 +4,7 @@
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore, useExamCourseStore, useUserSettingsStore, ExamType } from '@/lib/store';
 import { canAccessExamWithPurchase, canAccessContentWithPurchase, getAvailableExams, getSubscriptionTier } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -128,6 +129,19 @@ function DashboardContent() {
 
   // 프리패치 훅 (hover 시 미리 로딩)
   const prefetchDashboard = usePrefetchDashboard();
+
+  // 페이지 포커스 시 데이터 갱신 (학습 후 복귀 시 최신 데이터 표시)
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const handleFocus = () => {
+      queryClient.invalidateQueries({
+        queryKey: ['dashboardSummary'],
+        refetchType: 'active',
+      });
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [queryClient]);
 
   // React Query 데이터에서 추출
   const stats = summaryData?.stats || null;

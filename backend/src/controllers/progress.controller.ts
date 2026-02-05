@@ -1336,8 +1336,10 @@ export const getDashboardSummary = async (
       ? Math.round((totalKnown / totalLearned) * 100)
       : 0;
 
-    // 🚀 사용자별 데이터이므로 private, 30초 캐시
-    res.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+    // 🔴 학습 후 즉시 갱신 필요 → 캐시 비활성화
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     res.json({
       stats: {
         ...userStats,
