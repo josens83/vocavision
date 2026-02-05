@@ -12,7 +12,7 @@ export function useUserStats(exam: string = 'CSAT') {
     setIsLoading(true);
     try {
       // API에서 통계 가져오기 시도
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/user/stats?exam=${exam}`,
         {

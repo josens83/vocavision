@@ -229,7 +229,7 @@ function MemberInfoCard() {
   const prefetchReviews = usePrefetchReviews();
 
   // React Query: 캐싱된 대시보드 데이터 사용
-  const { data: summaryData, isLoading: loading } = useDashboardSummary(
+  const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
     activeExam || 'CSAT',
     activeLevel || 'L1',
     !!user
@@ -309,6 +309,16 @@ function MemberInfoCard() {
                 <div className="h-3 w-14 bg-slate-100 rounded animate-pulse" />
               </div>
             ))}
+          </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center gap-2 py-2">
+            <p className="text-sm text-gray-500">데이터를 불러올 수 없습니다</p>
+            <button
+              onClick={() => refetch()}
+              className="text-sm text-teal-600 font-medium hover:text-teal-700"
+            >
+              다시 시도
+            </button>
           </div>
         ) : (
           <div className="flex justify-between items-center">
@@ -408,7 +418,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
   }, []);
 
   // React Query: 캐싱된 대시보드 데이터 사용
-  const { data: summaryData, isLoading: loading } = useDashboardSummary(
+  const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
     activeExam || 'CSAT',
     activeLevel || 'L1',
     true
@@ -469,6 +479,16 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
                 <div className="h-3 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
               </div>
             ))}
+          </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center gap-2 py-4 mb-4">
+            <p className="text-sm text-gray-500">데이터를 불러올 수 없습니다</p>
+            <button
+              onClick={() => refetch()}
+              className="text-sm text-purple-600 font-medium hover:text-purple-700"
+            >
+              다시 시도
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 mb-4">
@@ -567,7 +587,7 @@ function UnifiedMemberCard() {
   const prefetchReviews = usePrefetchReviews();
 
   // React Query: 캐싱된 대시보드 데이터 사용
-  const { data: summaryData, isLoading: loading } = useDashboardSummary(
+  const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
     activeExam || 'CSAT',
     activeLevel || 'L1',
     !!user
@@ -654,6 +674,16 @@ function UnifiedMemberCard() {
                 </div>
               ))}
             </>
+          ) : isError ? (
+            <div className="col-span-3 flex flex-col items-center gap-2 py-2">
+              <p className="text-sm text-gray-500">데이터를 불러올 수 없습니다</p>
+              <button
+                onClick={() => refetch()}
+                className="text-sm text-teal-600 font-medium hover:text-teal-700"
+              >
+                다시 시도
+              </button>
+            </div>
           ) : (
             <>
               <div className="text-center">
