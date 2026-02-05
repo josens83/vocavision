@@ -299,14 +299,14 @@ function DashboardContent() {
                 </p>
                 <div className="space-y-2">
                   <Link
-                    href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&restart=true`}
+                    href={`/learn?exam=${selectedExam}&level=${selectedLevel}&restart=true`}
                     className="block w-full bg-emerald-50 hover:bg-emerald-100 rounded-xl py-4 text-emerald-600 font-semibold text-center transition-colors"
                   >
                     처음부터 다시 학습
                   </Link>
                   {weakWordCount > 0 && (
                     <Link
-                      href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&mode=weak`}
+                      href={`/learn?exam=${selectedExam}&level=${selectedLevel}&mode=weak`}
                       className="block w-full bg-amber-50 hover:bg-amber-100 rounded-xl py-4 text-amber-600 font-semibold text-center transition-colors"
                     >
                       잘 모르는 {weakWordCount}개만 학습
@@ -324,7 +324,7 @@ function DashboardContent() {
                   지금 시작하면 <span className="font-semibold text-gray-900">{estimatedMinutes}분</span>이면 끝나요
                 </p>
                 <Link
-                  href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
+                  href={`/learn?exam=${selectedExam}&level=${selectedLevel}`}
                   className="block w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl py-4 text-center transition-colors"
                 >
                   {learnedWords === 0 ? '학습 시작' : '이어서 학습'}
@@ -578,14 +578,14 @@ function DashboardContent() {
                 <span className="font-semibold text-emerald-600">학습 완료!</span>
               </div>
               <Link
-                href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&restart=true`}
+                href={`/learn?exam=${selectedExam}&level=${selectedLevel}&restart=true`}
                 className="block w-full py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 font-semibold text-center transition-colors"
               >
                 처음부터 다시 학습
               </Link>
               {weakWordCount > 0 && (
                 <Link
-                  href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}&mode=weak`}
+                  href={`/learn?exam=${selectedExam}&level=${selectedLevel}&mode=weak`}
                   className="block w-full py-3 bg-amber-50 hover:bg-amber-100 rounded-xl text-amber-600 font-semibold text-center transition-colors"
                 >
                   잘 모르는 단어 {weakWordCount}개만 학습
@@ -594,7 +594,7 @@ function DashboardContent() {
             </div>
           ) : (
             <Link
-              href={`/learn?exam=${selectedExam.toLowerCase()}&level=${selectedLevel}`}
+              href={`/learn?exam=${selectedExam}&level=${selectedLevel}`}
               className="block w-full py-4 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
             >
               {learnedWords === 0 ? '학습 시작' : '이어서 학습'}

@@ -527,17 +527,20 @@ export const getLearningSession = async (
       throw new AppError('Unauthorized', 401);
     }
 
-    const { exam, level } = req.query;
+    const { exam: rawExam, level } = req.query;
 
-    if (!exam || !level) {
+    if (!rawExam || !level) {
       throw new AppError('exam and level are required', 400);
     }
+
+    // 대소문자 정규화 (ExamCategory enum은 대문자)
+    const exam = (rawExam as string).toUpperCase();
 
     // 진행 중인 세션 찾기
     const session = await prisma.learningSession.findFirst({
       where: {
         userId,
-        examCategory: exam as string,
+        examCategory: exam,
         level: level as string,
         status: 'IN_PROGRESS',
       },
@@ -610,11 +613,14 @@ export const startLearningSession = async (
       throw new AppError('Unauthorized', 401);
     }
 
-    const { exam, level, restart = false } = req.body;
+    const { exam: rawExam, level, restart = false } = req.body;
 
-    if (!exam || !level) {
+    if (!rawExam || !level) {
       throw new AppError('exam and level are required', 400);
     }
+
+    // 대소문자 정규화 (ExamCategory enum은 대문자)
+    const exam = rawExam.toUpperCase();
 
     // restart=true면 기존 진행 중인 세션 종료
     if (restart) {
