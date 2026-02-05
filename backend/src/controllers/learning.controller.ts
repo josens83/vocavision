@@ -24,13 +24,6 @@ const FLASHCARD_WORD_SELECT = {
   examCategory: true,
   level: true,
   rhymingWords: true,
-  // legacy 이미지 필드 (하위호환)
-  imageConceptUrl: true,
-  imageMnemonicUrl: true,
-  imageRhymeUrl: true,
-  imageConceptCaption: true,
-  imageMnemonicCaption: true,
-  imageRhymeCaption: true,
   // 관계 데이터 (select로 필요 필드만)
   visuals: {
     orderBy: { order: 'asc' } as const,

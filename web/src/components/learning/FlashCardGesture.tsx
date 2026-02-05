@@ -67,12 +67,6 @@ interface Word {
   etymology?: any;
   collocations?: any[];
   visuals?: WordVisual[];
-  imageConceptUrl?: string;
-  imageConceptCaption?: string;
-  imageMnemonicUrl?: string;
-  imageMnemonicCaption?: string;
-  imageRhymeUrl?: string;
-  imageRhymeCaption?: string;
 }
 
 interface FlashCardGestureProps {
@@ -236,14 +230,7 @@ export default function FlashCardGesture({
   const mnemonic = word.mnemonics?.[0];
   const examples = word.examples?.slice(0, 3) || [];
 
-  const hasNewVisuals = word.visuals && word.visuals.length > 0;
-  const hasLegacyVisuals = word.imageConceptUrl || word.imageMnemonicUrl || word.imageRhymeUrl;
-  const legacyVisualImages = [
-    { type: 'concept' as const, url: word.imageConceptUrl || null, caption: word.imageConceptCaption || null },
-    { type: 'mnemonic' as const, url: word.imageMnemonicUrl || null, caption: word.imageMnemonicCaption || null },
-    { type: 'rhyme' as const, url: word.imageRhymeUrl || null, caption: word.imageRhymeCaption || null },
-  ];
-  const hasVisualImages = hasNewVisuals || hasLegacyVisuals;
+  const hasVisualImages = word.visuals && word.visuals.length > 0;
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-200px)] md:min-h-0 md:block">
@@ -420,8 +407,7 @@ export default function FlashCardGesture({
                 {/* Visual Panel */}
                 {hasVisualImages && (
                   <WordVisualPanel
-                    visuals={hasNewVisuals ? word.visuals : undefined}
-                    images={!hasNewVisuals ? legacyVisualImages : undefined}
+                    visuals={word.visuals}
                     word={word.word}
                     showEnglishCaption={true}
                   />
