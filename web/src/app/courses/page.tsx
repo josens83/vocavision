@@ -189,7 +189,7 @@ export default function CoursesPage() {
           </div>
 
           <Link
-            href={`/learn?exam=${selectedExam.toLowerCase()}&level=L1`}
+            href={`/learn?exam=${selectedExam}&level=L1`}
             className="block w-full bg-teal-500 hover:bg-teal-600 text-white py-4 rounded-xl font-bold text-center transition shadow-lg shadow-pink-500/25"
           >
             Day {currentDay} 이어하기
@@ -209,7 +209,7 @@ export default function CoursesPage() {
               return (
                 <Link
                   key={day}
-                  href={isLocked ? '#' : `/learn?exam=${selectedExam.toLowerCase()}&level=${level}`}
+                  href={isLocked ? '#' : `/learn?exam=${selectedExam}&level=${level}`}
                   onClick={(e) => isLocked && e.preventDefault()}
                   className={`relative aspect-square flex flex-col items-center justify-center rounded-xl transition ${
                     isCompleted
@@ -254,7 +254,7 @@ export default function CoursesPage() {
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
           <Link
-            href={`/quiz?exam=${selectedExam.toLowerCase()}`}
+            href={`/quiz?exam=${selectedExam}`}
             className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-teal-200 hover:shadow-md transition"
           >
             <span className="text-3xl mb-3 block">🎯</span>
