@@ -644,7 +644,17 @@ function LearnPageContent() {
       return; // 즉시 반환 (UI는 이미 전환됨)
     }
 
-    setShowResult(true);
+    // serverSession이 없어도 중간 세트 완료인지 확인
+    const hasMoreToLearn = totalWordsInLevel > 0 &&
+      (totalLearnedInLevel + getWordsStudied()) < totalWordsInLevel;
+
+    if (user && examParam && levelParam && hasMoreToLearn) {
+      // 아직 학습할 단어가 남았으면 세트 완료 화면 표시
+      setShowSetComplete(true);
+    } else {
+      // 전체 완료 또는 비로그인 → 결과 화면 표시
+      setShowResult(true);
+    }
     clearLearningSession();  // 세션 완료 시 클리어
     // 대시보드 캐시 무효화 (학습 완료 후 데이터 갱신)
     invalidateDashboard(examParam, levelParam || undefined);
@@ -989,14 +999,18 @@ function LearnPageContent() {
   }
 
   // Set 완료 화면 표시 (pendingNextSet 유무와 상관없이 일관되게 표시)
-  if (showSetComplete && serverSession) {
+  if (showSetComplete) {
     const wordsStudied = getWordsStudied();
     const wordsCorrect = getWordsCorrect();
     const percentage = wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0;
-    const completedSet = serverSession.completedSets; // 방금 완료한 Set 번호
-    const totalSets = serverSession.totalSets;
-    const totalReviewed = serverSession.totalReviewed;
-    const hasNextSet = pendingNextSet && pendingNextSet.words && pendingNextSet.words.length > 0;
+
+    // serverSession이 없으면 (fallback 모드) 기본값 사용
+    const completedSet = serverSession?.completedSets ?? 1;
+    const totalSets = serverSession?.totalSets ?? (totalWordsInLevel > 0 ? Math.ceil(totalWordsInLevel / 20) : 1);
+    const totalReviewed = serverSession?.totalReviewed ?? (totalLearnedInLevel + wordsStudied);
+    const hasNextSet = serverSession
+      ? (pendingNextSet && pendingNextSet.words && pendingNextSet.words.length > 0)
+      : (totalWordsInLevel > 0 && (totalLearnedInLevel + wordsStudied) < totalWordsInLevel);
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
@@ -1064,10 +1078,13 @@ function LearnPageContent() {
           >
             {hasNextSet ? (
               <button
-                onClick={handleContinueToNextSet}
+                onClick={serverSession ? handleContinueToNextSet : handleNextBatch}
                 className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] hover:opacity-90 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-[#14B8A6]/25"
               >
-                Set {completedSet + 1} 시작하기 →
+                {serverSession
+                  ? `Set ${completedSet + 1} 시작하기 →`
+                  : `다음 ${Math.min(20, totalWordsInLevel - totalLearnedInLevel - wordsStudied)}개 학습 →`
+                }
               </button>
             ) : (
               <button
