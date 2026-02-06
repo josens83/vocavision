@@ -1233,14 +1233,12 @@ export const getDashboardSummary = async (
         }
       }),
 
-      // 2. 복습 대기 단어 수 (needsReview AND nextReviewDate <= NOW)
+      // 2. 복습 대기 단어 수 (전체 시험/레벨 합산)
       prisma.userProgress.count({
         where: {
           userId,
           needsReview: true,
           nextReviewDate: { lte: new Date() },
-          examCategory: examCategory as ExamCategory,
-          level: level as string,
         }
       }),
 
