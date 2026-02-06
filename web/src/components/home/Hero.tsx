@@ -217,7 +217,7 @@ function getDaysRemaining(subscriptionEnd?: string) {
 // 현재 플랜 배지 컴포넌트 -> 회원 정보 카드로 확장 (모바일 통합 카드)
 // ============================================
 function MemberInfoCard() {
-  const { user } = useAuthStore();
+  const { user, _hasHydrated } = useAuthStore();
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
 
@@ -232,7 +232,7 @@ function MemberInfoCard() {
   const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
     activeExam || 'CSAT',
     activeLevel || 'L1',
-    !!user
+    !!user && _hasHydrated
   );
 
   // 데이터 추출
@@ -393,6 +393,7 @@ function CurrentPlanBadge() {
 // 로그인 사용자용 학습 현황 섹션
 // ============================================
 function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean }) {
+  const { user, _hasHydrated } = useAuthStore();
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
 
@@ -421,7 +422,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
   const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
     activeExam || 'CSAT',
     activeLevel || 'L1',
-    true
+    !!user && _hasHydrated
   );
 
   // dailyGoal 동기화
@@ -575,7 +576,7 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
 // 데스크톱 왼쪽 열용 통합 카드 (회원정보 + 학습현황)
 // ============================================
 function UnifiedMemberCard() {
-  const { user } = useAuthStore();
+  const { user, _hasHydrated } = useAuthStore();
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
 
@@ -590,7 +591,7 @@ function UnifiedMemberCard() {
   const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
     activeExam || 'CSAT',
     activeLevel || 'L1',
-    !!user
+    !!user && _hasHydrated
   );
 
   // 데이터 추출
