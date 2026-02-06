@@ -6,32 +6,8 @@ import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore, useUserSettingsStore, useExamCourseStore } from "@/lib/store";
-import { getPlanDisplay } from "@/lib/subscription";
 import { userAPI } from "@/lib/api";
 import { useDashboardSummary, usePrefetchDashboard, usePrefetchReviews } from "@/hooks/useQueries";
-
-// ============================================
-// 브랜드 컬러 시스템 (은행 앱 스타일)
-// ============================================
-const brandColors = {
-  primary: '#14B8A6',      // 틸 (VocaVision 메인)
-  primaryLight: '#ECFDF5', // 연틸 배경
-  secondary: '#A855F7',    // 보라 (복습)
-  secondaryLight: '#F3E8FF',
-  success: '#00C7AE',      // 민트 (완료)
-  warning: '#FFB300',      // 앰버
-
-  // 텍스트
-  textPrimary: '#1c1c1e',
-  textSecondary: '#767676',
-  textMuted: '#999999',
-
-  // 배경/보더
-  bgCard: '#F8F9FA',
-  bgWhite: '#FFFFFF',
-  border: '#f0f0f0',
-  borderLight: '#f5f5f5',
-};
 
 const Icons = {
   Play: () => (
@@ -68,7 +44,7 @@ const Icons = {
 };
 
 // Hero 섹션 통계 (실제 데이터 기반)
-const stats = [
+const heroStats = [
   { label: "수능 필수", value: PLATFORM_STATS.totalWords.toLocaleString(), suffix: "개" },
   { label: "TEPS 핵심", value: PLATFORM_STATS.exams.TEPS.words.toLocaleString(), suffix: "개" },
   { label: "AI 콘텐츠", value: String(PLATFORM_STATS.learningModes), suffix: "단계" },
@@ -98,54 +74,9 @@ function DashboardItem({ value, label, color, suffix }: { value: string | number
 }
 
 // ============================================
-// ActionCard 컴포넌트 (MenuCard 스타일)
-// ============================================
-function ActionCard({
-  icon,
-  iconBg,
-  category,
-  title,
-  subtitle,
-  href,
-}: {
-  icon: React.ReactNode,
-  iconBg: string,
-  category: string,
-  title: string,
-  subtitle?: string,
-  href: string,
-}) {
-  return (
-    <Link
-      href={href}
-      className="bg-gray-100 active:bg-[#F0F0F0] transition-colors rounded-2xl p-5 flex items-center justify-between cursor-pointer hover:shadow-sm"
-    >
-      <div className="flex items-center gap-[18px]">
-        {/* 아이콘 원형 배경 */}
-        <div className={`w-[48px] h-[48px] rounded-full flex items-center justify-center shadow-sm ${iconBg}`}>
-          {icon}
-        </div>
-        {/* 텍스트 */}
-        <div className="flex flex-col">
-          <span className="text-[12px] text-gray-500 font-medium mb-[2px]">{category}</span>
-          <span className="text-[16px] font-bold text-[#1c1c1e]">{title}</span>
-          {subtitle && (
-            <span className="text-[13px] text-[#999999] mt-0.5">{subtitle}</span>
-          )}
-        </div>
-      </div>
-      {/* 화살표 */}
-      <div className="text-[#C8C8C8]">
-        <Icons.ChevronRight />
-      </div>
-    </Link>
-  );
-}
-
-// ============================================
 // 단어 찾기 카드 컴포넌트
 // ============================================
-function WordSearchCard() {
+function WordSearchCard({ className = '' }: { className?: string }) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -153,14 +84,14 @@ function WordSearchCard() {
     if (searchQuery.trim()) {
       router.push(`/words?search=${encodeURIComponent(searchQuery.trim())}`);
     } else {
-      router.push('/words');  // 빈 검색 시 단어 목록 페이지로
+      router.push('/words');
     }
   };
 
   const popularWords = ['contemporary', 'circumstance', 'nevertheless', 'stimulate'];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4 w-full max-w-full overflow-hidden">
+    <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-5 w-full overflow-hidden ${className}`}>
       <div className="flex items-center gap-2 mb-3">
         <Search className="w-5 h-5 text-teal-600" />
         <h3 className="font-semibold text-gray-900">단어 찾기</h3>
@@ -184,7 +115,7 @@ function WordSearchCard() {
         </button>
       </div>
 
-      {/* 인기 검색어 태그 - 모바일에서 줄바꿈 허용 */}
+      {/* 인기 검색어 태그 */}
       <div className="mt-3 flex items-center flex-wrap gap-2">
         <span className="text-xs text-gray-500">인기:</span>
         {popularWords.map((word) => (
@@ -214,7 +145,7 @@ function getDaysRemaining(subscriptionEnd?: string) {
 }
 
 // ============================================
-// 현재 플랜 배지 컴포넌트 -> 회원 정보 카드로 확장 (모바일 통합 카드)
+// 회원 정보 카드 (모바일용)
 // ============================================
 function MemberInfoCard() {
   const { user, _hasHydrated } = useAuthStore();
@@ -246,7 +177,7 @@ function MemberInfoCard() {
   if (!user) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4 w-full max-w-full overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 w-full max-w-full overflow-hidden">
       {/* 상단: 프로필 한 줄 (이름 · 플랜 D-day) */}
       <div className="flex items-center gap-3 mb-4 min-w-0">
         <div className="w-10 h-10 flex-shrink-0 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center">
@@ -347,252 +278,185 @@ function MemberInfoCard() {
   );
 }
 
-// 기존 CurrentPlanBadge 유지 (하위 호환성)
-function CurrentPlanBadge() {
-  const { user } = useAuthStore();
-  if (!user) return null;
-
-  const planInfo = getPlanDisplay(user);
-  const daysRemaining = getDaysRemaining(user.subscriptionEnd);
-
-  return (
-    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#14B8A6]/10 to-[#06B6D4]/10 rounded-xl mb-4">
-      <div className="flex items-center gap-2">
-        <span className="text-lg">{planInfo.icon}</span>
-        <span className={`font-semibold text-[14px] px-2.5 py-1 rounded-full ${planInfo.bgColor} ${planInfo.textColor}`}>
-          {planInfo.text} 플랜
-        </span>
-      </div>
-      {daysRemaining && (
-        <span className="text-[13px] text-gray-500 font-medium">
-          D-{daysRemaining}일
-        </span>
-      )}
-    </div>
-  );
-}
-
 // ============================================
-// 로그인 사용자용 학습 현황 섹션
+// 전체 학습 현황 카드
 // ============================================
-function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean }) {
-  const { user, _hasHydrated } = useAuthStore();
-  const activeExam = useExamCourseStore((state) => state.activeExam);
-  const activeLevel = useExamCourseStore((state) => state.activeLevel);
-
-  // Zustand store에서 dailyGoal 관리 (전역 동기화)
-  const dailyGoal = useUserSettingsStore((state) => state.dailyGoal);
-  const setDailyGoal = useUserSettingsStore((state) => state.setDailyGoal);
-
-  // Get last study info from localStorage (fallback to CSAT L1)
-  const [lastStudy, setLastStudy] = useState<{ exam: string; level: string }>({ exam: 'CSAT', level: 'L1' });
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('lastStudy');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.exam && parsed.level) {
-          setLastStudy({ exam: parsed.exam, level: parsed.level });
-        }
-      }
-    } catch (e) {
-      // Ignore localStorage errors
-    }
-  }, []);
-
-  // React Query: 캐싱된 대시보드 데이터 사용
-  const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
-    activeExam || 'CSAT',
-    activeLevel || 'L1',
-    !!user && _hasHydrated
-  );
-
-  // dailyGoal 동기화
-  useEffect(() => {
-    if (summaryData?.stats?.dailyGoal) {
-      setDailyGoal(summaryData.stats.dailyGoal);
-    }
-  }, [summaryData?.stats?.dailyGoal, setDailyGoal]);
-
-  // 데이터 추출
-  const stats = summaryData ? {
-    currentStreak: summaryData.stats?.currentStreak || 0,
-    totalWordsLearned: summaryData.stats?.totalWordsLearned || 0,
-    todayWordsLearned: summaryData.stats?.todayWordsLearned || 0,
-    dueReviewCount: summaryData.dueReviewCount || 0,
-    todayFlashcardAccuracy: summaryData.stats?.todayFlashcardAccuracy || 0,
-    totalFlashcardAccuracy: summaryData.stats?.totalFlashcardAccuracy || 0,
-  } : null;
-
-  const todayProgress = stats?.todayWordsLearned || 0;
-  const progressPercent = Math.round((todayProgress / dailyGoal) * 100);
-  const goalOptions = [20, 40, 60, 80];
-
-  // Exam display name
-  const examDisplayName = lastStudy.exam === 'CSAT' ? '수능' : lastStudy.exam;
-  const levelDisplayName = lastStudy.level;
-
+function TotalStatsCard({
+  stats,
+  loading,
+  isError,
+  refetch,
+  className = '',
+}: {
+  stats: { totalWordsLearned: number; totalFlashcardAccuracy: number } | null;
+  loading: boolean;
+  isError: boolean;
+  refetch: () => void;
+  className?: string;
+}) {
   return (
-    <div className="flex flex-col gap-4">
-      {/* 모바일용 회원 정보 카드 (데스크톱에서는 왼쪽 통합 카드 사용) */}
-      {/* 회원정보 + 학습현황 + 버튼이 통합된 카드 */}
-      <div className="lg:hidden">
-        <MemberInfoCard />
+    <div className={`bg-white rounded-2xl p-5 shadow-sm border border-gray-200 w-full overflow-hidden ${className}`}>
+      {/* 헤더 */}
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+          <Icons.ChartBar />
+        </div>
+        <h3 className="font-semibold text-gray-900">전체 학습 현황</h3>
       </div>
 
-      {/* 단어 찾기 카드 */}
-      <WordSearchCard />
-
-      {/* 전체 학습 현황 카드 (누적 데이터) */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 w-full max-w-full overflow-hidden">
-        {/* 헤더 */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-            <Icons.ChartBar />
-          </div>
-          <h3 className="font-semibold text-gray-900">전체 학습 현황</h3>
-        </div>
-
-        {/* 누적 통계 그리드 */}
-        {loading ? (
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="bg-gray-50 rounded-xl p-3 text-center">
-                <div className="h-7 w-14 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
-                <div className="h-3 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
-              </div>
-            ))}
-          </div>
-        ) : isError ? (
-          <div className="flex flex-col items-center gap-2 py-4 mb-4">
-            <p className="text-sm text-gray-500">데이터를 불러올 수 없습니다</p>
-            <button
-              onClick={() => refetch()}
-              className="text-sm text-purple-600 font-medium hover:text-purple-700"
-            >
-              다시 시도
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-purple-50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-purple-600" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.totalWordsLearned || 0}</p>
-              <p className="text-xs text-gray-500">누적 학습 단어</p>
+      {/* 누적 통계 그리드 */}
+      {loading ? (
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-gray-50 rounded-xl p-3 text-center">
+              <div className="h-7 w-14 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
+              <div className="h-3 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
             </div>
-            <div className="bg-purple-50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-purple-600" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.totalFlashcardAccuracy || 0}<span className="text-base font-medium ml-0.5">%</span></p>
-              <p className="text-xs text-gray-500">전체 정답률</p>
-            </div>
-          </div>
-        )}
-
-        {/* 자세히 보기 */}
-        <Link
-          href="/stats"
-          className="flex items-center justify-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium py-2 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
-        >
-          자세히 보기
-          <Icons.ChevronRight />
-        </Link>
-      </div>
-
-      {/* 오늘의 목표 카드 (은행 앱 스타일) */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 w-full max-w-full overflow-hidden">
-        <div className="flex items-center justify-between mb-4 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-lg flex-shrink-0">⚡</span>
-            <h3 className="text-[15px] font-bold text-[#1c1c1e] truncate">오늘의 목표</h3>
-          </div>
-          <span className="text-[13px] text-[#14B8A6] font-semibold flex-shrink-0 whitespace-nowrap">
-            {progressPercent >= 100 ? '🎉 ' : ''}{progressPercent}% 달성
-          </span>
-        </div>
-
-        {/* 프로그레스 바 */}
-        <div className="w-full h-2 bg-[#f0f0f0] rounded-full mb-4 overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              progressPercent >= 100
-                ? 'bg-gradient-to-r from-[#10B981] to-[#059669]'
-                : 'bg-gradient-to-r from-[#14B8A6] to-[#06B6D4]'
-            }`}
-            style={{ width: `${Math.min(progressPercent, 100)}%` }}
-          />
-        </div>
-
-        <p className="text-[14px] text-gray-500 mb-4">
-          {progressPercent >= 100
-            ? `목표 달성! 오늘 ${todayProgress}개 학습 완료!`
-            : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`}
-        </p>
-
-        {/* 목표 선택 버튼들 */}
-        <div className="flex gap-2 min-w-0">
-          {goalOptions.map((goal) => (
-            <button
-              key={goal}
-              onClick={async () => {
-                setDailyGoal(goal);
-                try {
-                  await userAPI.updateDailyGoal(goal);
-                } catch (error) {
-                  console.error('Failed to update daily goal:', error);
-                }
-              }}
-              className={`flex-1 min-w-0 py-2.5 rounded-[12px] text-[14px] font-semibold transition-all ${
-                dailyGoal === goal
-                  ? 'bg-[#14B8A6] text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-              }`}
-            >
-              {goal}개
-            </button>
           ))}
         </div>
+      ) : isError ? (
+        <div className="flex flex-col items-center gap-2 py-4 mb-4">
+          <p className="text-sm text-gray-500">데이터를 불러올 수 없습니다</p>
+          <button
+            onClick={refetch}
+            className="text-sm text-purple-600 font-medium hover:text-purple-700"
+          >
+            다시 시도
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="bg-purple-50 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-purple-600" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.totalWordsLearned || 0}</p>
+            <p className="text-xs text-gray-500">누적 학습 단어</p>
+          </div>
+          <div className="bg-purple-50 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-purple-600" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.totalFlashcardAccuracy || 0}<span className="text-base font-medium ml-0.5">%</span></p>
+            <p className="text-xs text-gray-500">전체 정답률</p>
+          </div>
+        </div>
+      )}
+
+      {/* 자세히 보기 */}
+      <Link
+        href="/stats"
+        className="flex items-center justify-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium py-2 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
+      >
+        자세히 보기
+        <Icons.ChevronRight />
+      </Link>
+    </div>
+  );
+}
+
+// ============================================
+// 오늘의 목표 카드
+// ============================================
+function DailyGoalCard({
+  todayProgress,
+  dailyGoal,
+  setDailyGoal,
+  progressPercent,
+  goalOptions,
+  className = '',
+}: {
+  todayProgress: number;
+  dailyGoal: number;
+  setDailyGoal: (goal: number) => void;
+  progressPercent: number;
+  goalOptions: number[];
+  className?: string;
+}) {
+  return (
+    <div className={`bg-white rounded-2xl p-5 shadow-sm border border-gray-200 w-full overflow-hidden ${className}`}>
+      <div className="flex items-center justify-between mb-4 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-lg flex-shrink-0">⚡</span>
+          <h3 className="text-[15px] font-bold text-[#1c1c1e] truncate">오늘의 목표</h3>
+        </div>
+        <span className="text-[13px] text-[#14B8A6] font-semibold flex-shrink-0 whitespace-nowrap">
+          {progressPercent >= 100 ? '🎉 ' : ''}{progressPercent}% 달성
+        </span>
+      </div>
+
+      {/* 프로그레스 바 */}
+      <div className="w-full h-2 bg-[#f0f0f0] rounded-full mb-4 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${
+            progressPercent >= 100
+              ? 'bg-gradient-to-r from-[#10B981] to-[#059669]'
+              : 'bg-gradient-to-r from-[#14B8A6] to-[#06B6D4]'
+          }`}
+          style={{ width: `${Math.min(progressPercent, 100)}%` }}
+        />
+      </div>
+
+      <p className="text-[14px] text-gray-500 mb-4">
+        {progressPercent >= 100
+          ? `목표 달성! 오늘 ${todayProgress}개 학습 완료!`
+          : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`}
+      </p>
+
+      {/* 목표 선택 버튼들 */}
+      <div className="flex gap-2 min-w-0">
+        {goalOptions.map((goal) => (
+          <button
+            key={goal}
+            onClick={async () => {
+              setDailyGoal(goal);
+              try {
+                await userAPI.updateDailyGoal(goal);
+              } catch (error) {
+                console.error('Failed to update daily goal:', error);
+              }
+            }}
+            className={`flex-1 min-w-0 py-2.5 rounded-[12px] text-[14px] font-semibold transition-all ${
+              dailyGoal === goal
+                ? 'bg-[#14B8A6] text-white shadow-sm'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            }`}
+          >
+            {goal}개
+          </button>
+        ))}
       </div>
     </div>
   );
 }
 
 // ============================================
-// 데스크톱 왼쪽 열용 통합 카드 (회원정보 + 학습현황)
+// 데스크톱용 회원정보 카드 (2x2 그리드용)
 // ============================================
-function UnifiedMemberCard() {
-  const { user, _hasHydrated } = useAuthStore();
-  const activeExam = useExamCourseStore((state) => state.activeExam);
-  const activeLevel = useExamCourseStore((state) => state.activeLevel);
-
-  const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
-  const plan = (user as any)?.subscriptionPlan || 'FREE';
-
-  // 프리패치 훅
-  const prefetchDashboard = usePrefetchDashboard();
-  const prefetchReviews = usePrefetchReviews();
-
-  // React Query: 캐싱된 대시보드 데이터 사용
-  const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
-    activeExam || 'CSAT',
-    activeLevel || 'L1',
-    !!user && _hasHydrated
-  );
-
-  // 데이터 추출
-  const stats = summaryData ? {
-    currentStreak: summaryData.stats?.currentStreak || 0,
-    todayWordsLearned: summaryData.stats?.todayWordsLearned || 0,
-    totalWordsLearned: summaryData.stats?.totalWordsLearned || 0,
-    dueReviewCount: summaryData.dueReviewCount || 0,
-    todayFlashcardAccuracy: summaryData.stats?.todayFlashcardAccuracy || 0,
-  } : null;
-
-  if (!user) return null;
-
+function DesktopMemberCard({
+  user,
+  plan,
+  daysRemaining,
+  stats,
+  loading,
+  isError,
+  refetch,
+  prefetchDashboard,
+  prefetchReviews,
+  activeExam,
+  activeLevel,
+}: {
+  user: any;
+  plan: string;
+  daysRemaining: number | null;
+  stats: { currentStreak: number; todayWordsLearned: number; dueReviewCount: number; todayFlashcardAccuracy: number } | null;
+  loading: boolean;
+  isError: boolean;
+  refetch: () => void;
+  prefetchDashboard: (exam: string, level: string) => void;
+  prefetchReviews: (exam: string, level: string) => void;
+  activeExam: string | null;
+  activeLevel: string | null;
+}) {
   return (
-    <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
-      {/* 상단: 프로필 한 줄 (이름 · 플랜 D-day) */}
-      <div className="flex items-center gap-3 mb-5 min-w-0">
-        <div className="w-10 h-10 flex-shrink-0 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 h-full flex flex-col">
+      {/* 상단: 프로필 + 플랜 (D-day) - 한 줄 */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0">
           <span className="text-white text-sm font-bold">
             {user?.name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
           </span>
@@ -616,73 +480,166 @@ function UnifiedMemberCard() {
         </p>
       </div>
 
-      {/* 중단: 오늘의 학습 현황 통계 */}
-      <div className="py-4 border-t border-gray-100">
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <p className="text-xs text-gray-400">오늘의 학습</p>
+      {/* 중단: 오늘의 학습 현황 */}
+      <div className="flex-1 py-3 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-medium text-gray-700">오늘의 학습</p>
           {!loading && stats && stats.currentStreak > 0 && (
             <span className="text-xs text-orange-500 font-medium flex items-center gap-1">
               🔥 {stats.currentStreak}일 연속
             </span>
           )}
         </div>
-        <div className="grid grid-cols-3 gap-4">
-          {loading ? (
-            <>
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="text-center">
-                  <div className="h-7 w-14 bg-slate-200 rounded animate-pulse mx-auto mb-1" />
-                  <div className="h-3 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
-                </div>
-              ))}
-            </>
-          ) : isError ? (
-            <div className="col-span-3 flex flex-col items-center gap-2 py-2">
-              <p className="text-sm text-gray-500">데이터를 불러올 수 없습니다</p>
-              <button
-                onClick={() => refetch()}
-                className="text-sm text-teal-600 font-medium hover:text-teal-700"
-              >
-                다시 시도
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-[#3B82F6]" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.todayWordsLearned || 0}</p>
-                <p className="text-xs text-gray-500">오늘 학습</p>
+
+        {loading ? (
+          <div className="flex justify-between items-center">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                <div className="h-6 w-12 bg-slate-200 rounded animate-pulse" />
+                <div className="h-3 w-14 bg-slate-100 rounded animate-pulse" />
               </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-[#F59E0B]" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.dueReviewCount || 0}</p>
-                <p className="text-xs text-gray-500">복습 대기</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-[#10B981]" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.todayFlashcardAccuracy || 0}<span className="text-base font-medium ml-0.5">%</span></p>
-                <p className="text-xs text-gray-500">정답률</p>
-              </div>
-            </>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center gap-2 py-2">
+            <p className="text-sm text-gray-500">데이터를 불러올 수 없습니다</p>
+            <button
+              onClick={refetch}
+              className="text-sm text-teal-600 font-medium hover:text-teal-700"
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : (
+          <div className="flex justify-between items-center">
+            <DashboardItem value={stats?.todayWordsLearned || 0} label="오늘 학습" color="#3B82F6" />
+            <div className="w-[1px] h-10 bg-[#f0f0f0]" />
+            <DashboardItem value={stats?.dueReviewCount || 0} label="복습 대기" color="#F59E0B" />
+            <div className="w-[1px] h-10 bg-[#f0f0f0]" />
+            <DashboardItem value={stats?.todayFlashcardAccuracy || 0} label="정답률" color="#10B981" suffix="%" />
+          </div>
+        )}
       </div>
 
-      {/* 하단: 학습하기 / 복습하기 버튼 */}
-      <div className="pt-4 border-t border-gray-100 flex gap-3">
+      {/* 하단: 버튼 */}
+      <div className="pt-3 border-t border-gray-100 flex gap-3 mt-auto">
         <Link
           href="/dashboard"
           onMouseEnter={() => prefetchDashboard(activeExam || 'CSAT', activeLevel || 'L1')}
-          className="flex-1 py-3 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
+          className="flex-1 py-2.5 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors text-sm"
         >
           학습하기
         </Link>
         <Link
           href="/review"
           onMouseEnter={() => prefetchReviews(activeExam || 'CSAT', activeLevel || 'L1')}
-          className="flex-1 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold rounded-xl text-center transition-colors"
+          className="flex-1 py-2.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold rounded-xl text-center transition-colors text-sm"
         >
           복습하기
         </Link>
       </div>
+    </div>
+  );
+}
 
+// ============================================
+// 로그인 후 대시보드 (2x2 그리드)
+// ============================================
+function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
+  const { user, _hasHydrated } = useAuthStore();
+  const activeExam = useExamCourseStore((state) => state.activeExam);
+  const activeLevel = useExamCourseStore((state) => state.activeLevel);
+
+  const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
+  const plan = (user as any)?.subscriptionPlan || 'FREE';
+
+  // 프리패치 훅
+  const prefetchDashboard = usePrefetchDashboard();
+  const prefetchReviews = usePrefetchReviews();
+
+  // Zustand store에서 dailyGoal 관리
+  const dailyGoal = useUserSettingsStore((state) => state.dailyGoal);
+  const setDailyGoal = useUserSettingsStore((state) => state.setDailyGoal);
+
+  // React Query: 캐싱된 대시보드 데이터 사용
+  const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
+    activeExam || 'CSAT',
+    activeLevel || 'L1',
+    !!user && _hasHydrated
+  );
+
+  // dailyGoal 동기화
+  useEffect(() => {
+    if (summaryData?.stats?.dailyGoal) {
+      setDailyGoal(summaryData.stats.dailyGoal);
+    }
+  }, [summaryData?.stats?.dailyGoal, setDailyGoal]);
+
+  // 데이터 추출
+  const stats = summaryData ? {
+    currentStreak: summaryData.stats?.currentStreak || 0,
+    todayWordsLearned: summaryData.stats?.todayWordsLearned || 0,
+    totalWordsLearned: summaryData.stats?.totalWordsLearned || 0,
+    dueReviewCount: summaryData.dueReviewCount || 0,
+    todayFlashcardAccuracy: summaryData.stats?.todayFlashcardAccuracy || 0,
+    totalFlashcardAccuracy: summaryData.stats?.totalFlashcardAccuracy || 0,
+  } : null;
+
+  const todayProgress = stats?.todayWordsLearned || 0;
+  const progressPercent = Math.round((todayProgress / dailyGoal) * 100);
+  const goalOptions = [20, 40, 60, 80];
+
+  if (!user) return null;
+
+  return (
+    <div className={`${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
+      {/* ========== 모바일: 세로 배치 ========== */}
+      <div className="lg:hidden flex flex-col gap-4">
+        <MemberInfoCard />
+        <WordSearchCard />
+        <TotalStatsCard stats={stats} loading={loading} isError={isError} refetch={() => refetch()} />
+        <DailyGoalCard
+          todayProgress={todayProgress}
+          dailyGoal={dailyGoal}
+          setDailyGoal={setDailyGoal}
+          progressPercent={progressPercent}
+          goalOptions={goalOptions}
+        />
+      </div>
+
+      {/* ========== 데스크톱: 2x2 그리드 ========== */}
+      <div className="hidden lg:grid grid-cols-2 gap-6 max-w-5xl mx-auto">
+        {/* 좌상: 회원정보 카드 */}
+        <DesktopMemberCard
+          user={user}
+          plan={plan}
+          daysRemaining={daysRemaining}
+          stats={stats}
+          loading={loading}
+          isError={isError}
+          refetch={() => refetch()}
+          prefetchDashboard={prefetchDashboard}
+          prefetchReviews={prefetchReviews}
+          activeExam={activeExam}
+          activeLevel={activeLevel}
+        />
+
+        {/* 우상: 단어 찾기 */}
+        <WordSearchCard className="h-full" />
+
+        {/* 좌하: 전체 학습 현황 */}
+        <TotalStatsCard stats={stats} loading={loading} isError={isError} refetch={() => refetch()} className="h-full" />
+
+        {/* 우하: 오늘의 목표 */}
+        <DailyGoalCard
+          todayProgress={todayProgress}
+          dailyGoal={dailyGoal}
+          setDailyGoal={setDailyGoal}
+          progressPercent={progressPercent}
+          goalOptions={goalOptions}
+          className="h-full"
+        />
+      </div>
     </div>
   );
 }
@@ -700,42 +657,43 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className={`relative flex items-center overflow-hidden ${isLoggedIn ? 'min-h-[50vh]' : 'min-h-[70vh]'}`}>
+    <section className={`relative ${isLoggedIn ? 'min-h-0' : 'min-h-[70vh]'} flex items-center overflow-hidden`}>
       <div className="absolute inset-0 hero-gradient hero-pattern" />
       <div className="absolute top-20 left-10 w-72 h-72 bg-level-beginner/10 rounded-full blur-3xl animate-float" />
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-level-intermediate/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-level-advanced/5 rounded-full blur-3xl" />
 
-      <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 ${isLoggedIn ? 'py-6' : 'py-12'}`}>
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start justify-items-center lg:justify-items-start">
-          {/* 왼쪽 열: 히어로 텍스트 + 데스크톱에서 학습 현황 */}
-          <div className={`space-y-8 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-            {!isLoggedIn && (
-              <>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
-                  <Icons.Sparkles />
-                  <span className="text-sm font-medium text-slate-600">스마트 영어 학습 플랫폼</span>
-                </div>
+      <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 ${isLoggedIn ? 'pt-2 pb-6 lg:py-8' : 'py-12'}`}>
 
-                <h1 className="font-display">
-                  <span className="block text-[1.75rem] sm:text-4xl md:text-display-lg text-slate-900 whitespace-nowrap">
-                    영어 단어 학습의
-                  </span>
-                  <span className="block text-[1.75rem] sm:text-4xl md:text-display-xl text-gradient whitespace-nowrap">
-                    새로운 비전
-                  </span>
-                </h1>
+        {/* ========== 로그인 시: 2x2 그리드 레이아웃 ========== */}
+        {isLoggedIn && (
+          <LoggedInDashboard isVisible={isVisible} />
+        )}
 
-                <p className="text-lg md:text-xl text-slate-600 max-w-xl leading-relaxed">
-                  과학적으로 검증된 <strong className="text-slate-800">간격 반복 학습</strong>과{' '}
-                  <strong className="text-slate-800">적응형 퀴즈</strong>로 효율적인 어휘력 향상을 경험하세요.
-                </p>
-              </>
-            )}
+        {/* ========== 비로그인 시: 기존 Hero 레이아웃 ========== */}
+        {!isLoggedIn && (
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start justify-items-center lg:justify-items-start">
+            {/* 왼쪽 열: Hero 텍스트 */}
+            <div className={`space-y-8 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
+                <Icons.Sparkles />
+                <span className="text-sm font-medium text-slate-600">스마트 영어 학습 플랫폼</span>
+              </div>
 
-            {/* 로그인 시: 버튼 숨김 (오른쪽 빠른 액션으로 대체) */}
-            {/* 비로그인 시: 체험 버튼 */}
-            {!isLoggedIn && (
+              <h1 className="font-display">
+                <span className="block text-[1.75rem] sm:text-4xl md:text-display-lg text-slate-900 whitespace-nowrap">
+                  영어 단어 학습의
+                </span>
+                <span className="block text-[1.75rem] sm:text-4xl md:text-display-xl text-gradient whitespace-nowrap">
+                  새로운 비전
+                </span>
+              </h1>
+
+              <p className="text-lg md:text-xl text-slate-600 max-w-xl leading-relaxed">
+                과학적으로 검증된 <strong className="text-slate-800">간격 반복 학습</strong>과{' '}
+                <strong className="text-slate-800">적응형 퀴즈</strong>로 효율적인 어휘력 향상을 경험하세요.
+              </p>
+
               <div className="flex flex-wrap gap-4 pt-4">
                 <Link href="/learn?exam=CSAT&level=L1&demo=true" className="btn btn-primary group">
                   <Icons.Play />
@@ -746,12 +704,9 @@ export default function Hero() {
                   <span>무료 회원가입</span>
                 </Link>
               </div>
-            )}
 
-            {/* 비로그인 시에만 통계 숫자 표시 */}
-            {!isLoggedIn && (
               <div className="flex gap-8 pt-8 border-t border-slate-200">
-                {stats.map((stat, index) => (
+                {heroStats.map((stat, index) => (
                   <div key={stat.label} className={`${isVisible ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: `${0.3 + index * 0.1}s` }}>
                     <div className="text-3xl font-display font-bold text-slate-900">
                       {stat.value}<span className="text-lg text-slate-500">{stat.suffix}</span>
@@ -760,59 +715,43 @@ export default function Hero() {
                   </div>
                 ))}
               </div>
-            )}
+            </div>
 
-            {/* 로그인 사용자: 데스크톱에서 왼쪽 아래에 학습 현황 카드 */}
-            {isLoggedIn && <UnifiedMemberCard />}
-          </div>
-
-          {/* 오른쪽 열: 액션 카드들 */}
-          <div className={`flex flex-col gap-4 w-full max-w-full sm:max-w-md mx-auto lg:mx-0 lg:max-w-lg overflow-hidden ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
-            {/* 섹션 안내 - 비로그인 시에만 표시 */}
-            {!isLoggedIn && (
+            {/* 오른쪽 열: 체험 카드들 */}
+            <div className={`flex flex-col gap-4 w-full max-w-full sm:max-w-md mx-auto lg:mx-0 lg:max-w-lg overflow-hidden ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
               <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
-            )}
 
-            {/* 로그인 사용자: 학습 현황 카드 (모바일) + 액션 버튼들 */}
-            {isLoggedIn && (
-              <UserStatsSection />
-            )}
-
-            {/* 비로그인 사용자: 기능 체험 카드 */}
-            {!isLoggedIn && features.map((feature, index) => (
-              <Link key={feature.title} href={isLoggedIn ? feature.href : feature.demoHref} className="block">
-                <div className="group card p-5 md:p-6 flex items-start gap-5 cursor-pointer
-                                hover:shadow-lg hover:scale-[1.02] hover:border-brand-primary/30
-                                transition-all duration-200 border border-transparent"
-                     style={{ animationDelay: `${0.2 + index * 0.15}s` }}>
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110
-                    ${index === 0 ? "bg-level-beginner-light text-level-beginner" : ""}
-                    ${index === 1 ? "bg-level-intermediate-light text-level-intermediate" : ""}
-                    ${index === 2 ? "bg-level-advanced-light text-level-advanced" : ""}`}>
-                    <feature.icon />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-base sm:text-lg font-semibold text-slate-900 whitespace-nowrap">{feature.title}</h3>
-                      {!isLoggedIn && (
+              {features.map((feature, index) => (
+                <Link key={feature.title} href={feature.demoHref} className="block">
+                  <div className="group card p-5 md:p-6 flex items-start gap-5 cursor-pointer
+                                  hover:shadow-lg hover:scale-[1.02] hover:border-brand-primary/30
+                                  transition-all duration-200 border border-transparent"
+                       style={{ animationDelay: `${0.2 + index * 0.15}s` }}>
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110
+                      ${index === 0 ? "bg-level-beginner-light text-level-beginner" : ""}
+                      ${index === 1 ? "bg-level-intermediate-light text-level-intermediate" : ""}
+                      ${index === 2 ? "bg-level-advanced-light text-level-advanced" : ""}`}>
+                      <feature.icon />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-base sm:text-lg font-semibold text-slate-900 whitespace-nowrap">{feature.title}</h3>
                         <span className="text-xs font-medium text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full whitespace-nowrap">
                           체험하기
                         </span>
-                      )}
+                      </div>
+                      <p className="text-sm sm:text-base text-slate-600 whitespace-nowrap">{feature.description}</p>
                     </div>
-                    <p className="text-sm sm:text-base text-slate-600 whitespace-nowrap">{feature.description}</p>
+                    <div className="self-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
-                  <div className="self-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
 
-            {/* 비로그인 시: 체험 유도 카드 (로그인 시 UserStatsSection에서 목표 카드 표시) */}
-            {!isLoggedIn && (
+              {/* 체험 유도 카드 */}
               <div className="relative overflow-hidden card p-6 bg-gradient-to-br from-brand-primary to-brand-secondary text-white">
                 <div className="relative z-10">
                   <h4 className="text-lg font-semibold mb-2">60초 안에 체험해보세요!</h4>
@@ -831,9 +770,9 @@ export default function Hero() {
                 </div>
                 <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full" />
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );
