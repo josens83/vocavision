@@ -38,8 +38,7 @@ export {
 } from './WordForms';
 
 // Word Image Upload Section (3-이미지 시각화)
-export { default as WordImageSection } from './WordImageSection';  // Legacy
-export { default as WordVisualsEditor } from './WordVisualsEditor'; // New
+export { default as WordVisualsEditor } from './WordVisualsEditor';
 
 // Main Dashboard
 export { AdminDashboard } from './AdminDashboard';
