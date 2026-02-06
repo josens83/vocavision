@@ -83,14 +83,14 @@ const features = [
 // ============================================
 // DashboardItem 컴포넌트 (은행 앱 스타일)
 // ============================================
-function DashboardItem({ value, label, color }: { value: string | number, label: string, color: string }) {
+function DashboardItem({ value, label, color, suffix }: { value: string | number, label: string, color: string, suffix?: string }) {
   return (
     <div className="flex-1 flex flex-col items-center gap-1">
       <span
         className="text-[22px] font-bold"
-        style={{ color }}
+        style={{ color, fontVariantNumeric: 'tabular-nums' }}
       >
-        {value}
+        {value}{suffix && <span className="text-[14px] font-medium ml-0.5">{suffix}</span>}
       </span>
       <span className="text-[12px] text-gray-500">{label}</span>
     </div>
@@ -247,48 +247,30 @@ function MemberInfoCard() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4 w-full max-w-full overflow-hidden">
-      {/* 상단: 프로필 + 플랜 배지 */}
-      <div className="flex items-center justify-between mb-4 min-w-0">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          {/* 프로필 아이콘 */}
-          <div className="w-12 h-12 flex-shrink-0 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-lg font-bold">
-              {user?.name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
-            </span>
-          </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-gray-900 truncate">{user?.name || '회원'}님</p>
-          </div>
+      {/* 상단: 프로필 한 줄 (이름 · 플랜 D-day) */}
+      <div className="flex items-center gap-3 mb-4 min-w-0">
+        <div className="w-10 h-10 flex-shrink-0 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center">
+          <span className="text-white text-sm font-bold">
+            {user?.name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+          </span>
         </div>
-
-        {/* 플랜 배지 + D-day */}
-        <div className="text-right flex-shrink-0 ml-2">
+        <p className="text-[15px] text-gray-900 truncate min-w-0">
+          <span className="font-semibold">{user?.name || '회원'}</span>
+          <span className="text-gray-300 mx-1.5">·</span>
           {(plan === 'YEARLY' || plan === 'FAMILY') && (
-            <>
-              <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
-                👑 프리미엄
-              </span>
-              {daysRemaining && (
-                <p className="text-xs text-gray-500 mt-1">D-{daysRemaining}일</p>
-              )}
-            </>
+            <span className="text-amber-600 font-medium text-sm">
+              👑 프리미엄{daysRemaining ? ` (D-${daysRemaining})` : ''}
+            </span>
           )}
           {plan === 'MONTHLY' && (
-            <>
-              <span className="bg-teal-100 text-teal-700 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
-                ✨ 베이직
-              </span>
-              {daysRemaining && (
-                <p className="text-xs text-gray-500 mt-1">D-{daysRemaining}일</p>
-              )}
-            </>
-          )}
-          {plan === 'FREE' && (
-            <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap">
-              무료 플랜
+            <span className="text-teal-600 font-medium text-sm">
+              ✨ 베이직{daysRemaining ? ` (D-${daysRemaining})` : ''}
             </span>
           )}
-        </div>
+          {plan === 'FREE' && (
+            <span className="text-gray-500 font-medium text-sm">무료 플랜</span>
+          )}
+        </p>
       </div>
 
       {/* 중단: 오늘의 학습 현황 통계 */}
@@ -335,9 +317,10 @@ function MemberInfoCard() {
             />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
             <DashboardItem
-              value={`${stats?.todayFlashcardAccuracy || 0}%`}
+              value={stats?.todayFlashcardAccuracy || 0}
               label="정답률"
               color="#10B981"
+              suffix="%"
             />
           </div>
         )}
@@ -494,11 +477,11 @@ function UserStatsSection({ showStatsCard = true }: { showStatsCard?: boolean })
         ) : (
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="bg-purple-50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-purple-600">{stats?.totalWordsLearned || 0}</p>
+              <p className="text-2xl font-bold text-purple-600" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.totalWordsLearned || 0}</p>
               <p className="text-xs text-gray-500">누적 학습 단어</p>
             </div>
             <div className="bg-purple-50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold text-purple-600">{stats?.totalFlashcardAccuracy || 0}%</p>
+              <p className="text-2xl font-bold text-purple-600" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.totalFlashcardAccuracy || 0}<span className="text-base font-medium ml-0.5">%</span></p>
               <p className="text-xs text-gray-500">전체 정답률</p>
             </div>
           </div>
@@ -607,64 +590,42 @@ function UnifiedMemberCard() {
 
   return (
     <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
-      {/* 상단: 프로필 + 스트릭 + 플랜 */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-3">
-          {/* 프로필 아이콘 */}
-          <div className="w-12 h-12 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-lg font-bold">
-              {user?.name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+      {/* 상단: 프로필 한 줄 (이름 · 플랜 D-day) */}
+      <div className="flex items-center gap-3 mb-5 min-w-0">
+        <div className="w-10 h-10 flex-shrink-0 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center">
+          <span className="text-white text-sm font-bold">
+            {user?.name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+          </span>
+        </div>
+        <p className="text-[15px] text-gray-900 truncate min-w-0">
+          <span className="font-semibold">{user?.name || '회원'}</span>
+          <span className="text-gray-300 mx-1.5">·</span>
+          {(plan === 'YEARLY' || plan === 'FAMILY') && (
+            <span className="text-amber-600 font-medium text-sm">
+              👑 프리미엄{daysRemaining ? ` (D-${daysRemaining})` : ''}
             </span>
-          </div>
-          <div>
-            <p className="font-semibold text-gray-900">{user?.name || '회원'}님</p>
-            <p className="text-sm text-gray-500 truncate max-w-[160px]">{user?.email}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* 스트릭 */}
-          {!loading && stats && stats.currentStreak > 0 && (
-            <div className="flex items-center gap-1 text-orange-500">
-              <span>🔥</span>
-              <span className="font-semibold text-sm">{stats.currentStreak}일 연속</span>
-            </div>
           )}
-
-          {/* 플랜 배지 */}
-          <div className="text-right">
-            {(plan === 'YEARLY' || plan === 'FAMILY') && (
-              <>
-                <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm font-medium">
-                  👑 프리미엄
-                </span>
-                {daysRemaining && (
-                  <p className="text-xs text-gray-500 mt-1">D-{daysRemaining}일</p>
-                )}
-              </>
-            )}
-            {plan === 'MONTHLY' && (
-              <>
-                <span className="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm font-medium">
-                  ✨ 베이직
-                </span>
-                {daysRemaining && (
-                  <p className="text-xs text-gray-500 mt-1">D-{daysRemaining}일</p>
-                )}
-              </>
-            )}
-            {plan === 'FREE' && (
-              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">
-                무료 플랜
-              </span>
-            )}
-          </div>
-        </div>
+          {plan === 'MONTHLY' && (
+            <span className="text-teal-600 font-medium text-sm">
+              ✨ 베이직{daysRemaining ? ` (D-${daysRemaining})` : ''}
+            </span>
+          )}
+          {plan === 'FREE' && (
+            <span className="text-gray-500 font-medium text-sm">무료 플랜</span>
+          )}
+        </p>
       </div>
 
       {/* 중단: 오늘의 학습 현황 통계 */}
       <div className="py-4 border-t border-gray-100">
-        <p className="text-xs text-gray-400 text-center mb-3">오늘의 학습</p>
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <p className="text-xs text-gray-400">오늘의 학습</p>
+          {!loading && stats && stats.currentStreak > 0 && (
+            <span className="text-xs text-orange-500 font-medium flex items-center gap-1">
+              🔥 {stats.currentStreak}일 연속
+            </span>
+          )}
+        </div>
         <div className="grid grid-cols-3 gap-4">
           {loading ? (
             <>
@@ -688,15 +649,15 @@ function UnifiedMemberCard() {
           ) : (
             <>
               <div className="text-center">
-                <p className="text-2xl font-bold text-[#3B82F6]">{stats?.todayWordsLearned || 0}</p>
+                <p className="text-2xl font-bold text-[#3B82F6]" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.todayWordsLearned || 0}</p>
                 <p className="text-xs text-gray-500">오늘 학습</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-[#F59E0B]">{stats?.dueReviewCount || 0}</p>
+                <p className="text-2xl font-bold text-[#F59E0B]" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.dueReviewCount || 0}</p>
                 <p className="text-xs text-gray-500">복습 대기</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-[#10B981]">{stats?.todayFlashcardAccuracy || 0}%</p>
+                <p className="text-2xl font-bold text-[#10B981]" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.todayFlashcardAccuracy || 0}<span className="text-base font-medium ml-0.5">%</span></p>
                 <p className="text-xs text-gray-500">정답률</p>
               </div>
             </>
@@ -739,34 +700,38 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative min-h-[70vh] flex items-center overflow-hidden">
+    <section className={`relative flex items-center overflow-hidden ${isLoggedIn ? 'min-h-[50vh]' : 'min-h-[70vh]'}`}>
       <div className="absolute inset-0 hero-gradient hero-pattern" />
       <div className="absolute top-20 left-10 w-72 h-72 bg-level-beginner/10 rounded-full blur-3xl animate-float" />
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-level-intermediate/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-level-advanced/5 rounded-full blur-3xl" />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-12">
+      <div className={`relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 ${isLoggedIn ? 'py-6' : 'py-12'}`}>
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start justify-items-center lg:justify-items-start">
           {/* 왼쪽 열: 히어로 텍스트 + 데스크톱에서 학습 현황 */}
           <div className={`space-y-8 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
-              <Icons.Sparkles />
-              <span className="text-sm font-medium text-slate-600">스마트 영어 학습 플랫폼</span>
-            </div>
+            {!isLoggedIn && (
+              <>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
+                  <Icons.Sparkles />
+                  <span className="text-sm font-medium text-slate-600">스마트 영어 학습 플랫폼</span>
+                </div>
 
-            <h1 className="font-display">
-              <span className="block text-[1.75rem] sm:text-4xl md:text-display-lg text-slate-900 whitespace-nowrap">
-                영어 단어 학습의
-              </span>
-              <span className="block text-[1.75rem] sm:text-4xl md:text-display-xl text-gradient whitespace-nowrap">
-                새로운 비전
-              </span>
-            </h1>
+                <h1 className="font-display">
+                  <span className="block text-[1.75rem] sm:text-4xl md:text-display-lg text-slate-900 whitespace-nowrap">
+                    영어 단어 학습의
+                  </span>
+                  <span className="block text-[1.75rem] sm:text-4xl md:text-display-xl text-gradient whitespace-nowrap">
+                    새로운 비전
+                  </span>
+                </h1>
 
-            <p className="text-lg md:text-xl text-slate-600 max-w-xl leading-relaxed">
-              과학적으로 검증된 <strong className="text-slate-800">간격 반복 학습</strong>과{' '}
-              <strong className="text-slate-800">적응형 퀴즈</strong>로 효율적인 어휘력 향상을 경험하세요.
-            </p>
+                <p className="text-lg md:text-xl text-slate-600 max-w-xl leading-relaxed">
+                  과학적으로 검증된 <strong className="text-slate-800">간격 반복 학습</strong>과{' '}
+                  <strong className="text-slate-800">적응형 퀴즈</strong>로 효율적인 어휘력 향상을 경험하세요.
+                </p>
+              </>
+            )}
 
             {/* 로그인 시: 버튼 숨김 (오른쪽 빠른 액션으로 대체) */}
             {/* 비로그인 시: 체험 버튼 */}
