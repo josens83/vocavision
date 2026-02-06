@@ -127,11 +127,11 @@ export const getUserProgress = async (
         }
       }),
 
-      // 오늘 학습한 단어 수 (learnedAt 기준)
+      // 오늘 학습한 단어 수 (updatedAt 기준 - 복습 포함)
       prisma.userProgress.count({
         where: {
           userId,
-          learnedAt: { gte: todayStartUTC }
+          updatedAt: { gte: todayStartUTC }
         }
       }),
 
@@ -139,7 +139,7 @@ export const getUserProgress = async (
       prisma.userProgress.count({
         where: {
           userId,
-          learnedAt: { gte: todayStartUTC },
+          updatedAt: { gte: todayStartUTC },
           initialRating: { gte: 3 }
         }
       }),
@@ -1297,23 +1297,23 @@ export const getDashboardSummary = async (
         }
       }),
 
-      // 7. 오늘 학습한 단어 수 (Hero용 - 선택된 시험/레벨 기준)
+      // 7. 오늘 학습한 단어 수 (Hero용 - 선택된 시험/레벨, updatedAt 기준 - 복습 포함)
       prisma.userProgress.count({
         where: {
           userId,
           examCategory: examCategory as ExamCategory,
           level: level as string,
-          learnedAt: { gte: todayStartUTC }
+          updatedAt: { gte: todayStartUTC }
         }
       }),
 
-      // 8. 오늘 "알았음" 선택한 단어 수 (Hero용 - 선택된 시험/레벨 기준)
+      // 8. 오늘 "알았음" 선택한 단어 수 (Hero용 - 선택된 시험/레벨)
       prisma.userProgress.count({
         where: {
           userId,
           examCategory: examCategory as ExamCategory,
           level: level as string,
-          learnedAt: { gte: todayStartUTC },
+          updatedAt: { gte: todayStartUTC },
           initialRating: { gte: 3 }
         }
       }),
