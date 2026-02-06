@@ -1,18 +1,7 @@
 /** @type {import('next').NextConfig} */
 
-// Sentry configuration (optional - only if @sentry/nextjs is installed)
-let withSentryConfig;
-try {
-  withSentryConfig = require('@sentry/nextjs').withSentryConfig;
-} catch (e) {
-  // @sentry/nextjs not installed, skip Sentry integration
-  withSentryConfig = null;
-}
-
 // Phase 3-1: Bundle Optimization - Netflix/Google level
 const nextConfig = {
-  output: 'standalone',
-
   // Image optimization
   images: {
     domains: ['res.cloudinary.com', 'via.placeholder.com', 'sfqzlrsvrszdlusntdky.supabase.co'],
@@ -97,7 +86,7 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https: blob: https://res.cloudinary.com https://*.cloudinary.com https://*.supabase.co https://*.tosspayments.com",
               "media-src 'self' https:",
-              "connect-src 'self' https://api.tosspayments.com https://*.tosspayments.com https://www.google-analytics.com https://*.railway.app https://*.vercel.app https://*.supabase.co https://vercel.live https://*.vercel-insights.com https://api.dictionaryapi.dev https://*.ingest.us.sentry.io https://*.sentry.io",
+              "connect-src 'self' https://api.tosspayments.com https://*.tosspayments.com https://www.google-analytics.com https://*.railway.app https://*.vercel.app https://*.supabase.co https://vercel.live https://*.vercel-insights.com https://api.dictionaryapi.dev",
               "frame-src 'self' https://*.tosspayments.com https://vercel.live",
               "frame-ancestors 'self'",
               "base-uri 'self'",
@@ -157,17 +146,4 @@ const nextConfig = {
   },
 };
 
-// Sentry options
-const sentryWebpackPluginOptions = {
-  // Suppresses all logs
-  silent: true,
-  // Upload source maps for better error tracking
-  hideSourceMaps: true,
-  // Disable logger to reduce noise
-  disableLogger: true,
-};
-
-// Export with or without Sentry wrapper
-module.exports = withSentryConfig
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
-  : nextConfig;
+module.exports = nextConfig;
