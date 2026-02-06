@@ -114,6 +114,10 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
+        // persist storage에서 복원된 token을 authToken에도 저장
+        if (state?.token) {
+          localStorage.setItem('authToken', state.token);
+        }
       },
     }
   )
