@@ -37,6 +37,41 @@ export interface ImageGenerationResult {
   seed: number;
 }
 
+// ============================================
+// 동시 이미지 생성 제한 (메모리 관리)
+// ============================================
+
+class Semaphore {
+  private permits: number;
+  private queue: (() => void)[] = [];
+
+  constructor(permits: number) {
+    this.permits = permits;
+  }
+
+  async acquire(): Promise<void> {
+    if (this.permits > 0) {
+      this.permits--;
+      return;
+    }
+    return new Promise((resolve) => {
+      this.queue.push(resolve);
+    });
+  }
+
+  release(): void {
+    if (this.queue.length > 0) {
+      const next = this.queue.shift();
+      if (next) next();
+    } else {
+      this.permits++;
+    }
+  }
+}
+
+// 동시에 최대 2개의 이미지만 생성 (메모리 ~3MB 제한)
+const imageGenerationSemaphore = new Semaphore(2);
+
 // ---------------------------------------------
 // Stability AI Image Generation
 // ---------------------------------------------
@@ -121,13 +156,12 @@ export async function uploadToSupabase(
 
   const supabase = getSupabaseClient();
 
-  // Generate unique file path: word-images/word-type-timestamp.png
   const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const fileName = `${sanitizedWord}-${visualType.toLowerCase()}-${Date.now()}.png`;
   const filePath = `visuals/${fileName}`;
 
   // Convert base64 to Buffer
-  const buffer = Buffer.from(base64Data, 'base64');
+  let buffer: Buffer | null = Buffer.from(base64Data, 'base64');
 
   logger.info('[Supabase] Uploading file:', filePath);
 
@@ -135,9 +169,12 @@ export async function uploadToSupabase(
     .from(STORAGE_BUCKET)
     .upload(filePath, buffer, {
       contentType: 'image/png',
-      cacheControl: '31536000', // 1 year cache
+      cacheControl: '31536000',
       upsert: false,
     });
+
+  // 명시적 메모리 해제
+  buffer = null;
 
   if (error) {
     logger.error('[Supabase] Upload error:', error);
@@ -146,7 +183,6 @@ export async function uploadToSupabase(
 
   logger.info('[Supabase] Upload successful:', data.path);
 
-  // Get public URL
   const { data: urlData } = supabase.storage
     .from(STORAGE_BUCKET)
     .getPublicUrl(filePath);
@@ -169,9 +205,12 @@ export async function generateAndUploadImage(
   visualType: VisualType,
   word: string
 ): Promise<ImageGenerationResult | null> {
+  // 동시 생성 제한 - 세마포어 획득
+  await imageGenerationSemaphore.acquire();
+
   try {
     // Generate image
-    const imageResult = await generateImageWithStabilityAI(prompt, visualType);
+    let imageResult = await generateImageWithStabilityAI(prompt, visualType);
     if (!imageResult) {
       return null;
     }
@@ -179,14 +218,27 @@ export async function generateAndUploadImage(
     // Upload to Supabase Storage
     const uploadResult = await uploadToSupabase(imageResult.base64, word, visualType);
 
-    return {
+    const result = {
       imageUrl: uploadResult.url,
       publicId: uploadResult.publicId,
       seed: imageResult.seed,
     };
+
+    // 명시적 메모리 해제
+    imageResult = null as any;
+
+    // GC 힌트
+    if (global.gc) {
+      global.gc();
+    }
+
+    return result;
   } catch (error) {
     logger.error('[ImageGen] Error:', error);
     throw error;
+  } finally {
+    // 세마포어 해제 (성공/실패 무관하게 항상 실행)
+    imageGenerationSemaphore.release();
   }
 }
 
