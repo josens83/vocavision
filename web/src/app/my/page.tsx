@@ -142,7 +142,7 @@ export default function MyPage() {
             </div>
 
             {!isPremiumPlan(user) && (
-              <Link href="/pricing">
+              <Link href="/checkout?plan=premium">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 cursor-pointer hover:bg-[#ECFDF5] transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="text-xl">✨</span>

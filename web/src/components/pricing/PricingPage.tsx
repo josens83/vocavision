@@ -186,6 +186,10 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px]">
                 <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
+                <span className="font-semibold">✨ 모든 단어장(단품) 무료 이용</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px]">
+                <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
                 <span>수능 L1(기초)/L2(중급)/L3(고급) 전체</span>
               </li>
               <li className="flex items-center gap-3 text-[13px]">
