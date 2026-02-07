@@ -133,6 +133,7 @@ function RegisterContent() {
               <span className="text-2xl font-display font-bold">
                 <span className="text-brand-primary">Voca</span>
                 <span className="text-slate-700">Vision</span>
+                <span className="text-slate-400 ml-1">AI</span>
               </span>
             </div>
           </Link>

@@ -56,6 +56,7 @@ const plans: Record<PlanType, PlanInfo> = {
     name: "프리미엄",
     description: "수능 + TEPS 완벽 대비를 원하는 분께 추천",
     features: [
+      "✨ 모든 단어장(단품) 무료 이용",
       "수능 L1(기초)/L2(중급)/L3(고급) 전체",
       "TEPS L1(기본)/L2(필수) 전체",
       "AI 생성 이미지 전체",

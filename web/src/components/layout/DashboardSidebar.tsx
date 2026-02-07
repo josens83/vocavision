@@ -119,13 +119,13 @@ export default function DashboardSidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
             <span className="text-white font-bold text-xl">V</span>
           </div>
           <span className="font-bold text-xl">
             <span className="text-teal-500">Voca</span>
             <span className="text-gray-700">Vision</span>
-            <span className="text-gray-400 ml-1">AI</span>
+            <span className="text-teal-400 ml-1">AI</span>
           </span>
         </Link>
       </div>
@@ -141,7 +141,7 @@ export default function DashboardSidebar() {
                 className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
                 <span className="text-white font-medium">
                   {user.name?.charAt(0) || 'U'}
                 </span>
