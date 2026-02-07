@@ -1233,14 +1233,29 @@ export const getDashboardSummary = async (
         }
       }),
 
-      // 2. 복습 대기 단어 수 (전체 시험/레벨 합산)
-      prisma.userProgress.count({
-        where: {
-          userId,
-          needsReview: true,
-          nextReviewDate: { lte: new Date() },
-        }
-      }),
+      // 2. 복습 대기 단어 수 (shouldShowInReview 로직 적용)
+      (async () => {
+        const allCandidates = await prisma.userProgress.findMany({
+          where: {
+            userId,
+            correctCount: { lt: 2 },
+            nextReviewDate: { lte: new Date() },
+          },
+          select: {
+            correctCount: true,
+            incorrectCount: true,
+            initialRating: true,
+            learnedAt: true,
+          }
+        });
+
+        return allCandidates.filter(p => shouldShowInReview({
+          correctCount: p.correctCount,
+          incorrectCount: p.incorrectCount,
+          initialRating: p.initialRating,
+          learnedAt: p.learnedAt,
+        })).length;
+      })(),
 
       // 3. 전체 단어 수 (🚀 캐시 사용 - TTL 1시간)
       (async () => {
