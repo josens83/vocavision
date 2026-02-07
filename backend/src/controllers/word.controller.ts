@@ -8,6 +8,16 @@ import appCache from '../lib/cache';
 // 현재 서비스 중인 시험 카테고리 (CSAT, TEPS, CSAT_2026 - 나머지는 준비중)
 const ACTIVE_EXAM_CATEGORIES: ExamCategory[] = ['CSAT', 'TEPS', 'CSAT_2026'];
 
+// 구독 티어별 접근 가능한 시험 카테고리
+function getAccessibleExams(subscriptionPlan: string | null, subscriptionStatus: string | null): ExamCategory[] {
+  const isPremium = subscriptionPlan === 'YEARLY' || subscriptionPlan === 'FAMILY';
+  if (isPremium) {
+    return ACTIVE_EXAM_CATEGORIES; // 전체
+  }
+  // BASIC, FREE: TEPS 제외
+  return ACTIVE_EXAM_CATEGORIES.filter(e => e !== 'TEPS');
+}
+
 export const getWords = async (
   req: Request,
   res: Response,
@@ -71,10 +81,23 @@ export const getWords = async (
         some: examLevelFilter,
       };
     } else {
-      // examCategory/level 없이 전체 조회 시 서비스 중인 시험(CSAT, TEPS)만 표시
+      // examCategory/level 없이 전체 조회 시 사용자 접근 가능한 시험만 표시
+      let accessibleExams = ACTIVE_EXAM_CATEGORIES;
+      if (userId) {
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { subscriptionPlan: true, subscriptionStatus: true },
+        });
+        if (user) {
+          accessibleExams = getAccessibleExams(user.subscriptionPlan, user.subscriptionStatus);
+        }
+      } else {
+        // 비로그인: TEPS 제외
+        accessibleExams = ACTIVE_EXAM_CATEGORIES.filter(e => e !== 'TEPS');
+      }
       where.examLevels = {
         some: {
-          examCategory: { in: ACTIVE_EXAM_CATEGORIES },
+          examCategory: { in: accessibleExams },
         },
       };
     }
