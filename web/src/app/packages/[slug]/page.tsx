@@ -123,7 +123,7 @@ export default function PackageDetailPage() {
             <p className="text-xl text-white/90 mb-8 max-w-2xl">
               {packageInfo.description || packageInfo.shortDesc ||
                 (slug === '2026-csat-analysis'
-                  ? '2026학년도 수능 영어영역 기출 단어 382개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
+                  ? '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
                   : '고득점을 위한 필수 단어장')}
             </p>
 
@@ -197,11 +197,11 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>382개</strong> 2026 수능 영어 기출 단어</span>
+                        <span><strong>521개</strong> 2026 수능 영어 기출 단어</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>유형별 분류:</strong> 듣기영역 100개 / 독해영역 2점 191개 / 독해영역 3점 91개</span>
+                        <span><strong>유형별 분류:</strong> 듣기영역 132개 / 독해영역 2점 265개 / 독해영역 3점 124개</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />

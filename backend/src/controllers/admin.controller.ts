@@ -450,20 +450,34 @@ export const createAdminWord = async (
       return res.status(400).json({ message: 'Word already exists' });
     }
 
+    const exam = examCategory || 'CSAT';
+    const wordLevel = level || 'L1';
+
     const newWord = await prisma.word.create({
       data: {
         word,
         definition: definition || '',
         definitionKo,
         partOfSpeech: partOfSpeech || 'NOUN',
-        examCategory: examCategory || 'CSAT',
+        examCategory: exam,
         cefrLevel: cefrLevel || 'B1',
         difficulty: difficulty || 'INTERMEDIATE',
-        level: level || 'L1',
+        level: wordLevel,
         frequency: frequency || 100,
         pronunciation,
         ipaUs,
         ipaUk,
+        status: 'DRAFT',
+      },
+    });
+
+    // WordExamLevel 매핑 생성 (시험/레벨 필터에서 검색 가능하도록)
+    await prisma.wordExamLevel.create({
+      data: {
+        wordId: newWord.id,
+        examCategory: exam,
+        level: wordLevel,
+        frequency: frequency || 0,
         status: 'DRAFT',
       },
     });
