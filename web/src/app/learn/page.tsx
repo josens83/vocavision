@@ -845,6 +845,9 @@ function LearnPageContent() {
     }
   };
 
+  // 모드에 따른 나가기 경로
+  const exitPath = (isReviewMode || isBookmarksMode) ? '/review' : (user ? '/dashboard' : '/');
+
   // 나가기 버튼 핸들러 - 현재 진행 위치를 서버에 저장
   const handleExit = async () => {
     // 서버 세션이 있으면 현재 위치 저장
@@ -860,7 +863,7 @@ function LearnPageContent() {
     }
     // 대시보드 캐시 무효화 (학습 데이터 갱신)
     invalidateDashboard(examParam, levelParam || undefined);
-    router.push(user ? '/dashboard' : '/');
+    router.push(exitPath);
   };
 
   // beforeunload 이벤트 - 페이지 떠날 때 진행 위치 저장
@@ -925,7 +928,7 @@ function LearnPageContent() {
             <button
               onClick={() => {
                 invalidateDashboard(examParam, levelParam || undefined);
-                router.push('/dashboard');
+                router.push(exitPath);
               }}
               className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
@@ -961,7 +964,7 @@ function LearnPageContent() {
             <button
               onClick={() => {
                 invalidateDashboard(examParam, levelParam || undefined);
-                router.push('/dashboard');
+                router.push(exitPath);
               }}
               className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
@@ -1030,10 +1033,10 @@ function LearnPageContent() {
                 다시 시도
               </button>
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push(exitPath)}
                 className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium"
               >
-                대시보드로 돌아가기
+                돌아가기
               </button>
             </div>
           </div>
@@ -1151,7 +1154,7 @@ function LearnPageContent() {
             <button
               onClick={() => {
                 invalidateDashboard(examParam, levelParam || undefined);
-                router.push('/dashboard');
+                router.push(exitPath);
               }}
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
             >
@@ -1188,7 +1191,7 @@ function LearnPageContent() {
           score={wordsCorrect}
           total={wordsStudied}
           onRetry={handleRestart}
-          onHome={() => router.push(user ? '/dashboard' : '/')}
+          onHome={() => router.push(exitPath)}
           onNext={user && hasMoreWords && examParam && !serverSession ? handleNextBatch : undefined}
           isGuest={!user}
           totalProgress={user && totalWordsInLevel > 0 ? {

@@ -254,6 +254,25 @@ export const getDueReviews = async (
               word: true,
               definitionKo: true,
               definition: true,
+              visuals: {
+                select: {
+                  id: true,
+                  imageUrl: true,
+                  captionKo: true,
+                  type: true,
+                },
+                orderBy: { order: 'asc' },
+                take: 1,
+              },
+              examples: {
+                select: {
+                  id: true,
+                  sentence: true,
+                  translation: true,
+                },
+                orderBy: { order: 'asc' },
+                take: 2,
+              },
             }
           }
         },
