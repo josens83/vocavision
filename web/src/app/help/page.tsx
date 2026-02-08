@@ -286,11 +286,11 @@ const featureDetails = [
 // Spaced Repetition Timeline Data
 // ============================================
 const reviewTimeline = [
-  { day: 'Day 1', label: '첫 학습', active: true },
-  { day: 'Day 3', label: '1차 복습', active: false },
-  { day: 'Day 7', label: '2차 복습', active: false },
-  { day: 'Day 14', label: '3차 복습', active: false },
-  { day: 'Day 30', label: '장기 기억', active: false },
+  { day: 'Day 0', label: '첫 학습', active: true },
+  { day: 'Day 1', label: '복습 ①', active: false },
+  { day: 'Day 3', label: '복습 ②', active: false },
+  { day: 'Day 4', label: '복습 ③', active: false },
+  { day: '완료', label: '2회 정답', active: false },
 ];
 
 // ============================================
@@ -357,7 +357,7 @@ function FlashcardDemo() {
       {/* Swipe hint */}
       <div className="flex items-center justify-center gap-4 mt-4 text-gray-400 text-sm">
         <span>←</span>
-        <span>탭하여 뒤집기</span>
+        <span>스와이프하여 넘기기</span>
         <span>→</span>
       </div>
     </div>
@@ -555,19 +555,24 @@ export default function HelpPage() {
 
               <div className="mt-8 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                 <h3 className="font-semibold text-gray-800 mb-3 text-center">조작 방법</h3>
-                <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                <div className="grid grid-cols-2 gap-2 text-center text-sm">
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="text-xl mb-1">👆</div>
-                    <p className="text-gray-600">탭하여<br/>뒤집기</p>
+                    <p className="text-gray-600">정답 보기<br/>버튼 클릭</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="text-xl mb-1">👈👉</div>
                     <p className="text-gray-600">스와이프로<br/>넘기기</p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-xl mb-1">⌨️</div>
-                    <p className="text-gray-600">방향키<br/>지원</p>
-                  </div>
+                </div>
+
+                <div className="mt-4 bg-blue-50 rounded-lg p-3 text-center">
+                  <p className="text-blue-700 text-sm font-medium">
+                    📦 1세트 = 20개 단어
+                  </p>
+                  <p className="text-blue-600 text-xs mt-1">
+                    한 세트씩 완료하며 학습하세요
+                  </p>
                 </div>
               </div>
             </div>
@@ -618,15 +623,15 @@ export default function HelpPage() {
                 <div className="mt-6 space-y-2 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-500" />
-                    <span>틀린 단어는 더 자주 복습</span>
+                    <span>2일 학습 / 1일 휴식 패턴</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-500" />
-                    <span>암기 완료 단어는 간격 늘림</span>
+                    <span>2회 정답 시 완전 암기 처리</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-purple-500" />
-                    <span>AI가 최적 복습 시점 자동 계산</span>
+                    <span>쉬운 단어는 D+3에만 복습</span>
                   </div>
                 </div>
               </div>
@@ -648,32 +653,17 @@ export default function HelpPage() {
                 VocaVision AI와 함께 영어 단어를 정복하세요
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link
-                  href="/learn?exam=CSAT&level=L1"
-                  className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
-                >
-                  수능 단어 학습하기
-                  <Icons.ChevronRight />
-                </Link>
-                <Link
-                  href="/learn?exam=TEPS&level=L1"
-                  className="inline-flex items-center justify-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-full font-medium hover:bg-purple-700 transition-colors shadow-lg shadow-purple-200"
-                >
-                  TEPS 단어 학습하기
-                  <Icons.ChevronRight />
-                </Link>
-              </div>
+              <Link
+                href="/auth/register"
+                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500 to-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:opacity-90 transition-opacity shadow-lg"
+              >
+                무료로 시작하기
+                <Icons.ChevronRight />
+              </Link>
 
-              <div className="mt-6">
-                <Link
-                  href="/learn?exam=CSAT&level=L1&demo=true"
-                  className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  <Icons.Play />
-                  <span>60초 맛보기 체험</span>
-                </Link>
-              </div>
+              <p className="mt-4 text-sm text-gray-400">
+                회원가입 후 수능 L1 무료 체험 가능
+              </p>
             </div>
           </section>
         </AnimatedSection>
