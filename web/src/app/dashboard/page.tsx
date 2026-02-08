@@ -207,13 +207,24 @@ function DashboardContent() {
     }
   }, [hasHydrated, examHasHydrated, searchParams, setActiveExam, setActiveLevel]);
 
-  // CSAT_2026 접근권한 없으면 CSAT으로 fallback (프리미엄도 접근 가능)
+  // CSAT_2026/TEPS 접근권한 없으면 CSAT으로 fallback
   useEffect(() => {
-    if (hasHydrated && activeExam === 'CSAT_2026' && !hasCsat2026Access && !isPremium) {
+    if (!hasHydrated) return;
+
+    // CSAT_2026 접근 불가 → CSAT으로 fallback
+    if (activeExam === 'CSAT_2026' && !hasCsat2026Access && !isPremium) {
       setActiveExam('CSAT' as ExamType);
       setActiveLevel('L1');
+      return;
     }
-  }, [hasHydrated, activeExam, hasCsat2026Access, isPremium, setActiveExam, setActiveLevel]);
+
+    // TEPS 접근 불가 (프리미엄 아님) → CSAT으로 fallback
+    if (activeExam === 'TEPS' && !canAccessExam('TEPS')) {
+      setActiveExam('CSAT' as ExamType);
+      setActiveLevel('L1');
+      return;
+    }
+  }, [hasHydrated, activeExam, hasCsat2026Access, isPremium, canAccessExam, setActiveExam, setActiveLevel]);
 
   // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
   // 하이드레이션 후 activeLevel이 없으면 L1 자동 설정
