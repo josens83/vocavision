@@ -9,7 +9,9 @@
     "lint": "next lint",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
@@ -32,7 +34,12 @@
     "react-hook-form": "^7.49.2",
     "tailwind-merge": "^2.2.0",
     "zod": "^4.1.13",
-    "zustand": "^4.4.7"
+    "zustand": "^4.4.7",
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/app": "^6.0.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/splash-screen": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.1",
@@ -43,6 +50,7 @@
     "postcss": "^8.4.32",
     "sharp": "^0.34.5",
     "tailwindcss": "3.4.17",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@capacitor/cli": "^6.2.0"
   }
 }

@@ -91,3 +91,14 @@ backup/
 tmp/
 temp/
 *.tmp
+
+# Capacitor Android
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+*.keystore
+
+# Capacitor iOS (future)
+ios/App/Pods/
+ios/App/build/
