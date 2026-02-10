@@ -52,6 +52,9 @@ export const metadata: Metadata = {
     },
   },
 
+  // ✅ 이 한 줄 추가
+  manifest: '/manifest.json',
+
   // Open Graph (소셜 공유)
   openGraph: {
     type: 'website',
