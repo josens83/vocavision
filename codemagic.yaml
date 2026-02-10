@@ -19,10 +19,27 @@ workflows:
         script: |
           cd web
           npx cap sync android
-      - name: Build Android AAB
+      - name: Generate keystore
+        script: |
+          keytool -genkeypair \
+            -v \
+            -storetype JKS \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass vocavision2026 \
+            -keypass vocavision2026 \
+            -alias vocavision \
+            -keystore /tmp/vocavision.jks \
+            -dname "CN=VocaVision AI, OU=Dev, O=Unipath, L=Seoul, ST=Seoul, C=KR"
+      - name: Build signed Android AAB
         script: |
           cd web/android
           chmod +x gradlew
-          ./gradlew bundleRelease
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file=/tmp/vocavision.jks \
+            -Pandroid.injected.signing.store.password=vocavision2026 \
+            -Pandroid.injected.signing.key.alias=vocavision \
+            -Pandroid.injected.signing.key.password=vocavision2026
     artifacts:
       - web/android/app/build/outputs/**/*.aab
