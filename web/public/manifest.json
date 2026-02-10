@@ -1,0 +1,23 @@
+{
+  "name": "VocaVision AI",
+  "short_name": "VocaVision",
+  "description": "AI 기반 스마트 영어 단어 학습 플랫폼",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#14b8a6",
+  "lang": "ko",
+  "scope": "/",
+  "id": "/",
+  "icons": [
+    {
+      "src": "/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education"],
+  "prefer_related_applications": false
+}
