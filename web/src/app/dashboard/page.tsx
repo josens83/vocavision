@@ -43,7 +43,7 @@ const examInfo: Record<string, { name: string; icon: string; color: string }> = 
   EBS: { name: 'EBS 연계', icon: '📗', color: 'green' },
 };
 
-// Get valid level for exam (TEPS only has L1, L2; EBS is single level)
+// Get valid level for exam
 const getValidLevelForExam = (exam: string, level: string): string => {
   if (exam === 'TEPS') {
     return ['L1', 'L2'].includes(level) ? level : 'L1';
@@ -52,7 +52,7 @@ const getValidLevelForExam = (exam: string, level: string): string => {
     return ['LISTENING', 'READING_2', 'READING_3'].includes(level) ? level : 'LISTENING';
   }
   if (exam === 'EBS') {
-    return 'L1'; // EBS는 단일 레벨
+    return ['LISTENING', 'READING_BASIC', 'READING_ADV'].includes(level) ? level : 'LISTENING';
   }
   return ['L1', 'L2', 'L3'].includes(level) ? level : 'L1';
 };
@@ -78,7 +78,12 @@ const getLevelInfo = (exam: string, level: string) => {
   }
 
   if (exam === 'EBS') {
-    return { name: '전체', description: 'EBS 수능특강·수능완성 연계어휘', target: '연계 완벽 대비', wordCount: 3837 };
+    const ebsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
+      LISTENING: { name: '듣기영역', description: 'EBS 수능특강 영어듣기', target: '듣기 연계 대비', wordCount: 1325 },
+      READING_BASIC: { name: '독해 기본', description: 'EBS 수능특강 영어', target: '독해 기본 대비', wordCount: 1449 },
+      READING_ADV: { name: '독해 실력', description: 'EBS 수능특강 영어독해연습', target: '독해 심화 대비', wordCount: 1800 },
+    };
+    return ebsLevels[level] || ebsLevels.LISTENING;
   }
 
   const defaultLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
@@ -204,7 +209,7 @@ function DashboardContent() {
     if (!examParam) return; // 쿼리 파라미터 없으면 Zustand 기존값 유지 (재방문 시나리오)
 
     // 유효한 시험인지 확인
-    const validExams = ['CSAT', 'TEPS', 'CSAT_2026'];
+    const validExams = ['CSAT', 'TEPS', 'CSAT_2026', 'EBS'];
     if (validExams.includes(examParam)) {
       setActiveExam(examParam as ExamType);
 
@@ -456,11 +461,13 @@ function DashboardContent() {
             {(hasEbsAccess || isPremium) && (
               <button
                 onMouseEnter={() => {
-                  prefetchDashboard('EBS', 'L1');
+                  const lastLevel = localStorage.getItem('dashboard_EBS_level') || 'LISTENING';
+                  prefetchDashboard('EBS', lastLevel);
                 }}
                 onClick={() => {
                   setActiveExam('EBS' as ExamType);
-                  setActiveLevel('L1' as 'L1' | 'L2' | 'L3');
+                  const lastLevel = localStorage.getItem('dashboard_EBS_level') || 'LISTENING';
+                  setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
                 }}
                 className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
                   selectedExam === 'EBS'
@@ -475,11 +482,10 @@ function DashboardContent() {
           </div>
         </section>
 
-        {/* 레벨/유형 선택 섹션 (EBS는 단일 레벨이라 숨김) */}
-        {selectedExam !== 'EBS' && (
+        {/* 레벨/유형 선택 섹션 */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {selectedExam === 'CSAT_2026' ? '유형 선택' : '레벨 선택'}
+            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : '레벨 선택'}
           </h3>
 
           <div className="flex gap-3">
@@ -487,17 +493,23 @@ function DashboardContent() {
               ? ['LISTENING', 'READING_2', 'READING_3'] as const
               : selectedExam === 'TEPS'
                 ? ['L1', 'L2'] as const
-                : ['L1', 'L2', 'L3'] as const
+                : selectedExam === 'EBS'
+                  ? ['LISTENING', 'READING_BASIC', 'READING_ADV'] as const
+                  : ['L1', 'L2', 'L3'] as const
             ).map((lvl) => {
-              const isLocked = selectedExam !== 'CSAT_2026' && !canAccessLevel(selectedExam, lvl as 'L1' | 'L2' | 'L3');
+              const isLocked = (selectedExam !== 'CSAT_2026' && selectedExam !== 'EBS') && !canAccessLevel(selectedExam, lvl as 'L1' | 'L2' | 'L3');
               const levelLabel = selectedExam === 'CSAT_2026'
                 ? (lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_2' ? '독해 2점' : '독해 3점')
-                : selectedExam === 'TEPS'
-                  ? (lvl === 'L1' ? '기본' : '필수')
-                  : (lvl === 'L1' ? '기초' : lvl === 'L2' ? '중급' : '고급');
+                : selectedExam === 'EBS'
+                  ? (lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_BASIC' ? '독해 기본' : '독해 실력')
+                  : selectedExam === 'TEPS'
+                    ? (lvl === 'L1' ? '기본' : '필수')
+                    : (lvl === 'L1' ? '기초' : lvl === 'L2' ? '중급' : '고급');
               const displayName = selectedExam === 'CSAT_2026'
                 ? (lvl === 'LISTENING' ? '듣기' : lvl === 'READING_2' ? '2점' : '3점')
-                : lvl;
+                : selectedExam === 'EBS'
+                  ? (lvl === 'LISTENING' ? '듣기' : lvl === 'READING_BASIC' ? '기본' : '실력')
+                  : lvl;
               return (
                 <button
                   key={lvl}
@@ -518,15 +530,15 @@ function DashboardContent() {
                     isLocked
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : selectedLevel === lvl
-                      ? selectedExam === 'CSAT_2026' ? 'bg-emerald-500 text-white' : 'bg-blue-500 text-white'
+                      ? selectedExam === 'CSAT_2026' ? 'bg-emerald-500 text-white'
+                        : selectedExam === 'EBS' ? 'bg-green-500 text-white'
+                        : 'bg-blue-500 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  {selectedExam === 'CSAT_2026' ? (
-                    // CSAT_2026: 한 줄로 표시
-                    <span className="font-semibold text-sm">
-                      {lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_2' ? '독해영역 2점' : '독해영역 3점'}
-                    </span>
+                  {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? (
+                    // CSAT_2026/EBS: 한 줄로 표시
+                    <span className="font-semibold text-sm">{levelLabel}</span>
                   ) : (
                     // 기존 CSAT/TEPS: 두 줄 유지
                     <>
@@ -546,7 +558,6 @@ function DashboardContent() {
             })}
           </div>
         </section>
-        )}
 
         {/* 바로 학습 이어가기 카드 (전체 너비) */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">

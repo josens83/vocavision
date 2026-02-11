@@ -40,7 +40,7 @@ function getStaticPackages(): ProductPackage[] {
       id: "static-2",
       name: "EBS 연계어휘",
       slug: "ebs-vocab",
-      shortDesc: "EBS 수능특강, 수능완성 연계 어휘 완벽 마스터",
+      shortDesc: "3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 완벽 대비",
       price: 3900,
       durationDays: 180, // 6개월
       badge: "NEW",

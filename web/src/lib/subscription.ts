@@ -144,12 +144,13 @@ export function canAccessContent(user: User | null, exam: string, level: string)
 export function getAccessibleLevels(user: User | null): { CSAT: string[]; TEPS: string[]; EBS: string[] } {
   const tier = getSubscriptionTier(user);
 
-  // EBS는 단품 구매로 접근
-  const ebsLevels = hasPurchasedExam(user, 'EBS') || tier === 'PREMIUM' ? ['L1'] : [];
+  // EBS는 단품 구매로 접근 (3개 교재별 레벨)
+  const ebsLevels = hasPurchasedExam(user, 'EBS') || tier === 'PREMIUM'
+    ? ['LISTENING', 'READING_BASIC', 'READING_ADV'] : [];
 
   switch (tier) {
     case 'PREMIUM':
-      return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'], EBS: ['L1'] };
+      return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'], EBS: ['LISTENING', 'READING_BASIC', 'READING_ADV'] };
     case 'BASIC':
       return { CSAT: ['L1', 'L2', 'L3'], TEPS: [], EBS: ebsLevels };
     case 'FREE':

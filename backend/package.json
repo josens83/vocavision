@@ -20,6 +20,7 @@
     "seed:teps-l1": "tsx prisma/seed-teps-l1.ts",
     "seed:teps-l2": "tsx prisma/seed-teps-l2.ts",
     "seed:teps-l3": "tsx prisma/seed-teps-l3.ts",
+    "seed:ebs-levels": "tsx prisma/seed-ebs-levels.ts",
     "generate-images": "tsx src/scripts/generateImages.ts",
     "test": "jest",
     "lint": "eslint src --ext .ts",
