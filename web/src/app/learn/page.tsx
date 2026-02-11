@@ -62,6 +62,14 @@ const getLevelName = (exam: string, level: string): string => {
       default: return level;
     }
   }
+  if (exam === 'EBS') {
+    switch (level) {
+      case 'LISTENING': return '듣기영역';
+      case 'READING_BASIC': return '독해기본';
+      case 'READING_ADV': return '독해실력';
+      default: return level;
+    }
+  }
   if (exam === 'TEPS') {
     // TEPS는 L1, L2만 (L3 없음)
     return level === 'L1' ? 'L1(기본)' : 'L2(필수)';
@@ -168,19 +176,23 @@ function LearnPageContent() {
 
     const checkAccess = async () => {
       if (user && examParam && levelParam) {
-        // CSAT_2026은 단품 구매 체크 (구독 체크 완전 우회)
-        if (examParam === 'CSAT_2026') {
+        // 단품 구매 상품: CSAT_2026, EBS (프리미엄 또는 구매 확인)
+        const packageSlugMap: Record<string, string> = {
+          'CSAT_2026': '2026-csat-analysis',
+          'EBS': 'ebs-vocab',
+        };
+        const packageSlug = packageSlugMap[examParam];
+
+        if (packageSlug) {
           try {
-            const response = await api.get('/packages/check-access?slug=2026-csat-analysis');
+            const response = await api.get(`/packages/check-access?slug=${packageSlug}`);
             if (!response.data?.hasAccess) {
               setPackageBlocked(true);
             }
           } catch (error) {
-            // API 에러 시 차단 (안전하게 처리)
             console.error('Package access check failed:', error);
             setPackageBlocked(true);
           }
-          // CSAT_2026은 여기서 끝 - 구독 체크 하지 않음
           return;
         }
 
@@ -905,9 +917,14 @@ function LearnPageContent() {
     return <LearnPageLoading />;
   }
 
-  // 단품 구매 필요 (CSAT_2026)
+  // 단품 구매 필요 (CSAT_2026, EBS 등)
   if (packageBlocked && user) {
     const levelName = examParam && levelParam ? getLevelName(examParam, levelParam) : levelParam;
+    const packageInfo: Record<string, { name: string; slug: string }> = {
+      'CSAT_2026': { name: '2026 수능기출완전분석', slug: '2026-csat-analysis' },
+      'EBS': { name: 'EBS 연계 어휘', slug: 'ebs-vocab' },
+    };
+    const pkg = packageInfo[examParam || ''] || { name: examParam, slug: '' };
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
@@ -915,12 +932,12 @@ function LearnPageContent() {
           <div className="text-6xl mb-4">📦</div>
           <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">단품 구매가 필요합니다</h2>
           <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
-            <strong>2026 수능기출완전분석 {levelName}</strong> 콘텐츠는<br />
+            <strong>{pkg.name} {levelName}</strong> 콘텐츠는<br />
             단품 구매 후 이용 가능합니다.
           </p>
           <div className="space-y-3">
             <a
-              href="/packages/2026-csat-analysis"
+              href={`/packages/${pkg.slug}`}
               className="block w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-[14px] rounded-xl hover:opacity-90 transition shadow-[0_4px_12px_rgba(16,185,129,0.3)]"
             >
               상품 보기
@@ -942,7 +959,8 @@ function LearnPageContent() {
 
   // 구독 제한으로 접근 차단
   if (accessBlocked && user) {
-    const examName = examParam === 'TEPS' ? 'TEPS' : '수능';
+    const examNameMap: Record<string, string> = { 'CSAT': '수능', 'TEPS': 'TEPS', 'EBS': 'EBS 연계', 'CSAT_2026': '2026 기출' };
+    const examName = examNameMap[examParam || ''] || '수능';
     const levelName = examParam && levelParam ? getLevelName(examParam, levelParam) : levelParam;
 
     return (
