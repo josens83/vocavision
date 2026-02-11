@@ -128,6 +128,10 @@ export function canAccessExam(user: User | null, exam: string): boolean {
   if (exam === 'TEPS') {
     return getSubscriptionTier(user) === 'PREMIUM';
   }
+  // EBS, CSAT_2026: 프리미엄 또는 단품 구매
+  if (exam === 'EBS' || exam === 'CSAT_2026') {
+    return getSubscriptionTier(user) === 'PREMIUM' || hasPurchasedExam(user, exam);
+  }
   return false;
 }
 
@@ -138,6 +142,10 @@ export function canAccessLevel(user: User | null, level: string): boolean {
 }
 
 export function canAccessContent(user: User | null, exam: string, level: string): boolean {
+  // EBS, CSAT_2026: 시험 접근 가능하면 전체 레벨 접근 가능 (레벨 체크 불필요)
+  if (exam === 'EBS' || exam === 'CSAT_2026') {
+    return canAccessExam(user, exam);
+  }
   return canAccessExam(user, exam) && canAccessLevel(user, level);
 }
 
