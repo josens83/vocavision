@@ -4205,9 +4205,10 @@ router.post('/migrate-word-pool', async (req, res) => {
           const record = records[0];
           await prisma.wordExamLevel.upsert({
             where: {
-              wordId_examCategory: {
+              wordId_examCategory_level: {
                 wordId: record.id,
                 examCategory: record.examCategory,
+                level: record.level || 'L1',
               },
             },
             create: {
@@ -4243,9 +4244,10 @@ router.post('/migrate-word-pool', async (req, res) => {
           for (const record of records) {
             await prisma.wordExamLevel.upsert({
               where: {
-                wordId_examCategory: {
+                wordId_examCategory_level: {
                   wordId: master.id,
                   examCategory: record.examCategory,
+                  level: record.level || 'L1',
                 },
               },
               create: {
