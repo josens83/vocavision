@@ -183,11 +183,12 @@ model Word {
 
 // 단어-시험-레벨 매핑 테이블 (다중 시험 지원)
 // 예: "abandon"이 CSAT-L1, TEPS-L2에 동시에 속할 수 있음
+// EBS는 한 단어가 여러 교재(레벨)에 동시에 속할 수 있음
 model WordExamLevel {
   id           String        @id @default(uuid())
   wordId       String
   examCategory ExamCategory
-  level        String?       // L1, L2, L3 (nullable for CSAT_BASIC, EBS)
+  level        String?       // L1, L2, L3, LISTENING, READING_BASIC, READING_ADV 등
   frequency    Int           @default(0)  // 시험별 빈도
   status       ContentStatus @default(DRAFT)  // 시험별 발행 상태
 
@@ -196,7 +197,7 @@ model WordExamLevel {
 
   word         Word          @relation(fields: [wordId], references: [id], onDelete: Cascade)
 
-  @@unique([wordId, examCategory])  // 단어당 시험은 하나의 레벨만
+  @@unique([wordId, examCategory, level])  // 단어+시험+레벨 복합 유니크
   @@index([wordId])
   @@index([examCategory])
   @@index([level])

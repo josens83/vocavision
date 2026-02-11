@@ -87,7 +87,9 @@ const getLevelInfo = (exam: string): Record<string, { name: string; description:
   }
   if (exam === 'EBS') {
     return {
-      L1: { name: '전체', description: 'EBS 수능특강·수능완성 연계어휘' },
+      LISTENING: { name: '듣기영역', description: 'EBS 수능특강 영어듣기' },
+      READING_BASIC: { name: '독해 기본', description: 'EBS 수능특강 영어' },
+      READING_ADV: { name: '독해 실력', description: 'EBS 수능특강 영어독해연습' },
     };
   }
   return {
@@ -213,7 +215,7 @@ function ReviewPageContent() {
       : exam === 'CSAT_2026'
       ? ['LISTENING', 'READING_2', 'READING_3']
       : exam === 'EBS'
-      ? ['L1']
+      ? ['LISTENING', 'READING_BASIC', 'READING_ADV']
       : ['L1', 'L2', 'L3'];
     const level = lastLevel && validLevels.includes(lastLevel) ? lastLevel : validLevels[0];
     setActiveLevel(level as 'L1' | 'L2' | 'L3');
@@ -236,7 +238,7 @@ function ReviewPageContent() {
   // EBS 접근 권한 없으면 CSAT으로 폴백
   useEffect(() => {
     if (activeExam === 'EBS' && !(hasEbsAccess || isPremium)) {
-      setActiveExam('CSAT');
+      setActiveExam('CSAT' as ExamType);
       setActiveLevel('L1');
     }
   }, [activeExam, hasEbsAccess, isPremium]);
@@ -372,7 +374,7 @@ function ReviewPageContent() {
                   onMouseEnter={() => {
                     if (!isLocked) {
                       const lastLevel = localStorage.getItem(`review_${key}_level`) || 'L1';
-                      const validLevels = key === 'TEPS' ? ['L1', 'L2'] : key === 'CSAT_2026' ? ['LISTENING', 'READING_2', 'READING_3'] : key === 'EBS' ? ['L1'] : ['L1', 'L2', 'L3'];
+                      const validLevels = key === 'TEPS' ? ['L1', 'L2'] : key === 'CSAT_2026' ? ['LISTENING', 'READING_2', 'READING_3'] : key === 'EBS' ? ['LISTENING', 'READING_BASIC', 'READING_ADV'] : ['L1', 'L2', 'L3'];
                       const level = validLevels.includes(lastLevel) ? lastLevel : validLevels[0];
                       prefetchReviews(key, level);
                     }
@@ -407,11 +409,10 @@ function ReviewPageContent() {
           </div>
         </section>
 
-        {/* 레벨/유형 선택 (은행 앱 스타일) - EBS는 단일 레벨이므로 숨김 */}
-        {selectedExam !== 'EBS' && (
+        {/* 레벨/유형 선택 (은행 앱 스타일) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">
-            {selectedExam === 'CSAT_2026' ? '유형 선택' : '레벨 선택'}
+            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : '레벨 선택'}
           </h3>
 
           <div className="flex gap-3">
@@ -436,12 +437,12 @@ function ReviewPageContent() {
                     isLocked
                       ? 'bg-gray-100 text-[#999999] cursor-not-allowed'
                       : selectedLevel === key
-                      ? 'bg-[#3B82F6] text-white shadow-sm'
+                      ? selectedExam === 'EBS' ? 'bg-[#10B981] text-white shadow-sm' : 'bg-[#3B82F6] text-white shadow-sm'
                       : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                   }`}
                 >
-                  {selectedExam === 'CSAT_2026' ? (
-                    // CSAT_2026: 한 줄로 표시 (Dashboard와 동일)
+                  {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? (
+                    // CSAT_2026/EBS: 한 줄로 표시
                     <span className="font-semibold text-sm">{info.name}</span>
                   ) : (
                     // 기존 CSAT/TEPS: 두 줄 유지
@@ -466,7 +467,6 @@ function ReviewPageContent() {
             })}
           </div>
         </section>
-        )}
 
         {/* 복습 현황 카드 (은행 앱 스타일) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">

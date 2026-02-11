@@ -5,8 +5,8 @@ import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
 import appCache from '../lib/cache';
 
-// 현재 서비스 중인 시험 카테고리 (CSAT, TEPS, CSAT_2026 - 나머지는 준비중)
-const ACTIVE_EXAM_CATEGORIES: ExamCategory[] = ['CSAT', 'TEPS', 'CSAT_2026'];
+// 현재 서비스 중인 시험 카테고리
+const ACTIVE_EXAM_CATEGORIES: ExamCategory[] = ['CSAT', 'TEPS', 'CSAT_2026', 'EBS'];
 
 // 구독 티어별 접근 가능한 시험 카테고리
 function getAccessibleExams(subscriptionPlan: string | null, subscriptionStatus: string | null): ExamCategory[] {

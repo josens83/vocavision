@@ -95,6 +95,7 @@ export default function AdminImagesPage() {
 
   // Filters
   const [examCategory, setExamCategory] = useState('');
+  const [level, setLevel] = useState('');
   const [imageType, setImageType] = useState('');
   const [search, setSearch] = useState('');
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -128,7 +129,7 @@ export default function AdminImagesPage() {
     if (user) {
       loadWords();
     }
-  }, [user, pagination.page, examCategory, imageType]);
+  }, [user, pagination.page, examCategory, level, imageType]);
 
   // Debounced search
   useEffect(() => {
@@ -158,6 +159,7 @@ export default function AdminImagesPage() {
       params.set('page', String(pagination.page));
       params.set('limit', String(pagination.limit));
       if (examCategory) params.set('examCategory', examCategory);
+      if (level) params.set('level', level);
       if (imageType) params.set('imageType', imageType);
       if (search) params.set('search', search);
 
@@ -433,12 +435,13 @@ export default function AdminImagesPage() {
             <span className="text-xl">🔍</span>
             <h2 className="text-lg font-semibold text-slate-900">필터</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Select
               label="시험 유형"
               value={examCategory}
               onChange={(e) => {
                 setExamCategory(e.target.value);
+                setLevel(''); // 시험 변경 시 레벨 초기화
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
               options={[
@@ -449,6 +452,36 @@ export default function AdminImagesPage() {
                 { value: 'TOEFL', label: 'TOEFL' },
                 { value: 'EBS', label: 'EBS' },
               ]}
+            />
+            <Select
+              label="레벨"
+              value={level}
+              onChange={(e) => {
+                setLevel(e.target.value);
+                setPagination((prev) => ({ ...prev, page: 1 }));
+              }}
+              options={
+                examCategory === 'EBS'
+                  ? [
+                      { value: '', label: '전체' },
+                      { value: 'LISTENING', label: '듣기영역' },
+                      { value: 'READING_BASIC', label: '독해 기본' },
+                      { value: 'READING_ADV', label: '독해 실력' },
+                    ]
+                  : examCategory === 'CSAT_2026'
+                  ? [
+                      { value: '', label: '전체' },
+                      { value: 'LISTENING', label: '듣기영역' },
+                      { value: 'READING_2', label: '독해 2점' },
+                      { value: 'READING_3', label: '독해 3점' },
+                    ]
+                  : [
+                      { value: '', label: '전체' },
+                      { value: 'L1', label: 'L1' },
+                      { value: 'L2', label: 'L2' },
+                      { value: 'L3', label: 'L3' },
+                    ]
+              }
             />
             <Select
               label="이미지 유형"
@@ -476,6 +509,7 @@ export default function AdminImagesPage() {
                 className="w-full"
                 onClick={() => {
                   setExamCategory('');
+                  setLevel('');
                   setImageType('');
                   setSearch('');
                   setPagination((prev) => ({ ...prev, page: 1 }));
