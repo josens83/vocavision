@@ -926,7 +926,7 @@ router.get('/seed-ebs-levels', async (req: Request, res: Response) => {
     const examCategory = 'EBS' as const;
     const log: string[] = [];
 
-    // 기존 EBS 단어 전체 조회
+    // 1. 기존 EBS 단어 전체 조회 (word text → id 매핑)
     const ebsWords = await prisma.word.findMany({
       where: { examCategory },
       select: { id: true, word: true },
@@ -937,7 +937,9 @@ router.get('/seed-ebs-levels', async (req: Request, res: Response) => {
     }
     log.push(`DB EBS 단어 수: ${ebsWords.length}개`);
 
-    const stats = { totalParsed: 0, matched: 0, notFound: 0, created: 0 };
+    // 2. 모든 텍스트 파일 파싱 → wordId → Set<level> 매핑 구축
+    const wordIdToLevels = new Map<string, Set<string>>();
+    const stats = { totalParsed: 0, matched: 0, notFound: 0, updated: 0, created: 0 };
 
     for (const { file, level, label } of FILE_LEVEL_MAP) {
       const filePath = path.resolve(__dirname, '..', '..', 'data', file);
@@ -965,59 +967,90 @@ router.get('/seed-ebs-levels', async (req: Request, res: Response) => {
       log.push(`📖 ${label}: 파싱 ${words.size}개`);
       stats.totalParsed += words.size;
 
-      const mappingsToCreate: { wordId: string; examCategory: typeof examCategory; level: string }[] = [];
       let matchCount = 0;
       let notFoundCount = 0;
-
       for (const word of words) {
         const wordId = wordTextToId.get(word);
         if (wordId) {
           matchCount++;
-          mappingsToCreate.push({ wordId, examCategory, level });
+          if (!wordIdToLevels.has(wordId)) wordIdToLevels.set(wordId, new Set());
+          wordIdToLevels.get(wordId)!.add(level);
         } else {
           notFoundCount++;
         }
       }
-
       log.push(`   매칭: ${matchCount}개, 미매칭: ${notFoundCount}개`);
       stats.matched += matchCount;
       stats.notFound += notFoundCount;
+    }
 
-      if (mappingsToCreate.length > 0) {
-        const batchSize = 500;
-        let created = 0;
-        for (let i = 0; i < mappingsToCreate.length; i += batchSize) {
-          const batch = mappingsToCreate.slice(i, i + batchSize);
-          const result = await prisma.wordExamLevel.createMany({ data: batch, skipDuplicates: true });
-          created += result.count;
+    // 3. 기존 level=null 레코드 조회 → wordId → recordId 매핑
+    const nullRecords = await prisma.wordExamLevel.findMany({
+      where: { examCategory, level: null },
+      select: { id: true, wordId: true },
+    });
+    const wordIdToNullRecordId = new Map<string, string>();
+    for (const r of nullRecords) {
+      wordIdToNullRecordId.set(r.wordId, r.id);
+    }
+    log.push(`기존 level=null 레코드: ${nullRecords.length}개`);
+
+    // 4. UPDATE + CREATE 실행
+    const toCreate: { wordId: string; examCategory: typeof examCategory; level: string }[] = [];
+
+    for (const [wordId, levels] of wordIdToLevels) {
+      const levelArray = Array.from(levels);
+      const nullRecordId = wordIdToNullRecordId.get(wordId);
+
+      if (nullRecordId) {
+        // 기존 null 레코드를 첫 번째 레벨로 UPDATE
+        await prisma.wordExamLevel.update({
+          where: { id: nullRecordId },
+          data: { level: levelArray[0] },
+        });
+        stats.updated++;
+        // 나머지 레벨은 CREATE
+        for (let i = 1; i < levelArray.length; i++) {
+          toCreate.push({ wordId, examCategory, level: levelArray[i] });
         }
-        log.push(`   생성: ${created}개`);
-        stats.created += created;
+      } else {
+        // null 레코드 없음 → 모두 CREATE
+        for (const level of levelArray) {
+          toCreate.push({ wordId, examCategory, level });
+        }
       }
     }
+    log.push(`UPDATE: ${stats.updated}개 (null → 레벨)`);
 
-    // 기존 단일 레벨 레코드 정리
-    const newMappings = await prisma.wordExamLevel.findMany({
-      where: { examCategory, level: { in: ['LISTENING', 'READING_BASIC', 'READING_ADV'] } },
-      select: { wordId: true },
-      distinct: ['wordId'],
+    // 배치 CREATE
+    if (toCreate.length > 0) {
+      const batchSize = 500;
+      for (let i = 0; i < toCreate.length; i += batchSize) {
+        const batch = toCreate.slice(i, i + batchSize);
+        const result = await prisma.wordExamLevel.createMany({ data: batch, skipDuplicates: true });
+        stats.created += result.count;
+      }
+    }
+    log.push(`CREATE: ${stats.created}개 (추가 레벨)`);
+
+    // 5. 레벨 미매핑 null 레코드 정리 (텍스트 파일에 없는 단어의 null 레코드)
+    const remainingNull = await prisma.wordExamLevel.count({
+      where: { examCategory, level: null },
     });
-    const mappedWordIds = newMappings.map(m => m.wordId);
+    log.push(`남은 level=null 레코드: ${remainingNull}개`);
 
-    let cleanedUp = 0;
-    if (mappedWordIds.length > 0) {
-      const deleted = await prisma.wordExamLevel.deleteMany({
-        where: {
-          examCategory,
-          wordId: { in: mappedWordIds },
-          level: { notIn: ['LISTENING', 'READING_BASIC', 'READING_ADV'] },
-        },
-      });
-      cleanedUp = deleted.count;
-      log.push(`🧹 기존 레코드 정리: ${cleanedUp}개 삭제`);
+    // 최종 레벨별 카운트
+    const levelCounts = await prisma.wordExamLevel.groupBy({
+      by: ['level'],
+      where: { examCategory },
+      _count: { id: true },
+    });
+    log.push(`\n📊 최종 레벨별 분포:`);
+    for (const lc of levelCounts) {
+      log.push(`   ${lc.level || 'null'}: ${lc._count.id}개`);
     }
 
-    res.json({ success: true, stats, cleanedUp, log });
+    res.json({ success: true, stats, log });
   } catch (error) {
     res.status(500).json({
       success: false,
