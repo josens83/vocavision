@@ -2651,6 +2651,12 @@ export const uploadWordImage = async (
     const { uploadToSupabase } = await import('../services/imageGenerator.service');
     const uploadResult = await uploadToSupabase(imageBase64, word.word, imageType);
 
+    // 메모리 해제: base64 데이터 참조 제거 + GC 힌트
+    req.body.imageBase64 = null;
+    if (typeof global.gc === 'function') {
+      global.gc();
+    }
+
     // Upsert the visual
     const visual = await prisma.wordVisual.upsert({
       where: {

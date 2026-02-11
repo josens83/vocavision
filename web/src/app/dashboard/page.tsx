@@ -35,20 +35,24 @@ function DashboardItem({ value, label, color, loading }: { value: string | numbe
   );
 }
 
-// Exam info (순서: 수능 → TEPS → 2026 기출)
+// Exam info (순서: 수능 → TEPS → 2026 기출 → EBS 연계)
 const examInfo: Record<string, { name: string; icon: string; color: string }> = {
   CSAT: { name: '수능', icon: '📝', color: 'blue' },
   TEPS: { name: 'TEPS', icon: '🎓', color: 'purple' },
   CSAT_2026: { name: '2026 수능 기출', icon: '📋', color: 'emerald' },
+  EBS: { name: 'EBS 연계', icon: '📗', color: 'green' },
 };
 
-// Get valid level for exam (TEPS only has L1, L2)
+// Get valid level for exam (TEPS only has L1, L2; EBS is single level)
 const getValidLevelForExam = (exam: string, level: string): string => {
   if (exam === 'TEPS') {
     return ['L1', 'L2'].includes(level) ? level : 'L1';
   }
   if (exam === 'CSAT_2026') {
     return ['LISTENING', 'READING_2', 'READING_3'].includes(level) ? level : 'LISTENING';
+  }
+  if (exam === 'EBS') {
+    return 'L1'; // EBS는 단일 레벨
   }
   return ['L1', 'L2', 'L3'].includes(level) ? level : 'L1';
 };
@@ -71,6 +75,10 @@ const getLevelInfo = (exam: string, level: string) => {
       L2: { name: 'L2(필수)', description: 'TEPS 고급어휘 필수', target: '고득점 목표', wordCount: 124 },
     };
     return tepsLevels[level] || tepsLevels.L1;
+  }
+
+  if (exam === 'EBS') {
+    return { name: '전체', description: 'EBS 수능특강·수능완성 연계어휘', target: '연계 완벽 대비', wordCount: 3837 };
   }
 
   const defaultLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
@@ -126,6 +134,7 @@ function DashboardContent() {
   } = useDashboardSummary(examCategory, validLevel, !!user && hasHydrated);
 
   const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user && hasHydrated);
+  const { data: ebsAccessData } = usePackageAccess('ebs-vocab', !!user && hasHydrated);
 
   // 프리패치 훅 (hover 시 미리 로딩)
   const prefetchDashboard = usePrefetchDashboard();
@@ -151,6 +160,7 @@ function DashboardContent() {
   const weakWordCount = summaryData?.weakWordsCount || 0;
   const learningSession = summaryData?.learningSession || null;
   const hasCsat2026Access = accessData?.hasAccess || false;
+  const hasEbsAccess = ebsAccessData?.hasAccess || false;
 
   // 로딩 상태
   const loading = summaryLoading;
@@ -224,7 +234,14 @@ function DashboardContent() {
       setActiveLevel('L1');
       return;
     }
-  }, [hasHydrated, activeExam, hasCsat2026Access, isPremium, canAccessExam, setActiveExam, setActiveLevel]);
+
+    // EBS 접근 불가 → CSAT으로 fallback
+    if (activeExam === 'EBS' && !canAccessExam('EBS')) {
+      setActiveExam('CSAT' as ExamType);
+      setActiveLevel('L1');
+      return;
+    }
+  }, [hasHydrated, activeExam, hasCsat2026Access, hasEbsAccess, isPremium, canAccessExam, setActiveExam, setActiveLevel]);
 
   // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
   // 하이드레이션 후 activeLevel이 없으면 L1 자동 설정
@@ -355,7 +372,10 @@ function DashboardContent() {
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
 
-          <div className={`grid gap-3 ${(hasCsat2026Access || isPremium) ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          <div className={`grid gap-3 ${
+            ((hasCsat2026Access || isPremium) && (hasEbsAccess || isPremium)) ? 'grid-cols-4' :
+            (hasCsat2026Access || isPremium || hasEbsAccess) ? 'grid-cols-3' : 'grid-cols-2'
+          }`}>
             {/* 수능 버튼 */}
             <button
               onMouseEnter={() => {
@@ -428,13 +448,35 @@ function DashboardContent() {
                 }`}
               >
                 <span className="text-xl">📋</span>
-                <span className="font-semibold text-sm">2026 수능 기출</span>
+                <span className="font-semibold text-sm">2026 기출</span>
+              </button>
+            )}
+
+            {/* EBS 연계어휘 버튼 - 프리미엄 또는 단품 구매자만 표시 */}
+            {(hasEbsAccess || isPremium) && (
+              <button
+                onMouseEnter={() => {
+                  prefetchDashboard('EBS', 'L1');
+                }}
+                onClick={() => {
+                  setActiveExam('EBS' as ExamType);
+                  setActiveLevel('L1' as 'L1' | 'L2' | 'L3');
+                }}
+                className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
+                  selectedExam === 'EBS'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <span className="text-xl">📗</span>
+                <span className="font-semibold text-sm">EBS 연계</span>
               </button>
             )}
           </div>
         </section>
 
-        {/* 레벨/유형 선택 섹션 */}
+        {/* 레벨/유형 선택 섹션 (EBS는 단일 레벨이라 숨김) */}
+        {selectedExam !== 'EBS' && (
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
             {selectedExam === 'CSAT_2026' ? '유형 선택' : '레벨 선택'}
@@ -504,6 +546,7 @@ function DashboardContent() {
             })}
           </div>
         </section>
+        )}
 
         {/* 바로 학습 이어가기 카드 (전체 너비) */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
