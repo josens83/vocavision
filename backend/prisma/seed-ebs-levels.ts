@@ -98,7 +98,8 @@ async function main() {
   };
 
   for (const { file, level, label } of FILE_LEVEL_MAP) {
-    const filePath = path.resolve(__dirname, '..', '..', file);
+    // backend/data/ 디렉토리에서 텍스트 파일 읽기
+    const filePath = path.resolve(__dirname, '..', 'data', file);
 
     if (!fs.existsSync(filePath)) {
       console.log(`⚠️  파일 없음: ${file} — 건너뜀`);
