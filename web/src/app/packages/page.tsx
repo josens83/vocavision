@@ -25,9 +25,9 @@ const packages: Package[] = [
     description: '2026학년도 수능 영어 기출 어휘를 AI로 완벽 분석한 핵심 단어장',
     price: 3900,
     duration: '6개월',
-    wordCount: 200,
+    wordCount: 521,
     features: [
-      '2026 수능 영어 기출 핵심 어휘 200개',
+      '2026 수능 영어 기출 핵심 어휘 521개',
       'AI 이미지 연상법 + 어원 분석',
       '스마트 복습 시스템',
       '6개월 이용권 (자동갱신 없음)',
@@ -56,16 +56,17 @@ const packages: Package[] = [
     slug: 'ebs-vocab',
     name: 'EBS 연계 어휘',
     description: 'EBS 수능특강/수능완성 연계 어휘 모음',
-    price: 4900,
+    price: 3900,
     duration: '6개월',
-    wordCount: 300,
+    wordCount: 3837,
     features: [
-      'EBS 연계 어휘 300개',
+      'EBS 연계 어휘 3,837개',
       'AI 이미지 연상법 + 어원 분석',
       '스마트 복습 시스템',
       '6개월 이용권 (자동갱신 없음)',
     ],
-    isActive: false,
+    isActive: true,
+    badge: 'NEW',
   },
 ];
 

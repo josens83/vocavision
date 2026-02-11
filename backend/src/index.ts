@@ -97,9 +97,9 @@ const corsOptions = {
 // Handle preflight requests explicitly
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '10mb' }));  // Increased for base64 image uploads
+app.use(express.json({ limit: '5mb' }));  // base64 image uploads (5mb 충분)
 app.use(express.text({ type: 'text/plain' }));  // For sendBeacon text/plain requests
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 app.use(rateLimiter);
 
 // Health check endpoints
@@ -195,6 +195,14 @@ const server = app.listen(PORT, () => {
   if (process.env.NODE_ENV === 'production' || process.env.ENABLE_CRON === 'true') {
     startSubscriptionJobs();
     logger.info(`⏰ Subscription cron jobs started`);
+  }
+
+  // 주기적 GC 실행 (5분마다, --expose-gc 플래그 필요)
+  if (typeof global.gc === 'function') {
+    setInterval(() => {
+      global.gc!();
+    }, 5 * 60 * 1000);
+    logger.info(`🧹 Periodic GC enabled (every 5 min)`);
   }
 });
 

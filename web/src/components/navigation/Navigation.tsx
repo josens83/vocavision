@@ -5,7 +5,7 @@ import { useState, useEffect, ReactNode, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
-import { getPlanDisplay, isPremiumPlan, canAccessExam, canAccessLevel, isLevelLocked } from "@/lib/subscription";
+import { getPlanDisplay, isPremiumPlan, canAccessExam, canAccessLevel, isLevelLocked, canAccessContentWithPurchase } from "@/lib/subscription";
 import { useAuthRequired } from "@/components/ui/AuthRequiredModal";
 import { useClearAllCache } from "@/hooks/useQueries";
 
@@ -149,7 +149,7 @@ function getPermissionBasedHref(
 }
 
 // 권한 상태 표시용 (잠금 아이콘 여부)
-// subscription.ts의 isLevelLocked 유틸리티 사용
+// canAccessContentWithPurchase: 프리미엄 + 단품 구매 모두 고려
 function isMenuLocked(
   originalHref: string,
   user: any
@@ -162,8 +162,7 @@ function isMenuLocked(
 
   if (!exam || !level) return false;
 
-  // 중앙화된 구독 유틸리티 사용
-  return isLevelLocked(user, exam, level);
+  return !canAccessContentWithPurchase(user, exam, level);
 }
 
 interface NavDropdownProps {

@@ -34,17 +34,17 @@ function getStaticPackages(): ProductPackage[] {
       durationDays: 180, // 6개월
       badge: "BEST",
       isComingSoon: false,
-      wordCount: 200,
+      wordCount: 521,
     },
     {
       id: "static-2",
       name: "EBS 연계어휘",
       slug: "ebs-vocab",
       shortDesc: "EBS 수능특강, 수능완성 연계 어휘 완벽 마스터",
-      price: 7900,
+      price: 3900,
       durationDays: 180, // 6개월
-      badge: "출시예정",
-      isComingSoon: true,
+      badge: "NEW",
+      isComingSoon: false,
       wordCount: 3837,
     },
   ];

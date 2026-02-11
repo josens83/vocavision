@@ -141,17 +141,20 @@ export function canAccessContent(user: User | null, exam: string, level: string)
   return canAccessExam(user, exam) && canAccessLevel(user, level);
 }
 
-export function getAccessibleLevels(user: User | null): { CSAT: string[]; TEPS: string[] } {
+export function getAccessibleLevels(user: User | null): { CSAT: string[]; TEPS: string[]; EBS: string[] } {
   const tier = getSubscriptionTier(user);
+
+  // EBS는 단품 구매로 접근
+  const ebsLevels = hasPurchasedExam(user, 'EBS') || tier === 'PREMIUM' ? ['L1'] : [];
 
   switch (tier) {
     case 'PREMIUM':
-      return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'] };
+      return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'], EBS: ['L1'] };
     case 'BASIC':
-      return { CSAT: ['L1', 'L2', 'L3'], TEPS: [] };
+      return { CSAT: ['L1', 'L2', 'L3'], TEPS: [], EBS: ebsLevels };
     case 'FREE':
     default:
-      return { CSAT: ['L1'], TEPS: [] };
+      return { CSAT: ['L1'], TEPS: [], EBS: ebsLevels };
   }
 }
 
@@ -230,8 +233,9 @@ export function getAvailableExams(user: User | null): { exam: string; locked: bo
 
   const exams = [
     { exam: 'CSAT', locked: false },
-    { exam: 'CSAT_2026', locked: !canAccessExamWithPurchase(user, 'CSAT_2026'), reason: '단품 구매 필요' },
     { exam: 'TEPS', locked: tier !== 'PREMIUM', reason: '프리미엄 전용' },
+    { exam: 'CSAT_2026', locked: !canAccessExamWithPurchase(user, 'CSAT_2026'), reason: '단품 구매 필요' },
+    { exam: 'EBS', locked: !canAccessExamWithPurchase(user, 'EBS'), reason: '단품 구매 필요' },
   ];
 
   return exams;
