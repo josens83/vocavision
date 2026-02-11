@@ -907,4 +907,123 @@ router.post('/cache/clear', authOrSecretKey, async (req: Request, res: Response)
   res.json({ message: 'Cache cleared', timestamp: new Date().toISOString() });
 });
 
+// ============================================
+// 임시: EBS 교재별 레벨 매핑 시드 실행
+// 시드 완료 후 이 엔드포인트는 제거할 것
+// ============================================
+router.get('/seed-ebs-levels', async (req: Request, res: Response) => {
+  try {
+    const prisma = (await import('../lib/prisma')).default;
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const FILE_LEVEL_MAP = [
+      { file: 'EBS_2026_수능특강_영어듣기_영단어_숙어.txt', level: 'LISTENING', label: '듣기영역' },
+      { file: 'EBS_2026_수능특강_영단어_숙어.txt', level: 'READING_BASIC', label: '독해영역 기본' },
+      { file: 'EBS_2026_수능특강_영어독해연습_영단어_숙어.txt', level: 'READING_ADV', label: '독해영역 실력' },
+    ];
+
+    const examCategory = 'EBS' as const;
+    const log: string[] = [];
+
+    // 기존 EBS 단어 전체 조회
+    const ebsWords = await prisma.word.findMany({
+      where: { examCategory },
+      select: { id: true, word: true },
+    });
+    const wordTextToId = new Map<string, string>();
+    for (const w of ebsWords) {
+      wordTextToId.set(w.word.toLowerCase(), w.id);
+    }
+    log.push(`DB EBS 단어 수: ${ebsWords.length}개`);
+
+    const stats = { totalParsed: 0, matched: 0, notFound: 0, created: 0 };
+
+    for (const { file, level, label } of FILE_LEVEL_MAP) {
+      const filePath = path.resolve(__dirname, '..', '..', 'data', file);
+
+      if (!fs.existsSync(filePath)) {
+        log.push(`⚠️ 파일 없음: ${file} — 건너뜀`);
+        continue;
+      }
+
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const lines = content.split('\n');
+      const words = new Set<string>();
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('≅')) continue;
+        const entry = trimmed.substring(1).trim();
+        const match = entry.match(/^([a-zA-Z][a-zA-Z\s\-'.,;:~()\/]+?)(?:\s+[가-힣\(]|\s*$)/);
+        if (match) {
+          let word = match[1].trim().replace(/[,;:]+$/, '').trim();
+          if (word.length > 0) words.add(word.toLowerCase());
+        }
+      }
+
+      log.push(`📖 ${label}: 파싱 ${words.size}개`);
+      stats.totalParsed += words.size;
+
+      const mappingsToCreate: { wordId: string; examCategory: typeof examCategory; level: string }[] = [];
+      let matchCount = 0;
+      let notFoundCount = 0;
+
+      for (const word of words) {
+        const wordId = wordTextToId.get(word);
+        if (wordId) {
+          matchCount++;
+          mappingsToCreate.push({ wordId, examCategory, level });
+        } else {
+          notFoundCount++;
+        }
+      }
+
+      log.push(`   매칭: ${matchCount}개, 미매칭: ${notFoundCount}개`);
+      stats.matched += matchCount;
+      stats.notFound += notFoundCount;
+
+      if (mappingsToCreate.length > 0) {
+        const batchSize = 500;
+        let created = 0;
+        for (let i = 0; i < mappingsToCreate.length; i += batchSize) {
+          const batch = mappingsToCreate.slice(i, i + batchSize);
+          const result = await prisma.wordExamLevel.createMany({ data: batch, skipDuplicates: true });
+          created += result.count;
+        }
+        log.push(`   생성: ${created}개`);
+        stats.created += created;
+      }
+    }
+
+    // 기존 단일 레벨 레코드 정리
+    const newMappings = await prisma.wordExamLevel.findMany({
+      where: { examCategory, level: { in: ['LISTENING', 'READING_BASIC', 'READING_ADV'] } },
+      select: { wordId: true },
+      distinct: ['wordId'],
+    });
+    const mappedWordIds = newMappings.map(m => m.wordId);
+
+    let cleanedUp = 0;
+    if (mappedWordIds.length > 0) {
+      const deleted = await prisma.wordExamLevel.deleteMany({
+        where: {
+          examCategory,
+          wordId: { in: mappedWordIds },
+          level: { notIn: ['LISTENING', 'READING_BASIC', 'READING_ADV'] },
+        },
+      });
+      cleanedUp = deleted.count;
+      log.push(`🧹 기존 레코드 정리: ${cleanedUp}개 삭제`);
+    }
+
+    res.json({ success: true, stats, cleanedUp, log });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 export default router;
