@@ -136,7 +136,7 @@ function DashboardContent() {
     data: summaryData,
     isLoading: summaryLoading,
     isFetching: summaryFetching
-  } = useDashboardSummary(examCategory, validLevel, !!user && hasHydrated);
+  } = useDashboardSummary(examCategory, validLevel, !!user && hasHydrated && examHasHydrated);
 
   const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user && hasHydrated);
   const { data: ebsAccessData } = usePackageAccess('ebs-vocab', !!user && hasHydrated);
