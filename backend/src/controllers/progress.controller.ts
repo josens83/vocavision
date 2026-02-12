@@ -661,22 +661,20 @@ export const submitReviewBatch = async (
       existingProgress.map(p => [`${p.wordId}:${p.examCategory}:${p.level}`, p])
     );
 
-    // 3. 각 단어 개별 처리 (트랜잭션 없이 — 각 단어는 독립적)
-    const processed: any[] = [];
+    // 3. 각 단어 병렬 처리 (5개씩 청크 — DB 커넥션 풀 보호)
     const reviewRecords: Array<{
       userId: string; wordId: string; sessionId?: string;
       rating: number; responseTime?: number; learningMethod: LearningMethod;
     }> = [];
 
-    for (const review of reviews) {
+    const processReview = async (review: any) => {
       const { wordId, rating, responseTime, learningMethod, examCategory, level } = review;
 
-      if (!wordId || rating === undefined) continue;
+      if (!wordId || rating === undefined) return null;
 
       const word = wordMap.get(wordId);
-      if (!word) continue;
+      if (!word) return null;
 
-      // examCategory/level 결정
       let wordExamCategory: ExamCategory;
       let wordLevel: string;
 
@@ -688,98 +686,106 @@ export const submitReviewBatch = async (
 
       wordLevel = level || word.examLevels?.[0]?.level || word.level || 'L1';
 
-      // 기존 progress 확인
       const progressKey = `${wordId}:${wordExamCategory}:${wordLevel}`;
       let progress = progressMap.get(progressKey) || null;
 
-      try {
-        if (!progress) {
-          const initialNextReviewDate = new Date();
-          if (rating >= 3) {
-            initialNextReviewDate.setDate(initialNextReviewDate.getDate() + 3);
-          }
+      if (!progress) {
+        const initialNextReviewDate = new Date();
+        if (rating >= 3) {
+          initialNextReviewDate.setDate(initialNextReviewDate.getDate() + 3);
+        }
 
-          // upsert — 트랜잭션 밖이므로 P2002 자동 안전
-          progress = await prisma.userProgress.upsert({
-            where: {
-              userId_wordId_examCategory_level: {
-                userId, wordId, examCategory: wordExamCategory, level: wordLevel,
-              },
+        progress = await prisma.userProgress.upsert({
+          where: {
+            userId_wordId_examCategory_level: {
+              userId, wordId, examCategory: wordExamCategory, level: wordLevel,
             },
-            create: {
-              userId,
-              wordId,
-              examCategory: wordExamCategory,
-              level: wordLevel,
-              nextReviewDate: initialNextReviewDate,
-              masteryLevel: 'NEW',
-              initialRating: rating,
-              learnedAt: new Date(),
-            },
-            update: {},
-          });
-          progressMap.set(progressKey, progress);
-        }
-
-        // SM-2 알고리즘
-        const { easeFactor, interval, repetitions } = calculateNextReview(
-          rating, progress.easeFactor, progress.interval, progress.repetitions
-        );
-
-        const nextReviewDate = new Date();
-        const isQuiz = learningMethod === 'QUIZ';
-        if (isQuiz) {
-          nextReviewDate.setDate(nextReviewDate.getDate() + 1);
-        } else if (rating >= 3) {
-          nextReviewDate.setDate(nextReviewDate.getDate() + 3);
-        }
-
-        const isCorrectAnswer = rating >= 3;
-        let needsReview = progress.needsReview;
-        let reviewCorrectCount = progress.reviewCorrectCount;
-
-        if (!isCorrectAnswer) {
-          needsReview = true;
-          reviewCorrectCount = 0;
-        } else if (progress.needsReview && isQuiz) {
-          reviewCorrectCount = progress.reviewCorrectCount + 1;
-        }
-
-        const newCorrectCount = (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount;
-        if (newCorrectCount >= 2) needsReview = false;
-
-        let masteryLevel = progress.masteryLevel;
-        if (newCorrectCount >= 6) masteryLevel = 'MASTERED';
-        else if (newCorrectCount >= 3) masteryLevel = 'FAMILIAR';
-        else if (newCorrectCount >= 1) masteryLevel = 'LEARNING';
-
-        const updated = await prisma.userProgress.update({
-          where: { id: progress.id },
-          data: {
-            easeFactor, interval, repetitions, nextReviewDate,
-            lastReviewDate: new Date(), masteryLevel,
-            correctCount: (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount,
-            incorrectCount: (!isCorrectAnswer && isQuiz) ? progress.incorrectCount + 1 : progress.incorrectCount,
-            totalReviews: progress.totalReviews + 1,
-            needsReview, reviewCorrectCount,
-            ...(learningMethod === 'FLASHCARD' || !learningMethod ? { initialRating: rating } : {}),
-          }
+          },
+          create: {
+            userId, wordId,
+            examCategory: wordExamCategory,
+            level: wordLevel,
+            nextReviewDate: initialNextReviewDate,
+            masteryLevel: 'NEW',
+            initialRating: rating,
+            learnedAt: new Date(),
+          },
+          update: {},
         });
-
-        progressMap.set(progressKey, updated);
-        processed.push(updated);
-      } catch (wordError) {
-        // 개별 단어 실패 시 skip (다른 단어에 영향 없음)
-        console.error(`[submitReviewBatch] Failed for word ${wordId}:`, wordError);
-        continue;
+        progressMap.set(progressKey, progress);
       }
 
-      // Review 레코드 준비 (실패한 단어는 여기 도달하지 않음)
+      // SM-2 알고리즘
+      const { easeFactor, interval, repetitions } = calculateNextReview(
+        rating, progress.easeFactor, progress.interval, progress.repetitions
+      );
+
+      const nextReviewDate = new Date();
+      const isQuiz = learningMethod === 'QUIZ';
+      if (isQuiz) {
+        nextReviewDate.setDate(nextReviewDate.getDate() + 1);
+      } else if (rating >= 3) {
+        nextReviewDate.setDate(nextReviewDate.getDate() + 3);
+      }
+
+      const isCorrectAnswer = rating >= 3;
+      let needsReview = progress.needsReview;
+      let reviewCorrectCount = progress.reviewCorrectCount;
+
+      if (!isCorrectAnswer) {
+        needsReview = true;
+        reviewCorrectCount = 0;
+      } else if (progress.needsReview && isQuiz) {
+        reviewCorrectCount = progress.reviewCorrectCount + 1;
+      }
+
+      const newCorrectCount = (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount;
+      if (newCorrectCount >= 2) needsReview = false;
+
+      let masteryLevel = progress.masteryLevel;
+      if (newCorrectCount >= 6) masteryLevel = 'MASTERED';
+      else if (newCorrectCount >= 3) masteryLevel = 'FAMILIAR';
+      else if (newCorrectCount >= 1) masteryLevel = 'LEARNING';
+
+      const updated = await prisma.userProgress.update({
+        where: { id: progress.id },
+        data: {
+          easeFactor, interval, repetitions, nextReviewDate,
+          lastReviewDate: new Date(), masteryLevel,
+          correctCount: (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount,
+          incorrectCount: (!isCorrectAnswer && isQuiz) ? progress.incorrectCount + 1 : progress.incorrectCount,
+          totalReviews: progress.totalReviews + 1,
+          needsReview, reviewCorrectCount,
+          ...(learningMethod === 'FLASHCARD' || !learningMethod ? { initialRating: rating } : {}),
+        }
+      });
+
+      progressMap.set(progressKey, updated);
+
       reviewRecords.push({
         userId, wordId, sessionId: sessionId || undefined,
         rating, responseTime,
         learningMethod: (learningMethod || 'FLASHCARD') as LearningMethod,
       });
+
+      return updated;
+    };
+
+    // 5개씩 병렬 실행 (DB 커넥션 풀 15개 중 절반 이하 사용)
+    const CHUNK_SIZE = 5;
+    const processed: any[] = [];
+
+    for (let i = 0; i < reviews.length; i += CHUNK_SIZE) {
+      const chunk = reviews.slice(i, i + CHUNK_SIZE);
+      const results = await Promise.allSettled(chunk.map(processReview));
+
+      for (const result of results) {
+        if (result.status === 'fulfilled' && result.value) {
+          processed.push(result.value);
+        } else if (result.status === 'rejected') {
+          console.error('[submitReviewBatch] Word failed:', result.reason);
+        }
+      }
     }
 
     // 4. Review 레코드 일괄 생성 (성공한 것만)
@@ -852,7 +858,7 @@ export const submitReviewBatchBeacon = async (
     req.userId = userId;
     req.body = { reviews, sessionId };
 
-    // 간소화된 처리: 개별 upsert (beacon은 빠른 응답이 목표)
+    // 병렬 처리 (5개씩 청크)
     const wordIds = [...new Set(reviews.map((r: any) => r.wordId))];
     const words = await prisma.word.findMany({
       where: { id: { in: wordIds } },
@@ -861,44 +867,58 @@ export const submitReviewBatchBeacon = async (
     const wordMap = new Map(words.map(w => [w.id, w]));
 
     const reviewRecords: any[] = [];
-    for (const review of reviews) {
-      try {
-        const word = wordMap.get(review.wordId);
-        if (!word) continue;
 
-        const examCategory = review.examCategory || word.examCategory;
-        const level = review.level || (word as any).examLevels?.[0]?.level || 'L1';
+    const processBeaconReview = async (review: any) => {
+      const word = wordMap.get(review.wordId);
+      if (!word) return null;
 
-        await prisma.userProgress.upsert({
-          where: {
-            userId_wordId_examCategory_level: {
-              userId, wordId: review.wordId, examCategory, level,
-            },
-          },
-          create: {
+      const examCategory = review.examCategory || word.examCategory;
+      const level = review.level || (word as any).examLevels?.[0]?.level || 'L1';
+
+      await prisma.userProgress.upsert({
+        where: {
+          userId_wordId_examCategory_level: {
             userId, wordId: review.wordId, examCategory, level,
-            initialRating: review.rating,
-            correctCount: review.rating >= 4 ? 1 : 0,
-            incorrectCount: review.rating < 3 ? 1 : 0,
-            nextReviewDate: new Date(),
-            learnedAt: new Date(),
           },
-          update: {
-            correctCount: review.rating >= 4 ? { increment: 1 } : undefined,
-            incorrectCount: review.rating < 3 ? { increment: 1 } : undefined,
-            lastReviewDate: new Date(),
-          },
-        });
+        },
+        create: {
+          userId, wordId: review.wordId, examCategory, level,
+          initialRating: review.rating,
+          correctCount: review.rating >= 4 ? 1 : 0,
+          incorrectCount: review.rating < 3 ? 1 : 0,
+          nextReviewDate: new Date(),
+          learnedAt: new Date(),
+        },
+        update: {
+          correctCount: review.rating >= 4 ? { increment: 1 } : undefined,
+          incorrectCount: review.rating < 3 ? { increment: 1 } : undefined,
+          lastReviewDate: new Date(),
+        },
+      });
 
-        reviewRecords.push({
-          userId, wordId: review.wordId,
-          rating: review.rating,
-          learningMethod: review.learningMethod || 'FLASHCARD',
-          sessionId: sessionId || undefined,
-        });
-      } catch (wordError) {
-        console.error(`[batch-beacon] Failed for word ${review.wordId}:`, wordError);
-        continue;
+      reviewRecords.push({
+        userId, wordId: review.wordId,
+        rating: review.rating,
+        learningMethod: review.learningMethod || 'FLASHCARD',
+        sessionId: sessionId || undefined,
+      });
+
+      return true;
+    };
+
+    const CHUNK_SIZE = 5;
+    let successCount = 0;
+
+    for (let i = 0; i < reviews.length; i += CHUNK_SIZE) {
+      const chunk = reviews.slice(i, i + CHUNK_SIZE);
+      const results = await Promise.allSettled(chunk.map(processBeaconReview));
+
+      for (const result of results) {
+        if (result.status === 'fulfilled' && result.value) {
+          successCount++;
+        } else if (result.status === 'rejected') {
+          console.error('[batch-beacon] Word failed:', result.reason);
+        }
       }
     }
 
@@ -910,7 +930,7 @@ export const submitReviewBatchBeacon = async (
       }
     }
 
-    res.json({ success: true, count: reviewRecords.length });
+    res.json({ success: true, count: successCount });
   } catch (error) {
     console.error('[batch-beacon] Error:', error);
     // beacon 응답은 무시되므로 200 반환
