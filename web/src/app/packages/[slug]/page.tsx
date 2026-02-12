@@ -35,7 +35,7 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
     id: 'static-ebs',
     name: 'EBS 연계어휘',
     slug: 'ebs-vocab',
-    description: '2026학년도 EBS 수능특강 3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 3,837개 완벽 대비.',
+    description: 'EBSi 공식 단어장 PDF 기반, 수능특강 영어영역 3개 교재(영어, 영어독해연습, 영어듣기)에 수록된 영단어·숙어 3,837개를 AI 학습 콘텐츠로 제공합니다.',
     price: 6900,
     durationDays: 180,
     badge: 'NEW',
@@ -166,7 +166,7 @@ export default function PackageDetailPage() {
                 (slug === '2026-csat-analysis'
                   ? '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
                   : slug === 'ebs-vocab'
-                  ? '2026학년도 EBS 수능특강 3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 3,837개 완벽 대비.'
+                  ? '2026학년도 EBS 수능특강 영어영역 단어·숙어 완벽 대비. 3개 교재(영어, 영어독해연습, 영어듣기) 수록 어휘 3,837개.'
                   : '고득점을 위한 필수 단어장')}
             </p>
 
@@ -215,15 +215,15 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>EBS 수능특강 연계 어휘를 완벽히 준비하고 싶은 수험생</span>
+                        <span>수능 EBS 연계 출제 대비가 필요한 수험생</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>영어듣기·영어·영어독해연습 3개 교재를 한 번에 학습하고 싶은 분</span>
+                        <span>수능특강 교재를 학습하면서 어휘를 체계적으로 정리하고 싶은 학생</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>교재별 난이도에 맞춰 체계적으로 어휘를 학습하고 싶은 분</span>
+                        <span>EBS 교재 단어를 AI 이미지와 암기법으로 효율적으로 외우고 싶은 학생</span>
                       </li>
                     </>
                   ) : (
@@ -274,11 +274,19 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>3,837개</strong> EBS 수능특강 연계 어휘</span>
+                        <span><strong>3,837개</strong> 영단어·숙어 (EBSi 공식 단어장 PDF 기반)</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
-                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>교재별 분류:</strong> 듣기영역 / 독해 기본 / 독해 실력</span>
+                        <span className="flex-shrink-0 mt-0.5">📘</span>
+                        <span><strong>수능특강 영어</strong> — 독해 기본 어휘</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <span className="flex-shrink-0 mt-0.5">📗</span>
+                        <span><strong>수능특강 영어독해연습</strong> — 독해 심화 어휘</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <span className="flex-shrink-0 mt-0.5">📙</span>
+                        <span><strong>수능특강 영어듣기</strong> — 듣기 영역 어휘</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
