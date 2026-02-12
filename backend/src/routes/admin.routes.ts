@@ -1092,19 +1092,27 @@ router.get('/seed-packages', async (req: Request, res: Response) => {
       },
     });
 
-    // CSAT_2026 단어 연결
-    const csatWords = await prisma.word.findMany({
+    // CSAT_2026 단어 연결 (WordExamLevel에서 distinct wordId 조회)
+    const csatWordLevels = await prisma.wordExamLevel.findMany({
       where: { examCategory: 'CSAT_2026' },
-      select: { id: true },
+      select: { wordId: true },
+      distinct: ['wordId'],
+    });
+    const csatTotalLevels = await prisma.wordExamLevel.count({
+      where: { examCategory: 'CSAT_2026' },
     });
     const existingCsatLinks = await prisma.productPackageWord.count({
       where: { packageId: csatPkg.id },
     });
-    if (existingCsatLinks === 0 && csatWords.length > 0) {
+    // 기존 연결 삭제 후 재연결 (정확한 수를 보장)
+    if (csatWordLevels.length > 0 && existingCsatLinks !== csatWordLevels.length) {
+      await prisma.productPackageWord.deleteMany({
+        where: { packageId: csatPkg.id },
+      });
       await prisma.productPackageWord.createMany({
-        data: csatWords.map((w, i) => ({
+        data: csatWordLevels.map((w, i) => ({
           packageId: csatPkg.id,
-          wordId: w.id,
+          wordId: w.wordId,
           displayOrder: i,
         })),
         skipDuplicates: true,
@@ -1113,7 +1121,8 @@ router.get('/seed-packages', async (req: Request, res: Response) => {
     results.push({
       slug: '2026-csat-analysis',
       id: csatPkg.id,
-      wordCount: csatWords.length,
+      uniqueWords: csatWordLevels.length,
+      totalLevelRecords: csatTotalLevels,
       linkedBefore: existingCsatLinks,
     });
 
@@ -1141,28 +1150,41 @@ router.get('/seed-packages', async (req: Request, res: Response) => {
       },
     });
 
-    // EBS 단어 연결
-    const ebsWords = await prisma.word.findMany({
+    // EBS 단어 연결 (WordExamLevel에서 distinct wordId 조회)
+    const ebsWordLevels = await prisma.wordExamLevel.findMany({
       where: { examCategory: 'EBS' },
-      select: { id: true },
+      select: { wordId: true },
+      distinct: ['wordId'],
+    });
+    const ebsTotalLevels = await prisma.wordExamLevel.count({
+      where: { examCategory: 'EBS' },
     });
     const existingEbsLinks = await prisma.productPackageWord.count({
       where: { packageId: ebsPkg.id },
     });
-    if (existingEbsLinks === 0 && ebsWords.length > 0) {
-      await prisma.productPackageWord.createMany({
-        data: ebsWords.map((w, i) => ({
-          packageId: ebsPkg.id,
-          wordId: w.id,
-          displayOrder: i,
-        })),
-        skipDuplicates: true,
+    // 기존 연결 삭제 후 재연결 (정확한 수를 보장)
+    if (ebsWordLevels.length > 0 && existingEbsLinks !== ebsWordLevels.length) {
+      await prisma.productPackageWord.deleteMany({
+        where: { packageId: ebsPkg.id },
       });
+      const batchSize = 500;
+      for (let i = 0; i < ebsWordLevels.length; i += batchSize) {
+        const batch = ebsWordLevels.slice(i, i + batchSize);
+        await prisma.productPackageWord.createMany({
+          data: batch.map((w, j) => ({
+            packageId: ebsPkg.id,
+            wordId: w.wordId,
+            displayOrder: i + j,
+          })),
+          skipDuplicates: true,
+        });
+      }
     }
     results.push({
       slug: 'ebs-vocab',
       id: ebsPkg.id,
-      wordCount: ebsWords.length,
+      uniqueWords: ebsWordLevels.length,
+      totalLevelRecords: ebsTotalLevels,
       linkedBefore: existingEbsLinks,
     });
 
