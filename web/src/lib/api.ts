@@ -63,16 +63,20 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const config = error.config as ExtendedAxiosRequestConfig;
 
-    // Handle 401 separately (no retry for auth errors)
+    // Handle 401 separately
     if (error.response?.status === 401) {
-      // Clear both localStorage token and zustand persist storage
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('auth-storage');
+      const requestHadToken = !!config?.headers?.Authorization;
 
-      // Redirect to login page (skip if already on auth pages)
-      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
-        window.location.href = '/auth/login?expired=true';
+      if (requestHadToken) {
+        // 토큰이 전송되었지만 거부됨 → 토큰 만료 → 클리어 후 로그인 리다이렉트
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('auth-storage');
+
+        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
+          window.location.href = '/auth/login?expired=true';
+        }
       }
+      // 토큰 없이 전송된 경우 (hydration 레이스) → auth 상태 유지, React Query retry에 맡김
 
       return Promise.reject(error);
     }

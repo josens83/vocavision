@@ -24,13 +24,15 @@ interface Collection {
 export default function CollectionsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     loadCollections();
-  }, [user]);
+  }, [user, hasHydrated]);
 
   const loadCollections = async () => {
     try {

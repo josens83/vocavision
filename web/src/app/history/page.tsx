@@ -28,19 +28,21 @@ interface Review {
 export default function HistoryPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!user) {
       router.push('/auth/login');
       return;
     }
 
     loadReviews();
-  }, [user, router]);
+  }, [user, hasHydrated, router]);
 
   const loadReviews = async () => {
     try {

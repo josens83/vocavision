@@ -55,6 +55,7 @@ function WordsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
   // 비로그인 시 로그인 유도 화면
   if (!user) {
@@ -96,7 +97,7 @@ function WordsPageContent() {
   const accessibleLevels = getAccessibleLevels(user);
 
   // 2026 기출 접근 권한 체크
-  const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user);
+  const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user && hasHydrated);
   const hasCsat2026Access = accessData?.hasAccess || false;
   const isPremium = getSubscriptionTier(user) === 'PREMIUM';
 
@@ -122,7 +123,7 @@ function WordsPageContent() {
     examCategory: examCategory || undefined,
     level: level || undefined,
     search: searchQuery || undefined,
-  }, !!user);
+  }, !!user && hasHydrated);
 
   const prefetchWords = usePrefetchWordsSearch();
 
