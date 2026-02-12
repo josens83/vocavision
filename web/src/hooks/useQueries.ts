@@ -58,23 +58,23 @@ export function usePrefetchDashboard() {
 /**
  * 대시보드 캐시 무효화 훅
  * - 학습 완료 후 데이터 새로고침 필요 시 사용
- * - refetchType: 'active'로 즉시 refetch 보장
+ * - removeQueries로 캐시 완전 제거 → 대시보드 진입 시 fresh fetch 보장
+ *   (invalidateQueries + refetchType:'active'는 대시보드 미마운트 시 placeholderData로
+ *    stale 데이터가 표시되는 문제가 있음)
  */
 export function useInvalidateDashboard() {
   const queryClient = useQueryClient();
 
   return (examCategory?: string, level?: string) => {
     if (examCategory && level) {
-      // 특정 시험/레벨만 무효화
-      queryClient.invalidateQueries({
+      // 특정 시험/레벨 캐시 제거
+      queryClient.removeQueries({
         queryKey: ['dashboardSummary', examCategory, level],
-        refetchType: 'active', // 즉시 refetch 보장
       });
     } else {
-      // 모든 대시보드 캐시 무효화
-      queryClient.invalidateQueries({
+      // 모든 대시보드 캐시 제거
+      queryClient.removeQueries({
         queryKey: ['dashboardSummary'],
-        refetchType: 'active',
       });
     }
   };
