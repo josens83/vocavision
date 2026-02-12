@@ -5,7 +5,7 @@ import { useState, useEffect, ReactNode, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore } from "@/lib/store";
-import { getPlanDisplay, isPremiumPlan, canAccessExam, canAccessLevel, isLevelLocked, canAccessContentWithPurchase } from "@/lib/subscription";
+import { getPlanDisplay, isPremiumPlan, canAccessExam, canAccessLevel, isLevelLocked, canAccessContentWithPurchase, canAccessExamWithPurchase } from "@/lib/subscription";
 import { useAuthRequired } from "@/components/ui/AuthRequiredModal";
 import { useClearAllCache } from "@/hooks/useQueries";
 
@@ -48,17 +48,16 @@ export const guestNavigationItems: NavItem[] = [
     label: "TEPS",
     color: "text-teal-600",
     children: [
-      { label: "L1(기본)", href: "/auth/register" },
-      { label: "L2(필수)", href: "/auth/register" },
+      { label: "L1(기본)", href: "/auth/register?from=teps-l1" },
+      { label: "L2(필수)", href: "/auth/register?from=teps-l2" },
     ],
   },
   {
-    label: "EBS",
+    label: "단어장",
     color: "text-green-600",
     children: [
-      { label: "듣기영역", href: "/auth/register" },
-      { label: "독해 기본", href: "/auth/register" },
-      { label: "독해 실력", href: "/auth/register" },
+      { label: "2026 기출 분석", href: "/auth/register?from=csat2026" },
+      { label: "EBS 연계단어", href: "/auth/register?from=ebs" },
     ],
   },
   {
@@ -92,13 +91,12 @@ export const authNavigationItems: NavItem[] = [
     ],
   },
   {
-    label: "EBS",
+    label: "단어장",
     color: "text-green-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>,
     children: [
-      { label: "듣기영역", href: "/learn?exam=EBS&level=LISTENING" },
-      { label: "독해 기본", href: "/learn?exam=EBS&level=READING_BASIC" },
-      { label: "독해 실력", href: "/learn?exam=EBS&level=READING_ADV" },
+      { label: "2026 기출 분석", href: "/dashboard?exam=CSAT_2026" },
+      { label: "EBS 연계단어", href: "/dashboard?exam=EBS" },
     ],
   },
   {
@@ -141,8 +139,16 @@ function getPermissionBasedHref(
   const exam = url.searchParams.get('exam');
   const level = url.searchParams.get('level');
 
-  if (!exam || !level) {
-    return originalHref; // exam/level이 없으면 원본 반환
+  if (!exam) {
+    return originalHref; // exam이 없으면 원본 반환
+  }
+
+  // exam만 있고 level이 없는 경우 (단어장: CSAT_2026, EBS)
+  if (!level) {
+    if (!canAccessExamWithPurchase(user, exam)) {
+      return '/pricing'; // 접근 불가 → 요금제 페이지
+    }
+    return `/dashboard?exam=${exam}`; // 접근 가능 → 대시보드
   }
 
   // 잠금 상태면 적절한 업그레이드 페이지로 이동
@@ -169,7 +175,12 @@ function isMenuLocked(
   const exam = url.searchParams.get('exam');
   const level = url.searchParams.get('level');
 
-  if (!exam || !level) return false;
+  if (!exam) return false;
+
+  // exam만 있고 level이 없는 경우 (단어장: CSAT_2026, EBS)
+  if (!level) {
+    return !canAccessExamWithPurchase(user, exam);
+  }
 
   return !canAccessContentWithPurchase(user, exam, level);
 }
@@ -209,7 +220,7 @@ function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave, user }: NavDrop
             <div key={`divider-${index}`} className="border-t border-slate-200 my-2" />
           ) : (
             <button
-              key={child.href}
+              key={`${item.label}-${child.label}`}
               onClick={(e) => handleItemClick(e, child)}
               className="dropdown-item group w-full text-left"
             >
@@ -481,7 +492,7 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, u
                             <div key={`divider-${index}`} className="border-t border-slate-200 my-2" />
                           ) : (
                             <button
-                              key={child.href}
+                              key={`${item.label}-${child.label}`}
                               onClick={() => handleChildClick(child, item.label)}
                               className="w-full flex items-center justify-between p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50 text-left"
                             >
