@@ -695,30 +695,46 @@ export const submitReviewBatch = async (
         let progress = progressMap.get(progressKey) || null;
 
         if (!progress) {
-          // 새 progress 생성 (upsert로 경합 방지)
+          // 새 progress 생성 (upsert + P2002 방어)
           const initialNextReviewDate = new Date();
           if (rating >= 3) {
             initialNextReviewDate.setDate(initialNextReviewDate.getDate() + 3);
           }
 
-          progress = await tx.userProgress.upsert({
-            where: {
-              userId_wordId_examCategory_level: {
-                userId, wordId, examCategory: wordExamCategory, level: wordLevel,
+          try {
+            progress = await tx.userProgress.upsert({
+              where: {
+                userId_wordId_examCategory_level: {
+                  userId, wordId, examCategory: wordExamCategory, level: wordLevel,
+                },
               },
-            },
-            create: {
-              userId,
-              wordId,
-              examCategory: wordExamCategory,
-              level: wordLevel,
-              nextReviewDate: initialNextReviewDate,
-              masteryLevel: 'NEW',
-              initialRating: rating,
-              learnedAt: new Date(),
-            },
-            update: {}, // 이미 존재하면 아래 update에서 처리
-          });
+              create: {
+                userId,
+                wordId,
+                examCategory: wordExamCategory,
+                level: wordLevel,
+                nextReviewDate: initialNextReviewDate,
+                masteryLevel: 'NEW',
+                initialRating: rating,
+                learnedAt: new Date(),
+              },
+              update: {}, // 이미 존재하면 아래 update에서 처리
+            });
+          } catch (upsertError: any) {
+            // P2002: 동시 upsert 레이스 컨디션 → 이미 생성된 레코드 조회
+            if (upsertError.code === 'P2002') {
+              progress = await tx.userProgress.findUnique({
+                where: {
+                  userId_wordId_examCategory_level: {
+                    userId, wordId, examCategory: wordExamCategory, level: wordLevel,
+                  },
+                },
+              });
+              if (!progress) throw upsertError;
+            } else {
+              throw upsertError;
+            }
+          }
           // 맵에 추가 (같은 배치 내 중복 방지)
           progressMap.set(progressKey, progress);
         }
