@@ -475,8 +475,14 @@ export const submitReview = async (
       }
       // 모름 (rating <= 2)은 오늘 (이미 new Date()로 설정됨)
 
-      progress = await prisma.userProgress.create({
-        data: {
+      // upsert로 경합 방지 (배치/개별 동시 호출 시 unique constraint 충돌 방지)
+      progress = await prisma.userProgress.upsert({
+        where: {
+          userId_wordId_examCategory_level: {
+            userId, wordId, examCategory: wordExamCategory, level: wordLevel,
+          },
+        },
+        create: {
           userId,
           wordId,
           examCategory: wordExamCategory,
@@ -485,7 +491,8 @@ export const submitReview = async (
           masteryLevel: 'NEW',
           initialRating: rating,  // 첫 학습 시 rating 저장 (1=모름, 5=알았음)
           learnedAt: now,         // 첫 학습 날짜 저장
-        }
+        },
+        update: {}, // 이미 존재하면 아래 update 로직에서 처리
       });
     }
 
@@ -688,14 +695,19 @@ export const submitReviewBatch = async (
         let progress = progressMap.get(progressKey) || null;
 
         if (!progress) {
-          // 새 progress 생성
+          // 새 progress 생성 (upsert로 경합 방지)
           const initialNextReviewDate = new Date();
           if (rating >= 3) {
             initialNextReviewDate.setDate(initialNextReviewDate.getDate() + 3);
           }
 
-          progress = await tx.userProgress.create({
-            data: {
+          progress = await tx.userProgress.upsert({
+            where: {
+              userId_wordId_examCategory_level: {
+                userId, wordId, examCategory: wordExamCategory, level: wordLevel,
+              },
+            },
+            create: {
               userId,
               wordId,
               examCategory: wordExamCategory,
@@ -704,7 +716,8 @@ export const submitReviewBatch = async (
               masteryLevel: 'NEW',
               initialRating: rating,
               learnedAt: new Date(),
-            }
+            },
+            update: {}, // 이미 존재하면 아래 update에서 처리
           });
           // 맵에 추가 (같은 배치 내 중복 방지)
           progressMap.set(progressKey, progress);
