@@ -590,6 +590,10 @@ export const submitReview = async (
     // Update user stats
     await updateUserStats(userId);
 
+    // 🚀 대시보드 캐시 무효화 (학습 결과 즉시 반영)
+    const dashboardKeys = appCache.getKeys().filter(k => k.startsWith(`dashboard:${userId}:`));
+    dashboardKeys.forEach(k => appCache.del(k));
+
     res.json({
       message: 'Review submitted successfully',
       progress: updatedProgress,
@@ -1220,11 +1224,25 @@ export const getDashboardSummary = async (
     const userId = req.userId!;
     const { examCategory = 'CSAT', level = 'L1' } = req.query;
 
+    // 🚀 캐시 확인 (30초 TTL - 빈번한 요청 차단)
+    const cacheKey = `dashboard:${userId}:${examCategory}:${level}`;
+    const cached = appCache.get<any>(cacheKey);
+    if (cached) {
+      res.set('Cache-Control', 'private, no-cache');
+      return res.json(cached);
+    }
+
     // KST 기준 오늘 시작 시간 (00:00:00)
     const now = new Date();
     const todayStartKST = new Date(now.getTime() + 9 * 60 * 60 * 1000);
     todayStartKST.setUTCHours(0, 0, 0, 0);
     const todayStartUTC = new Date(todayStartKST.getTime() - 9 * 60 * 60 * 1000);
+
+    // 10초 타임아웃 보호
+    const QUERY_TIMEOUT = 10000;
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Dashboard query timeout (10s)')), QUERY_TIMEOUT)
+    );
 
     // 단일 병렬 쿼리로 모든 필요 데이터 조회
     const [
@@ -1239,125 +1257,126 @@ export const getDashboardSummary = async (
       todayKnown,
       totalLearned,
       totalKnown
-    ] = await Promise.all([
-      // 1. 유저 통계 (streak, dailyGoal)
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          currentStreak: true,
-          longestStreak: true,
-          lastActiveDate: true,
-          dailyGoal: true,
-          totalWordsLearned: true,
-        }
-      }),
+    ] = await Promise.race([
+      Promise.all([
+        // 1. 유저 통계 (streak, dailyGoal)
+        prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            currentStreak: true,
+            longestStreak: true,
+            lastActiveDate: true,
+            dailyGoal: true,
+            totalWordsLearned: true,
+          }
+        }),
 
-      // 2. 복습 대기 단어 수 (shouldShowInReview 로직 적용)
-      (async () => {
-        const allCandidates = await prisma.userProgress.findMany({
+        // 2. 🚀 복습 대기 단어 수 (DB 레벨에서 shouldShowInReview 로직 처리 - OOM 방지)
+        // 기존: findMany로 전체 로드 후 JS 필터 → 메모리 폭발 위험
+        // 개선: Raw SQL COUNT로 DB에서 직접 계산
+        (async () => {
+          const result = await prisma.$queryRaw<[{ count: bigint }]>`
+            SELECT COUNT(*) as count FROM "UserProgress"
+            WHERE "userId" = ${userId}
+              AND "correctCount" < 2
+              AND "nextReviewDate" <= NOW()
+              AND (
+                -- "알았음" (rating=5, 틀린적 없음) → D+3에만 복습
+                ("initialRating" = 5 AND "incorrectCount" = 0
+                  AND (CURRENT_DATE - "learnedAt"::date) = 3)
+                OR
+                -- "모름" 또는 틀린 단어 → 2일 포함/1일 쉼 패턴 (cycleDay % 3 != 2)
+                (NOT ("initialRating" = 5 AND "incorrectCount" = 0)
+                  AND (CURRENT_DATE - "learnedAt"::date) % 3 != 2)
+              )
+          `;
+          return Number(result[0]?.count ?? 0);
+        })(),
+
+        // 3. 전체 단어 수 (🚀 캐시 사용 - TTL 1시간)
+        (async () => {
+          const cachedCount = appCache.getWordCount(examCategory as string, level as string);
+          if (cachedCount !== undefined) return cachedCount;
+          const count = await prisma.wordExamLevel.count({
+            where: {
+              examCategory: examCategory as ExamCategory,
+              level: level as string,
+            }
+          });
+          appCache.setWordCount(examCategory as string, level as string, count);
+          return count;
+        })(),
+
+        // 4. 학습 완료 단어 수
+        prisma.userProgress.count({
           where: {
             userId,
-            correctCount: { lt: 2 },
-            nextReviewDate: { lte: new Date() },
-          },
-          select: {
-            correctCount: true,
-            incorrectCount: true,
-            initialRating: true,
-            learnedAt: true,
-          }
-        });
-
-        return allCandidates.filter(p => shouldShowInReview({
-          correctCount: p.correctCount,
-          incorrectCount: p.incorrectCount,
-          initialRating: p.initialRating,
-          learnedAt: p.learnedAt,
-        })).length;
-      })(),
-
-      // 3. 전체 단어 수 (🚀 캐시 사용 - TTL 1시간)
-      (async () => {
-        const cached = appCache.getWordCount(examCategory as string, level as string);
-        if (cached !== undefined) return cached;
-        const count = await prisma.wordExamLevel.count({
-          where: {
             examCategory: examCategory as ExamCategory,
             level: level as string,
           }
-        });
-        appCache.setWordCount(examCategory as string, level as string, count);
-        return count;
-      })(),
+        }),
 
-      // 4. 학습 완료 단어 수
-      prisma.userProgress.count({
-        where: {
-          userId,
-          examCategory: examCategory as ExamCategory,
-          level: level as string,
-        }
-      }),
+        // 5. 취약 단어 수 (needsReview = true)
+        prisma.userProgress.count({
+          where: {
+            userId,
+            needsReview: true,
+            examCategory: examCategory as ExamCategory,
+            level: level as string,
+          }
+        }),
 
-      // 5. 취약 단어 수 (needsReview = true)
-      prisma.userProgress.count({
-        where: {
-          userId,
-          needsReview: true,
-          examCategory: examCategory as ExamCategory,
-          level: level as string,
-        }
-      }),
+        // 6. 학습 세션
+        prisma.learningSession.findFirst({
+          where: {
+            userId,
+            examCategory: examCategory as ExamCategory,
+            level: level as string,
+            status: 'IN_PROGRESS'
+          },
+          orderBy: { updatedAt: 'desc' },
+          select: {
+            id: true,
+            currentSet: true,
+            currentIndex: true,
+            completedSets: true,
+            totalWords: true,
+            totalReviewed: true,
+            status: true,
+          }
+        }),
 
-      // 6. 학습 세션
-      prisma.learningSession.findFirst({
-        where: {
-          userId,
-          examCategory: examCategory as ExamCategory,
-          level: level as string,
-          status: 'IN_PROGRESS'
-        },
-        orderBy: { updatedAt: 'desc' },
-        select: {
-          id: true,
-          currentSet: true,
-          currentIndex: true,
-          completedSets: true,
-          totalWords: true,
-          totalReviewed: true,
-          status: true,
-        }
-      }),
+        // 7. 오늘 학습한 단어 수 (Hero용 - 전체 시험/레벨 합산)
+        prisma.userProgress.count({
+          where: {
+            userId,
+            updatedAt: { gte: todayStartUTC }
+          }
+        }),
 
-      // 7. 오늘 학습한 단어 수 (Hero용 - 전체 시험/레벨 합산, updatedAt 기준 - 복습 포함)
-      prisma.userProgress.count({
-        where: {
-          userId,
-          updatedAt: { gte: todayStartUTC }
-        }
-      }),
+        // 8. 오늘 "알았음" 선택한 단어 수 (Hero용)
+        prisma.userProgress.count({
+          where: {
+            userId,
+            updatedAt: { gte: todayStartUTC },
+            initialRating: { gte: 3 }
+          }
+        }),
 
-      // 8. 오늘 "알았음" 선택한 단어 수 (Hero용 - 전체 시험/레벨 합산)
-      prisma.userProgress.count({
-        where: {
-          userId,
-          updatedAt: { gte: todayStartUTC },
-          initialRating: { gte: 3 }
-        }
-      }),
+        // 9. 전체 학습한 단어 수 (Hero용)
+        prisma.userProgress.count({
+          where: { userId }
+        }),
 
-      // 9. 전체 학습한 단어 수 (Hero용)
-      prisma.userProgress.count({
-        where: { userId }
-      }),
-
-      // 10. 전체 "알았음" 선택한 단어 수 (Hero용)
-      prisma.userProgress.count({
-        where: {
-          userId,
-          initialRating: { gte: 3 }
-        }
-      })
+        // 10. 전체 "알았음" 선택한 단어 수 (Hero용)
+        prisma.userProgress.count({
+          where: {
+            userId,
+            initialRating: { gte: 3 }
+          }
+        })
+      ]),
+      timeoutPromise
     ]);
 
     // 플래시카드 정답률 계산
@@ -1368,9 +1387,7 @@ export const getDashboardSummary = async (
       ? Math.round((totalKnown / totalLearned) * 100)
       : 0;
 
-    // 학습 후 갱신 필요 → no-cache로 매번 검증, 네트워크 실패 시 캐시 사용 가능
-    res.set('Cache-Control', 'private, no-cache');
-    res.json({
+    const responseData = {
       stats: {
         ...userStats,
         totalWordsLearned: totalLearned,
@@ -1383,8 +1400,23 @@ export const getDashboardSummary = async (
       learnedWords: learnedWordsCount,
       weakWordsCount,
       learningSession,
-    });
-  } catch (error) {
+    };
+
+    // 🚀 결과 캐시 (30초 TTL)
+    appCache.set(cacheKey, responseData, 30);
+
+    // 학습 후 갱신 필요 → no-cache로 매번 검증, 네트워크 실패 시 캐시 사용 가능
+    res.set('Cache-Control', 'private, no-cache');
+    res.json(responseData);
+  } catch (error: any) {
+    // 타임아웃 에러 시 의미 있는 응답 반환
+    if (error?.message?.includes('timeout')) {
+      console.error('[Dashboard] Query timeout for user:', req.userId);
+      return res.status(504).json({
+        error: 'Dashboard query timed out',
+        message: '대시보드 데이터 로딩에 시간이 너무 오래 걸립니다. 잠시 후 다시 시도해주세요.',
+      });
+    }
     next(error);
   }
 };
