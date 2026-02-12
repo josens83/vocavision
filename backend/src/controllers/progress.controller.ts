@@ -431,12 +431,18 @@ export const submitReview = async (
       wordExamCategory = examCategory as ExamCategory;
     } else {
       wordExamCategory = word.examCategory;
+      console.warn('[submitReview] examCategory fallback to Word:', { received: examCategory, fallback: word.examCategory });
     }
 
     // level: 프론트엔드에서 전달받은 값 > Word의 examLevels > Word의 level > 기본값 'L1'
-    wordLevel = level || word.examLevels?.[0]?.level || word.level || 'L1';
+    if (level) {
+      wordLevel = level;
+    } else {
+      wordLevel = word.examLevels?.[0]?.level || word.level || 'L1';
+      console.warn('[submitReview] level fallback to Word:', { received: level, fallback: wordLevel });
+    }
 
-    console.log('[submitReview] Resolved values:', { wordExamCategory, wordLevel });
+    console.log('[submitReview] Resolved values:', { wordExamCategory, wordLevel, source: examCategory ? 'frontend' : 'fallback' });
 
     // examCategory 유효성 검증
     if (!wordExamCategory) {
@@ -444,11 +450,14 @@ export const submitReview = async (
       throw new AppError('examCategory is required', 400);
     }
 
-    // Get or create progress (userId + wordId만으로 검색 - Unique constraint는 이 조합)
+    // Get or create progress (시험/레벨별 독립 진행률 관리)
+    // @@unique([userId, wordId, examCategory, level]) — 같은 단어라도 시험별 진행률 분리
     let progress = await prisma.userProgress.findFirst({
       where: {
         userId,
         wordId,
+        examCategory: wordExamCategory,
+        level: wordLevel,
       }
     });
 
