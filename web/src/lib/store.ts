@@ -113,11 +113,12 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
-        // persist storage에서 복원된 token을 authToken에도 저장
+        // authToken을 먼저 localStorage에 복원 (setHasHydrated가 React 리렌더를 트리거하기 전에)
+        // useSyncExternalStore로 인해 setHasHydrated 후 즉시 API 호출이 발생할 수 있음
         if (state?.token) {
           localStorage.setItem('authToken', state.token);
         }
+        state?.setHasHydrated(true);
       },
     }
   )

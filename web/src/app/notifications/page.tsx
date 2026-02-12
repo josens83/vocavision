@@ -32,6 +32,7 @@ interface NotificationPreferences {
 export default function NotificationsPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -42,6 +43,7 @@ export default function NotificationsPage() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!user) {
       router.push('/auth/login');
       return;
@@ -49,7 +51,7 @@ export default function NotificationsPage() {
 
     loadNotifications();
     loadPreferences();
-  }, [user, router]);
+  }, [user, hasHydrated, router]);
 
   const loadNotifications = async () => {
     try {

@@ -29,6 +29,7 @@ interface Bookmark {
 export default function BookmarksPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -36,13 +37,14 @@ export default function BookmarksPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!user) {
       router.push('/auth/login');
       return;
     }
 
     loadBookmarks();
-  }, [user, router]);
+  }, [user, hasHydrated, router]);
 
   const loadBookmarks = async () => {
     try {

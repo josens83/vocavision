@@ -13,6 +13,8 @@ export function useDashboardSummary(examCategory: string, level: string, enabled
     enabled,
     staleTime: 0, // 마운트 시 항상 refetch (최신 데이터 보장)
     placeholderData: (previousData: any) => previousData, // 이전 캐시 데이터 표시 (0 방지)
+    retry: 2, // hydration 타이밍 이슈 시 자동 재시도
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
   });
 }
 
@@ -91,6 +93,8 @@ export function useDueReviews(examCategory: string, level: string, enabled = tru
     staleTime: 30_000,   // 30초간 캐시 유효 (재방문 시 즉시 표시)
     gcTime: 5 * 60_000,  // 5분간 캐시 보관
     placeholderData: (previousData) => previousData,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
   });
 }
 
@@ -146,6 +150,8 @@ export function useStatistics(enabled = true) {
     },
     enabled,
     staleTime: 30_000,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
   });
 }
 
