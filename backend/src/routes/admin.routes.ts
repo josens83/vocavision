@@ -1131,6 +1131,8 @@ router.get('/seed-packages', async (req: Request, res: Response) => {
       where: { slug: 'ebs-vocab' },
       update: {
         name: 'EBS 연계어휘',
+        description: 'EBSi 공식 단어장 PDF 기반, 수능특강 영어영역 3개 교재(영어, 영어독해연습, 영어듣기)에 수록된 영단어·숙어 3,837개를 AI 학습 콘텐츠로 제공합니다.',
+        shortDesc: '수능특강 영어영역 3개 교재(영어·영어독해연습·영어듣기) 수록 단어·숙어 완벽 대비',
         price: 6900,
         durationDays: 180,
         badge: 'NEW',
@@ -1139,8 +1141,8 @@ router.get('/seed-packages', async (req: Request, res: Response) => {
       create: {
         name: 'EBS 연계어휘',
         slug: 'ebs-vocab',
-        description: '2026학년도 EBS 수능특강 3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 3,837개 완벽 대비.',
-        shortDesc: '3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 완벽 대비',
+        description: 'EBSi 공식 단어장 PDF 기반, 수능특강 영어영역 3개 교재(영어, 영어독해연습, 영어듣기)에 수록된 영단어·숙어 3,837개를 AI 학습 콘텐츠로 제공합니다.',
+        shortDesc: '수능특강 영어영역 3개 교재(영어·영어독해연습·영어듣기) 수록 단어·숙어 완벽 대비',
         price: 6900,
         durationDays: 180,
         badge: 'NEW',

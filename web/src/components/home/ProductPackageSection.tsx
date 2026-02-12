@@ -41,7 +41,7 @@ function getStaticPackages(): ProductPackage[] {
       id: "static-2",
       name: "EBS 연계어휘",
       slug: "ebs-vocab",
-      shortDesc: "3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 완벽 대비",
+      shortDesc: "수능특강 영어영역 3개 교재(영어·영어독해연습·영어듣기) 수록 단어·숙어 완벽 대비",
       price: 6900,
       durationDays: 180, // 6개월
       badges: ["NEW", "대용량"],
@@ -50,6 +50,15 @@ function getStaticPackages(): ProductPackage[] {
     },
   ];
 }
+
+// 메인페이지에 표시할 패키지 slug 목록
+const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab'];
+
+// 표시용 단어 수 오버라이드 (교재별 레벨 중복 포함 수치)
+const DISPLAY_WORD_COUNTS: Record<string, number> = {
+  'ebs-vocab': 3837,
+  '2026-csat-analysis': 521,
+};
 
 // 뱃지 스타일 결정
 function getBadgeStyle(badge: string) {
@@ -183,13 +192,21 @@ export default function ProductPackageSection() {
       );
       if (!response.ok) throw new Error("Failed to fetch packages");
       const data = await response.json();
-      const apiPackages = data.packages || [];
+      const apiPackages = (data.packages || []) as ProductPackage[];
 
-      // API에서 3개 미만이면 정적 데이터로 대체
-      if (apiPackages.length < 3) {
+      // 메인페이지에 표시할 패키지만 필터링 + wordCount 오버라이드
+      const filtered = apiPackages
+        .filter((pkg) => MAIN_PAGE_SLUGS.includes(pkg.slug))
+        .map((pkg) => ({
+          ...pkg,
+          wordCount: DISPLAY_WORD_COUNTS[pkg.slug] || pkg.wordCount,
+        }));
+
+      // 필터 후 2개 미만이면 정적 데이터 사용
+      if (filtered.length < 2) {
         setPackages(getStaticPackages());
       } else {
-        setPackages(apiPackages);
+        setPackages(filtered);
       }
     } catch (err) {
       console.error("Failed to fetch packages:", err);
@@ -214,13 +231,13 @@ export default function ProductPackageSection() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
+            {[1, 2].map((i) => (
               <PackageCardSkeleton key={i} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch max-w-3xl">
             {packages.map((pkg, index) => (
               <div
                 key={pkg.id}
