@@ -56,7 +56,7 @@ const packages: Package[] = [
     slug: 'ebs-vocab',
     name: 'EBS 연계 어휘',
     description: '3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 완벽 대비',
-    price: 3900,
+    price: 6900,
     duration: '6개월',
     wordCount: 3837,
     features: [

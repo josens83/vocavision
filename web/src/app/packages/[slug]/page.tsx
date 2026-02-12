@@ -86,7 +86,7 @@ export default function PackageDetailPage() {
   const discountPercent = hasDiscount
     ? Math.round((1 - packageInfo.price / packageInfo.originalPrice!) * 100)
     : 0;
-  const durationText = packageInfo.durationDays >= 365 ? "1년" : `${packageInfo.durationDays}일`;
+  const durationText = packageInfo.durationDays >= 365 ? "1년" : packageInfo.durationDays >= 30 ? `${Math.floor(packageInfo.durationDays / 30)}개월` : `${packageInfo.durationDays}일`;
 
   return (
     <>
@@ -124,6 +124,8 @@ export default function PackageDetailPage() {
               {packageInfo.description || packageInfo.shortDesc ||
                 (slug === '2026-csat-analysis'
                   ? '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
+                  : slug === 'ebs-vocab'
+                  ? '2026학년도 EBS 수능특강 3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 3,837개 완벽 대비.'
                   : '고득점을 위한 필수 단어장')}
             </p>
 
@@ -168,6 +170,21 @@ export default function PackageDetailPage() {
                         <span>실제 수능에서 출제된 어휘를 완벽히 암기하고 싶은 분</span>
                       </li>
                     </>
+                  ) : slug === 'ebs-vocab' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>EBS 수능특강 연계 어휘를 완벽히 준비하고 싶은 수험생</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>영어듣기·영어·영어독해연습 3개 교재를 한 번에 학습하고 싶은 분</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>교재별 난이도에 맞춰 체계적으로 어휘를 학습하고 싶은 분</span>
+                      </li>
+                    </>
                   ) : (
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
@@ -202,6 +219,25 @@ export default function PackageDetailPage() {
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
                         <span><strong>유형별 분류:</strong> 듣기영역 132개 / 독해영역 2점 265개 / 독해영역 3점 124개</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span>단어별 <strong>AI 이미지 연상법</strong> + 어원 분석</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>스마트 복습</strong> 시스템</span>
+                      </li>
+                    </>
+                  ) : slug === 'ebs-vocab' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>3,837개</strong> EBS 수능특강 연계 어휘</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>교재별 분류:</strong> 듣기영역 / 독해 기본 / 독해 실력</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
