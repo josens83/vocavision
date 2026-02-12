@@ -295,6 +295,8 @@ function QuizPageContent() {
         responseTime,
         learningMethod: 'QUIZ',
         sessionId: sessionId || undefined,
+        examCategory: examParam?.toUpperCase() || currentQuestion.word?.examCategory || undefined,
+        level: levelParam || currentQuestion.word?.level || undefined,
       }),
     ]).catch((error) => {
       console.error('Failed to record answer:', error);

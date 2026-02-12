@@ -135,6 +135,8 @@ export default function DeckStudyPage() {
         rating,
         sessionId: sessionId || undefined,
         learningMethod: 'deck_study',
+        examCategory: (currentWord as any).examCategory || undefined,
+        level: (currentWord as any).level || undefined,
       });
     } catch (error) {
       console.error('Failed to submit review:', error);
