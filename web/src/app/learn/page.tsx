@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSession, clearLearningSession } from '@/lib/store';
 import { progressAPI, wordsAPI, learningAPI, bookmarkAPI, api } from '@/lib/api';
@@ -288,6 +288,15 @@ function LearnPageContent() {
   // 낙관적 UI용 세트 번호 (API 응답 전에 미리 표시)
   const [optimisticCompletedSet, setOptimisticCompletedSet] = useState<number | null>(null);
 
+  // 🚀 배치 리뷰: Set 완료 시 일괄 전송 (개별 API 호출 방지)
+  const pendingReviews = useRef<Array<{
+    wordId: string;
+    rating: number;
+    learningMethod: string;
+    examCategory?: string;
+    level?: string;
+  }>>([]);
+
   useEffect(() => {
     if (!hasHydrated) return;
 
@@ -331,6 +340,30 @@ function LearnPageContent() {
       setSessionId(session.session.id);
     } catch (error) {
       console.error('Failed to start session:', error);
+    }
+  };
+
+  // 🚀 배치 리뷰 일괄 전송
+  const flushPendingReviews = async () => {
+    if (pendingReviews.current.length === 0 || !user) return;
+
+    const reviewsToSend = [...pendingReviews.current];
+    pendingReviews.current = []; // 즉시 비우기 (중복 전송 방지)
+
+    try {
+      await progressAPI.submitReviewBatch({
+        reviews: reviewsToSend,
+        sessionId: sessionId || undefined,
+      });
+    } catch (error) {
+      console.error('Batch review failed, falling back to individual:', error);
+      // 배치 실패 시 개별 전송 폴백
+      for (const review of reviewsToSend) {
+        progressAPI.submitReview({
+          ...review,
+          sessionId: sessionId || undefined,
+        }).catch(e => console.error('Fallback review failed:', e));
+      }
     }
   };
 
@@ -589,18 +622,15 @@ function LearnPageContent() {
       startSession();
     }
 
-    // Only submit progress for logged-in users
+    // 🚀 배치 리뷰: 개별 전송 대신 배열에 축적 (Set 완료 시 일괄 전송)
     if (user) {
-      progressAPI.submitReview({
+      pendingReviews.current.push({
         wordId: currentWord.id,
         rating,
         learningMethod: 'FLASHCARD',
-        sessionId: sessionId || undefined,
         examCategory: examParam || currentWord.examCategory || undefined,
         level: levelParam || currentWord.level || undefined,
-      }).then(result => {
-        console.log('Review submitted:', result);
-      }).catch(error => console.error('Failed to submit review:', error));
+      });
     }
 
     // Record rating for this card (prevents duplicate counting)
@@ -634,6 +664,9 @@ function LearnPageContent() {
       setOptimisticCompletedSet(completedSetNumber);
       setLoadingNextSet(true);
       setShowSetComplete(true);
+
+      // 🚀 배치 리뷰 일괄 전송 (세션 업데이트와 병렬)
+      flushPendingReviews();
 
       // 백그라운드에서 API 호출 (응답 기다리지 않음)
       learningAPI.updateSessionProgress({
@@ -680,6 +713,9 @@ function LearnPageContent() {
 
       return; // 즉시 반환 (UI는 이미 전환됨)
     }
+
+    // 🚀 배치 리뷰 일괄 전송 (비-서버세션 경로)
+    flushPendingReviews();
 
     // serverSession이 없어도 중간 세트 완료인지 확인
     const hasMoreToLearn = totalWordsInLevel > 0 &&
@@ -811,16 +847,15 @@ function LearnPageContent() {
     const defaultRating = 4; // 알았음 (KNOWN)
 
     if (!alreadyRated) {
-      // Submit review with "알았음" rating for logged-in users
+      // 🚀 배치 리뷰: 개별 전송 대신 배열에 축적
       if (user) {
-        progressAPI.submitReview({
+        pendingReviews.current.push({
           wordId: currentWord.id,
           rating: defaultRating,
           learningMethod: 'FLASHCARD',
-          sessionId: sessionId || undefined,
           examCategory: examParam || currentWord.examCategory || undefined,
           level: levelParam || currentWord.level || undefined,
-        }).catch(error => console.error('Failed to submit review:', error));
+        });
       }
 
       // Record as "알았음" (rating=4)
@@ -915,6 +950,9 @@ function LearnPageContent() {
 
   // 나가기 버튼 핸들러 - 현재 진행 위치를 서버에 저장
   const handleExit = async () => {
+    // 🚀 나가기 전에 미전송 리뷰 일괄 전송
+    await flushPendingReviews();
+
     // 서버 세션이 있으면 현재 위치 저장
     if (serverSession && user) {
       try {
@@ -931,15 +969,27 @@ function LearnPageContent() {
     router.push(exitPath);
   };
 
-  // beforeunload 이벤트 - 페이지 떠날 때 진행 위치 저장
+  // beforeunload 이벤트 - 페이지 떠날 때 진행 위치 + 미전송 리뷰 저장
   useEffect(() => {
-    if (!serverSession || !user) return;
+    if (!user) return;
 
     const saveProgressBeforeUnload = () => {
-      // sendBeacon으로 비동기 저장 (페이지 언로드 중에도 작동)
       const token = localStorage.getItem('authToken');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+      // 🚀 미전송 리뷰가 있으면 sendBeacon으로 배치 전송
+      if (token && pendingReviews.current.length > 0) {
+        const blob = new Blob([JSON.stringify({
+          reviews: pendingReviews.current,
+          sessionId: sessionId || undefined,
+          token,
+        })], { type: 'application/json' });
+        navigator.sendBeacon(`${apiUrl}/progress/review/batch-beacon`, blob);
+        pendingReviews.current = [];
+      }
+
+      // sendBeacon으로 진행 위치 저장 (기존 로직)
       if (token && serverSession) {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
         navigator.sendBeacon(
           `${apiUrl}/learning/session/progress-beacon`,
           JSON.stringify({
@@ -953,7 +1003,7 @@ function LearnPageContent() {
 
     window.addEventListener('beforeunload', saveProgressBeforeUnload);
     return () => window.removeEventListener('beforeunload', saveProgressBeforeUnload);
-  }, [serverSession, user, currentWordIndex]);
+  }, [serverSession, user, currentWordIndex, sessionId]);
 
   // 서버 세션이 업데이트될 때 currentWordIndex 동기화 (Set 전환 등)
   useEffect(() => {

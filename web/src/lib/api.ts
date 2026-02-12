@@ -446,6 +446,21 @@ export const progressAPI = {
     const response = await api.post('/progress/review', data);
     return response.data;
   },
+  // 🚀 배치 리뷰 제출 (Set 완료 시 일괄 전송 — DB 부하 대폭 감소)
+  submitReviewBatch: async (data: {
+    reviews: Array<{
+      wordId: string;
+      rating: number;
+      responseTime?: number;
+      learningMethod?: string;
+      examCategory?: string;
+      level?: string;
+    }>;
+    sessionId?: string;
+  }) => {
+    const response = await api.post('/progress/review/batch', data);
+    return response.data;
+  },
   startSession: async () => {
     if (isMockMode()) return mockProgressAPI.startSession();
     const response = await api.post('/progress/session/start');

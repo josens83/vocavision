@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../index';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { ExamCategory } from '@prisma/client';
+import { ExamCategory, LearningMethod } from '@prisma/client';
 import appCache from '../lib/cache';
 
 // Spaced Repetition Algorithm (SM-2)
@@ -610,6 +610,291 @@ export const submitReview = async (
     });
   } catch (error) {
     next(error);
+  }
+};
+
+/**
+ * 🚀 배치 리뷰 제출 (Set 완료 시 일괄 전송)
+ * POST /progress/review/batch
+ * 개별 submitReview 대비: 7 queries × 20 words = 140 → 단일 트랜잭션 ~25 queries
+ */
+export const submitReviewBatch = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.userId!;
+    const { reviews, sessionId } = req.body;
+
+    if (!Array.isArray(reviews) || reviews.length === 0) {
+      throw new AppError('Reviews array is required', 400);
+    }
+
+    if (reviews.length > 50) {
+      throw new AppError('Maximum 50 reviews per batch', 400);
+    }
+
+    console.log(`[submitReviewBatch] Processing ${reviews.length} reviews for user ${userId}`);
+
+    // 1. 모든 관련 Word 한번에 조회 (N+1 방지)
+    const wordIds = [...new Set(reviews.map((r: any) => r.wordId))];
+    const words = await prisma.word.findMany({
+      where: { id: { in: wordIds } },
+      include: { examLevels: { take: 1 } },
+    });
+    const wordMap = new Map(words.map(w => [w.id, w]));
+
+    // 2. 모든 관련 UserProgress 한번에 조회
+    const existingProgress = await prisma.userProgress.findMany({
+      where: { userId, wordId: { in: wordIds } },
+    });
+    // examCategory+level별로 그룹핑 (같은 단어도 시험별 분리)
+    const progressMap = new Map(
+      existingProgress.map(p => [`${p.wordId}:${p.examCategory}:${p.level}`, p])
+    );
+
+    // 3. 트랜잭션으로 일괄 처리
+    const reviewRecords: Array<{
+      userId: string; wordId: string; sessionId?: string;
+      rating: number; responseTime?: number; learningMethod: LearningMethod;
+    }> = [];
+
+    const results = await prisma.$transaction(async (tx) => {
+      const processed: any[] = [];
+
+      for (const review of reviews) {
+        const { wordId, rating, responseTime, learningMethod, examCategory, level } = review;
+
+        if (!wordId || rating === undefined) continue;
+
+        const word = wordMap.get(wordId);
+        if (!word) continue;
+
+        // examCategory/level 결정
+        let wordExamCategory: ExamCategory;
+        let wordLevel: string;
+
+        if (examCategory && Object.values(ExamCategory).includes(examCategory as ExamCategory)) {
+          wordExamCategory = examCategory as ExamCategory;
+        } else {
+          wordExamCategory = word.examCategory;
+        }
+
+        wordLevel = level || word.examLevels?.[0]?.level || word.level || 'L1';
+
+        // 기존 progress 확인
+        const progressKey = `${wordId}:${wordExamCategory}:${wordLevel}`;
+        let progress = progressMap.get(progressKey) || null;
+
+        if (!progress) {
+          // 새 progress 생성
+          const initialNextReviewDate = new Date();
+          if (rating >= 3) {
+            initialNextReviewDate.setDate(initialNextReviewDate.getDate() + 3);
+          }
+
+          progress = await tx.userProgress.create({
+            data: {
+              userId,
+              wordId,
+              examCategory: wordExamCategory,
+              level: wordLevel,
+              nextReviewDate: initialNextReviewDate,
+              masteryLevel: 'NEW',
+              initialRating: rating,
+              learnedAt: new Date(),
+            }
+          });
+          // 맵에 추가 (같은 배치 내 중복 방지)
+          progressMap.set(progressKey, progress);
+        }
+
+        // SM-2 알고리즘
+        const { easeFactor, interval, repetitions } = calculateNextReview(
+          rating, progress.easeFactor, progress.interval, progress.repetitions
+        );
+
+        // nextReviewDate 설정
+        const nextReviewDate = new Date();
+        const isQuiz = learningMethod === 'QUIZ';
+        if (isQuiz) {
+          nextReviewDate.setDate(nextReviewDate.getDate() + 1);
+        } else if (rating >= 3) {
+          nextReviewDate.setDate(nextReviewDate.getDate() + 3);
+        }
+
+        const isCorrectAnswer = rating >= 3;
+        let needsReview = progress.needsReview;
+        let reviewCorrectCount = progress.reviewCorrectCount;
+
+        if (!isCorrectAnswer) {
+          needsReview = true;
+          reviewCorrectCount = 0;
+        } else if (progress.needsReview && isQuiz) {
+          reviewCorrectCount = progress.reviewCorrectCount + 1;
+        }
+
+        const newCorrectCount = (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount;
+        if (newCorrectCount >= 2) needsReview = false;
+
+        let masteryLevel = progress.masteryLevel;
+        if (newCorrectCount >= 6) masteryLevel = 'MASTERED';
+        else if (newCorrectCount >= 3) masteryLevel = 'FAMILIAR';
+        else if (newCorrectCount >= 1) masteryLevel = 'LEARNING';
+
+        // progress 업데이트
+        const updated = await tx.userProgress.update({
+          where: { id: progress.id },
+          data: {
+            easeFactor, interval, repetitions, nextReviewDate,
+            lastReviewDate: new Date(), masteryLevel,
+            correctCount: (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount,
+            incorrectCount: (!isCorrectAnswer && isQuiz) ? progress.incorrectCount + 1 : progress.incorrectCount,
+            totalReviews: progress.totalReviews + 1,
+            needsReview, reviewCorrectCount,
+            ...(learningMethod === 'FLASHCARD' || !learningMethod ? { initialRating: rating } : {}),
+          }
+        });
+
+        // 맵 갱신 (같은 배치 내 다음 접근 시 최신 상태 사용)
+        progressMap.set(progressKey, updated);
+        processed.push(updated);
+
+        // Review 레코드 준비
+        reviewRecords.push({
+          userId, wordId, sessionId: sessionId || undefined,
+          rating, responseTime,
+          learningMethod: (learningMethod || 'FLASHCARD') as LearningMethod,
+        });
+      }
+
+      // Review 레코드 일괄 생성
+      if (reviewRecords.length > 0) {
+        await tx.review.createMany({ data: reviewRecords });
+      }
+
+      return processed;
+    }, {
+      timeout: 15000, // 15초 타임아웃
+    });
+
+    // 4. updateUserStats 1회만 실행 (트랜잭션 밖)
+    await updateUserStats(userId);
+
+    // 5. 대시보드 캐시 무효화 1회만
+    const dashboardKeys = appCache.getKeys().filter(k => k.startsWith(`dashboard:${userId}:`));
+    dashboardKeys.forEach(k => appCache.del(k));
+
+    console.log(`[submitReviewBatch] Completed: ${results.length} reviews processed`);
+
+    res.json({
+      message: 'Batch reviews submitted',
+      count: results.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * sendBeacon 전용 배치 리뷰 엔드포인트 (페이지 언로드 시)
+ * POST /progress/review/batch-beacon
+ * body: { reviews, sessionId, token } (text/plain 또는 application/json)
+ */
+export const submitReviewBatchBeacon = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    let data: any;
+    if (typeof req.body === 'string') {
+      try {
+        data = JSON.parse(req.body);
+      } catch {
+        return res.status(400).json({ error: 'Invalid JSON' });
+      }
+    } else {
+      data = req.body;
+    }
+
+    const { reviews, sessionId, token } = data;
+
+    if (!reviews || !Array.isArray(reviews) || reviews.length === 0 || !token) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // 토큰 검증
+    const jwt = require('jsonwebtoken');
+    let userId: string;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.userId;
+    } catch {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    // submitReviewBatch와 동일한 로직을 재사용
+    // req 객체를 조작하여 기존 핸들러 호출
+    req.userId = userId;
+    req.body = { reviews, sessionId };
+
+    // 간소화된 처리: 개별 upsert로 처리 (beacon은 빠른 응답이 목표)
+    const wordIds = [...new Set(reviews.map((r: any) => r.wordId))];
+    const words = await prisma.word.findMany({
+      where: { id: { in: wordIds } },
+      include: { examLevels: { take: 1 } },
+    });
+    const wordMap = new Map(words.map(w => [w.id, w]));
+
+    const reviewRecords: any[] = [];
+    for (const review of reviews) {
+      const word = wordMap.get(review.wordId);
+      if (!word) continue;
+
+      const examCategory = review.examCategory || word.examCategory;
+      const level = review.level || (word as any).examLevels?.[0]?.level || 'L1';
+
+      // Upsert progress
+      await prisma.userProgress.upsert({
+        where: {
+          userId_wordId_examCategory_level: {
+            userId, wordId: review.wordId, examCategory, level,
+          },
+        },
+        create: {
+          userId, wordId: review.wordId, examCategory, level,
+          initialRating: review.rating,
+          correctCount: review.rating >= 4 ? 1 : 0,
+          incorrectCount: review.rating < 3 ? 1 : 0,
+          nextReviewDate: new Date(),
+          learnedAt: new Date(),
+        },
+        update: {
+          correctCount: review.rating >= 4 ? { increment: 1 } : undefined,
+          incorrectCount: review.rating < 3 ? { increment: 1 } : undefined,
+          lastReviewDate: new Date(),
+        },
+      });
+
+      reviewRecords.push({
+        userId, wordId: review.wordId,
+        rating: review.rating,
+        learningMethod: review.learningMethod || 'FLASHCARD',
+        sessionId: sessionId || undefined,
+      });
+    }
+
+    if (reviewRecords.length > 0) {
+      await prisma.review.createMany({ data: reviewRecords });
+    }
+
+    res.json({ success: true, count: reviewRecords.length });
+  } catch (error) {
+    console.error('[batch-beacon] Error:', error);
+    // beacon 응답은 무시되므로 200 반환
+    res.json({ success: false });
   }
 };
 
