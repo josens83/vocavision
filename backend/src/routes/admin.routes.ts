@@ -1059,4 +1059,120 @@ router.get('/seed-ebs-levels', async (req: Request, res: Response) => {
   }
 });
 
+// ============================================
+// 단품 패키지 시드 엔드포인트
+// GET /api/admin/seed-packages
+// ============================================
+router.get('/seed-packages', async (req: Request, res: Response) => {
+  try {
+    const prisma = (await import('../lib/prisma')).default;
+    const results: any[] = [];
+
+    // 1. 2026 수능기출완전분석 패키지
+    const csatPkg = await prisma.productPackage.upsert({
+      where: { slug: '2026-csat-analysis' },
+      update: {
+        name: '2026 수능기출완전분석',
+        price: 3900,
+        durationDays: 180,
+        badge: 'BEST',
+        isActive: true,
+      },
+      create: {
+        name: '2026 수능기출완전분석',
+        slug: '2026-csat-analysis',
+        description: '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.',
+        shortDesc: '2026년 수능 기출문제 완전 분석, 출제 경향과 핵심 어휘',
+        price: 3900,
+        durationDays: 180,
+        badge: 'BEST',
+        badgeColor: '#14B8A6',
+        displayOrder: 1,
+        isActive: true,
+      },
+    });
+
+    // CSAT_2026 단어 연결
+    const csatWords = await prisma.word.findMany({
+      where: { examCategory: 'CSAT_2026' },
+      select: { id: true },
+    });
+    const existingCsatLinks = await prisma.productPackageWord.count({
+      where: { packageId: csatPkg.id },
+    });
+    if (existingCsatLinks === 0 && csatWords.length > 0) {
+      await prisma.productPackageWord.createMany({
+        data: csatWords.map((w, i) => ({
+          packageId: csatPkg.id,
+          wordId: w.id,
+          displayOrder: i,
+        })),
+        skipDuplicates: true,
+      });
+    }
+    results.push({
+      slug: '2026-csat-analysis',
+      id: csatPkg.id,
+      wordCount: csatWords.length,
+      linkedBefore: existingCsatLinks,
+    });
+
+    // 2. EBS 연계어휘 패키지
+    const ebsPkg = await prisma.productPackage.upsert({
+      where: { slug: 'ebs-vocab' },
+      update: {
+        name: 'EBS 연계어휘',
+        price: 6900,
+        durationDays: 180,
+        badge: 'NEW',
+        isActive: true,
+      },
+      create: {
+        name: 'EBS 연계어휘',
+        slug: 'ebs-vocab',
+        description: '2026학년도 EBS 수능특강 3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 3,837개 완벽 대비.',
+        shortDesc: '3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 완벽 대비',
+        price: 6900,
+        durationDays: 180,
+        badge: 'NEW',
+        badgeColor: '#EF4444',
+        displayOrder: 2,
+        isActive: true,
+      },
+    });
+
+    // EBS 단어 연결
+    const ebsWords = await prisma.word.findMany({
+      where: { examCategory: 'EBS' },
+      select: { id: true },
+    });
+    const existingEbsLinks = await prisma.productPackageWord.count({
+      where: { packageId: ebsPkg.id },
+    });
+    if (existingEbsLinks === 0 && ebsWords.length > 0) {
+      await prisma.productPackageWord.createMany({
+        data: ebsWords.map((w, i) => ({
+          packageId: ebsPkg.id,
+          wordId: w.id,
+          displayOrder: i,
+        })),
+        skipDuplicates: true,
+      });
+    }
+    results.push({
+      slug: 'ebs-vocab',
+      id: ebsPkg.id,
+      wordCount: ebsWords.length,
+      linkedBefore: existingEbsLinks,
+    });
+
+    res.json({ success: true, packages: results });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 export default router;

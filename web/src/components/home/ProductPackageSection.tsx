@@ -41,7 +41,7 @@ function getStaticPackages(): ProductPackage[] {
       name: "EBS 연계어휘",
       slug: "ebs-vocab",
       shortDesc: "3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 완벽 대비",
-      price: 3900,
+      price: 6900,
       durationDays: 180, // 6개월
       badge: "NEW",
       isComingSoon: false,
@@ -81,7 +81,7 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
         pkg.isComingSoon ? "cursor-not-allowed" : ""
       }`}
     >
-      <div className={`bg-white border border-gray-200 rounded-2xl p-6 transition-all duration-200 ${
+      <div className={`bg-white border border-gray-200 rounded-2xl p-6 h-full flex flex-col transition-all duration-200 ${
         pkg.isComingSoon
           ? "opacity-70"
           : "hover:border-teal-300 hover:shadow-sm"
@@ -116,7 +116,7 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
         </div>
 
         {/* 가격 영역 */}
-        <div className="border-t border-gray-100 mt-6 pt-4 flex items-center justify-between">
+        <div className="border-t border-gray-100 mt-auto pt-4 flex items-center justify-between">
           <div className="flex items-baseline gap-2">
             {hasDiscount && (
               <span className="text-xs text-red-500 font-bold">
