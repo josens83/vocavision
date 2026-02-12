@@ -771,6 +771,8 @@ function LearnPageContent() {
           rating: defaultRating,
           learningMethod: 'FLASHCARD',
           sessionId: sessionId || undefined,
+          examCategory: examParam || currentWord.examCategory || undefined,
+          level: levelParam || currentWord.level || undefined,
         }).catch(error => console.error('Failed to submit review:', error));
       }
 
