@@ -291,6 +291,9 @@ function LearnPageContent() {
   // startSession 중복 호출 방지 가드
   const isStartingSession = useRef(false);
 
+  // handleSetComplete 이중 호출 방지 가드
+  const isCompletingSet = useRef(false);
+
   // 🚀 배치 리뷰: Set 완료 시 일괄 전송 (개별 API 호출 방지)
   const pendingReviews = useRef<Array<{
     wordId: string;
@@ -364,7 +367,8 @@ function LearnPageContent() {
       });
     } catch (error) {
       console.error('Batch review failed, retrying once:', error);
-      // 재시도 1회 (개별 전송 fallback 제거 — 서버 폭격 방지)
+      // 1초 대기 후 재시도 (P2002 레이스 컨디션 해소 시간)
+      await new Promise(resolve => setTimeout(resolve, 1000));
       try {
         await progressAPI.submitReviewBatch({
           reviews: reviewsToSend,
@@ -667,6 +671,10 @@ function LearnPageContent() {
 
   // 세트 완료 처리 (handleAnswer, handleNext에서 공통 사용)
   const handleSetComplete = async () => {
+    // 이중 호출 방지 가드 (handleAnswer + handleNext 동시 호출 방지)
+    if (isCompletingSet.current) return;
+    isCompletingSet.current = true;
+
     // 서버 세션이 있으면 세트 완료 처리
     if (serverSession && user && examParam && levelParam) {
       // 🔑 낙관적 UI: 현재 completedSets + 1로 먼저 설정
@@ -760,6 +768,7 @@ function LearnPageContent() {
 
   // 다음 Set으로 이동
   const handleContinueToNextSet = () => {
+    isCompletingSet.current = false; // 다음 세트 시작 시 가드 리셋
     if (pendingNextSet && examParam && levelParam) {
       // 먼저 인덱스를 0으로 리셋 (새 Set 시작)
       setCurrentIndex(0);
@@ -788,6 +797,7 @@ function LearnPageContent() {
 
   // 🚀 API 실패 시 다음 Set 재시도 (pendingNextSet이 없을 때)
   const handleRetryNextSet = async () => {
+    isCompletingSet.current = false; // 가드 리셋
     if (!serverSession || !examParam || !levelParam) return;
 
     setLoadingNextSet(true);
@@ -898,6 +908,7 @@ function LearnPageContent() {
   };
 
   const handleRestart = async () => {
+    isCompletingSet.current = false; // 가드 리셋
     resetSession();
     setShowResult(false);
     setServerSession(null);
@@ -944,6 +955,7 @@ function LearnPageContent() {
   };
 
   const handleNextBatch = async () => {
+    isCompletingSet.current = false; // 가드 리셋
     // 서버 세션이 있으면 다음 세트 로드 (이미 handleSetComplete에서 처리됨)
     // 이 함수는 서버 세션 없이 기존 방식으로 사용하는 경우만 처리
     if (!serverSession) {
