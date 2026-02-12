@@ -16,6 +16,7 @@ interface ProductPackage {
   originalPrice?: number;
   durationDays: number;
   badge?: string;
+  badges?: string[];
   badgeColor?: string;
   imageUrl?: string;
   isComingSoon: boolean;
@@ -43,7 +44,7 @@ function getStaticPackages(): ProductPackage[] {
       shortDesc: "3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 완벽 대비",
       price: 6900,
       durationDays: 180, // 6개월
-      badge: "NEW",
+      badges: ["NEW", "대용량"],
       isComingSoon: false,
       wordCount: 3837,
     },
@@ -87,10 +88,14 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
           : "hover:border-teal-300 hover:shadow-sm"
       }`}>
         {/* 뱃지 */}
-        {pkg.badge && (
-          <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${getBadgeStyle(pkg.badge)}`}>
-            {pkg.badge}
-          </span>
+        {(pkg.badges || (pkg.badge ? [pkg.badge] : [])).length > 0 && (
+          <div className="flex gap-2">
+            {(pkg.badges || [pkg.badge!]).map((b) => (
+              <span key={b} className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${getBadgeStyle(b)}`}>
+                {b}
+              </span>
+            ))}
+          </div>
         )}
 
         {/* 제목 */}
@@ -215,11 +220,11 @@ export default function ProductPackageSection() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {packages.map((pkg, index) => (
               <div
                 key={pkg.id}
-                className="opacity-0 animate-fade-in-up"
+                className="opacity-0 animate-fade-in-up h-full"
                 style={{
                   animationDelay: `${index * 0.1}s`,
                   animationFillMode: "forwards",

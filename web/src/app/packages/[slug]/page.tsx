@@ -19,6 +19,36 @@ interface PackageInfo {
   wordCount: number;
 }
 
+// 정적 패키지 데이터 (API 실패 시 fallback)
+const STATIC_PACKAGES: Record<string, PackageInfo> = {
+  '2026-csat-analysis': {
+    id: 'static-csat',
+    name: '2026 수능기출완전분석',
+    slug: '2026-csat-analysis',
+    description: '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.',
+    price: 3900,
+    durationDays: 180,
+    badge: 'BEST',
+    wordCount: 521,
+  },
+  'ebs-vocab': {
+    id: 'static-ebs',
+    name: 'EBS 연계어휘',
+    slug: 'ebs-vocab',
+    description: '2026학년도 EBS 수능특강 3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 3,837개 완벽 대비.',
+    price: 6900,
+    durationDays: 180,
+    badge: 'NEW',
+    wordCount: 3837,
+  },
+};
+
+// 표시용 단어 수 (교재 레벨 중복 포함)
+const DISPLAY_WORD_COUNTS: Record<string, number> = {
+  'ebs-vocab': 3837,
+  '2026-csat-analysis': 521,
+};
+
 export default function PackageDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -40,9 +70,20 @@ export default function PackageDetailPage() {
       );
       if (!response.ok) throw new Error("패키지를 찾을 수 없습니다.");
       const data = await response.json();
-      setPackageInfo(data.package);
+      const pkg = data.package;
+      // API wordCount를 표시용 수치로 오버라이드 (레벨 중복 포함 수치)
+      if (DISPLAY_WORD_COUNTS[slug]) {
+        pkg.wordCount = DISPLAY_WORD_COUNTS[slug];
+      }
+      setPackageInfo(pkg);
     } catch (err: any) {
-      setError(err.message);
+      // API 실패 시 정적 데이터 fallback
+      const staticPkg = STATIC_PACKAGES[slug];
+      if (staticPkg) {
+        setPackageInfo(staticPkg);
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
