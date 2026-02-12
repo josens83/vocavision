@@ -673,6 +673,8 @@ function LearnPageContent() {
         setLoadingNextSet(false);
       }).catch((error) => {
         console.error('Failed to update server session:', error);
+        // 🚀 API 실패해도 Set 번호 기반으로 다음 Set 존재 여부 추론 가능
+        // loadingNextSet만 해제하고, hasNextSet은 completedSet < totalSets로 판단
         setLoadingNextSet(false);
       });
 
@@ -735,6 +737,51 @@ function LearnPageContent() {
       setPendingNextSet(null);
       setShowSetComplete(false);
       setOptimisticCompletedSet(null); // 다음 Set 시작 시 리셋
+    }
+  };
+
+  // 🚀 API 실패 시 다음 Set 재시도 (pendingNextSet이 없을 때)
+  const handleRetryNextSet = async () => {
+    if (!serverSession || !examParam || !levelParam) return;
+
+    setLoadingNextSet(true);
+    const nextSetNumber = (optimisticCompletedSet ?? serverSession.completedSets ?? 0) + 1;
+
+    try {
+      // getSessionSet으로 다음 Set 단어 직접 조회
+      const result = await learningAPI.getSessionSet(serverSession.id, nextSetNumber);
+
+      if (result.words && result.words.length > 0) {
+        // 성공 — 다음 Set 데이터로 전환
+        setCurrentIndex(0);
+        resetSession();
+        if (result.session) setServerSession(result.session);
+        setReviews(result.words.map((word: Word) => ({ word })));
+        setTotalLearnedInLevel(result.session?.totalReviewed || totalLearnedInLevel);
+
+        saveLearningSession({
+          exam: examParam,
+          level: levelParam,
+          words: result.words,
+          currentIndex: 0,
+          ratings: {},
+          timestamp: Date.now(),
+        });
+
+        setPendingNextSet(null);
+        setShowSetComplete(false);
+        setOptimisticCompletedSet(null);
+      } else {
+        // 단어가 없으면 학습 완료
+        setShowSetComplete(false);
+        setShowResult(true);
+      }
+    } catch (error) {
+      console.error('Retry failed, reloading:', error);
+      // 재시도도 실패하면 페이지 새로고침
+      window.location.reload();
+    } finally {
+      setLoadingNextSet(false);
     }
   };
 
@@ -1085,8 +1132,10 @@ function LearnPageContent() {
     const completedSet = optimisticCompletedSet ?? serverSession?.completedSets ?? 1;
     const totalSets = serverSession?.totalSets ?? (totalWordsInLevel > 0 ? Math.ceil(totalWordsInLevel / 20) : 1);
     const totalReviewed = serverSession?.totalReviewed ?? (totalLearnedInLevel + wordsStudied);
+    // 🚀 API 실패와 무관하게 Set 번호 기반으로 다음 Set 존재 여부 추론
+    // Set 4/77이면 Set 5가 있다는 건 확실 → pendingNextSet 없어도 "Set 5 시작하기" 표시
     const hasNextSet = serverSession
-      ? (pendingNextSet && pendingNextSet.words && pendingNextSet.words.length > 0)
+      ? (completedSet < totalSets)
       : (totalWordsInLevel > 0 && (totalLearnedInLevel + wordsStudied) < totalWordsInLevel);
 
     return (
@@ -1168,7 +1217,7 @@ function LearnPageContent() {
               </button>
             ) : hasNextSet ? (
               <button
-                onClick={serverSession ? handleContinueToNextSet : handleNextBatch}
+                onClick={serverSession ? (pendingNextSet ? handleContinueToNextSet : handleRetryNextSet) : handleNextBatch}
                 className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] hover:opacity-90 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-[#14B8A6]/25"
               >
                 {serverSession
