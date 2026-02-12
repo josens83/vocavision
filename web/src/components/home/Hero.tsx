@@ -151,6 +151,7 @@ function MemberInfoCard() {
   const { user, _hasHydrated } = useAuthStore();
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
+  const examHasHydrated = useExamCourseStore((state) => state._hasHydrated);
 
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
@@ -160,10 +161,11 @@ function MemberInfoCard() {
   const prefetchReviews = usePrefetchReviews();
 
   // React Query: 캐싱된 대시보드 데이터 사용
+  // 🚀 exam store 하이드레이션 완료 후 쿼리 시작 (queryKey 변경으로 인한 요청 취소 방지)
   const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
     activeExam || 'CSAT',
     activeLevel || 'L1',
-    !!user && _hasHydrated
+    !!user && _hasHydrated && examHasHydrated
   );
 
   // 데이터 추출
@@ -549,6 +551,7 @@ function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
   const { user, _hasHydrated } = useAuthStore();
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
+  const examHasHydrated = useExamCourseStore((state) => state._hasHydrated);
 
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
@@ -562,10 +565,11 @@ function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
   const setDailyGoal = useUserSettingsStore((state) => state.setDailyGoal);
 
   // React Query: 캐싱된 대시보드 데이터 사용
+  // 🚀 exam store 하이드레이션 완료 후 쿼리 시작 (queryKey 변경으로 인한 요청 취소 방지)
   const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
     activeExam || 'CSAT',
     activeLevel || 'L1',
-    !!user && _hasHydrated
+    !!user && _hasHydrated && examHasHydrated
   );
 
   // dailyGoal 동기화

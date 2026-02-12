@@ -135,22 +135,24 @@ function ReviewPageContent() {
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
   const setActiveExam = useExamCourseStore((state) => state.setActiveExam);
   const setActiveLevel = useExamCourseStore((state) => state.setActiveLevel);
+  const examHasHydrated = useExamCourseStore((state) => state._hasHydrated);
 
   // store 연동 (기본값: CSAT, L1)
   const selectedExam = activeExam || 'CSAT';
   const selectedLevel = activeLevel || 'L1';
 
   // React Query: 복습 데이터 + 대시보드 요약 (streak 등)
+  // 🚀 exam store 하이드레이션 완료 후 쿼리 시작 (queryKey 변경으로 인한 요청 취소 방지)
   const { data: reviewData, isLoading: reviewLoading, isFetching: reviewFetching } = useDueReviews(
     selectedExam,
     selectedLevel,
-    !!user && hasHydrated && !isDemo
+    !!user && hasHydrated && examHasHydrated && !isDemo
   );
 
   const { data: summaryData } = useDashboardSummary(
     selectedExam,
     selectedLevel,
-    !!user && hasHydrated && !isDemo
+    !!user && hasHydrated && examHasHydrated && !isDemo
   );
 
   // 프리패치 훅
