@@ -3,6 +3,8 @@ import {
   getUserProgress,
   getDueReviews,
   submitReview,
+  submitReviewBatch,
+  submitReviewBatchBeacon,
   startStudySession,
   endStudySession,
   getReviewHistory,
@@ -351,6 +353,8 @@ router.get('/history', authenticateToken, getReviewHistory);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.post('/review', authenticateToken, submitReview);
+router.post('/review/batch', authenticateToken, submitReviewBatch);
+router.post('/review/batch-beacon', submitReviewBatchBeacon);
 
 /**
  * @swagger
