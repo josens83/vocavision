@@ -288,6 +288,9 @@ function LearnPageContent() {
   // 낙관적 UI용 세트 번호 (API 응답 전에 미리 표시)
   const [optimisticCompletedSet, setOptimisticCompletedSet] = useState<number | null>(null);
 
+  // startSession 중복 호출 방지 가드
+  const isStartingSession = useRef(false);
+
   // 🚀 배치 리뷰: Set 완료 시 일괄 전송 (개별 API 호출 방지)
   const pendingReviews = useRef<Array<{
     wordId: string;
@@ -335,11 +338,15 @@ function LearnPageContent() {
   }, [user, hasHydrated, router, examParam, levelParam, isDemo, isWeakMode, isRestart]);
 
   const startSession = async () => {
+    if (isStartingSession.current) return; // 가드: 이미 시작 중이면 skip
+    isStartingSession.current = true;
     try {
       const session = await progressAPI.startSession();
       setSessionId(session.session.id);
     } catch (error) {
       console.error('Failed to start session:', error);
+    } finally {
+      isStartingSession.current = false;
     }
   };
 
@@ -356,13 +363,16 @@ function LearnPageContent() {
         sessionId: sessionId || undefined,
       });
     } catch (error) {
-      console.error('Batch review failed, falling back to individual:', error);
-      // 배치 실패 시 개별 전송 폴백
-      for (const review of reviewsToSend) {
-        progressAPI.submitReview({
-          ...review,
+      console.error('Batch review failed, retrying once:', error);
+      // 재시도 1회 (개별 전송 fallback 제거 — 서버 폭격 방지)
+      try {
+        await progressAPI.submitReviewBatch({
+          reviews: reviewsToSend,
           sessionId: sessionId || undefined,
-        }).catch(e => console.error('Fallback review failed:', e));
+        });
+      } catch (retryError) {
+        console.error('Batch review retry also failed:', retryError);
+        // 포기 — 다음 세트에서 다시 시도됨
       }
     }
   };
