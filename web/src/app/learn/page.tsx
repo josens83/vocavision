@@ -264,6 +264,7 @@ function LearnPageContent() {
   const [loading, setLoading] = useState(true);
   const [showResult, setShowResult] = useState(false);
   const [showSetComplete, setShowSetComplete] = useState(false);
+  const [loadingNextSet, setLoadingNextSet] = useState(false);
   const [pendingNextSet, setPendingNextSet] = useState<{
     session: typeof serverSession;
     words: Word[];
@@ -631,6 +632,7 @@ function LearnPageContent() {
       // 🔑 낙관적 UI: 현재 completedSets + 1로 먼저 설정
       const completedSetNumber = (serverSession.completedSets || 0) + 1;
       setOptimisticCompletedSet(completedSetNumber);
+      setLoadingNextSet(true);
       setShowSetComplete(true);
 
       // 백그라운드에서 API 호출 (응답 기다리지 않음)
@@ -668,8 +670,10 @@ function LearnPageContent() {
             words: result.words,
           });
         }
+        setLoadingNextSet(false);
       }).catch((error) => {
         console.error('Failed to update server session:', error);
+        setLoadingNextSet(false);
       });
 
       return; // 즉시 반환 (UI는 이미 전환됨)
@@ -1147,7 +1151,20 @@ function LearnPageContent() {
             transition={{ delay: 0.6 }}
             className="flex flex-col gap-3"
           >
-            {hasNextSet ? (
+            {loadingNextSet ? (
+              <button
+                disabled
+                className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white px-6 py-4 rounded-xl font-bold opacity-70 cursor-wait"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  다음 Set 준비 중...
+                </span>
+              </button>
+            ) : hasNextSet ? (
               <button
                 onClick={serverSession ? handleContinueToNextSet : handleNextBatch}
                 className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] hover:opacity-90 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-[#14B8A6]/25"
