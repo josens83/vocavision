@@ -240,6 +240,7 @@ export function CelebrateCompletion({
   onNext,
   isGuest = false,
   totalProgress,
+  isAllCompleted = false,
 }: {
   score: number;
   total: number;
@@ -250,6 +251,8 @@ export function CelebrateCompletion({
   isGuest?: boolean;
   /** 전체 진행 상황 (예: { learned: 40, total: 1000 }) */
   totalProgress?: { learned: number; total: number };
+  /** 전체 학습 완료 여부 (마지막 세트 완료 시) */
+  isAllCompleted?: boolean;
 }) {
   const percentage = Math.round((score / total) * 100);
   const isPerfect = percentage === 100;
@@ -268,15 +271,19 @@ export function CelebrateCompletion({
         transition={{ delay: 0.2, type: 'spring' }}
         className="text-7xl mb-4"
       >
-        {isPerfect ? '🏆' : isGood ? '🎉' : '💪'}
+        {isAllCompleted ? '🏆' : isPerfect ? '🏆' : isGood ? '🎉' : '💪'}
       </motion.div>
 
       <h3 className="text-2xl font-bold text-gray-900 mb-2">
-        {isPerfect ? '완벽해요!' : isGood ? '잘했어요!' : '수고했어요!'}
+        {isAllCompleted
+          ? '전체 학습 완료!'
+          : isPerfect ? '완벽해요!' : isGood ? '잘했어요!' : '수고했어요!'}
       </h3>
 
       <p className="text-gray-600 mb-4">
-        {total}문제 중 {score}문제 정답
+        {isAllCompleted
+          ? `마지막 ${total}문제 중 ${score}문제 정답`
+          : `${total}문제 중 ${score}문제 정답`}
       </p>
 
       <div className="text-4xl font-bold text-brand-primary mb-4">

@@ -471,9 +471,19 @@ function LearnPageContent() {
               const savedSession = loadLearningSession(examParam, levelParam);
 
               // 기존 세션이면 복원 (serverIndex가 0이어도 Set 중간에서 재개하는 경우)
+              // 현재 세트 단어 ID만 매칭되는 ratings 복원 (이전 세트 잔존 데이터 필터링)
+              const currentWordIds = new Set(words.map((w: Word) => w.id));
+              let filteredRatings: Record<string, number> = {};
+              if (sessionData.isExisting && savedSession?.ratings) {
+                for (const [key, value] of Object.entries(savedSession.ratings)) {
+                  if (currentWordIds.has(key)) {
+                    filteredRatings[key] = value as number;
+                  }
+                }
+              }
+
               if (sessionData.isExisting) {
-                // 기존 세션 복원 (ratings는 로컬에서, index는 서버에서)
-                restoreSession(serverIndex, savedSession?.ratings || {});
+                restoreSession(serverIndex, filteredRatings);
                 setSessionRestored(true);
               } else {
                 // 완전히 새 세션이면 리셋
@@ -487,7 +497,7 @@ function LearnPageContent() {
                 level: levelParam,
                 words,
                 currentIndex: serverIndex,
-                ratings: sessionData.isExisting ? (savedSession?.ratings || {}) : {},
+                ratings: sessionData.isExisting ? filteredRatings : {},
                 timestamp: Date.now(),
               });
             } else {
@@ -679,12 +689,21 @@ function LearnPageContent() {
     if (serverSession && user && examParam && levelParam) {
       // 🔑 낙관적 UI: 현재 completedSets + 1로 먼저 설정
       const completedSetNumber = (serverSession.completedSets || 0) + 1;
+      const isLastSet = completedSetNumber >= (serverSession.totalSets || 1);
       setOptimisticCompletedSet(completedSetNumber);
-      setLoadingNextSet(true);
-      setShowSetComplete(true);
 
-      // 🚀 배치 리뷰 일괄 전송 (세션 업데이트와 병렬)
-      flushPendingReviews();
+      if (isLastSet) {
+        // 마지막 세트: Set 완료 화면 건너뛰고 바로 결과 화면으로
+        setShowSetComplete(false);
+        setShowResult(true);
+        clearLearningSession();
+      } else {
+        setLoadingNextSet(true);
+        setShowSetComplete(true);
+      }
+
+      // 🚀 배치 리뷰 일괄 전송 (세션 업데이트 전에 완료 보장)
+      await flushPendingReviews();
 
       // 백그라운드에서 API 호출 (응답 기다리지 않음)
       learningAPI.updateSessionProgress({
@@ -733,7 +752,7 @@ function LearnPageContent() {
     }
 
     // 🚀 배치 리뷰 일괄 전송 (비-서버세션 경로)
-    flushPendingReviews();
+    await flushPendingReviews();
 
     // serverSession이 없어도 중간 세트 완료인지 확인
     const hasMoreToLearn = totalWordsInLevel > 0 &&
@@ -905,6 +924,35 @@ function LearnPageContent() {
 
     // Advance to next word (마지막이 아닐 때만)
     goToNextCard();
+  };
+
+  // 전체 완료 후 홈으로: 세션 초기화 + 대시보드 이동
+  const handleCompleteAndGoHome = async () => {
+    // 1. 대시보드 캐시 무효화 (최신 데이터 보장)
+    if (examParam) {
+      invalidateDashboard(examParam, levelParam || undefined);
+    }
+
+    // 2. 서버 세션 restart (0부터 다시 시작 가능하도록)
+    if (user && examParam && levelParam) {
+      try {
+        await learningAPI.startSession({
+          exam: examParam,
+          level: levelParam,
+          restart: true,
+        });
+      } catch (error) {
+        console.error('Failed to restart session:', error);
+        // 실패해도 홈으로 이동은 진행
+      }
+    }
+
+    // 3. 로컬 상태 정리
+    resetSession();
+    clearLearningSession();
+
+    // 4. 대시보드로 이동
+    router.push('/dashboard');
   };
 
   const handleRestart = async () => {
@@ -1196,14 +1244,18 @@ function LearnPageContent() {
 
   // Set 완료 화면 표시 (pendingNextSet 유무와 상관없이 일관되게 표시)
   if (showSetComplete) {
-    const wordsStudied = getWordsStudied();
+    // reviews.length가 현재 세트의 실제 단어 수 (cardRatings 오염과 무관)
+    const wordsStudied = reviews.length;
     const wordsCorrect = getWordsCorrect();
     const percentage = wordsStudied > 0 ? Math.round((wordsCorrect / wordsStudied) * 100) : 0;
 
     // 🔑 낙관적 UI: optimisticCompletedSet 우선, 그 다음 serverSession, 마지막 fallback 1
     const completedSet = optimisticCompletedSet ?? serverSession?.completedSets ?? 1;
     const totalSets = serverSession?.totalSets ?? (totalWordsInLevel > 0 ? Math.ceil(totalWordsInLevel / 20) : 1);
-    const totalReviewed = serverSession?.totalReviewed ?? (totalLearnedInLevel + wordsStudied);
+    // 마지막 세트 완료 시 낙관적으로 전체 완료 처리
+    const totalReviewed = (completedSet >= totalSets)
+      ? totalWordsInLevel
+      : (serverSession?.totalReviewed ?? (totalLearnedInLevel + reviews.length));
     // 🚀 API 실패와 무관하게 Set 번호 기반으로 다음 Set 존재 여부 추론
     // Set 4/77이면 Set 5가 있다는 건 확실 → pendingNextSet 없어도 "Set 5 시작하기" 표시
     const hasNextSet = serverSession
@@ -1325,35 +1377,40 @@ function LearnPageContent() {
   }
 
   if (showResult) {
-    // Calculate final stats from cardRatings
-    const wordsStudied = getWordsStudied();
+    // reviews.length가 현재 세트의 실제 단어 수 (cardRatings 오염과 무관)
+    const wordsStudied = reviews.length;
     const wordsCorrect = getWordsCorrect();
 
     // 서버 세션인 경우 전체 학습 완료 여부 확인
     const isSessionCompleted = serverSession?.status === 'COMPLETED';
 
-    // Check if there are more words to learn
-    // 서버 세션 완료면 더 이상 학습할 단어 없음
-    const hasMoreWords = !isSessionCompleted &&
+    // 마지막 세트 완료(전체 완료)면 더 이상 학습할 단어 없음
+    const allCompleted = isSessionCompleted ||
+      (optimisticCompletedSet && serverSession &&
+       optimisticCompletedSet >= (serverSession.totalSets || 1));
+    const hasMoreWords = !allCompleted &&
       totalWordsInLevel > 0 &&
-      (totalLearnedInLevel + wordsStudied) < totalWordsInLevel;
+      (totalLearnedInLevel + reviews.length) < totalWordsInLevel;
 
     // 전체 진행률 계산 (서버 세션 기준)
-    const totalLearned = serverSession
-      ? serverSession.totalReviewed
-      : totalLearnedInLevel + wordsStudied;
+    const totalLearned = isSessionCompleted
+      ? totalWordsInLevel
+      : (serverSession
+        ? Math.max(serverSession.totalReviewed, totalLearnedInLevel + reviews.length)
+        : totalLearnedInLevel + reviews.length);
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
         <CelebrateCompletion
           score={wordsCorrect}
-          total={wordsStudied}
-          onRetry={handleRestart}
-          onHome={() => router.push(exitPath)}
+          total={reviews.length}
+          onRetry={allCompleted ? undefined : handleRestart}
+          onHome={allCompleted ? handleCompleteAndGoHome : () => router.push(exitPath)}
           onNext={user && hasMoreWords && examParam && !serverSession ? handleNextBatch : undefined}
           isGuest={!user}
+          isAllCompleted={!!allCompleted}
           totalProgress={user && totalWordsInLevel > 0 ? {
-            learned: totalLearned,
+            learned: allCompleted ? totalWordsInLevel : totalLearned,
             total: totalWordsInLevel,
           } : undefined}
         />
