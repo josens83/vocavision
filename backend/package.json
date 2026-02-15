@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "npx prisma generate && tsc",
-    "start": "npx prisma migrate deploy && node --expose-gc --max-old-space-size=512 dist/index.js",
+    "start": "npx prisma migrate deploy && node --expose-gc --max-old-space-size=768 dist/index.js",
     "start:prod": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

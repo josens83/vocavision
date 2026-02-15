@@ -4,9 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 // Visual type enum (matches Prisma schema)
 type VisualType = 'CONCEPT' | 'MNEMONIC' | 'RHYME';
