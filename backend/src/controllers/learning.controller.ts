@@ -4,6 +4,7 @@ import { prisma } from '../index';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { updateUserStats } from './progress.controller';
+import appCache from '../lib/cache';
 
 // QuizType enum (matches Prisma schema)
 type QuizType = 'LEVEL_TEST' | 'ENG_TO_KOR' | 'KOR_TO_ENG' | 'FLASHCARD' | 'SPELLING';
@@ -820,6 +821,14 @@ export const updateSessionProgress = async (
       where: { id: sessionId },
       data: updateData,
     });
+
+    // 🚀 세션 완료 시 서버 대시보드 캐시 무효화 (stale data 방지)
+    if (updatedSession.status === 'COMPLETED') {
+      const dashboardKeys = appCache.getKeys().filter(k =>
+        k.startsWith(`dashboard:${userId}:`)
+      );
+      dashboardKeys.forEach(k => appCache.del(k));
+    }
 
     // 다음 세트 단어들 조회 (세트 완료 후)
     let nextWords: any[] = [];
