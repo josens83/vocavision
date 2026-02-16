@@ -1501,7 +1501,7 @@ function LearnPageContent() {
                   </span>
                   {/* Set 정보 표시 (복습 모드에서는 숨김) */}
                   {serverSession && serverSession.totalSets > 0 && (
-                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[12px] font-medium">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[12px] font-medium">
                       Set {serverSession.currentSet + 1}/{serverSession.totalSets}
                     </span>
                   )}
