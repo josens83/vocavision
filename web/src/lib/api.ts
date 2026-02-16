@@ -20,6 +20,34 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+// 🚀 401 리다이렉트 중복 방지 가드 (모듈 레벨 — 모든 동시 요청이 공유)
+let isRedirectingToLogin = false;
+
+// JWT payload에서 만료 시간 추출 (라이브러리 없이)
+function getTokenExpiry(token: string): number | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1]));
+    return payload.exp ? payload.exp * 1000 : null; // seconds → ms
+  } catch {
+    return null;
+  }
+}
+
+// 토큰 만료 처리 (한 번만 실행 — race condition 방지)
+function handleTokenExpired() {
+  if (isRedirectingToLogin) return;
+  isRedirectingToLogin = true;
+
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('auth-storage');
+
+  if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
+    window.location.href = '/auth/login?expired=true';
+  }
+}
+
 // Extend axios config with retry settings
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retryCount?: number;
@@ -37,9 +65,21 @@ export const api = axios.create({
 
 // Request interceptor - Add auth token and track retry count
 api.interceptors.request.use((config: ExtendedAxiosRequestConfig) => {
+  // 🚀 이미 로그인 리다이렉트 중이면 요청 차단 (불필요한 401 반복 방지)
+  if (isRedirectingToLogin) {
+    return Promise.reject(new Error('Redirecting to login'));
+  }
+
   // Add auth token
   const token = localStorage.getItem('authToken');
   if (token) {
+    // 🚀 토큰 만료 사전 체크 (만료된 토큰으로 요청 자체를 방지)
+    const expiry = getTokenExpiry(token);
+    if (expiry && Date.now() >= expiry) {
+      handleTokenExpired();
+      return Promise.reject(new Error('Token expired'));
+    }
+
     config.headers.Authorization = `Bearer ${token}`;
   }
 
@@ -63,20 +103,13 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const config = error.config as ExtendedAxiosRequestConfig;
 
-    // Handle 401 separately
+    // Handle 401 separately — handleTokenExpired()가 중복 실행 방지
     if (error.response?.status === 401) {
       const requestHadToken = !!config?.headers?.Authorization;
 
       if (requestHadToken) {
-        // 토큰이 전송되었지만 거부됨 → 토큰 만료 → 클리어 후 로그인 리다이렉트
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('auth-storage');
-
-        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
-          window.location.href = '/auth/login?expired=true';
-        }
+        handleTokenExpired();
       }
-      // 토큰 없이 전송된 경우 (hydration 레이스) → auth 상태 유지, React Query retry에 맡김
 
       return Promise.reject(error);
     }
