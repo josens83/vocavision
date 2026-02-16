@@ -620,6 +620,17 @@ export const startLearningSession = async (
     // COMPLETED도 ABANDONED로 변경하여 대시보드 쿼리에서 제외
     // (새 IN_PROGRESS 세션이 source of truth가 됨)
     if (restart) {
+      // 1. 기존 ABANDONED 세션 삭제 (unique constraint 충돌 방지)
+      // @@unique([userId, examCategory, level, status]) → ABANDONED 슬롯이 차있으면 P2002
+      await prisma.learningSession.deleteMany({
+        where: {
+          userId,
+          examCategory: exam,
+          level,
+          status: 'ABANDONED',
+        },
+      });
+      // 2. IN_PROGRESS/COMPLETED → ABANDONED
       await prisma.learningSession.updateMany({
         where: {
           userId,
