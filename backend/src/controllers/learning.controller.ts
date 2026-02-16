@@ -773,12 +773,11 @@ export const updateSessionProgress = async (
       throw new AppError('sessionId is required', 400);
     }
 
-    // 세션 확인
+    // 세션 확인 (status 필터 없이 조회 — 멱등성 보장)
     const session = await prisma.learningSession.findFirst({
       where: {
         id: sessionId,
         userId,
-        status: 'IN_PROGRESS',
       },
     });
 
@@ -788,6 +787,30 @@ export const updateSessionProgress = async (
 
     const setSize = 20;
     const totalSets = Math.ceil(session.totalWords / setSize);
+
+    // 이미 COMPLETED면 성공 반환 (동시 호출, 재시도 안전)
+    if (session.status === 'COMPLETED') {
+      return res.json({
+        session: {
+          id: session.id,
+          examCategory: session.examCategory,
+          level: session.level,
+          totalWords: session.totalWords,
+          currentSet: session.currentSet,
+          currentIndex: session.currentIndex,
+          totalSets,
+          completedSets: session.completedSets,
+          totalReviewed: session.totalReviewed,
+          status: session.status,
+        },
+        isCompleted: true,
+      });
+    }
+
+    // ABANDONED면 에러
+    if (session.status === 'ABANDONED') {
+      throw new AppError('Session has been abandoned', 410);
+    }
 
     // 업데이트 데이터 준비
     const updateData: any = {};
@@ -803,7 +826,10 @@ export const updateSessionProgress = async (
     // 세트 완료 처리
     if (completedSet) {
       updateData.completedSets = session.completedSets + 1;
-      updateData.totalReviewed = (session.currentSet + 1) * setSize;
+      updateData.totalReviewed = Math.min(
+        (session.currentSet + 1) * setSize,
+        session.totalWords
+      );
       updateData.currentIndex = 0;
 
       // 다음 세트로 이동
