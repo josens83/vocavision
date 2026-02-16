@@ -1666,7 +1666,7 @@ export const getDashboardSummary = async (
             userId,
             examCategory: examCategory as ExamCategory,
             level: level as string,
-            status: 'IN_PROGRESS'
+            status: { in: ['IN_PROGRESS', 'COMPLETED'] }
           },
           orderBy: { updatedAt: 'desc' },
           select: {
