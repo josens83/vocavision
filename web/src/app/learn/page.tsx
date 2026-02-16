@@ -692,26 +692,58 @@ function LearnPageContent() {
       const isLastSet = completedSetNumber >= (serverSession.totalSets || 1);
       setOptimisticCompletedSet(completedSetNumber);
 
+      // ============================
+      // 마지막 세트: 모든 API 완료 후 결과 화면
+      // ============================
       if (isLastSet) {
-        // 마지막 세트: Set 완료 화면 건너뛰고 바로 결과 화면으로
+        // 로딩 표시 (빈 화면 방지)
+        setLoadingNextSet(true);
+
+        // 1. 배치 리뷰 전송 완료 대기
+        await flushPendingReviews();
+
+        // 2. 세션 완료 처리 완료 대기 (COMPLETED + 서버 캐시 무효화)
+        try {
+          const result = await learningAPI.updateSessionProgress({
+            sessionId: serverSession.id,
+            completedSet: true,
+          });
+
+          if (result.session) {
+            setServerSession(result.session);
+            setOptimisticCompletedSet(result.session.completedSets);
+          }
+        } catch (error) {
+          console.error('Failed to complete session:', error);
+        }
+
+        // 3. 클라이언트 캐시 무효화
+        invalidateDashboard(examParam, levelParam || undefined);
+
+        // 4. 결과 화면 전환
+        setLoadingNextSet(false);
         setShowSetComplete(false);
         setShowResult(true);
         clearLearningSession();
-      } else {
-        setLoadingNextSet(true);
-        setShowSetComplete(true);
+        return;
       }
 
-      // 🚀 배치 리뷰 일괄 전송 (세션 업데이트 전에 완료 보장)
+      // ============================
+      // 중간 세트: 기존 로직 유지 (fire-and-forget OK)
+      // ============================
+      setLoadingNextSet(true);
+      setShowSetComplete(true);
+
+      // 배치 리뷰 일괄 전송 (세션 업데이트 전에 완료 보장)
       await flushPendingReviews();
 
-      // 백그라운드에서 API 호출 (응답 기다리지 않음)
+      // 백그라운드에서 API 호출 (응답 기다리지 않음 — 사용자가 세트 완료 화면 읽는 동안 완료)
       learningAPI.updateSessionProgress({
         sessionId: serverSession.id,
         completedSet: true,
       }).then((result) => {
         if (result.isCompleted) {
-          // 전체 학습 완료
+          // 예상 밖 전체 학습 완료 (totalSets 계산 오차 등)
           if (result.session) {
             setServerSession(result.session);
             setOptimisticCompletedSet(result.session.completedSets);
@@ -719,18 +751,15 @@ function LearnPageContent() {
           setShowSetComplete(false);
           setShowResult(true);
           clearLearningSession();
-          // 대시보드 캐시 무효화 (학습 완료 후 데이터 갱신)
           invalidateDashboard(examParam, levelParam || undefined);
           return;
         }
 
         // Set 완료 (중간 Set) - 세션 및 다음 Set 데이터 업데이트
-        // 대시보드 캐시 무효화 (학습 데이터 갱신)
         invalidateDashboard(examParam, levelParam || undefined);
 
         if (result.session) {
           setServerSession(result.session);
-          // 서버 값으로 보정
           setOptimisticCompletedSet(result.session.completedSets);
         }
 
@@ -743,12 +772,10 @@ function LearnPageContent() {
         setLoadingNextSet(false);
       }).catch((error) => {
         console.error('Failed to update server session:', error);
-        // 🚀 API 실패해도 Set 번호 기반으로 다음 Set 존재 여부 추론 가능
-        // loadingNextSet만 해제하고, hasNextSet은 completedSet < totalSets로 판단
         setLoadingNextSet(false);
       });
 
-      return; // 즉시 반환 (UI는 이미 전환됨)
+      return;
     }
 
     // 🚀 배치 리뷰 일괄 전송 (비-서버세션 경로)
@@ -926,32 +953,20 @@ function LearnPageContent() {
     goToNextCard();
   };
 
-  // 전체 완료 후 홈으로: 세션 초기화 + 대시보드 이동
+  // 전체 완료 후 홈으로: 상태 정리 + 대시보드 이동
+  // 세션은 이미 handleSetComplete에서 COMPLETED 처리됨 → restart 불필요
+  // (restart 호출이 race condition 원인: COMPLETED 전에 실행되면 세션 ABANDONED 처리)
   const handleCompleteAndGoHome = async () => {
-    // 1. 대시보드 캐시 무효화 (최신 데이터 보장)
+    // 1. 대시보드 캐시 무효화 (handleSetComplete에서 이미 했지만 안전장치)
     if (examParam) {
       invalidateDashboard(examParam, levelParam || undefined);
     }
 
-    // 2. 서버 세션 restart (0부터 다시 시작 가능하도록)
-    if (user && examParam && levelParam) {
-      try {
-        await learningAPI.startSession({
-          exam: examParam,
-          level: levelParam,
-          restart: true,
-        });
-      } catch (error) {
-        console.error('Failed to restart session:', error);
-        // 실패해도 홈으로 이동은 진행
-      }
-    }
-
-    // 3. 로컬 상태 정리
+    // 2. 로컬 상태 정리
     resetSession();
     clearLearningSession();
 
-    // 4. 대시보드로 이동
+    // 3. 대시보드로 이동
     router.push('/dashboard');
   };
 
