@@ -616,14 +616,16 @@ export const startLearningSession = async (
     // 대소문자 정규화 (ExamCategory enum은 대문자)
     const exam = rawExam.toUpperCase();
 
-    // restart=true면 기존 진행 중인 세션 종료
+    // restart=true면 기존 세션 종료 (IN_PROGRESS + COMPLETED 모두)
+    // COMPLETED도 ABANDONED로 변경하여 대시보드 쿼리에서 제외
+    // (새 IN_PROGRESS 세션이 source of truth가 됨)
     if (restart) {
       await prisma.learningSession.updateMany({
         where: {
           userId,
           examCategory: exam,
           level,
-          status: 'IN_PROGRESS',
+          status: { in: ['IN_PROGRESS', 'COMPLETED'] },
         },
         data: {
           status: 'ABANDONED',

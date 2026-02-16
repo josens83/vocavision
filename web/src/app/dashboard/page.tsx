@@ -330,9 +330,7 @@ function DashboardContent() {
                   <span className="text-emerald-600">{totalWords}개</span> 단어 완료
                 </h2>
                 <p className="text-sm text-gray-500 mb-4">
-                  {weakWordCount > 0
-                    ? `잘 모르는 단어 ${weakWordCount}개를 복습해보세요!`
-                    : '완벽하게 암기했어요! 다음 레벨에 도전해보세요.'}
+                  모든 단어를 학습했어요! 복습 퀴즈로 실력을 확인해보세요.
                 </p>
                 <div className="space-y-2">
                   <Link
@@ -341,14 +339,6 @@ function DashboardContent() {
                   >
                     처음부터 다시 학습
                   </Link>
-                  {weakWordCount > 0 && (
-                    <Link
-                      href={`/learn?exam=${selectedExam}&level=${selectedLevel}&mode=weak`}
-                      className="block w-full bg-amber-50 hover:bg-amber-100 rounded-xl py-4 text-amber-600 font-semibold text-center transition-colors"
-                    >
-                      잘 모르는 {weakWordCount}개만 학습
-                    </Link>
-                  )}
                 </div>
               </>
             ) : (
@@ -652,14 +642,6 @@ function DashboardContent() {
               >
                 처음부터 다시 학습
               </Link>
-              {weakWordCount > 0 && (
-                <Link
-                  href={`/learn?exam=${selectedExam}&level=${selectedLevel}&mode=weak`}
-                  className="block w-full py-3 bg-amber-50 hover:bg-amber-100 rounded-xl text-amber-600 font-semibold text-center transition-colors"
-                >
-                  잘 모르는 단어 {weakWordCount}개만 학습
-                </Link>
-              )}
             </div>
           ) : (
             <Link
