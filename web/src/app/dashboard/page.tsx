@@ -281,14 +281,18 @@ function DashboardContent() {
   const currentSet = learningSession
     ? learningSession.currentSet + 1  // 서버는 0-indexed, UI는 1-indexed
     : (learnedWords > 0 ? Math.floor((learnedWords - 1) / 20) + 1 : 1);
-  const wordsInCurrentSet = learningSession
-    ? learningSession.currentIndex + 1  // 서버는 0-indexed, UI는 1-indexed (0 → "1/20")
-    : (learnedWords > 0 ? ((learnedWords - 1) % 20) + 1 : 1);  // 학습 시작 전에도 1/20
 
   // 마지막 Set의 단어 수 계산 (158개면 마지막 Set은 18개)
   const isLastSet = currentSet === totalSets;
   const wordsInLastSet = totalWords % 20 || 20;  // 나머지가 0이면 20
   const wordsPerCurrentSet = isLastSet ? wordsInLastSet : 20;
+
+  // COMPLETED: currentIndex가 0으로 리셋되므로 전체 단어 수 표시 (6/6)
+  const wordsInCurrentSet = learningSession
+    ? (learningSession.status === 'COMPLETED'
+        ? wordsPerCurrentSet
+        : learningSession.currentIndex + 1)
+    : (learnedWords > 0 ? ((learnedWords - 1) % 20) + 1 : 1);
 
   // 학습 완료 여부 (세션 상태 또는 남은 단어 기준)
   const isCompleted = (learningSession?.status === 'COMPLETED') ||
