@@ -21,6 +21,7 @@ interface Word {
   partOfSpeech: string;
   examCategory?: string;
   level?: string;
+  examLevels?: Array<{ examCategory: string; level: string }>;
 }
 
 // Wrap with Suspense for useSearchParams
@@ -99,22 +100,37 @@ function WordsPageContent() {
   // 2026 기출 접근 권한 체크
   const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user && hasHydrated);
   const hasCsat2026Access = accessData?.hasAccess || false;
+  // EBS 접근 권한 체크
+  const { data: ebsAccessData } = usePackageAccess('ebs-vocab', !!user && hasHydrated);
+  const hasEbsAccess = ebsAccessData?.hasAccess || false;
   const isPremium = getSubscriptionTier(user) === 'PREMIUM';
 
   // 잠금 체크 헬퍼 함수 (공통 유틸 사용)
   const checkExamLocked = (exam: string) => isExamLocked(user, exam);
   const checkLevelLocked = (exam: string, level: string) => isLevelLocked(user, exam, level);
 
-  // Get initial search from URL parameter
+  // Get initial values from URL parameters
   const initialSearch = searchParams.get('search') || '';
+  const initialExam = searchParams.get('exam') || 'CSAT';
+  const initialLevel = searchParams.get('level') || '';
 
   // 필터 상태
   const [search, setSearch] = useState(initialSearch);
-  const [examCategory, setExamCategory] = useState('CSAT');
-  const [level, setLevel] = useState('');
+  const [examCategory, setExamCategory] = useState(initialExam);
+  const [level, setLevel] = useState(initialLevel);
   const [page, setPage] = useState(1);
   // 검색 트리거용 상태 (Enter 누를 때만 검색 실행)
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+
+  // URL 동기화 헬퍼
+  const syncURL = (exam: string, lvl: string) => {
+    const params = new URLSearchParams();
+    if (exam) params.set('exam', exam);
+    if (lvl) params.set('level', lvl);
+    if (search) params.set('search', search);
+    const qs = params.toString();
+    router.replace(`/words${qs ? `?${qs}` : ''}`, { scroll: false });
+  };
 
   // React Query 훅
   const { data, isLoading } = useWordsSearch({
@@ -155,6 +171,11 @@ function WordsPageContent() {
       READING_2: '독해영역 2점',
       READING_3: '독해영역 3점',
     },
+    EBS: {
+      LISTENING: 'EBS 듣기',
+      READING_BASIC: 'EBS 독해기본',
+      READING_ADV: 'EBS 독해실력',
+    },
   };
 
   return (
@@ -191,6 +212,7 @@ function WordsPageContent() {
                   setExamCategory('');
                   setLevel('');
                   setPage(1);
+                  syncURL('', '');
                 }}
                 className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all ${
                   examCategory === ''
@@ -211,6 +233,7 @@ function WordsPageContent() {
                   setExamCategory('CSAT');
                   setLevel('');
                   setPage(1);
+                  syncURL('CSAT', '');
                 }}
                 className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
                   checkExamLocked('CSAT')
@@ -234,6 +257,7 @@ function WordsPageContent() {
                   setExamCategory('TEPS');
                   setLevel('');
                   setPage(1);
+                  syncURL('TEPS', '');
                 }}
                 className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
                   checkExamLocked('TEPS')
@@ -254,6 +278,7 @@ function WordsPageContent() {
                     setExamCategory('CSAT_2026');
                     setLevel('');
                     setPage(1);
+                    syncURL('CSAT_2026', '');
                   }}
                   className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
                     examCategory === 'CSAT_2026'
@@ -264,13 +289,32 @@ function WordsPageContent() {
                   2026 수능 기출
                 </button>
               )}
+              {/* EBS 연계 - 프리미엄 또는 단품 구매자만 */}
+              {(hasEbsAccess || isPremium) && (
+                <button
+                  onMouseEnter={() => prefetchWords({ examCategory: 'EBS' })}
+                  onClick={() => {
+                    setExamCategory('EBS');
+                    setLevel('');
+                    setPage(1);
+                    syncURL('EBS', '');
+                  }}
+                  className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
+                    examCategory === 'EBS'
+                      ? 'bg-[#10B981] text-white'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  EBS 연계
+                </button>
+              )}
             </div>
           </div>
 
           {/* 레벨 필터 */}
           <div>
             <h4 className="text-[13px] text-gray-500 font-medium mb-2">
-              {examCategory === 'CSAT_2026' ? '유형 선택' : '레벨'}
+              {(examCategory === 'CSAT_2026' || examCategory === 'EBS') ? '유형 선택' : '레벨'}
             </h4>
             <div className="flex gap-2 flex-wrap">
               {/* 시험 "전체" 선택 시 레벨도 "전체"만 표시 */}
@@ -289,6 +333,7 @@ function WordsPageContent() {
                       onClick={() => {
                         setLevel(lvl);
                         setPage(1);
+                        syncURL(examCategory, lvl);
                       }}
                       className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all ${
                         level === lvl
@@ -299,6 +344,29 @@ function WordsPageContent() {
                       {lvl === '' ? '전체' :
                        lvl === 'LISTENING' ? '듣기영역' :
                        lvl === 'READING_2' ? '독해영역 2점' : '독해영역 3점'}
+                    </button>
+                  ))}
+                </>
+              ) : examCategory === 'EBS' ? (
+                <>
+                  {['', 'LISTENING', 'READING_BASIC', 'READING_ADV'].map((lvl) => (
+                    <button
+                      key={lvl}
+                      onMouseEnter={() => prefetchWords({ examCategory, level: lvl })}
+                      onClick={() => {
+                        setLevel(lvl);
+                        setPage(1);
+                        syncURL(examCategory, lvl);
+                      }}
+                      className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all ${
+                        level === lvl
+                          ? 'bg-[#10B981] text-white'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
+                    >
+                      {lvl === '' ? '전체' :
+                       lvl === 'LISTENING' ? '듣기영역' :
+                       lvl === 'READING_BASIC' ? '독해기본' : '독해실력'}
                     </button>
                   ))}
                 </>
@@ -320,6 +388,7 @@ function WordsPageContent() {
                             }
                             setLevel(lvl);
                             setPage(1);
+                            syncURL(examCategory, lvl);
                           }}
                           className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
                             locked
@@ -377,6 +446,8 @@ function WordsPageContent() {
                   key={word.id}
                   word={word}
                   examLevelLabels={examLevelLabels}
+                  examFilter={examCategory}
+                  levelFilter={level}
                 />
               ))}
             </div>
@@ -410,48 +481,75 @@ function WordsPageContent() {
   );
 }
 
-// 서비스 중인 시험만 표시 (CSAT, TEPS, CSAT_2026)
-const ACTIVE_EXAM_CATEGORIES = ['CSAT', 'TEPS', 'CSAT_2026'];
+// 서비스 중인 시험만 표시 (CSAT, TEPS, CSAT_2026, EBS)
+const ACTIVE_EXAM_CATEGORIES = ['CSAT', 'TEPS', 'CSAT_2026', 'EBS'];
+
+// 배지 색상 매핑
+const BADGE_COLORS: Record<string, string> = {
+  CSAT: 'bg-[#ECFDF5] text-[#14B8A6]',
+  TEPS: 'bg-[#F3E8FF] text-purple-500',
+  CSAT_2026: 'bg-[#D1FAE5] text-[#059669]',
+  EBS: 'bg-[#DBEAFE] text-[#2563EB]',
+};
 
 function WordCard({
   word,
   examLevelLabels,
+  examFilter,
+  levelFilter,
 }: {
   word: Word;
   examLevelLabels: Record<string, Record<string, string>>;
+  examFilter: string;
+  levelFilter: string;
 }) {
-  // 서비스 중인 시험(CSAT, TEPS)만 배지로 표시
-  const isActiveExam = word.examCategory && ACTIVE_EXAM_CATEGORIES.includes(word.examCategory);
-  const badgeLabel = isActiveExam && word.level
-    ? examLevelLabels[word.examCategory!]?.[word.level] || `${word.examCategory} ${word.level}`
-    : null;
+  // examLevels 기반 배지 (여러 시험에 속할 수 있음)
+  const badges: Array<{ label: string; colorClass: string }> = [];
+
+  if (word.examLevels && word.examLevels.length > 0) {
+    for (const el of word.examLevels) {
+      if (!ACTIVE_EXAM_CATEGORIES.includes(el.examCategory)) continue;
+      const label = examLevelLabels[el.examCategory]?.[el.level] || `${el.examCategory} ${el.level}`;
+      const colorClass = BADGE_COLORS[el.examCategory] || 'bg-gray-100 text-gray-600';
+      badges.push({ label, colorClass });
+    }
+  } else if (word.examCategory && ACTIVE_EXAM_CATEGORIES.includes(word.examCategory) && word.level) {
+    // fallback: legacy 필드
+    const label = examLevelLabels[word.examCategory]?.[word.level] || `${word.examCategory} ${word.level}`;
+    const colorClass = BADGE_COLORS[word.examCategory] || 'bg-gray-100 text-gray-600';
+    badges.push({ label, colorClass });
+  }
+
+  // 링크에 현재 필터 파라미터 전달
+  const linkParams = new URLSearchParams();
+  if (examFilter) linkParams.set('exam', examFilter);
+  if (levelFilter) linkParams.set('level', levelFilter);
+  const linkQuery = linkParams.toString();
+  const href = `/words/${word.id}${linkQuery ? `?${linkQuery}` : ''}`;
 
   return (
     <Link
-      href={`/words/${word.id}`}
+      href={href}
       className="block bg-white rounded-2xl p-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
     >
       <div className="flex items-start justify-between mb-2">
         <div>
           <h3 className="text-[18px] font-bold text-[#1c1c1e]">{word.word}</h3>
           {word.pronunciation && (
-            <p className="text-[13px] text-gray-500">{word.pronunciation}</p>
+            <p className="text-[13px] text-gray-500">{word.pronunciation.replace(/\*\*/g, '')}</p>
           )}
         </div>
 
         {/* 배지 */}
-        <div className="flex gap-1.5">
-          {isActiveExam && badgeLabel && (
-            <span className={`text-[11px] px-2 py-1 rounded-full font-medium ${
-              word.examCategory === 'CSAT'
-                ? 'bg-[#ECFDF5] text-[#14B8A6]'
-                : word.examCategory === 'CSAT_2026'
-                  ? 'bg-[#D1FAE5] text-[#059669]'
-                  : 'bg-[#F3E8FF] text-purple-500'
-            }`}>
-              {badgeLabel}
+        <div className="flex gap-1.5 flex-wrap justify-end">
+          {badges.map((badge, i) => (
+            <span
+              key={i}
+              className={`text-[11px] px-2 py-1 rounded-full font-medium ${badge.colorClass}`}
+            >
+              {badge.label}
             </span>
-          )}
+          ))}
         </div>
       </div>
 
