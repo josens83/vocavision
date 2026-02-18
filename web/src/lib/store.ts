@@ -64,6 +64,12 @@ interface User {
   subscriptionStatus: string;
   subscriptionPlan?: string;  // FREE, MONTHLY, YEARLY, FAMILY
   subscriptionEnd?: string;   // ISO date string
+  purchases?: Array<{
+    id: string;
+    packageId: string;
+    expiresAt: string;
+    package: { id: string; slug: string; name: string };
+  }>;
 }
 
 interface AuthState {
