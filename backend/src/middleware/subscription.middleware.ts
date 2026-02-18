@@ -43,6 +43,68 @@ function canAccessContent(tier: SubscriptionTier, exam: string, level: string): 
 }
 
 /**
+ * 사용자의 시험+레벨 접근 권한 확인 (미들웨어 외부에서도 사용 가능)
+ * @returns null이면 접근 허용, 에러 객체면 접근 거부
+ */
+export async function verifyContentAccess(
+  userId: string,
+  examCategory: string,
+  level: string
+): Promise<{ error: string; message: string; requiredPlan: string } | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { subscriptionPlan: true, subscriptionStatus: true }
+  });
+
+  if (!user) {
+    return { error: 'USER_NOT_FOUND', message: 'User not found', requiredPlan: 'FREE' };
+  }
+
+  const tier = getSubscriptionTier(user.subscriptionPlan, user.subscriptionStatus);
+
+  // 프리미엄은 모든 콘텐츠 접근 가능
+  if (tier === 'PREMIUM') {
+    return null;
+  }
+
+  // 단품 구매 상품 체크 (EBS, CSAT_2026)
+  const packageSlug = PACKAGE_EXAM_SLUGS[examCategory];
+  if (packageSlug) {
+    const pkg = await prisma.productPackage.findUnique({ where: { slug: packageSlug } });
+    if (pkg) {
+      const purchase = await prisma.userPurchase.findFirst({
+        where: {
+          userId,
+          packageId: pkg.id,
+          status: 'ACTIVE',
+          expiresAt: { gt: new Date() },
+        },
+      });
+      if (purchase) {
+        return null; // 구매 확인 → 접근 허용
+      }
+    }
+    return {
+      error: 'PACKAGE_REQUIRED',
+      message: '이 콘텐츠는 단품 구매 또는 프리미엄 플랜이 필요합니다.',
+      requiredPlan: 'PREMIUM',
+    };
+  }
+
+  // 기존 구독 기반 접근 체크 (CSAT, TEPS)
+  if (!canAccessContent(tier, examCategory, level)) {
+    const requiredPlan = examCategory === 'TEPS' ? 'PREMIUM' : 'BASIC';
+    return {
+      error: 'SUBSCRIPTION_REQUIRED',
+      message: `이 콘텐츠는 ${requiredPlan === 'PREMIUM' ? '프리미엄' : '베이직'} 플랜이 필요합니다.`,
+      requiredPlan,
+    };
+  }
+
+  return null; // 접근 허용
+}
+
+/**
  * 구독 기반 콘텐츠 접근 제어 미들웨어
  * query params에서 examCategory와 level을 확인
  */
@@ -80,60 +142,12 @@ export const checkContentAccess = async (
     return next();
   }
 
-  // 로그인 사용자: DB에서 구독 정보 조회
+  // 로그인 사용자: 공통 함수 호출
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.userId },
-      select: { subscriptionPlan: true, subscriptionStatus: true }
-    });
-
-    if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+    const accessError = await verifyContentAccess(req.userId, examCategory || 'CSAT', level || 'L1');
+    if (accessError) {
+      return res.status(403).json(accessError);
     }
-
-    const tier = getSubscriptionTier(user.subscriptionPlan, user.subscriptionStatus);
-
-    // 프리미엄은 모든 콘텐츠 접근 가능
-    if (tier === 'PREMIUM') {
-      return next();
-    }
-
-    // 단품 구매 상품 체크 (EBS, CSAT_2026)
-    const packageSlug = PACKAGE_EXAM_SLUGS[examCategory];
-    if (packageSlug) {
-      const pkg = await prisma.productPackage.findUnique({ where: { slug: packageSlug } });
-      if (pkg) {
-        const purchase = await prisma.userPurchase.findFirst({
-          where: {
-            userId: req.userId!,
-            packageId: pkg.id,
-            status: 'ACTIVE',
-            expiresAt: { gt: new Date() },
-          },
-        });
-        if (purchase) {
-          return next();
-        }
-      }
-      return res.status(403).json({
-        error: 'PACKAGE_REQUIRED',
-        message: `이 콘텐츠는 단품 구매 또는 프리미엄 플랜이 필요합니다.`,
-        requiredPlan: 'PREMIUM',
-      });
-    }
-
-    // 기존 구독 기반 접근 체크 (CSAT, TEPS)
-    if (!canAccessContent(tier, examCategory || 'CSAT', level || 'L1')) {
-      const requiredPlan = examCategory === 'TEPS' ? 'PREMIUM' : 'BASIC';
-
-      return res.status(403).json({
-        error: 'SUBSCRIPTION_REQUIRED',
-        message: `이 콘텐츠는 ${requiredPlan === 'PREMIUM' ? '프리미엄' : '베이직'} 플랜이 필요합니다.`,
-        currentPlan: tier,
-        requiredPlan,
-      });
-    }
-
     next();
   } catch (error) {
     console.error('[SubscriptionMiddleware] Error:', error);

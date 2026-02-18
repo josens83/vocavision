@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../index';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { verifyContentAccess } from '../middleware/subscription.middleware';
 import { ExamCategory, LearningMethod } from '@prisma/client';
 import appCache from '../lib/cache';
 
@@ -1110,6 +1111,14 @@ export const getReviewQuiz = async (
   try {
     const userId = req.userId!;
     const { examCategory, level, limit = '10' } = req.query;
+
+    // 권한 체크: 시험/레벨이 지정된 경우 구독/구매 기반 접근 제어
+    if (examCategory && examCategory !== 'all' && level && level !== 'all') {
+      const accessError = await verifyContentAccess(userId, examCategory as string, level as string);
+      if (accessError) {
+        return res.status(403).json(accessError);
+      }
+    }
 
     // UserProgress 직접 필터 (examCategory, level 컬럼 사용)
     const progressWhere: any = {

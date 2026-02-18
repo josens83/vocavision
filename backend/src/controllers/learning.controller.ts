@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { prisma } from '../index';
 import { AppError } from '../middleware/error.middleware';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { verifyContentAccess } from '../middleware/subscription.middleware';
 import { updateUserStats } from './progress.controller';
 import appCache from '../lib/cache';
 
@@ -615,6 +616,12 @@ export const startLearningSession = async (
 
     // 대소문자 정규화 (ExamCategory enum은 대문자)
     const exam = rawExam.toUpperCase();
+
+    // 권한 체크: 구독/구매 기반 접근 제어
+    const accessError = await verifyContentAccess(userId, exam, level);
+    if (accessError) {
+      return res.status(403).json(accessError);
+    }
 
     // restart=true면 기존 세션 모두 삭제 후 새 세션 생성
     // @@unique([userId, examCategory, level, status]) 제약조건으로 인해
