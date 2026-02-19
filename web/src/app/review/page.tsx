@@ -81,8 +81,8 @@ const getLevelInfo = (exam: string): Record<string, { name: string; description:
   if (exam === 'CSAT_2026') {
     return {
       LISTENING: { name: '듣기영역', description: '2026 수능 듣기 영역' },
-      READING_2: { name: '독해영역 2점', description: '2026 수능 독해 2점' },
-      READING_3: { name: '독해영역 3점', description: '2026 수능 독해 3점' },
+      READING_2: { name: '독해 2점', description: '2026 수능 독해 2점' },
+      READING_3: { name: '독해 3점', description: '2026 수능 독해 3점' },
     };
   }
   if (exam === 'EBS') {
@@ -388,7 +388,7 @@ function ReviewPageContent() {
                       handleExamChange(key);
                     }
                   }}
-                  className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
+                  className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                     isLocked
                       ? 'bg-gray-100 text-[#999999] cursor-not-allowed'
                       : selectedExam === key
@@ -402,9 +402,9 @@ function ReviewPageContent() {
                       : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                   }`}
                 >
-                  <span className="text-xl">{info.icon}</span>
-                  <span className="font-semibold">{info.name}</span>
-                  {isLocked && <span className="text-sm">🔒</span>}
+                  <span className="text-2xl">{info.icon}</span>
+                  <span className="font-semibold text-xs">{info.name}</span>
+                  {isLocked && <span className="text-xs">🔒</span>}
                 </button>
               );
             })}

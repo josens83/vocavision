@@ -256,7 +256,7 @@ export default function ExamListPage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-6 pt-6 text-center text-gray-500 text-sm">
-            <p>&copy; 2025 VocaVision AI. All rights reserved.</p>
+            <p>&copy; 2026 VocaVision AI. All rights reserved.</p>
           </div>
         </div>
       </footer>
