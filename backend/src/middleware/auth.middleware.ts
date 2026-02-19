@@ -68,7 +68,7 @@ export const authenticateToken = async (
   } catch (error) {
     console.error('[Auth] Token verification failed:', error instanceof Error ? error.message : error);
     addCorsHeaders(req, res);
-    return res.status(403).json({ error: 'Invalid or expired token' });
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
 

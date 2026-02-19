@@ -482,7 +482,7 @@ function ReviewPageContent() {
           <div className="flex justify-between items-center">
             <DashboardItem value={stats.dueToday} label="복습 대기" color="#A855F7" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-            <DashboardItem value={stats.todayCorrect || 0} label="오늘 맞춤" color="#F59E0B" />
+            <DashboardItem value={stats.todayCorrect || 0} label="오늘 복습" color="#F59E0B" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
             <DashboardItem value={`${stats.accuracy || 0}%`} label="복습 정답률" color="#10B981" />
           </div>
