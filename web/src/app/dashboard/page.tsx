@@ -390,14 +390,14 @@ function DashboardContent() {
                 const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
                 setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
               }}
-              className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                 selectedExam === 'CSAT'
                   ? 'bg-teal-500 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              <span className="text-xl">📝</span>
-              <span className="font-semibold text-sm">수능</span>
+              <span className="text-2xl">📝</span>
+              <span className="font-semibold text-xs">수능</span>
             </button>
 
             {/* TEPS 버튼 */}
@@ -419,7 +419,7 @@ function DashboardContent() {
                   router.push('/pricing');
                 }
               }}
-              className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
+              className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                 !canAccessExam('TEPS')
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : selectedExam === 'TEPS'
@@ -427,8 +427,8 @@ function DashboardContent() {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              <span className="text-xl">🎓</span>
-              <span className="font-semibold text-sm">TEPS</span>
+              <span className="text-2xl">🎓</span>
+              <span className="font-semibold text-xs">TEPS</span>
               {!canAccessExam('TEPS') && <span className="text-xs">🔒</span>}
             </button>
 
@@ -444,14 +444,14 @@ function DashboardContent() {
                   const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
                   setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
                 }}
-                className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
+                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                   selectedExam === 'CSAT_2026'
                     ? 'bg-emerald-500 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                <span className="text-xl">📋</span>
-                <span className="font-semibold text-sm">2026 기출</span>
+                <span className="text-2xl">📋</span>
+                <span className="font-semibold text-xs">2026 기출</span>
               </button>
             )}
 
@@ -467,14 +467,14 @@ function DashboardContent() {
                   const lastLevel = localStorage.getItem('dashboard_EBS_level') || 'LISTENING';
                   setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
                 }}
-                className={`flex items-center justify-center gap-2 py-4 rounded-xl transition-all ${
+                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                   selectedExam === 'EBS'
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                <span className="text-xl">📗</span>
-                <span className="font-semibold text-sm">EBS 연계</span>
+                <span className="text-2xl">📗</span>
+                <span className="font-semibold text-xs">EBS 연계</span>
               </button>
             )}
           </div>
