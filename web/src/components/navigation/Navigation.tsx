@@ -106,7 +106,8 @@ export const authNavigationItems: NavItem[] = [
     children: [
       { label: "대시보드", href: "/dashboard", description: "오늘의 학습 현황" },
       { label: "복습 노트", href: "/review", description: "틀린 단어 모아보기" },
-      { label: "학습 통계", href: "/stats", description: "상세 학습 분석" },
+      { label: "단어 찾기", href: "/words", description: "단어 검색·탐색" },
+      { label: "학습 통계", href: "/statistics", description: "상세 학습 분석" },
       { label: "divider", href: "#", isDivider: true },
       { label: "MY", href: "/my", description: "계정 설정", icon: "👤" },
     ],
@@ -719,7 +720,7 @@ export default function Navigation() {
                         내 정보
                       </Link>
                       <Link
-                        href="/stats"
+                        href="/statistics"
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                       >

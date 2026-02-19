@@ -341,7 +341,7 @@ function TotalStatsCard({
 
       {/* 자세히 보기 */}
       <Link
-        href="/stats"
+        href="/statistics"
         className="flex items-center justify-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium py-2 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
       >
         자세히 보기

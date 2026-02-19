@@ -113,7 +113,7 @@ export default function StudyFAB() {
     {
       icon: <Icons.Stats />,
       label: "통계",
-      href: "/stats",
+      href: "/statistics",
       color: "bg-purple-500",
     },
   ];
