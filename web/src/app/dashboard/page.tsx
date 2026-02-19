@@ -61,9 +61,9 @@ const getValidLevelForExam = (exam: string, level: string): string => {
 const getLevelInfo = (exam: string, level: string) => {
   if (exam === 'CSAT_2026') {
     const csat2026Levels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      LISTENING: { name: '듣기', description: '듣기 영역 1~17번', target: '듣기 만점', wordCount: 100 },
-      READING_2: { name: '독해 2점', description: '독해 2점 문항', target: '기본 확보', wordCount: 191 },
-      READING_3: { name: '독해 3점', description: '고난도 3점 문항', target: '고득점', wordCount: 91 },
+      LISTENING: { name: '듣기', description: '듣기 영역 1~17번', target: '듣기 만점', wordCount: 132 },
+      READING_2: { name: '독해 2점', description: '독해 2점 문항', target: '기본 확보', wordCount: 265 },
+      READING_3: { name: '독해 3점', description: '고난도 3점 문항', target: '고득점', wordCount: 124 },
     };
     return csat2026Levels[level] || csat2026Levels.LISTENING;
   }
@@ -71,23 +71,23 @@ const getLevelInfo = (exam: string, level: string) => {
   if (exam === 'TEPS') {
     // TEPS는 L1, L2만 (L3 없음)
     const tepsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: 'L1(기본)', description: 'TEPS 고급어휘 기본', target: '기본 점수 목표', wordCount: 264 },
-      L2: { name: 'L2(필수)', description: 'TEPS 고급어휘 필수', target: '고득점 목표', wordCount: 124 },
+      L1: { name: 'L1(기본)', description: 'TEPS 고급어휘 기본', target: '기본 점수 목표', wordCount: 265 },
+      L2: { name: 'L2(필수)', description: 'TEPS 고급어휘 필수', target: '고득점 목표', wordCount: 126 },
     };
     return tepsLevels[level] || tepsLevels.L1;
   }
 
   if (exam === 'EBS') {
     const ebsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      LISTENING: { name: '듣기영역', description: 'EBS 수능특강 영어듣기', target: '듣기 연계 대비', wordCount: 1325 },
-      READING_BASIC: { name: '독해 기본', description: 'EBS 수능특강 영어', target: '독해 기본 대비', wordCount: 1449 },
-      READING_ADV: { name: '독해 실력', description: 'EBS 수능특강 영어독해연습', target: '독해 심화 대비', wordCount: 1800 },
+      LISTENING: { name: '듣기영역', description: 'EBS 수능특강 영어듣기', target: '듣기 연계 대비', wordCount: 1177 },
+      READING_BASIC: { name: '독해 기본', description: 'EBS 수능특강 영어', target: '독해 기본 대비', wordCount: 1284 },
+      READING_ADV: { name: '독해 실력', description: 'EBS 수능특강 영어독해연습', target: '독해 심화 대비', wordCount: 1534 },
     };
     return ebsLevels[level] || ebsLevels.LISTENING;
   }
 
   const defaultLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-    L1: { name: 'L1(기초)', description: '기초 필수 단어', target: '3등급 목표', wordCount: 882 },
+    L1: { name: 'L1(기초)', description: '기초 필수 단어', target: '3등급 목표', wordCount: 884 },
     L2: { name: 'L2(중급)', description: '핵심 심화 단어', target: '2등급 목표', wordCount: 747 },
     L3: { name: 'L3(고급)', description: '고난도 단어', target: '1등급 목표', wordCount: 158 },
   };
