@@ -353,17 +353,19 @@ export default function PricingPage() {
             <table className="w-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="text-left py-4 px-6 font-semibold text-[14px] text-[#1c1c1e]">
+                  <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-[13px] sm:text-[14px] text-[#1c1c1e]">
                     기능
                   </th>
-                  <th className="text-center py-4 px-6 font-semibold text-[14px] text-gray-500">
+                  <th className="text-center py-3 px-2 sm:py-4 sm:px-6 font-semibold text-[13px] sm:text-[14px] text-gray-500">
                     무료
                   </th>
-                  <th className="text-center py-4 px-6 font-semibold text-[14px] text-[#14B8A6]">
-                    베이직
+                  <th className="text-center py-3 px-2 sm:py-4 sm:px-6 font-semibold text-[13px] sm:text-[14px] text-[#14B8A6]">
+                    <span className="sm:hidden">베이직</span>
+                    <span className="hidden sm:inline">베이직</span>
                   </th>
-                  <th className="text-center py-4 px-6 font-semibold text-[14px] text-purple-500">
-                    프리미엄
+                  <th className="text-center py-3 px-2 sm:py-4 sm:px-6 font-semibold text-[13px] sm:text-[14px] text-purple-500">
+                    <span className="sm:hidden">프리</span>
+                    <span className="hidden sm:inline">프리미엄</span>
                   </th>
                 </tr>
               </thead>
@@ -373,8 +375,8 @@ export default function PricingPage() {
                     key={feature.name}
                     className={index % 2 === 0 ? "bg-white" : "bg-[#FAFAFA]"}
                   >
-                    <td className="py-4 px-6 text-[13px] text-[#1c1c1e]">{feature.name}</td>
-                    <td className="py-4 px-6 text-center">
+                    <td className="py-3 px-3 sm:py-4 sm:px-6 text-[12px] sm:text-[13px] text-[#1c1c1e]">{feature.name}</td>
+                    <td className="py-3 px-2 sm:py-4 sm:px-6 text-center">
                       {typeof feature.free === "boolean" ? (
                         feature.free ? (
                           <Check className="w-5 h-5 text-[#10B981] mx-auto" />
@@ -382,12 +384,12 @@ export default function PricingPage() {
                           <X className="w-5 h-5 text-[#E8E8E8] mx-auto" />
                         )
                       ) : (
-                        <span className="text-[12px] text-gray-500">
+                        <span className="text-[11px] sm:text-[12px] text-gray-500">
                           {feature.free}
                         </span>
                       )}
                     </td>
-                    <td className="py-4 px-6 text-center">
+                    <td className="py-3 px-2 sm:py-4 sm:px-6 text-center">
                       {typeof feature.basic === "boolean" ? (
                         feature.basic ? (
                           <Check className="w-5 h-5 text-[#10B981] mx-auto" />
@@ -395,12 +397,12 @@ export default function PricingPage() {
                           <X className="w-5 h-5 text-[#E8E8E8] mx-auto" />
                         )
                       ) : (
-                        <span className="text-[12px] text-[#14B8A6] font-medium">
+                        <span className="text-[11px] sm:text-[12px] text-[#14B8A6] font-medium">
                           {feature.basic}
                         </span>
                       )}
                     </td>
-                    <td className="py-4 px-6 text-center">
+                    <td className="py-3 px-2 sm:py-4 sm:px-6 text-center">
                       {typeof feature.premium === "boolean" ? (
                         feature.premium ? (
                           <Check className="w-5 h-5 text-[#10B981] mx-auto" />
@@ -408,7 +410,7 @@ export default function PricingPage() {
                           <X className="w-5 h-5 text-[#E8E8E8] mx-auto" />
                         )
                       ) : (
-                        <span className="text-[12px] text-purple-500 font-medium">
+                        <span className="text-[11px] sm:text-[12px] text-purple-500 font-medium">
                           {feature.premium}
                         </span>
                       )}
