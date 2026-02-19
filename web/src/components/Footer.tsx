@@ -114,7 +114,7 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
             <div className="text-center md:text-left">
-              <p>&copy; 2025 유니패스. All rights reserved.</p>
+              <p>&copy; 2026 유니패스. All rights reserved.</p>
               <p className="mt-1">
                 상호명: 유니패스 | 대표자명: 김도헌
               </p>

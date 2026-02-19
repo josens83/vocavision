@@ -310,15 +310,15 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* EBS 연계어휘 - 출시예정 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative opacity-75">
+            {/* EBS 연계어휘 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
-                <span className="bg-[#999999] text-white text-[11px] font-bold px-3 py-1 rounded-full">
-                  출시예정
+                <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
+                  NEW
                 </span>
               </div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#9CA3AF] to-[#6B7280] rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-xl flex items-center justify-center">
                   <span className="text-white text-xl">📚</span>
                 </div>
                 <div>
@@ -327,16 +327,17 @@ export default function PricingPage() {
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
-                EBS 수능특강, 수능완성에서 나오는 연계 어휘를 완벽하게 마스터하세요.
+                3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 완벽 대비
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#C8C8C8]">가격 미정</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">₩6,900</span>
+                <span className="text-[#999999] text-[12px] mb-1">6개월</span>
               </div>
               <button
-                disabled
-                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#E8E8E8] text-[#999999] cursor-not-allowed"
+                onClick={() => router.push("/checkout?product=ebs-vocab")}
+                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#10B981] text-white hover:bg-[#059669] transition-colors"
               >
-                출시 알림 받기
+                구매하기
               </button>
             </div>
           </div>
@@ -476,7 +477,7 @@ export default function PricingPage() {
             <p className="text-white/80 text-[14px] mb-8 max-w-2xl mx-auto leading-relaxed">
               무료로 수능 L1(기초) 필수 단어 880개+를 학습하고,
               <br />
-              업그레이드해서 전체 2,500개+ 단어를 잠금 해제하세요.
+              업그레이드해서 전체 2,000개+ 단어를 잠금 해제하세요.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
