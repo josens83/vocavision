@@ -11,7 +11,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/packages/ebs-vocab`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/exam/csat`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/exam/teps`, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${baseUrl}/learn`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/help`, changeFrequency: 'monthly', priority: 0.5 },
   ];
 }
