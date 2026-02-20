@@ -4569,7 +4569,7 @@ Do NOT include any text outside the JSON array.`;
 
   const message = await anthropicClient.messages.create({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 32000,
+    max_tokens: 8000,
     messages: [{ role: 'user', content: prompt }],
   });
 
@@ -4590,7 +4590,10 @@ async function runToeflContentGeneration(sessionId: string) {
   const DELAY_MS = 3000;
 
   try {
-    const anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const anthropicClient = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+      timeout: 5 * 60 * 1000, // 5분 타임아웃
+    });
 
     // DRAFT 단어 조회
     const draftWords = await prisma.word.findMany({
