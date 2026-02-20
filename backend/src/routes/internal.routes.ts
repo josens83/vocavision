@@ -4569,7 +4569,7 @@ Do NOT include any text outside the JSON array.`;
 
   const message = await anthropicClient.messages.create({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 16000,
+    max_tokens: 32000,
     messages: [{ role: 'user', content: prompt }],
   });
 
@@ -4586,7 +4586,7 @@ async function runToeflContentGeneration(sessionId: string) {
   const session = activeToeflSessions.get(sessionId);
   if (!session) return;
 
-  const BATCH_SIZE = 20;
+  const BATCH_SIZE = 5;
   const DELAY_MS = 3000;
 
   try {
