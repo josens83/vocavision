@@ -9,6 +9,7 @@ import { validateEmail, validatePassword, validateName, validateForm } from '@/l
 import { FormInput, FormError, SubmitButton } from '@/components/ui/FormInput';
 import { getKakaoLoginUrl } from '@/lib/auth/kakao';
 import { getGoogleLoginUrl } from '@/lib/auth/google';
+import { event as gaEvent } from '@/lib/monitoring/analytics';
 
 function RegisterContent() {
   const router = useRouter();
@@ -95,6 +96,7 @@ function RegisterContent() {
     try {
       const response = await authAPI.register(formData);
       setAuth(response.user, response.token);
+      gaEvent('sign_up', { category: 'conversion', label: 'email' });
       router.push(nextUrl);
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || '회원가입에 실패했습니다. 다시 시도해주세요.';

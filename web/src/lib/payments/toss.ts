@@ -5,9 +5,11 @@
  * 실서비스 전환 시 클라이언트 키를 변경해야 합니다.
  */
 
-// 토스페이먼츠 테스트용 클라이언트 키
-// 실서비스 전환 시 환경변수로 변경 필요
-const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq";
+// 토스페이먼츠 클라이언트 키 (환경변수 필수)
+const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
+if (!TOSS_CLIENT_KEY) {
+  console.error('[Toss] NEXT_PUBLIC_TOSS_CLIENT_KEY is not configured');
+}
 
 // 결제 성공/실패 리다이렉트 URL
 const SUCCESS_URL = typeof window !== "undefined"
@@ -74,6 +76,10 @@ let tossPaymentsInstance: TossPayments | null = null;
 async function loadTossPaymentsSDK(): Promise<TossPayments> {
   if (tossPaymentsInstance) {
     return tossPaymentsInstance;
+  }
+
+  if (!TOSS_CLIENT_KEY) {
+    throw new Error('토스페이먼츠 클라이언트 키가 설정되지 않았습니다.');
   }
 
   // SDK 스크립트가 이미 로드되어 있는지 확인

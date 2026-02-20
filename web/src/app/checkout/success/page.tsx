@@ -7,6 +7,7 @@ import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import Navigation from "@/components/navigation/Navigation";
 import { confirmPayment } from "@/lib/payments/toss";
 import { useAuthStore } from "@/lib/store";
+import { event as gaEvent } from "@/lib/monitoring/analytics";
 import { useQueryClient } from "@tanstack/react-query";
 
 function SuccessContent() {
@@ -55,6 +56,11 @@ function SuccessContent() {
 
         if (result.success) {
           setStatus("success");
+          gaEvent('purchase', {
+            category: 'conversion',
+            label: packageSlug || plan || undefined,
+            value: parseInt(amount, 10),
+          });
           // 유저 정보 갱신 - 구독 상태 반영
           try {
             const { refreshUser } = useAuthStore.getState();
