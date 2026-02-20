@@ -19,6 +19,7 @@ import {
 } from '../controllers/word.controller';
 import { authenticateToken, requireAdmin, optionalAuth } from '../middleware/auth.middleware';
 import { checkContentAccess } from '../middleware/subscription.middleware';
+import { prisma } from '../index';
 
 const router = Router();
 
@@ -403,6 +404,20 @@ router.get('/quiz-questions', getQuizQuestions);
  *         description: 관리자 권한 필요
  */
 router.post('/visuals/import', authenticateToken, requireAdmin, importWordVisualsFromTemplate);
+
+// Sitemap 전용 — id, updatedAt만 반환 (인증 불필요)
+router.get('/sitemap', async (req, res, next) => {
+  try {
+    const words = await prisma.word.findMany({
+      where: { status: 'PUBLISHED' },
+      select: { id: true, updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+    res.json({ words, total: words.length });
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * @swagger
