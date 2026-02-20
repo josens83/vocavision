@@ -4,7 +4,7 @@
 const nextConfig = {
   // Image optimization
   images: {
-    domains: ['res.cloudinary.com', 'via.placeholder.com', 'sfqzlrsvrszdlusntdky.supabase.co'],
+    domains: ['via.placeholder.com', 'sfqzlrsvrszdlusntdky.supabase.co'],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -84,7 +84,7 @@ const nextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.tosspayments.com https://*.tosspayments.com https://www.googletagmanager.com https://vercel.live https://*.vercel-insights.com https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: https: blob: https://res.cloudinary.com https://*.cloudinary.com https://*.supabase.co https://*.tosspayments.com",
+              "img-src 'self' data: https: blob: https://*.supabase.co https://*.tosspayments.com",
               "media-src 'self' https:",
               "connect-src 'self' https://api.tosspayments.com https://*.tosspayments.com https://www.google-analytics.com https://*.railway.app https://*.vercel.app https://*.supabase.co https://vercel.live https://*.vercel-insights.com https://api.dictionaryapi.dev https://cloudflareinsights.com",
               "frame-src 'self' https://*.tosspayments.com https://vercel.live",

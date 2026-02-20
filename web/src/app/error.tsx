@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { captureException } from '@/lib/monitoring/sentry';
 
 export default function Error({
   error,
@@ -11,13 +12,8 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // 에러 로깅
     console.error('Application error:', error);
-
-    // TODO: 프로덕션에서는 에러 리포팅 서비스에 전송
-    // if (process.env.NODE_ENV === 'production') {
-    //   captureException(error);
-    // }
+    captureException(error, { digest: error.digest });
   }, [error]);
 
   return (

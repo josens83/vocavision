@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
 import { wordsAPI, bookmarkAPI, pronunciationAPI } from '@/lib/api';
 import { LEVEL_INFO } from '@/constants/stats';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 // Types
 interface WordVisual {
@@ -168,6 +169,14 @@ function SectionHeader({ icon, title }: { icon: string; title: string }) {
 }
 
 export default function WordDetailPage({ params }: { params: { id: string } }) {
+  return (
+    <ErrorBoundary>
+      <WordDetailContent params={params} />
+    </ErrorBoundary>
+  );
+}
+
+function WordDetailContent({ params }: { params: { id: string } }) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const [word, setWord] = useState<Word | null>(null);

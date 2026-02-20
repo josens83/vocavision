@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
 import Navigation from "@/components/navigation/Navigation";
 import { Check, Shield, ArrowLeft, CreditCard, Loader2, Package } from "lucide-react";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 
 type PlanType = "basic" | "premium";
 type BillingCycle = "monthly" | "yearly";
@@ -682,11 +683,11 @@ function LoadingFallback() {
 
 export default function CheckoutPage() {
   return (
-    <>
+    <ErrorBoundary>
       <Navigation />
       <Suspense fallback={<LoadingFallback />}>
         <CheckoutContent />
       </Suspense>
-    </>
+    </ErrorBoundary>
   );
 }
