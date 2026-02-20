@@ -134,7 +134,6 @@ export const RESOURCE_HINTS = {
   dnsPrefetch: [
     'https://fonts.googleapis.com',
     'https://fonts.gstatic.com',
-    'https://res.cloudinary.com',
   ],
 
   // Preconnect to critical origins

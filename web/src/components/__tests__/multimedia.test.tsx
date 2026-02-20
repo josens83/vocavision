@@ -169,29 +169,3 @@ describe('OptimizedImage Component', () => {
     });
   });
 });
-
-describe('CDN Service Integration', () => {
-  it('should generate Cloudinary URLs correctly', () => {
-    const { generateImageUrl } = require('@/lib/multimedia/cdnService');
-
-    const url = generateImageUrl('test.jpg', {
-      width: 800,
-      quality: 80,
-      format: 'webp',
-    });
-
-    expect(url).toContain('cloudinary');
-    expect(url).toContain('w_800');
-    expect(url).toContain('q_80');
-    expect(url).toContain('f_webp');
-  });
-
-  it('should fallback to local URLs when CDN unavailable', () => {
-    const { generateImageUrl } = require('@/lib/multimedia/cdnService');
-
-    process.env.NEXT_PUBLIC_CDN_PROVIDER = 'local';
-
-    const url = generateImageUrl('test.jpg', {});
-    expect(url).toContain('/images/test.jpg');
-  });
-});

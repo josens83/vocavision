@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
 import { event as gaEvent } from '@/lib/monitoring/analytics';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 interface WordVisual {
   type: 'CONCEPT' | 'MNEMONIC' | 'RHYME';
@@ -131,9 +132,11 @@ function LearnPageLoading() {
 // Main page component wrapped in Suspense
 export default function LearnPage() {
   return (
-    <Suspense fallback={<LearnPageLoading />}>
-      <LearnPageContent />
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={<LearnPageLoading />}>
+        <LearnPageContent />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 
