@@ -1481,7 +1481,7 @@ async function runContinuousImageGeneration(
       const words = await prisma.word.findMany({
         where: whereClause,
         include: {
-          visuals: { select: { type: true } },
+          visuals: { select: { type: true, imageUrl: true } },
           mnemonics: { take: 1, orderBy: { rating: 'desc' } },
         },
         orderBy: { frequency: 'desc' }, // High frequency first
@@ -1493,8 +1493,11 @@ async function runContinuousImageGeneration(
       let typesToGenerate: VisualType[] = [];
 
       for (const word of words) {
-        const existingTypes = new Set(word.visuals.map(v => v.type));
-        const missingTypes = types.filter(t => !existingTypes.has(t));
+        // imageUrl이 있는 visual만 완료로 간주 (imageUrl=null은 미완성)
+        const completedTypes = new Set(
+          word.visuals.filter(v => v.imageUrl).map(v => v.type)
+        );
+        const missingTypes = types.filter(t => !completedTypes.has(t));
 
         if (missingTypes.length > 0) {
           wordToProcess = word;
@@ -1504,15 +1507,16 @@ async function runContinuousImageGeneration(
       }
 
       if (!wordToProcess) {
-        // Try to find more words
+        // Try to find more words — imageUrl이 없거나 visual 레코드 자체가 없는 단어
         const totalRemaining = await prisma.word.count({
           where: {
             ...whereClause,
-            visuals: {
-              none: {
-                type: { in: types },
-              },
-            },
+            OR: [
+              // visual 레코드가 아예 없는 단어
+              { visuals: { none: { type: { in: types } } } },
+              // visual 레코드는 있지만 imageUrl이 null인 단어
+              { visuals: { some: { type: { in: types }, imageUrl: null } } },
+            ],
           },
         });
 
@@ -1522,18 +1526,17 @@ async function runContinuousImageGeneration(
           break;
         }
 
-        // Find word without any required images
+        // Find word without completed images
         const wordWithoutImages = await prisma.word.findFirst({
           where: {
             ...whereClause,
-            visuals: {
-              none: {
-                type: { in: types },
-              },
-            },
+            OR: [
+              { visuals: { none: { type: { in: types } } } },
+              { visuals: { some: { type: { in: types }, imageUrl: null } } },
+            ],
           },
           include: {
-            visuals: { select: { type: true } },
+            visuals: { select: { type: true, imageUrl: true } },
             mnemonics: { take: 1, orderBy: { rating: 'desc' } },
           },
           orderBy: { frequency: 'desc' },
@@ -1546,9 +1549,11 @@ async function runContinuousImageGeneration(
         }
 
         wordToProcess = wordWithoutImages;
-        const existingTypes = new Set(wordWithoutImages.visuals.map(v => v.type));
+        const completedTypes = new Set(
+          wordWithoutImages.visuals.filter(v => v.imageUrl).map(v => v.type)
+        );
         typesToGenerate = skipExisting
-          ? types.filter(t => !existingTypes.has(t))
+          ? types.filter(t => !completedTypes.has(t))
           : types;
       }
 
@@ -1620,24 +1625,35 @@ async function runContinuousImageGeneration(
           const result = await generateAndUploadImage(prompt, visualType, currentWord.word);
 
           if (result) {
-            // Delete existing visual if replacing
-            if (!skipExisting) {
-              await prisma.wordVisual.deleteMany({
-                where: { wordId: currentWord.id, type: visualType },
+            // 기존 visual 레코드 확인 (imageUrl=null인 경우 포함)
+            const existingVisual = await prisma.wordVisual.findFirst({
+              where: { wordId: currentWord.id, type: visualType },
+            });
+
+            if (existingVisual) {
+              // 기존 레코드 업데이트 (imageUrl=null → 실제 URL로)
+              await prisma.wordVisual.update({
+                where: { id: existingVisual.id },
+                data: {
+                  imageUrl: result.imageUrl,
+                  promptEn: prompt,
+                  captionKo,
+                  captionEn,
+                },
+              });
+            } else {
+              // 새 레코드 생성
+              await prisma.wordVisual.create({
+                data: {
+                  wordId: currentWord.id,
+                  type: visualType,
+                  imageUrl: result.imageUrl,
+                  promptEn: prompt,
+                  captionKo,
+                  captionEn,
+                },
               });
             }
-
-            // Create visual record
-            await prisma.wordVisual.create({
-              data: {
-                wordId: currentWord.id,
-                type: visualType,
-                imageUrl: result.imageUrl,
-                promptEn: prompt,
-                captionKo,
-                captionEn,
-              },
-            });
 
             session.imagesGenerated++;
             logger.info(`[Internal/ImageGen] Session ${sessionId}: Generated ${visualType} for "${currentWord.word}"`);
