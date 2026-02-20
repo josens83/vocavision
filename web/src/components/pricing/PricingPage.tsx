@@ -303,7 +303,7 @@ export default function PricingPage() {
                 <span className="text-[#999999] text-[12px] mb-1">6개월</span>
               </div>
               <button
-                onClick={() => router.push("/checkout?product=2026-csat-analysis")}
+                onClick={() => router.push("/checkout?package=2026-csat-analysis")}
                 className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#F59E0B] text-white hover:bg-[#D97706] transition-colors"
               >
                 구매하기
@@ -334,7 +334,7 @@ export default function PricingPage() {
                 <span className="text-[#999999] text-[12px] mb-1">6개월</span>
               </div>
               <button
-                onClick={() => router.push("/checkout?product=ebs-vocab")}
+                onClick={() => router.push("/checkout?package=ebs-vocab")}
                 className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#10B981] text-white hover:bg-[#059669] transition-colors"
               >
                 구매하기
