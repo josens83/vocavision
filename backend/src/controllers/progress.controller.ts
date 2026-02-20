@@ -646,8 +646,20 @@ export const submitReviewBatch = async (
 
     console.log(`[submitReviewBatch] Processing ${reviews.length} reviews for user ${userId}`);
 
+    // 동일 wordId 중복 제거 (마지막 리뷰 결과만 유지)
+    const deduped = new Map<string, any>();
+    for (const review of reviews) {
+      const key = `${review.wordId}:${review.examCategory || ''}:${review.level || ''}`;
+      deduped.set(key, review);
+    }
+    const uniqueReviews = Array.from(deduped.values());
+
+    if (uniqueReviews.length < reviews.length) {
+      console.log(`[submitReviewBatch] Deduplicated: ${reviews.length} → ${uniqueReviews.length}`);
+    }
+
     // 1. 모든 관련 Word 한번에 조회 (N+1 방지)
-    const wordIds = [...new Set(reviews.map((r: any) => r.wordId))];
+    const wordIds = [...new Set(uniqueReviews.map((r: any) => r.wordId))];
     const words = await prisma.word.findMany({
       where: { id: { in: wordIds } },
       include: { examLevels: { take: 1 } },
@@ -772,12 +784,12 @@ export const submitReviewBatch = async (
       return updated;
     };
 
-    // 5개씩 병렬 실행 (DB 커넥션 풀 15개 중 절반 이하 사용)
+    // 5개씩 병렬 실행 (DB 커넥션 풀 보호)
     const CHUNK_SIZE = 5;
     const processed: any[] = [];
 
-    for (let i = 0; i < reviews.length; i += CHUNK_SIZE) {
-      const chunk = reviews.slice(i, i + CHUNK_SIZE);
+    for (let i = 0; i < uniqueReviews.length; i += CHUNK_SIZE) {
+      const chunk = uniqueReviews.slice(i, i + CHUNK_SIZE);
       const results = await Promise.allSettled(chunk.map(processReview));
 
       for (const result of results) {
@@ -805,7 +817,7 @@ export const submitReviewBatch = async (
     const dashboardKeys = appCache.getKeys().filter(k => k.startsWith(`dashboard:${userId}:`));
     dashboardKeys.forEach(k => appCache.del(k));
 
-    console.log(`[submitReviewBatch] Completed: ${processed.length}/${reviews.length} reviews processed`);
+    console.log(`[submitReviewBatch] Completed: ${processed.length}/${uniqueReviews.length} reviews processed`);
 
     res.json({
       message: 'Batch reviews submitted',
