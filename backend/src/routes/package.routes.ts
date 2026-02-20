@@ -178,13 +178,18 @@ router.get('/:slug', async (req: Request, res: Response) => {
 /**
  * GET /api/packages/:slug/words
  * 패키지에 포함된 모든 단어 조회 (구매자만)
- * TODO: 인증 및 구매 확인 로직 추가 필요
  */
-router.get('/:slug/words', async (req: Request, res: Response) => {
+router.get('/:slug/words', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { slug } = req.params;
-    // TODO: req.user에서 userId 가져오기
-    // const userId = req.user?.id;
+    const userId = req.userId!;
+
+    // 프리미엄 체크
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionPlan: true },
+    });
+    const isPremium = user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY';
 
     const pkg = await prisma.productPackage.findUnique({
       where: { slug },
@@ -216,11 +221,12 @@ router.get('/:slug/words', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Package not found' });
     }
 
-    // TODO: 구매 확인 로직
-    // const purchase = await prisma.userPurchase.findFirst({
-    //   where: { userId, packageId: pkg.id, status: 'ACTIVE' }
-    // });
-    // if (!purchase) return res.status(403).json({ error: 'Not purchased' });
+    if (!isPremium) {
+      const purchase = await prisma.userPurchase.findFirst({
+        where: { userId, packageId: pkg.id, status: 'ACTIVE', expiresAt: { gt: new Date() } },
+      });
+      if (!purchase) return res.status(403).json({ error: 'Purchase required' });
+    }
 
     res.json({
       packageName: pkg.name,

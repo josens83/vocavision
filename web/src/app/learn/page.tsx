@@ -9,6 +9,7 @@ import { useInvalidateDashboard } from '@/hooks/useQueries';
 import { motion } from 'framer-motion';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
+import { event as gaEvent } from '@/lib/monitoring/analytics';
 
 interface WordVisual {
   type: 'CONCEPT' | 'MNEMONIC' | 'RHYME';
@@ -407,6 +408,7 @@ function LearnPageContent() {
         setTotalWordsInLevel(bookmarks.length);
       // Demo mode: use first 20 words from API directly
       } else if (isDemo && examParam) {
+        gaEvent('demo_start', { category: 'engagement' });
         const data = await wordsAPI.getWords({
           examCategory: examParam,
           limit: 20,
@@ -611,6 +613,10 @@ function LearnPageContent() {
     const newWords = wordsWithContent.slice(0, 20);
     setReviews(newWords.map((word: Word) => ({ word })));
     setCurrentPage(page);
+
+    if (newWords.length > 0) {
+      gaEvent('begin_learning', { category: 'engagement', label: `${examParam}_${levelParam}` });
+    }
 
     // 3. 새 세션 저장 (로그인 사용자 + levelParam이 있는 경우)
     if (user && levelParam && newWords.length > 0) {
