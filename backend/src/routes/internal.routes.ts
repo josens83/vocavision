@@ -4656,7 +4656,7 @@ async function runToeflContentGeneration(sessionId: string) {
                 rhymingWords: result.rhymingWords || [],
                 tags: result.tags || ['TOEFL'],
                 tips: tipsText,
-                status: 'REVIEW',
+                status: 'PENDING_REVIEW',
                 aiGeneratedAt: new Date(),
                 aiModel: 'claude-sonnet-4-20250514',
                 updatedAt: new Date(),
@@ -4803,7 +4803,7 @@ router.get('/toefl-content-status', async (req: Request, res: Response) => {
     // DB 상태 확인
     const [draftCount, reviewCount, visualCount] = await Promise.all([
       prisma.word.count({ where: { examCategory: 'TOEFL', status: 'DRAFT' } }),
-      prisma.word.count({ where: { examCategory: 'TOEFL', status: 'REVIEW' } }),
+      prisma.word.count({ where: { examCategory: 'TOEFL', status: 'PENDING_REVIEW' } }),
       prisma.wordVisual.count({
         where: { word: { examCategory: 'TOEFL' } },
       }),
