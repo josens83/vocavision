@@ -8,6 +8,8 @@ import {
 } from '../utils/wordDeduplication';
 import { CSAT_L1_WORDS, CSAT_L2_WORDS, CSAT_L3_WORDS } from '../data/csat-words';
 import { processGenerationJob, generateWordContent, saveGeneratedContent } from '../services/contentGenerator.service';
+import Anthropic from '@anthropic-ai/sdk';
+import { randomUUID } from 'crypto';
 import logger from '../utils/logger';
 import {
   generateAndUploadImage,
@@ -4468,6 +4470,356 @@ router.get('/word-exam-level-stats', async (req, res) => {
   } catch (error) {
     console.error('[Internal/WordExamLevelStats] Error:', error);
     res.status(500).json({ error: 'Failed to get stats' });
+  }
+});
+
+// ============================================================
+// TOEFL 콘텐츠 일괄 생성 (백그라운드)
+// ============================================================
+
+// 세션 상태 추적
+const activeToeflSessions = new Map<string, {
+  isRunning: boolean;
+  batchesCompleted: number;
+  wordsProcessed: number;
+  errors: Array<{ word: string; error: string }>;
+  startedAt: Date;
+  lastBatchAt: Date | null;
+  totalWords: number;
+}>();
+
+async function generateToeflBatchContent(
+  anthropicClient: Anthropic,
+  words: { id: string; word: string; partOfSpeech: string }[]
+) {
+  const wordList = words.map((w) => w.word).join(', ');
+
+  const prompt = `You are a professional English vocabulary content creator for VocaVision AI, a visual English learning platform for TOEFL students.
+
+Generate complete learning content for these ${words.length} TOEFL words: [${wordList}]
+
+For EACH word, return a JSON object with ALL fields below.
+
+{
+  "word": "the word",
+
+  // === Word Table ===
+  "definition": "Clear English definition. 1-2 sentences. Academic but accessible.",
+  "definitionKo": "한국어 뜻 (간결, 핵심만)",
+  "partOfSpeech": "NOUN|VERB|ADJECTIVE|ADVERB",
+  "pronunciation": "한국어 발음 가이드 (예: 퍼-씨브 (강세: 씨))",
+  "ipaUs": "IPA 미국식 (예: /pɚˈsiːv/)",
+  "root": "어근 or null",
+  "prefix": "접두사 or null",
+  "suffix": "접미사 or null",
+  "morphologyNote": "어원 분석 한국어 (예: per-(완전히) + ceive(잡다) = 감각으로 완전히 잡아내다)",
+  "synonymList": ["synonym1", "synonym2", "synonym3", "synonym4", "synonym5"],
+  "antonymList": ["antonym1", "antonym2"],
+  "rhymingWords": ["rhyme1", "rhyme2", "rhyme3"],
+  "tags": ["TOEFL", "분야태그"],
+
+  // === Rhyme ===
+  "rhymeCaptionEn": "English rhyme sentence (under 20 words, natural rhythm)",
+  "rhymeCaptionKo": "한국어 번역",
+
+  // === Collocations (tips 컬럼에 저장) ===
+  "collocations": [
+    {"en": "collocation phrase", "ko": "한국어 뜻"},
+    {"en": "collocation phrase", "ko": "한국어 뜻"},
+    {"en": "collocation phrase", "ko": "한국어 뜻"},
+    {"en": "collocation phrase", "ko": "한국어 뜻"}
+  ],
+
+  // === CONCEPT Image ===
+  "conceptCaptionEn": "10-15 word English caption describing what the image shows",
+  "conceptCaptionKo": "한국어 캡션",
+  "conceptPrompt": "DETAILED image generation prompt (see rules below)",
+
+  // === RHYME Image ===
+  "rhymePrompt": "DETAILED image generation prompt illustrating the rhyme scene"
+}
+
+=== IMAGE PROMPT RULES (CRITICAL — FOLLOW EXACTLY) ===
+
+Every conceptPrompt and rhymePrompt MUST:
+
+1. Start with: "Cartoon illustration style, vibrant colors, highly expressive."
+2. Include camera/framing: "Extreme close-up wide-angle framing." or "Dynamic composition."
+3. Include: "Foreground, midground, and background filled edge to edge. No empty space."
+4. Describe SPECIFIC setting (WHERE — e.g., "A crowded rooftop party at sunset")
+5. Describe SPECIFIC character action (WHO + WHAT — e.g., "one person stands animatedly telling a story, arms wide open")
+6. Describe character POSE and FACIAL EXPRESSION
+7. Describe surrounding ENVIRONMENT details (props, objects, atmosphere)
+8. End with: "Square composition (1:1). No text. No words. No letters. No numbers. No symbols. No labels. No captions. No watermarks."
+9. Must be AT LEAST 10 lines long — SHORT PROMPTS ARE FORBIDDEN
+10. NEVER write "A simple scene showing the meaning of X" — THIS IS BANNED
+11. NEVER write "plain white background" — THIS IS BANNED
+12. Use METAPHOR for abstract concepts (e.g., ambiguous → foggy crossroads with two doors)
+
+CATEGORY TONE GUIDE:
+- 감정/심리: Warm palette. Expressive faces and body language.
+- 학술/과학: Cool blue tones. Lab/classroom. Equations and instruments.
+- 사회/정치: Dramatic lighting. Public settings.
+- 자연/환경: Natural light, panoramic. Earth, water, sky.
+- 추상: Concrete METAPHOR. Make the invisible visible.
+- 변화: Show BEFORE/AFTER in one frame.
+
+Return ONLY a valid JSON array: [{word1_data}, {word2_data}, ...]
+Do NOT include any text outside the JSON array.`;
+
+  const message = await anthropicClient.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 16000,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  const text = (message.content as Array<{ type: string; text?: string }>)
+    .filter((block) => block.type === 'text')
+    .map((block) => block.text || '')
+    .join('');
+
+  const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+  return JSON.parse(jsonStr);
+}
+
+async function runToeflContentGeneration(sessionId: string) {
+  const session = activeToeflSessions.get(sessionId);
+  if (!session) return;
+
+  const BATCH_SIZE = 20;
+  const DELAY_MS = 3000;
+
+  try {
+    const anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+    // DRAFT 단어 조회
+    const draftWords = await prisma.word.findMany({
+      where: { examCategory: 'TOEFL', status: 'DRAFT' },
+      select: { id: true, word: true, partOfSpeech: true },
+      orderBy: { word: 'asc' },
+    });
+
+    session.totalWords = draftWords.length;
+    logger.info(`[Internal/ToeflContent] Session ${sessionId}: ${draftWords.length} DRAFT words found`);
+
+    if (draftWords.length === 0) {
+      session.isRunning = false;
+      return;
+    }
+
+    // 배치 분할
+    const batches: typeof draftWords[] = [];
+    for (let i = 0; i < draftWords.length; i += BATCH_SIZE) {
+      batches.push(draftWords.slice(i, i + BATCH_SIZE));
+    }
+
+    for (let bi = 0; bi < batches.length; bi++) {
+      if (!session.isRunning) break; // 중단 지원
+
+      const batch = batches[bi];
+      const wordNames = batch.map((w) => w.word).join(', ');
+      logger.info(`[Internal/ToeflContent] Batch ${bi + 1}/${batches.length}: [${wordNames}]`);
+
+      try {
+        const results = await generateToeflBatchContent(anthropicClient, batch);
+
+        for (const result of results) {
+          const matchedWord = batch.find(
+            (w) => w.word.toLowerCase() === result.word.toLowerCase()
+          );
+
+          if (!matchedWord) {
+            session.errors.push({ word: result.word, error: 'no match in batch' });
+            continue;
+          }
+
+          try {
+            // Word 업데이트
+            const tipsText = result.collocations
+              ? result.collocations.map((c: any) => `${c.en} — ${c.ko}`).join('\n')
+              : null;
+
+            await prisma.word.update({
+              where: { id: matchedWord.id },
+              data: {
+                definition: result.definition,
+                definitionKo: result.definitionKo,
+                partOfSpeech: result.partOfSpeech,
+                pronunciation: result.pronunciation,
+                ipaUs: result.ipaUs,
+                root: result.root || null,
+                prefix: result.prefix || null,
+                suffix: result.suffix || null,
+                morphologyNote: result.morphologyNote || null,
+                synonymList: result.synonymList || [],
+                antonymList: result.antonymList || [],
+                rhymingWords: result.rhymingWords || [],
+                tags: result.tags || ['TOEFL'],
+                tips: tipsText,
+                status: 'REVIEW',
+                aiGeneratedAt: new Date(),
+                aiModel: 'claude-sonnet-4-20250514',
+                updatedAt: new Date(),
+              },
+            });
+
+            // CONCEPT visual
+            await prisma.wordVisual.create({
+              data: {
+                id: randomUUID(),
+                wordId: matchedWord.id,
+                type: 'CONCEPT',
+                captionEn: result.conceptCaptionEn,
+                captionKo: result.conceptCaptionKo,
+                promptEn: result.conceptPrompt,
+                imageUrl: null,
+                order: 0,
+              },
+            });
+
+            // RHYME visual
+            await prisma.wordVisual.create({
+              data: {
+                id: randomUUID(),
+                wordId: matchedWord.id,
+                type: 'RHYME',
+                captionEn: result.rhymeCaptionEn,
+                captionKo: result.rhymeCaptionKo,
+                promptEn: result.rhymePrompt,
+                imageUrl: null,
+                order: 0,
+              },
+            });
+
+            session.wordsProcessed++;
+          } catch (dbErr: any) {
+            session.errors.push({ word: result.word, error: dbErr.message });
+            logger.error(`[Internal/ToeflContent] DB error for ${result.word}: ${dbErr.message}`);
+          }
+        }
+
+        session.batchesCompleted++;
+        session.lastBatchAt = new Date();
+      } catch (apiErr: any) {
+        batch.forEach((w) => session.errors.push({ word: w.word, error: apiErr.message }));
+        logger.error(`[Internal/ToeflContent] Batch ${bi + 1} failed: ${apiErr.message}`);
+      }
+
+      // Rate limit 딜레이
+      if (bi < batches.length - 1) {
+        await new Promise((r) => setTimeout(r, DELAY_MS));
+      }
+    }
+  } catch (error: any) {
+    logger.error(`[Internal/ToeflContent] Fatal error: ${error.message}`);
+    session.errors.push({ word: 'FATAL', error: error.message });
+  } finally {
+    session.isRunning = false;
+    logger.info(`[Internal/ToeflContent] Session ${sessionId} completed: ${session.wordsProcessed}/${session.totalWords} words, ${session.errors.length} errors`);
+  }
+}
+
+/**
+ * GET /internal/generate-toefl-content?key=YOUR_SECRET
+ * TOEFL DRAFT 단어 콘텐츠 일괄 생성 (백그라운드)
+ */
+router.get('/generate-toefl-content', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    // 이미 실행 중인 세션 체크
+    const existingSession = Array.from(activeToeflSessions.entries())
+      .find(([_, session]) => session.isRunning);
+
+    if (existingSession) {
+      return res.json({
+        message: 'TOEFL content generation already running',
+        sessionId: existingSession[0],
+        session: existingSession[1],
+      });
+    }
+
+    // DRAFT 단어 수 미리 확인
+    const draftCount = await prisma.word.count({
+      where: { examCategory: 'TOEFL', status: 'DRAFT' },
+    });
+
+    if (draftCount === 0) {
+      return res.json({ message: 'No DRAFT TOEFL words to process', draftCount: 0 });
+    }
+
+    const sessionId = `toefl-${Date.now()}`;
+
+    activeToeflSessions.set(sessionId, {
+      isRunning: true,
+      batchesCompleted: 0,
+      wordsProcessed: 0,
+      errors: [],
+      startedAt: new Date(),
+      lastBatchAt: null,
+      totalWords: draftCount,
+    });
+
+    // 백그라운드 실행 (응답 후 처리)
+    runToeflContentGeneration(sessionId);
+
+    logger.info(`[Internal/ToeflContent] Started session ${sessionId}: ${draftCount} DRAFT words`);
+
+    res.json({
+      message: 'TOEFL content generation started',
+      sessionId,
+      draftCount,
+      estimatedBatches: Math.ceil(draftCount / 20),
+      estimatedTime: `~${Math.ceil(draftCount / 20 * 13 / 60)}분`,
+    });
+  } catch (error) {
+    console.error('[Internal/ToeflContent] Error:', error);
+    res.status(500).json({ error: 'Failed to start TOEFL content generation', details: String(error) });
+  }
+});
+
+/**
+ * GET /internal/toefl-content-status?key=YOUR_SECRET
+ * TOEFL 콘텐츠 생성 세션 상태 확인
+ */
+router.get('/toefl-content-status', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(403).json({ error: 'Forbidden: Invalid key' });
+    }
+
+    const sessions = Array.from(activeToeflSessions.entries()).map(([id, session]) => ({
+      sessionId: id,
+      ...session,
+      runningTime: session.isRunning
+        ? Math.round((Date.now() - session.startedAt.getTime()) / 1000) + 's'
+        : null,
+    }));
+
+    // DB 상태 확인
+    const [draftCount, reviewCount, visualCount] = await Promise.all([
+      prisma.word.count({ where: { examCategory: 'TOEFL', status: 'DRAFT' } }),
+      prisma.word.count({ where: { examCategory: 'TOEFL', status: 'REVIEW' } }),
+      prisma.wordVisual.count({
+        where: { word: { examCategory: 'TOEFL' } },
+      }),
+    ]);
+
+    res.json({
+      sessions,
+      dbStatus: {
+        draft: draftCount,
+        review: reviewCount,
+        visuals: visualCount,
+      },
+    });
+  } catch (error) {
+    console.error('[Internal/ToeflContentStatus] Error:', error);
+    res.status(500).json({ error: 'Failed to get status' });
   }
 });
 
