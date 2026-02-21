@@ -1261,6 +1261,7 @@ const activeImageSessions: Map<string, {
   lastBatchAt: Date | null;
   level?: string;
   examCategory?: string;
+  skippedWordIds: Set<string>;
   types: VisualType[];
   skipExisting: boolean;
 }> = new Map();
@@ -1318,6 +1319,7 @@ router.get('/generate-images-continuous', async (req: Request, res: Response) =>
       examCategory,
       types,
       skipExisting,
+      skippedWordIds: new Set<string>(),
     });
 
     // Start the continuous image generation process
@@ -1354,7 +1356,18 @@ router.get('/image-generation-status', async (req: Request, res: Response) => {
 
     const sessions = Array.from(activeImageSessions.entries()).map(([id, session]) => ({
       sessionId: id,
-      ...session,
+      isRunning: session.isRunning,
+      batchesCompleted: session.batchesCompleted,
+      imagesGenerated: session.imagesGenerated,
+      wordsProcessed: session.wordsProcessed,
+      skippedWords: session.skippedWordIds.size,
+      errors: session.errors.slice(-20), // 최근 20개만
+      startedAt: session.startedAt,
+      lastBatchAt: session.lastBatchAt,
+      level: session.level,
+      examCategory: session.examCategory,
+      types: session.types,
+      skipExisting: session.skipExisting,
       runningTime: session.isRunning
         ? Math.round((Date.now() - session.startedAt.getTime()) / 1000) + 's'
         : null,
@@ -1475,6 +1488,11 @@ async function runContinuousImageGeneration(
       }
       if (examCategory) {
         whereClause.examCategory = examCategory as any;
+      }
+
+      // Content moderation 실패한 단어 제외
+      if (session.skippedWordIds.size > 0) {
+        whereClause.id = { notIn: Array.from(session.skippedWordIds) };
       }
 
       // Find next word that needs images
@@ -1662,12 +1680,25 @@ async function runContinuousImageGeneration(
           // Add delay between image generations to avoid rate limits
           await new Promise(resolve => setTimeout(resolve, 3000));
 
-        } catch (imageError) {
+        } catch (imageError: any) {
           const errorMsg = imageError instanceof Error ? imageError.message : String(imageError);
-          logger.error(`[Internal/ImageGen] Session ${sessionId}: Error generating ${visualType} for "${currentWord.word}":`, imageError);
+          logger.error(`[Internal/ImageGen] Session ${sessionId}: Error generating ${visualType} for "${currentWord.word}":`, errorMsg);
           session.errors.push(`${currentWord.word}-${visualType}: ${errorMsg}`);
 
-          // Continue with next type despite error
+          // Content moderation 403 에러 → 이 단어 전체 스킵 (재시도 방지)
+          const isContentModeration = errorMsg.includes('content_moderation') ||
+            errorMsg.includes('content moderation') ||
+            errorMsg.includes('safety') ||
+            (imageError.status === 403) ||
+            (imageError.response?.status === 403);
+
+          if (isContentModeration) {
+            logger.warn(`[Internal/ImageGen] Session ${sessionId}: SKIPPING "${currentWord.word}" — content moderation block`);
+            session.skippedWordIds.add(currentWord.id);
+            break; // 이 단어의 나머지 타입도 스킵
+          }
+
+          // 일반 에러는 다음 타입으로 계속
           await new Promise(resolve => setTimeout(resolve, 5000));
         }
       }
