@@ -254,6 +254,7 @@ enum ExamCategory {
   TOEIC         // 토익 (비즈니스 영어)
   TOEFL         // 토플 (학술 영어)
   SAT           // SAT (미국 대입)
+  GENERAL       // 콘텐츠/일반 (시험 무관 일반 어휘)
 }
 
 // 단어/구문 타입 (Word Pool 구분용)
