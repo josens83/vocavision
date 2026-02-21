@@ -4873,4 +4873,80 @@ router.get('/toefl-content-status', async (req: Request, res: Response) => {
   }
 });
 
+// ============================================
+// Migrate words to GENERAL category
+// ============================================
+
+/**
+ * POST /internal/migrate-to-general?key=YOUR_SECRET
+ * Body: { words: ["respawn", "nerf", "grind"] }
+ * 지정 단어들을 GENERAL 카테고리로 이동
+ */
+router.post('/migrate-to-general', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(401).json({ error: 'Invalid key' });
+    }
+
+    const { words: wordList } = req.body as { words: string[] };
+    if (!wordList || !Array.isArray(wordList) || wordList.length === 0) {
+      return res.status(400).json({ error: 'words array is required' });
+    }
+
+    const results: { word: string; status: string }[] = [];
+
+    for (const wordText of wordList) {
+      const word = await prisma.word.findFirst({
+        where: { word: { equals: wordText, mode: 'insensitive' } },
+      });
+
+      if (!word) {
+        results.push({ word: wordText, status: 'not_found' });
+        continue;
+      }
+
+      // Update word's examCategory to GENERAL
+      await prisma.word.update({
+        where: { id: word.id },
+        data: { examCategory: 'GENERAL', level: 'L1' },
+      });
+
+      // Update or create WordExamLevel mapping
+      const existingMapping = await prisma.wordExamLevel.findFirst({
+        where: { wordId: word.id },
+      });
+
+      if (existingMapping) {
+        await prisma.wordExamLevel.update({
+          where: { id: existingMapping.id },
+          data: { examCategory: 'GENERAL', level: 'L1' },
+        });
+      } else {
+        await prisma.wordExamLevel.create({
+          data: {
+            wordId: word.id,
+            examCategory: 'GENERAL',
+            level: 'L1',
+            frequency: word.frequency || 0,
+            status: word.status,
+          },
+        });
+      }
+
+      results.push({ word: wordText, status: 'migrated' });
+    }
+
+    res.json({
+      message: 'Migration complete',
+      results,
+      migrated: results.filter(r => r.status === 'migrated').length,
+      notFound: results.filter(r => r.status === 'not_found').length,
+    });
+  } catch (error) {
+    console.error('[Internal/MigrateToGeneral] Error:', error);
+    res.status(500).json({ error: 'Migration failed' });
+  }
+});
+
 export default router;

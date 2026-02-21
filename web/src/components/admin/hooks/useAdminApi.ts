@@ -207,11 +207,16 @@ export function useWordMutations() {
     try {
       // Map frontend level to DB level
       const dbLevel = data.level ? LEVEL_TO_DB[data.level] : 'L1';
+      // Convert examCategories array to single examCategory for backend
+      const examCategory = data.examCategories?.[0] || 'CSAT';
       const result = await apiClient<{ word: VocaWord }>('/admin/words', {
         method: 'POST',
         body: JSON.stringify({
-          ...data,
-          level: dbLevel, // Send L1, L2, L3 to backend
+          word: data.word,
+          examCategory,
+          level: dbLevel,
+          topics: data.topics,
+          generateContent: data.generateContent,
         }),
       });
       return result.word;

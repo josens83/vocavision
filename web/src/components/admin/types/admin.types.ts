@@ -5,7 +5,7 @@
 // ---------------------------------------------
 // Enums
 // ---------------------------------------------
-export type ExamCategory = 'CSAT' | 'CSAT_2026' | 'CSAT_BASIC' | 'CSAT_ARCHIVE' | 'EBS' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT';
+export type ExamCategory = 'CSAT' | 'CSAT_2026' | 'CSAT_BASIC' | 'CSAT_ARCHIVE' | 'EBS' | 'TEPS' | 'TOEIC' | 'TOEFL' | 'SAT' | 'GENERAL';
 
 export type ContentStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'ARCHIVED';
 
@@ -250,6 +250,7 @@ export const EXAM_CATEGORY_LABELS: Record<ExamCategory, string> = {
   TOEIC: 'TOEIC',
   TOEFL: 'TOEFL',
   SAT: 'SAT',
+  GENERAL: '콘텐츠/일반',
 };
 
 // Exam category badge colors
@@ -263,6 +264,7 @@ export const EXAM_CATEGORY_COLORS: Record<ExamCategory, string> = {
   TOEIC: 'bg-blue-500',
   TOEFL: 'bg-sky-500',
   SAT: 'bg-slate-500',
+  GENERAL: 'bg-orange-500',
 };
 
 // Helper function to get exam/level display label
@@ -276,6 +278,7 @@ export const getExamLevelLabel = (examCategory: string, level: string | null): s
     'TOEFL': 'TOEFL',
     'TOEIC': 'TOEIC',
     'SAT': 'SAT',
+    'GENERAL': '콘텐츠/일반',
   };
 
   const base = labels[examCategory] || examCategory;
@@ -337,6 +340,8 @@ export const EXAM_LEVEL_OPTIONS: { value: ExamWithLevel; label: string; exam: Ex
   { value: 'SAT-BEGINNER', label: 'SAT - 초급', exam: 'SAT', level: 'BEGINNER' },
   { value: 'SAT-INTERMEDIATE', label: 'SAT - 중급', exam: 'SAT', level: 'INTERMEDIATE' },
   { value: 'SAT-ADVANCED', label: 'SAT - 고급', exam: 'SAT', level: 'ADVANCED' },
+  // 콘텐츠/일반 (레벨 구분 없음)
+  { value: 'GENERAL-BEGINNER', label: '콘텐츠/일반', exam: 'GENERAL', level: 'BEGINNER' },
 ];
 
 export const STATUS_LABELS: Record<ContentStatus, string> = {
