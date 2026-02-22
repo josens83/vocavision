@@ -4949,4 +4949,123 @@ router.post('/migrate-to-general', async (req: Request, res: Response) => {
   }
 });
 
+// ============================================
+// TOEFL 4,105 words mapping (Hackers)
+// ============================================
+
+/**
+ * POST /internal/toefl-mapping?key=YOUR_SECRET
+ * Supabase Storage에서 해커스 TOEFL 4,105개 단어 fetch 후
+ * DB Word 매칭 → WordExamLevel에 TOEFL L1(Core)/L2(Advanced) 매핑
+ */
+router.post('/toefl-mapping', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(401).json({ error: 'Invalid key' });
+    }
+
+    // 1. Supabase Storage에서 단어 리스트 fetch
+    const fetchRes = await fetch(
+      'https://sfqzlrsvrszdlusntdky.supabase.co/storage/v1/object/public/word-images/data/toefl-hackers-words.json'
+    );
+    if (!fetchRes.ok) {
+      return res.status(502).json({ error: `Failed to fetch word list: ${fetchRes.status}` });
+    }
+    const toeflWords: string[] = await fetchRes.json();
+
+    const results = {
+      total: toeflWords.length,
+      matched: 0,
+      notFound: 0,
+      alreadyMapped: 0,
+      newMappings: 0,
+      core: 0,
+      advanced: 0,
+      unmappedExisting: 0,
+      notFoundWords: [] as string[],
+    };
+
+    for (const toeflWord of toeflWords) {
+      // 2. Word 테이블에서 찾기 (case-insensitive)
+      const dbWord = await prisma.word.findFirst({
+        where: { word: { equals: toeflWord, mode: 'insensitive' } },
+        include: { examLevels: true },
+      });
+
+      if (!dbWord) {
+        results.notFound++;
+        results.notFoundWords.push(toeflWord);
+        continue;
+      }
+
+      results.matched++;
+
+      // 3. 이미 TOEFL 매핑 있는지 확인
+      const existingMapping = dbWord.examLevels.find(
+        (el: any) => el.examCategory === 'TOEFL'
+      );
+
+      if (existingMapping) {
+        results.alreadyMapped++;
+        continue;
+      }
+
+      // 4. 난이도 판정
+      // CSAT/EBS에도 있는 단어 = Core(L1)
+      // TEPS에만 있거나 매칭 없음 = Advanced(L2)
+      const hasEasyLevel = dbWord.examCategory === 'CSAT' ||
+        dbWord.examCategory === 'EBS' ||
+        dbWord.examCategory === 'CSAT_BASIC' ||
+        dbWord.examLevels.some((el: any) =>
+          ['CSAT', 'CSAT_BASIC', 'EBS', 'CSAT_2026', 'CSAT_ARCHIVE'].includes(el.examCategory)
+        );
+
+      const level = hasEasyLevel ? 'L1' : 'L2';
+
+      // 5. WordExamLevel 생성
+      await prisma.wordExamLevel.create({
+        data: {
+          wordId: dbWord.id,
+          examCategory: 'TOEFL',
+          level,
+          status: 'PUBLISHED',
+        },
+      });
+
+      results.newMappings++;
+      if (level === 'L1') results.core++;
+      else results.advanced++;
+    }
+
+    // 6. 기존 TOEFL 단어 중 WordExamLevel 매핑 없는 것도 L2로 추가
+    const unmappedToefl = await prisma.word.findMany({
+      where: {
+        examCategory: 'TOEFL',
+        examLevels: { none: { examCategory: 'TOEFL' } },
+      },
+    });
+
+    for (const word of unmappedToefl) {
+      await prisma.wordExamLevel.create({
+        data: {
+          wordId: word.id,
+          examCategory: 'TOEFL',
+          level: 'L2',
+          status: 'PUBLISHED',
+        },
+      });
+      results.advanced++;
+      results.newMappings++;
+      results.unmappedExisting++;
+    }
+
+    console.log(`[Internal/ToeflMapping] Done: ${results.newMappings} new, ${results.notFound} not found`);
+    res.json(results);
+  } catch (error) {
+    console.error('[Internal/ToeflMapping] Error:', error);
+    res.status(500).json({ error: 'TOEFL mapping failed' });
+  }
+});
+
 export default router;
