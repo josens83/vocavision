@@ -132,6 +132,10 @@ export function canAccessExam(user: User | null, exam: string): boolean {
   if (exam === 'EBS' || exam === 'CSAT_2026') {
     return getSubscriptionTier(user) === 'PREMIUM' || hasPurchasedExam(user, exam);
   }
+  // TOEFL: 단품 구매 전용 (구독 미포함)
+  if (exam === 'TOEFL') {
+    return hasPurchasedExam(user, 'TOEFL');
+  }
   return false;
 }
 
@@ -142,8 +146,8 @@ export function canAccessLevel(user: User | null, level: string): boolean {
 }
 
 export function canAccessContent(user: User | null, exam: string, level: string): boolean {
-  // EBS, CSAT_2026: 시험 접근 가능하면 전체 레벨 접근 가능 (레벨 체크 불필요)
-  if (exam === 'EBS' || exam === 'CSAT_2026') {
+  // EBS, CSAT_2026, TOEFL: 시험 접근 가능하면 전체 레벨 접근 가능 (레벨 체크 불필요)
+  if (exam === 'EBS' || exam === 'CSAT_2026' || exam === 'TOEFL') {
     return canAccessExam(user, exam);
   }
   return canAccessExam(user, exam) && canAccessLevel(user, level);
@@ -186,6 +190,7 @@ export function isLevelLocked(user: User | null, exam: string, level: string): b
 const slugToExamMap: Record<string, string> = {
   '2026-csat-analysis': 'CSAT_2026',
   'ebs-vocab': 'EBS',
+  'toefl-complete': 'TOEFL',
   'csat-core-200': 'CSAT_CORE',
 };
 
@@ -245,6 +250,7 @@ export function getAvailableExams(user: User | null): { exam: string; locked: bo
     { exam: 'TEPS', locked: tier !== 'PREMIUM', reason: '프리미엄 전용' },
     { exam: 'CSAT_2026', locked: !canAccessExamWithPurchase(user, 'CSAT_2026'), reason: '단품 구매 필요' },
     { exam: 'EBS', locked: !canAccessExamWithPurchase(user, 'EBS'), reason: '단품 구매 필요' },
+    { exam: 'TOEFL', locked: !hasPurchasedExam(user, 'TOEFL'), reason: '단품 구매 필요' },
   ];
 
   return exams;

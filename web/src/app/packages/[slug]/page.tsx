@@ -41,12 +41,23 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
     badge: 'NEW',
     wordCount: 3837,
   },
+  'toefl-complete': {
+    id: 'static-toefl',
+    name: 'TOEFL 완전정복',
+    slug: 'toefl-complete',
+    description: '해커스 TOEFL 3,651개 단어 — Core(기본필수) + Advanced(실전고난도) 전체 학습',
+    price: 9900,
+    durationDays: 180,
+    badge: 'NEW',
+    wordCount: 3651,
+  },
 };
 
 // 표시용 단어 수 (교재 레벨 중복 포함)
 const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'ebs-vocab': 3837,
   '2026-csat-analysis': 521,
+  'toefl-complete': 3651,
 };
 
 export default function PackageDetailPage() {
@@ -167,6 +178,8 @@ export default function PackageDetailPage() {
                   ? '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
                   : slug === 'ebs-vocab'
                   ? '2026학년도 EBS 수능특강 영어영역 단어·숙어 완벽 대비. 3개 교재(영어, 영어독해연습, 영어듣기) 수록 어휘 3,837개.'
+                  : slug === 'toefl-complete'
+                  ? '해커스 TOEFL 3,651개 단어 — Core(기본필수) + Advanced(실전고난도) 전체 학습'
                   : '고득점을 위한 필수 단어장')}
             </p>
 
@@ -224,6 +237,21 @@ export default function PackageDetailPage() {
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
                         <span>EBS 교재 단어를 AI 이미지와 암기법으로 효율적으로 외우고 싶은 학생</span>
+                      </li>
+                    </>
+                  ) : slug === 'toefl-complete' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>TOEFL iBT 고득점을 목표로 하는 유학 준비생</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>학술 영어 어휘를 체계적으로 정리하고 싶은 분</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>AI 이미지 연상법으로 효율적으로 암기하고 싶은 분</span>
                       </li>
                     </>
                   ) : (
@@ -295,6 +323,29 @@ export default function PackageDetailPage() {
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
                         <span><strong>스마트 복습</strong> 시스템</span>
+                      </li>
+                    </>
+                  ) : slug === 'toefl-complete' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>3,651개</strong> 해커스 TOEFL 단어</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <span className="flex-shrink-0 mt-0.5">🔵</span>
+                        <span><strong>TOEFL Core 핵심필수</strong> — 1,994개 (수능/EBS 수준 기본 단어)</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <span className="flex-shrink-0 mt-0.5">🔴</span>
+                        <span><strong>TOEFL Advanced 실전고난도</strong> — 1,657개 (실전 고난도 어휘)</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span>단어별 <strong>AI 이미지 연상법</strong> + 어원 분석 + 라임 암기법</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>8섹션 플래시카드</strong> 학습</span>
                       </li>
                     </>
                   ) : (

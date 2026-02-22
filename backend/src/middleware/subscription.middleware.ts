@@ -8,6 +8,7 @@ type SubscriptionTier = 'FREE' | 'BASIC' | 'PREMIUM';
 const PACKAGE_EXAM_SLUGS: Record<string, string> = {
   'CSAT_2026': '2026-csat-analysis',
   'EBS': 'ebs-vocab',
+  'TOEFL': 'toefl-complete',
 };
 
 /**

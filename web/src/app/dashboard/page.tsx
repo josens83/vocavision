@@ -41,6 +41,7 @@ const examInfo: Record<string, { name: string; icon: string; color: string }> = 
   TEPS: { name: 'TEPS', icon: '🎓', color: 'purple' },
   CSAT_2026: { name: '2026 수능 기출', icon: '📋', color: 'emerald' },
   EBS: { name: 'EBS 연계', icon: '📗', color: 'green' },
+  TOEFL: { name: 'TOEFL', icon: '🌍', color: 'blue' },
 };
 
 // Get valid level for exam
@@ -54,6 +55,9 @@ const getValidLevelForExam = (exam: string, level: string): string => {
   if (exam === 'EBS') {
     return ['LISTENING', 'READING_BASIC', 'READING_ADV'].includes(level) ? level : 'LISTENING';
   }
+  if (exam === 'TOEFL') {
+    return ['L1', 'L2'].includes(level) ? level : 'L1';
+  }
   return ['L1', 'L2', 'L3'].includes(level) ? level : 'L1';
 };
 
@@ -66,6 +70,14 @@ const getLevelInfo = (exam: string, level: string) => {
       READING_3: { name: '독해 3점', description: '고난도 3점 문항', target: '고득점', wordCount: 124 },
     };
     return csat2026Levels[level] || csat2026Levels.LISTENING;
+  }
+
+  if (exam === 'TOEFL') {
+    const toeflLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
+      L1: { name: 'Core 핵심필수', description: '수능/EBS 수준 기본 단어', target: '기본필수', wordCount: 1994 },
+      L2: { name: 'Advanced 실전고난도', description: '실전 고난도 학술 어휘', target: '고난도', wordCount: 1657 },
+    };
+    return toeflLevels[level] || toeflLevels.L1;
   }
 
   if (exam === 'TEPS') {
@@ -140,6 +152,7 @@ function DashboardContent() {
 
   const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user && hasHydrated);
   const { data: ebsAccessData } = usePackageAccess('ebs-vocab', !!user && hasHydrated);
+  const { data: toeflAccessData } = usePackageAccess('toefl-complete', !!user && hasHydrated);
 
   // 프리패치 훅 (hover 시 미리 로딩)
   const prefetchDashboard = usePrefetchDashboard();
@@ -166,6 +179,7 @@ function DashboardContent() {
   const learningSession = summaryData?.learningSession || null;
   const hasCsat2026Access = accessData?.hasAccess || false;
   const hasEbsAccess = ebsAccessData?.hasAccess || false;
+  const hasToeflAccess = toeflAccessData?.hasAccess || false;
 
   // 로딩 상태
   const loading = summaryLoading;
@@ -209,7 +223,7 @@ function DashboardContent() {
     if (!examParam) return; // 쿼리 파라미터 없으면 Zustand 기존값 유지 (재방문 시나리오)
 
     // 유효한 시험인지 확인
-    const validExams = ['CSAT', 'TEPS', 'CSAT_2026', 'EBS'];
+    const validExams = ['CSAT', 'TEPS', 'CSAT_2026', 'EBS', 'TOEFL'];
     if (validExams.includes(examParam)) {
       setActiveExam(examParam as ExamType);
 
@@ -246,7 +260,14 @@ function DashboardContent() {
       setActiveLevel('L1');
       return;
     }
-  }, [hasHydrated, activeExam, hasCsat2026Access, hasEbsAccess, isPremium, canAccessExam, setActiveExam, setActiveLevel]);
+
+    // TOEFL 접근 불가 → CSAT으로 fallback
+    if (activeExam === 'TOEFL' && !hasToeflAccess) {
+      setActiveExam('CSAT' as ExamType);
+      setActiveLevel('L1');
+      return;
+    }
+  }, [hasHydrated, activeExam, hasCsat2026Access, hasEbsAccess, hasToeflAccess, isPremium, canAccessExam, setActiveExam, setActiveLevel]);
 
   // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
   // 하이드레이션 후 activeLevel이 없으면 L1 자동 설정
@@ -376,8 +397,9 @@ function DashboardContent() {
           <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
 
           <div className={`grid gap-3 ${
-            ((hasCsat2026Access || isPremium) && (hasEbsAccess || isPremium)) ? 'grid-cols-4' :
-            (hasCsat2026Access || isPremium || hasEbsAccess) ? 'grid-cols-3' : 'grid-cols-2'
+            [hasCsat2026Access || isPremium, hasEbsAccess || isPremium, hasToeflAccess].filter(Boolean).length >= 3 ? 'grid-cols-5' :
+            [hasCsat2026Access || isPremium, hasEbsAccess || isPremium, hasToeflAccess].filter(Boolean).length === 2 ? 'grid-cols-4' :
+            [hasCsat2026Access || isPremium, hasEbsAccess || isPremium, hasToeflAccess].filter(Boolean).length === 1 ? 'grid-cols-3' : 'grid-cols-2'
           }`}>
             {/* 수능 버튼 */}
             <button
@@ -477,13 +499,38 @@ function DashboardContent() {
                 <span className="font-semibold text-xs">EBS 연계</span>
               </button>
             )}
+
+            {/* TOEFL 버튼 - 단품 구매자만 표시 */}
+            {hasToeflAccess && (
+              <button
+                onMouseEnter={() => {
+                  const lastLevel = localStorage.getItem('dashboard_TOEFL_level') || 'L1';
+                  const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
+                  prefetchDashboard('TOEFL', validLevel);
+                }}
+                onClick={() => {
+                  setActiveExam('TOEFL' as ExamType);
+                  const lastLevel = localStorage.getItem('dashboard_TOEFL_level') || 'L1';
+                  const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
+                  setActiveLevel(validLevel as 'L1' | 'L2' | 'L3');
+                }}
+                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
+                  selectedExam === 'TOEFL'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <span className="text-2xl">🌍</span>
+                <span className="font-semibold text-xs">TOEFL</span>
+              </button>
+            )}
           </div>
         </section>
 
         {/* 레벨/유형 선택 섹션 */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : '레벨 선택'}
+            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : selectedExam === 'TOEFL' ? '난이도 선택' : '레벨 선택'}
           </h3>
 
           <div className="flex gap-3">
@@ -493,21 +540,27 @@ function DashboardContent() {
                 ? ['L1', 'L2'] as const
                 : selectedExam === 'EBS'
                   ? ['LISTENING', 'READING_BASIC', 'READING_ADV'] as const
-                  : ['L1', 'L2', 'L3'] as const
+                  : selectedExam === 'TOEFL'
+                    ? ['L1', 'L2'] as const
+                    : ['L1', 'L2', 'L3'] as const
             ).map((lvl) => {
-              const isLocked = (selectedExam !== 'CSAT_2026' && selectedExam !== 'EBS') && !canAccessLevel(selectedExam, lvl as 'L1' | 'L2' | 'L3');
+              const isLocked = (selectedExam !== 'CSAT_2026' && selectedExam !== 'EBS' && selectedExam !== 'TOEFL') && !canAccessLevel(selectedExam, lvl as 'L1' | 'L2' | 'L3');
               const levelLabel = selectedExam === 'CSAT_2026'
                 ? (lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_2' ? '독해 2점' : '독해 3점')
                 : selectedExam === 'EBS'
                   ? (lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_BASIC' ? '독해 기본' : '독해 실력')
                   : selectedExam === 'TEPS'
                     ? (lvl === 'L1' ? '기본' : '필수')
-                    : (lvl === 'L1' ? '기초' : lvl === 'L2' ? '중급' : '고급');
+                    : selectedExam === 'TOEFL'
+                      ? (lvl === 'L1' ? 'Core 핵심필수' : 'Advanced 실전고난도')
+                      : (lvl === 'L1' ? '기초' : lvl === 'L2' ? '중급' : '고급');
               const displayName = selectedExam === 'CSAT_2026'
                 ? (lvl === 'LISTENING' ? '듣기' : lvl === 'READING_2' ? '2점' : '3점')
                 : selectedExam === 'EBS'
                   ? (lvl === 'LISTENING' ? '듣기' : lvl === 'READING_BASIC' ? '기본' : '실력')
-                  : lvl;
+                  : selectedExam === 'TOEFL'
+                    ? (lvl === 'L1' ? 'Core' : 'Adv')
+                    : lvl;
               return (
                 <button
                   key={lvl}

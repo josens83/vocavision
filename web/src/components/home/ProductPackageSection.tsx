@@ -32,7 +32,7 @@ function getStaticPackages(): ProductPackage[] {
       slug: "2026-csat-analysis",
       shortDesc: "2026년 수능 기출문제 완전 분석, 출제 경향과 핵심 어휘",
       price: 3900,
-      durationDays: 180, // 6개월
+      durationDays: 180,
       badge: "BEST",
       isComingSoon: false,
       wordCount: 521,
@@ -43,21 +43,33 @@ function getStaticPackages(): ProductPackage[] {
       slug: "ebs-vocab",
       shortDesc: "수능특강 영어영역 3개 교재(영어·영어독해연습·영어듣기) 수록 단어·숙어 완벽 대비",
       price: 6900,
-      durationDays: 180, // 6개월
+      durationDays: 180,
       badges: ["NEW", "대용량"],
       isComingSoon: false,
       wordCount: 3837,
+    },
+    {
+      id: "static-3",
+      name: "TOEFL 완전정복",
+      slug: "toefl-complete",
+      shortDesc: "해커스 TOEFL Core + Advanced 3,651개 단어 체계적 학습",
+      price: 9900,
+      durationDays: 180,
+      badge: "NEW",
+      isComingSoon: false,
+      wordCount: 3651,
     },
   ];
 }
 
 // 메인페이지에 표시할 패키지 slug 목록
-const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab'];
+const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete'];
 
 // 표시용 단어 수 오버라이드 (교재별 레벨 중복 포함 수치)
 const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'ebs-vocab': 3837,
   '2026-csat-analysis': 521,
+  'toefl-complete': 3651,
 };
 
 // 뱃지 스타일 결정
@@ -202,7 +214,7 @@ export default function ProductPackageSection() {
           wordCount: DISPLAY_WORD_COUNTS[pkg.slug] || pkg.wordCount,
         }));
 
-      // 필터 후 2개 미만이면 정적 데이터 사용
+      // 필터 후 부족하면 정적 데이터 사용
       if (filtered.length < 2) {
         setPackages(getStaticPackages());
       } else {
@@ -231,13 +243,13 @@ export default function ProductPackageSection() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
-            {[1, 2].map((i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
+            {[1, 2, 3].map((i) => (
               <PackageCardSkeleton key={i} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch max-w-3xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch max-w-5xl">
             {packages.map((pkg, index) => (
               <div
                 key={pkg.id}
