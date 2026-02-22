@@ -4974,97 +4974,124 @@ router.post('/toefl-mapping', async (req: Request, res: Response) => {
     }
     const toeflWords: string[] = (await fetchRes.json()) as string[];
 
-    const results = {
-      total: toeflWords.length,
-      matched: 0,
-      notFound: 0,
-      alreadyMapped: 0,
-      newMappings: 0,
-      core: 0,
-      advanced: 0,
-      unmappedExisting: 0,
-      notFoundWords: [] as string[],
-    };
+    // 응답 먼저 전송 (타임아웃 방지)
+    res.json({ message: 'TOEFL mapping started', total: toeflWords.length });
 
-    for (const toeflWord of toeflWords) {
-      // 2. Word 테이블에서 찾기 (case-insensitive)
-      const dbWord = await prisma.word.findFirst({
-        where: { word: { equals: toeflWord, mode: 'insensitive' } },
-        include: { examLevels: true },
-      });
+    // 백그라운드에서 매핑 처리
+    (async () => {
+      const results = {
+        total: toeflWords.length,
+        matched: 0,
+        notFound: 0,
+        alreadyMapped: 0,
+        newMappings: 0,
+        core: 0,
+        advanced: 0,
+        unmappedExisting: 0,
+        notFoundWords: [] as string[],
+      };
 
-      if (!dbWord) {
-        results.notFound++;
-        results.notFoundWords.push(toeflWord);
-        continue;
-      }
+      for (let i = 0; i < toeflWords.length; i++) {
+        const toeflWord = toeflWords[i];
 
-      results.matched++;
+        // 2. Word 테이블에서 찾기 (case-insensitive)
+        const dbWord = await prisma.word.findFirst({
+          where: { word: { equals: toeflWord, mode: 'insensitive' } },
+          include: { examLevels: true },
+        });
 
-      // 3. 이미 TOEFL 매핑 있는지 확인
-      const existingMapping = dbWord.examLevels.find(
-        (el: any) => el.examCategory === 'TOEFL'
-      );
+        if (!dbWord) {
+          results.notFound++;
+          results.notFoundWords.push(toeflWord);
+          if ((i + 1) % 100 === 0) {
+            console.log(`[TOEFL Mapping] Progress: ${i + 1}/${toeflWords.length} (matched: ${results.matched}, notFound: ${results.notFound})`);
+          }
+          continue;
+        }
 
-      if (existingMapping) {
-        results.alreadyMapped++;
-        continue;
-      }
+        results.matched++;
 
-      // 4. 난이도 판정
-      // CSAT/EBS에도 있는 단어 = Core(L1)
-      // TEPS에만 있거나 매칭 없음 = Advanced(L2)
-      const hasEasyLevel = dbWord.examCategory === 'CSAT' ||
-        dbWord.examCategory === 'EBS' ||
-        dbWord.examCategory === 'CSAT_BASIC' ||
-        dbWord.examLevels.some((el: any) =>
-          ['CSAT', 'CSAT_BASIC', 'EBS', 'CSAT_2026', 'CSAT_ARCHIVE'].includes(el.examCategory)
+        // 3. 이미 TOEFL 매핑 있는지 확인
+        const existingMapping = dbWord.examLevels.find(
+          (el: any) => el.examCategory === 'TOEFL'
         );
 
-      const level = hasEasyLevel ? 'L1' : 'L2';
+        if (existingMapping) {
+          results.alreadyMapped++;
+          if ((i + 1) % 100 === 0) {
+            console.log(`[TOEFL Mapping] Progress: ${i + 1}/${toeflWords.length} (matched: ${results.matched}, notFound: ${results.notFound})`);
+          }
+          continue;
+        }
 
-      // 5. WordExamLevel 생성
-      await prisma.wordExamLevel.create({
-        data: {
-          wordId: dbWord.id,
+        // 4. 난이도 판정
+        const hasEasyLevel = dbWord.examCategory === 'CSAT' ||
+          dbWord.examCategory === 'EBS' ||
+          dbWord.examCategory === 'CSAT_BASIC' ||
+          dbWord.examLevels.some((el: any) =>
+            ['CSAT', 'CSAT_BASIC', 'EBS', 'CSAT_2026', 'CSAT_ARCHIVE'].includes(el.examCategory)
+          );
+
+        const level = hasEasyLevel ? 'L1' : 'L2';
+
+        // 5. WordExamLevel 생성
+        await prisma.wordExamLevel.create({
+          data: {
+            wordId: dbWord.id,
+            examCategory: 'TOEFL',
+            level,
+            status: 'PUBLISHED',
+          },
+        });
+
+        results.newMappings++;
+        if (level === 'L1') results.core++;
+        else results.advanced++;
+
+        if ((i + 1) % 100 === 0) {
+          console.log(`[TOEFL Mapping] Progress: ${i + 1}/${toeflWords.length} (matched: ${results.matched}, notFound: ${results.notFound})`);
+        }
+      }
+
+      // 6. 기존 TOEFL 단어 중 WordExamLevel 매핑 없는 것도 L2로 추가
+      const unmappedToefl = await prisma.word.findMany({
+        where: {
           examCategory: 'TOEFL',
-          level,
-          status: 'PUBLISHED',
+          examLevels: { none: { examCategory: 'TOEFL' } },
         },
       });
 
-      results.newMappings++;
-      if (level === 'L1') results.core++;
-      else results.advanced++;
-    }
+      for (const word of unmappedToefl) {
+        await prisma.wordExamLevel.create({
+          data: {
+            wordId: word.id,
+            examCategory: 'TOEFL',
+            level: 'L2',
+            status: 'PUBLISHED',
+          },
+        });
+        results.advanced++;
+        results.newMappings++;
+        results.unmappedExisting++;
+      }
 
-    // 6. 기존 TOEFL 단어 중 WordExamLevel 매핑 없는 것도 L2로 추가
-    const unmappedToefl = await prisma.word.findMany({
-      where: {
-        examCategory: 'TOEFL',
-        examLevels: { none: { examCategory: 'TOEFL' } },
-      },
-    });
-
-    for (const word of unmappedToefl) {
-      await prisma.wordExamLevel.create({
-        data: {
-          wordId: word.id,
-          examCategory: 'TOEFL',
-          level: 'L2',
-          status: 'PUBLISHED',
-        },
-      });
-      results.advanced++;
-      results.newMappings++;
-      results.unmappedExisting++;
-    }
-
-    console.log(`[Internal/ToeflMapping] Done: ${results.newMappings} new, ${results.notFound} not found`);
-    res.json(results);
+      console.log(`[TOEFL Mapping] Complete: ${JSON.stringify({
+        total: results.total,
+        matched: results.matched,
+        notFound: results.notFound,
+        alreadyMapped: results.alreadyMapped,
+        newMappings: results.newMappings,
+        core: results.core,
+        advanced: results.advanced,
+        unmappedExisting: results.unmappedExisting,
+        notFoundSample: results.notFoundWords.slice(0, 20),
+      })}`);
+    })();
   } catch (error) {
     console.error('[Internal/ToeflMapping] Error:', error);
-    res.status(500).json({ error: 'TOEFL mapping failed' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'TOEFL mapping failed' });
+    }
   }
 });
 
