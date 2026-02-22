@@ -5095,4 +5095,50 @@ router.post('/toefl-mapping', async (req: Request, res: Response) => {
   }
 });
 
+// ============================================
+// Seed TOEFL ProductPackage
+// ============================================
+
+/**
+ * POST /internal/seed-toefl-package?key=YOUR_SECRET
+ * ProductPackage에 TOEFL 완전정복 상품 추가 (중복 방지)
+ */
+router.post('/seed-toefl-package', async (req: Request, res: Response) => {
+  try {
+    const key = req.query.key as string;
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(401).json({ error: 'Invalid key' });
+    }
+
+    const existing = await prisma.productPackage.findUnique({
+      where: { slug: 'toefl-complete' },
+    });
+
+    if (existing) {
+      return res.json({ message: 'Already exists', package: existing });
+    }
+
+    const pkg = await prisma.productPackage.create({
+      data: {
+        slug: 'toefl-complete',
+        name: 'TOEFL 완전정복',
+        description: '해커스 TOEFL 3,651개 단어 — Core(기본필수) + Advanced(실전고난도) 전체 학습',
+        examCategory: 'TOEFL',
+        wordCount: 3651,
+        price: 9900,
+        durationDays: 180,
+        isActive: true,
+        isComingSoon: false,
+        badgeText: 'NEW',
+        sortOrder: 3,
+      },
+    });
+
+    res.json({ message: 'Created', package: pkg });
+  } catch (error) {
+    console.error('[Internal/SeedToeflPackage] Error:', error);
+    res.status(500).json({ error: 'Failed to seed TOEFL package' });
+  }
+});
+
 export default router;

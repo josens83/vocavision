@@ -185,6 +185,7 @@ function LearnPageContent() {
         const packageSlugMap: Record<string, string> = {
           'CSAT_2026': '2026-csat-analysis',
           'EBS': 'ebs-vocab',
+          'TOEFL': 'toefl-complete',
         };
         const packageSlug = packageSlugMap[examParam];
 

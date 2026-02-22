@@ -83,16 +83,15 @@ const examData: Record<string, {
   toefl: {
     name: 'TOEFL',
     fullName: '학술영어능력시험',
-    description: '유학 준비를 위한 학술 영어 어휘를 학습하세요. 대학 강의, 학술 논문에서 사용되는 전문 어휘들입니다.',
+    description: '해커스 TOEFL 3,651개 단어를 Core/Advanced로 체계적으로 학습하세요. 수능/EBS 수준 기본 단어부터 실전 고난도 단어까지.',
     icon: '🌍',
-    color: 'from-orange-500 to-orange-600',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
-    textColor: 'text-orange-600',
+    color: 'from-blue-500 to-blue-700',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
+    textColor: 'text-blue-600',
     levels: [
-      { id: '80', name: '80점', target: '80점 목표', wordCount: '1,500', description: '기본 학술 어휘' },
-      { id: '100', name: '100점', target: '100점 목표', wordCount: '2,000', description: '핵심 학술 어휘' },
-      { id: '110', name: '110점+', target: '110점+ 목표', wordCount: '1,500', description: '고급 학술 어휘' },
+      { id: 'core', name: 'TOEFL Core 핵심필수', target: '기본필수 단어', wordCount: '1,994', description: '수능/EBS 수준 기본 단어' },
+      { id: 'advanced', name: 'TOEFL Advanced 실전고난도', target: '실전 고난도', wordCount: '1,657', description: '실전 고난도 학술 어휘' },
     ],
     tips: [
       '학술 분야별 전문 용어 집중 학습',
