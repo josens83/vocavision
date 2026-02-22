@@ -4972,7 +4972,7 @@ router.post('/toefl-mapping', async (req: Request, res: Response) => {
     if (!fetchRes.ok) {
       return res.status(502).json({ error: `Failed to fetch word list: ${fetchRes.status}` });
     }
-    const toeflWords: string[] = await fetchRes.json();
+    const toeflWords: string[] = (await fetchRes.json()) as string[];
 
     const results = {
       total: toeflWords.length,
