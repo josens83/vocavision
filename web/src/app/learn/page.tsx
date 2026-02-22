@@ -52,6 +52,7 @@ const examNames: Record<string, string> = {
   TOEFL: 'TOEFL',
   TOEIC: 'TOEIC',
   TEPS: 'TEPS',
+  EBS: 'EBS 연계',
 };
 
 // Level name mapping - exam-specific
