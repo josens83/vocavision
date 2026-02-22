@@ -358,7 +358,7 @@ export default function PricingPage() {
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
-                해커스 TOEFL Core + Advanced 전체 단어를 체계적으로 학습하세요.
+                TOEFL Core + Advanced 전체 단어를 체계적으로 학습하세요.
               </p>
               <div className="flex items-end gap-1 mb-4">
                 <span className="text-[28px] font-bold text-[#1c1c1e]">₩9,900</span>
