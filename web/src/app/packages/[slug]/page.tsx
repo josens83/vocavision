@@ -45,7 +45,7 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
     id: 'static-toefl',
     name: 'TOEFL 완전정복',
     slug: 'toefl-complete',
-    description: '해커스 TOEFL 3,651개 단어 — Core(기본필수) + Advanced(실전고난도) 전체 학습',
+    description: 'TOEFL 3,651개 단어 — Core(기본필수) + Advanced(실전고난도) 전체 학습',
     price: 9900,
     durationDays: 180,
     badge: 'NEW',
@@ -179,7 +179,7 @@ export default function PackageDetailPage() {
                   : slug === 'ebs-vocab'
                   ? '2026학년도 EBS 수능특강 영어영역 단어·숙어 완벽 대비. 3개 교재(영어, 영어독해연습, 영어듣기) 수록 어휘 3,837개.'
                   : slug === 'toefl-complete'
-                  ? '해커스 TOEFL 3,651개 단어 — Core(기본필수) + Advanced(실전고난도) 전체 학습'
+                  ? 'TOEFL 3,651개 단어 — Core(기본필수) + Advanced(실전고난도) 전체 학습'
                   : '고득점을 위한 필수 단어장')}
             </p>
 
@@ -329,7 +329,7 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>3,651개</strong> 해커스 TOEFL 단어</span>
+                        <span><strong>3,651개</strong> TOEFL 핵심 단어</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <span className="flex-shrink-0 mt-0.5">🔵</span>

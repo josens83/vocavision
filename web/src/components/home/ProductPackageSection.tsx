@@ -52,7 +52,7 @@ function getStaticPackages(): ProductPackage[] {
       id: "static-3",
       name: "TOEFL 완전정복",
       slug: "toefl-complete",
-      shortDesc: "해커스 TOEFL Core + Advanced 3,651개 단어 체계적 학습",
+      shortDesc: "TOEFL Core + Advanced 3,651개 단어 체계적 학습",
       price: 9900,
       durationDays: 180,
       badge: "NEW",

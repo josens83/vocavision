@@ -4950,12 +4950,12 @@ router.post('/migrate-to-general', async (req: Request, res: Response) => {
 });
 
 // ============================================
-// TOEFL 4,105 words mapping (Hackers)
+// TOEFL 4,105 words mapping
 // ============================================
 
 /**
  * POST /internal/toefl-mapping?key=YOUR_SECRET
- * Supabase Storage에서 해커스 TOEFL 4,105개 단어 fetch 후
+ * Supabase Storage에서 TOEFL 4,105개 단어 fetch 후
  * DB Word 매칭 → WordExamLevel에 TOEFL L1(Core)/L2(Advanced) 매핑
  */
 router.post('/toefl-mapping', async (req: Request, res: Response) => {

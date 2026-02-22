@@ -83,7 +83,7 @@ const examData: Record<string, {
   toefl: {
     name: 'TOEFL',
     fullName: '학술영어능력시험',
-    description: '해커스 TOEFL 3,651개 단어를 Core/Advanced로 체계적으로 학습하세요. 수능/EBS 수준 기본 단어부터 실전 고난도 단어까지.',
+    description: 'TOEFL 3,651개 단어를 Core/Advanced로 체계적으로 학습하세요. 수능/EBS 수준 기본 단어부터 실전 고난도 단어까지.',
     icon: '🌍',
     color: 'from-blue-500 to-blue-700',
     bgColor: 'bg-blue-50',
