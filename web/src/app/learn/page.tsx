@@ -1048,24 +1048,21 @@ function LearnPageContent() {
   const exitPath = (isReviewMode || isBookmarksMode) ? '/review' : (user ? '/dashboard' : '/');
 
   // 나가기 버튼 핸들러 - 현재 진행 위치를 서버에 저장
-  const handleExit = async () => {
-    // 🚀 나가기 전에 미전송 리뷰 일괄 전송
-    await flushPendingReviews();
-
-    // 서버 세션이 있으면 현재 위치 저장
-    if (serverSession && user) {
-      try {
-        await learningAPI.updateSessionProgress({
-          sessionId: serverSession.id,
-          currentIndex: currentWordIndex,
-        });
-      } catch (error) {
-        console.error('Failed to save progress on exit:', error);
-      }
-    }
-    // 대시보드 캐시 무효화 (학습 데이터 갱신)
-    invalidateDashboard(examParam, levelParam || undefined);
+  const handleExit = () => {
+    // 즉시 네비게이션 (사용자 체감 속도 최우선)
     router.push(exitPath);
+
+    // 백그라운드로 저장 (fire-and-forget)
+    flushPendingReviews().catch(console.error);
+    if (serverSession && user) {
+      learningAPI.updateSessionProgress({
+        sessionId: serverSession.id,
+        currentIndex: currentWordIndex,
+      }).catch(console.error);
+    }
+
+    // 캐시 무효화 (대시보드에서 최신 데이터 표시)
+    invalidateDashboard(examParam, levelParam || undefined);
   };
 
   // beforeunload 이벤트 - 페이지 떠날 때 진행 위치 + 미전송 리뷰 저장
