@@ -541,25 +541,30 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, u
               </div>
             );
           })}
+
+          {/* 로그아웃 — 메뉴 아이템 바로 아래 */}
+          {isAuthenticated && (
+            <div className="mt-2 pt-2 border-t border-gray-100">
+              <button
+                onClick={() => { onClose(); onLogout?.(); }}
+                className="w-full flex items-center gap-3 p-3 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span className="font-medium">로그아웃</span>
+              </button>
+            </div>
+          )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-surface-border bg-white">
-          {isAuthenticated ? (
-            <button
-              onClick={() => { onClose(); onLogout?.(); }}
-              className="w-full flex items-center justify-center gap-2 p-3 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors text-sm font-medium"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              로그아웃
-            </button>
-          ) : (
+        {!isAuthenticated && (
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-surface-border bg-white">
             <Link href="/auth/login" onClick={onClose} className="btn btn-primary w-full justify-center">
               로그인 / 회원가입
             </Link>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </>
   );
