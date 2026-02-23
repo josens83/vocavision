@@ -163,7 +163,7 @@ function LearnPageContent() {
 
   // Demo 체험 횟수 관리 (localStorage) - 최대 5회 허용
   const DEMO_KEY = 'vocavision_demo_count';
-  const MAX_DEMO_COUNT = 5;
+  const MAX_DEMO_COUNT = 10;
   const [demoBlocked, setDemoBlocked] = useState(false);
   const [accessBlocked, setAccessBlocked] = useState(false);
   const [packageBlocked, setPackageBlocked] = useState(false);
@@ -1204,7 +1204,7 @@ function LearnPageContent() {
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">체험이 완료되었습니다!</h2>
           <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
-            5회 무료 체험을 모두 사용하셨습니다.<br />
+            10회 무료 체험을 모두 사용하셨습니다.<br />
             VocaVision AI의 모든 기능을 이용하려면<br />
             무료 회원가입을 해주세요.
           </p>
