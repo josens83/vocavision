@@ -612,7 +612,7 @@ function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
       </div>
 
       {/* ========== 데스크톱: 2x2 그리드 ========== */}
-      <div className="hidden lg:grid grid-cols-2 gap-5 max-w-6xl mx-auto">
+      <div className="hidden lg:grid grid-cols-2 gap-5">
         {/* 좌상: 회원정보 카드 */}
         <DesktopMemberCard
           user={user}

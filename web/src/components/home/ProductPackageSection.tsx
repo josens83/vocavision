@@ -236,7 +236,7 @@ export default function ProductPackageSection() {
 
   return (
     <section className="py-12 px-6 bg-gray-50">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">나에게 딱 맞는 단어장</h2>
           <p className="text-gray-500 mt-2">목표에 맞는 핵심 어휘만 골라 학습하세요</p>
