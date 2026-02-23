@@ -426,9 +426,10 @@ interface MobileMenuProps {
   isAuthenticated: boolean;
   onAuthRequired?: (label: string) => void;
   user?: any;
+  onLogout?: () => void;
 }
 
-function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, user }: MobileMenuProps) {
+function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, user, onLogout }: MobileMenuProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const router = useRouter();
 
@@ -543,7 +544,21 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, u
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-surface-border bg-white">
-          <Link href="/study" onClick={onClose} className="btn btn-primary w-full justify-center">학습 시작하기</Link>
+          {isAuthenticated ? (
+            <button
+              onClick={() => { onClose(); onLogout?.(); }}
+              className="w-full flex items-center justify-center gap-2 p-3 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors text-sm font-medium"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              로그아웃
+            </button>
+          ) : (
+            <Link href="/auth/login" onClick={onClose} className="btn btn-primary w-full justify-center">
+              로그인 / 회원가입
+            </Link>
+          )}
         </div>
       </div>
     </>
@@ -794,6 +809,7 @@ export default function Navigation() {
         isAuthenticated={isAuthenticated}
         onAuthRequired={handleAuthRequired}
         user={user}
+        onLogout={handleLogout}
       />
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
