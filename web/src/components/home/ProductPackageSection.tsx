@@ -236,20 +236,20 @@ export default function ProductPackageSection() {
 
   return (
     <section className="py-12 px-6 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">나에게 딱 맞는 단어장</h2>
           <p className="text-gray-500 mt-2">목표에 맞는 핵심 어휘만 골라 학습하세요</p>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
               <PackageCardSkeleton key={i} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch max-w-5xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {packages.map((pkg, index) => (
               <div
                 key={pkg.id}

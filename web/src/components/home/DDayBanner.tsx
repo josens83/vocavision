@@ -62,7 +62,7 @@ export default function DDayBanner() {
   if (!mounted) {
     return (
       <section className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-6">
+        <div className="max-w-6xl mx-auto px-6 py-6">
           <div className="h-20 animate-pulse bg-gray-100 rounded-2xl" />
         </div>
       </section>
@@ -71,7 +71,7 @@ export default function DDayBanner() {
 
   return (
     <section className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-6 py-6 md:py-8">
+      <div className="max-w-6xl mx-auto px-6 py-6 md:py-8">
         <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
             {/* 왼쪽: 텍스트 */}
