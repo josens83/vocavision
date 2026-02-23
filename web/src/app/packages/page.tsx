@@ -68,6 +68,23 @@ const packages: Package[] = [
     isActive: true,
     badge: 'NEW',
   },
+  {
+    id: 'toefl-complete',
+    slug: 'toefl-complete',
+    name: 'TOEFL 완전정복',
+    description: '2026 Updated TOEFL 대비 3,651개 단어 — Core(기본필수) + Advanced(실전고난도) 전체 학습',
+    price: 9900,
+    duration: '6개월',
+    wordCount: 3651,
+    features: [
+      '2026 Updated TOEFL 대비 3,651개 핵심 단어',
+      'Core(기본필수) 1,994개 + Advanced(실전고난도) 1,657개',
+      'AI 이미지 연상법 + 어원 분석 + 라임 암기법',
+      '6개월 이용권 (자동갱신 없음)',
+    ],
+    isActive: true,
+    badge: 'NEW',
+  },
 ];
 
 export default function PackagesPage() {

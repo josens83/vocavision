@@ -71,6 +71,13 @@ const plans: Record<PlanType, PlanInfo> = {
   },
 };
 
+// 표시용 단어 수 fallback (DB에 매핑 미완료 시 0으로 내려오는 경우 대비)
+const DISPLAY_WORD_COUNTS: Record<string, number> = {
+  'ebs-vocab': 3837,
+  '2026-csat-analysis': 521,
+  'toefl-complete': 3651,
+};
+
 // 단품 패키지 결제 컴포넌트
 function PackageCheckout({ packageSlug }: { packageSlug: string }) {
   const router = useRouter();
@@ -100,7 +107,11 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
       );
       if (!response.ok) throw new Error("패키지를 찾을 수 없습니다.");
       const data = await response.json();
-      setPackageInfo(data.package);
+      const pkg = data.package;
+      if (pkg.wordCount === 0 && DISPLAY_WORD_COUNTS[packageSlug]) {
+        pkg.wordCount = DISPLAY_WORD_COUNTS[packageSlug];
+      }
+      setPackageInfo(pkg);
     } catch (err: any) {
       setError(err.message);
     } finally {
