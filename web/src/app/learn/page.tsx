@@ -77,6 +77,9 @@ const getLevelName = (exam: string, level: string): string => {
     // TEPS는 L1, L2만 (L3 없음)
     return level === 'L1' ? 'L1(기본)' : 'L2(필수)';
   }
+  if (exam === 'TOEFL') {
+    return level === 'L1' ? 'Core' : 'Advanced';
+  }
   // CSAT 및 기타
   switch (level) {
     case 'L1': return 'L1(기초)';
