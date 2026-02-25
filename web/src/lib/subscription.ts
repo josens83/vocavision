@@ -191,6 +191,7 @@ const slugToExamMap: Record<string, string> = {
   '2026-csat-analysis': 'CSAT_2026',
   'ebs-vocab': 'EBS',
   'toefl-complete': 'TOEFL',
+  'toeic-complete': 'TOEIC',
   'csat-core-200': 'CSAT_CORE',
 };
 

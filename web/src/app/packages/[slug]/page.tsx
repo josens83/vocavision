@@ -51,6 +51,16 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
     badge: 'NEW',
     wordCount: 3651,
   },
+  'toeic-complete': {
+    id: 'static-toeic',
+    name: 'TOEIC 점수폭발',
+    slug: 'toeic-complete',
+    description: '매일 나오는 그 단어, 이제 확실하게. 취업·이직·승진에 필수인 TOEIC 핵심 어휘를 AI 이미지 연상법으로 한 번에 정복하세요. Starter(기초)부터 Booster(고득점)까지 단계별로 학습합니다.',
+    price: 9900,
+    durationDays: 180,
+    badge: 'NEW',
+    wordCount: 2491,
+  },
 };
 
 // 표시용 단어 수 (교재 레벨 중복 포함)
@@ -58,6 +68,7 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'ebs-vocab': 3837,
   '2026-csat-analysis': 521,
   'toefl-complete': 3651,
+  'toeic-complete': 2491,
 };
 
 export default function PackageDetailPage() {
