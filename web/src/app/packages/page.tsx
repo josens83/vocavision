@@ -85,6 +85,23 @@ const packages: Package[] = [
     isActive: true,
     badge: 'NEW',
   },
+  {
+    id: 'toeic-complete',
+    slug: 'toeic-complete',
+    name: 'TOEIC 점수폭발',
+    description: '취업·승진에 필요한 TOEIC 핵심 어휘만 골라담았습니다. 기초부터 고득점까지, AI가 만든 이미지로 외우면 잊히지 않습니다.',
+    price: 9900,
+    duration: '6개월',
+    wordCount: 2491,
+    features: [
+      '취업·승진 필수 TOEIC 핵심 어휘 2,491개',
+      'Starter(기초) → Booster(고득점) 2단계 학습',
+      'AI 이미지 연상법 + 어원 분석 + 라임 암기법',
+      '6개월 이용권 (자동갱신 없음)',
+    ],
+    isActive: true,
+    badge: 'NEW',
+  },
 ];
 
 export default function PackagesPage() {

@@ -80,6 +80,13 @@ const getLevelName = (exam: string, level: string): string => {
   if (exam === 'TOEFL') {
     return level === 'L1' ? 'Core' : 'Advanced';
   }
+  if (exam === 'TOEIC') {
+    switch (level) {
+      case 'L1': return '토익 Start';
+      case 'L2': return '토익 Boost';
+      default: return level;
+    }
+  }
   // CSAT 및 기타
   switch (level) {
     case 'L1': return 'L1(기초)';
@@ -189,6 +196,7 @@ function LearnPageContent() {
           'CSAT_2026': '2026-csat-analysis',
           'EBS': 'ebs-vocab',
           'TOEFL': 'toefl-complete',
+          'TOEIC': 'toeic-complete',
         };
         const packageSlug = packageSlugMap[examParam];
 
@@ -1122,6 +1130,8 @@ function LearnPageContent() {
     const packageInfo: Record<string, { name: string; slug: string }> = {
       'CSAT_2026': { name: '2026 수능기출완전분석', slug: '2026-csat-analysis' },
       'EBS': { name: 'EBS 연계 어휘', slug: 'ebs-vocab' },
+      'TOEFL': { name: 'TOEFL 완전정복', slug: 'toefl-complete' },
+      'TOEIC': { name: 'TOEIC 점수폭발', slug: 'toeic-complete' },
     };
     const pkg = packageInfo[examParam || ''] || { name: examParam, slug: '' };
 

@@ -59,17 +59,29 @@ function getStaticPackages(): ProductPackage[] {
       isComingSoon: false,
       wordCount: 3651,
     },
+    {
+      id: "static-toeic",
+      name: "TOEIC 점수폭발",
+      slug: "toeic-complete",
+      shortDesc: "취업·승진 필수! TOEIC 핵심 어휘를 AI 이미지로 한 번에 정복",
+      price: 9900,
+      durationDays: 180,
+      badge: "NEW",
+      isComingSoon: false,
+      wordCount: 2491,
+    },
   ];
 }
 
 // 메인페이지에 표시할 패키지 slug 목록
-const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete'];
+const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete'];
 
 // 표시용 단어 수 오버라이드 (교재별 레벨 중복 포함 수치)
 const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'ebs-vocab': 3837,
   '2026-csat-analysis': 521,
   'toefl-complete': 3651,
+  'toeic-complete': 2491,
 };
 
 // 뱃지 스타일 결정
