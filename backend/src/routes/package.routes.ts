@@ -111,10 +111,7 @@ router.get('/check-access-bulk', authenticateToken, async (req: AuthRequest, res
         userId,
         packageId: { in: packages.map(p => p.id) },
         status: 'ACTIVE',
-        OR: [
-          { expiresAt: { equals: null } },
-          { expiresAt: { gt: new Date() } },
-        ],
+        expiresAt: { gt: new Date() },
       },
     });
 
