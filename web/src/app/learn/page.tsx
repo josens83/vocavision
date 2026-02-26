@@ -5,8 +5,6 @@ import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSession, clearLearningSession } from '@/lib/store';
 import { progressAPI, wordsAPI, learningAPI, bookmarkAPI, api } from '@/lib/api';
 import { canAccessContent } from '@/lib/subscription';
-import { useInvalidateDashboard } from '@/hooks/useQueries';
-import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
@@ -165,15 +163,6 @@ function LearnPageContent() {
 
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
-
-  // 캐시 무효화 훅
-  const invalidateDashboard = useInvalidateDashboard();
-
-  // 학습 페이지 진입 시 대시보드 in-flight 요청 취소 (불필요한 retry 방지)
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    queryClient.cancelQueries({ queryKey: ['dashboardSummary'] });
-  }, [queryClient]);
 
   // Demo 체험 횟수 관리 (localStorage) - 최대 5회 허용
   const DEMO_KEY = 'vocavision_demo_count';
@@ -746,10 +735,7 @@ function LearnPageContent() {
           console.error('Failed to complete session:', error);
         }
 
-        // 3. 클라이언트 캐시 무효화
-        invalidateDashboard(examParam, levelParam || undefined);
-
-        // 4. 결과 화면 전환
+        // 3. 결과 화면 전환
         setLoadingNextSet(false);
         setShowSetComplete(false);
         setShowResult(true);
@@ -780,13 +766,10 @@ function LearnPageContent() {
           setShowSetComplete(false);
           setShowResult(true);
           clearLearningSession();
-          invalidateDashboard(examParam, levelParam || undefined);
           return;
         }
 
         // Set 완료 (중간 Set) - 세션 및 다음 Set 데이터 업데이트
-        invalidateDashboard(examParam, levelParam || undefined);
-
         if (result.session) {
           setServerSession(result.session);
           setOptimisticCompletedSet(result.session.completedSets);
@@ -822,8 +805,6 @@ function LearnPageContent() {
       setShowResult(true);
     }
     clearLearningSession();  // 세션 완료 시 클리어
-    // 대시보드 캐시 무효화 (학습 완료 후 데이터 갱신)
-    invalidateDashboard(examParam, levelParam || undefined);
     // 비로그인 데모 사용자의 경우 체험 횟수 증가
     if (isDemo && !user && typeof window !== 'undefined') {
       const currentCount = parseInt(localStorage.getItem(DEMO_KEY) || '0', 10);
@@ -986,12 +967,7 @@ function LearnPageContent() {
   // 세션은 이미 handleSetComplete에서 COMPLETED 처리됨 → restart 불필요
   // (restart 호출이 race condition 원인: COMPLETED 전에 실행되면 세션 ABANDONED 처리)
   const handleCompleteAndGoHome = async () => {
-    // 1. 대시보드 캐시 무효화 (handleSetComplete에서 이미 했지만 안전장치)
-    if (examParam) {
-      invalidateDashboard(examParam, levelParam || undefined);
-    }
-
-    // 2. 로컬 상태 정리
+    // 1. 로컬 상태 정리
     resetSession();
     clearLearningSession();
 
@@ -1076,8 +1052,6 @@ function LearnPageContent() {
       }).catch(console.error);
     }
 
-    // 캐시 무효화 (대시보드에서 최신 데이터 표시)
-    invalidateDashboard(examParam, levelParam || undefined);
   };
 
   // beforeunload 이벤트 - 페이지 떠날 때 진행 위치 + 미전송 리뷰 저장
@@ -1159,10 +1133,7 @@ function LearnPageContent() {
               상품 보기
             </a>
             <button
-              onClick={() => {
-                invalidateDashboard(examParam, levelParam || undefined);
-                router.push(exitPath);
-              }}
+              onClick={() => router.push(exitPath)}
               className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
               대시보드로 돌아가기
@@ -1196,10 +1167,7 @@ function LearnPageContent() {
               플랜 업그레이드
             </a>
             <button
-              onClick={() => {
-                invalidateDashboard(examParam, levelParam || undefined);
-                router.push(exitPath);
-              }}
+              onClick={() => router.push(exitPath)}
               className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
               대시보드로 돌아가기
@@ -1405,10 +1373,7 @@ function LearnPageContent() {
             )}
 
             <button
-              onClick={() => {
-                invalidateDashboard(examParam, levelParam || undefined);
-                router.push(exitPath);
-              }}
+              onClick={() => router.push(exitPath)}
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
             >
               나중에 계속하기
