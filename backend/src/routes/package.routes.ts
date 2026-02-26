@@ -66,6 +66,80 @@ router.get('/check-access', authenticateToken, async (req: AuthRequest, res: Res
 });
 
 /**
+ * GET /api/packages/check-access-bulk
+ * 여러 패키지를 한 번에 접근 권한 확인 (DB 쿼리 최소화)
+ */
+router.get('/check-access-bulk', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { slugs } = req.query;
+    const userId = req.userId;
+
+    if (!slugs || typeof slugs !== 'string') {
+      return res.status(400).json({ error: 'slugs is required (comma-separated)' });
+    }
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const slugList = slugs.split(',').map(s => s.trim()).filter(Boolean);
+
+    // 1. 사용자 정보 1번만 조회
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionPlan: true, subscriptionStatus: true },
+    });
+
+    const isPremium = user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY';
+
+    // 2. 프리미엄이면 전부 true
+    if (isPremium) {
+      const result: Record<string, { hasAccess: boolean; reason: string }> = {};
+      for (const slug of slugList) {
+        result[slug] = { hasAccess: true, reason: 'premium' };
+      }
+      return res.json({ results: result });
+    }
+
+    // 3. 비프리미엄: 패키지 + 구매 내역 일괄 조회
+    const packages = await prisma.productPackage.findMany({
+      where: { slug: { in: slugList } },
+    });
+
+    const purchases = await prisma.userPurchase.findMany({
+      where: {
+        userId,
+        packageId: { in: packages.map(p => p.id) },
+        status: 'ACTIVE',
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } },
+        ],
+      },
+    });
+
+    const purchasePackageIds = new Set(purchases.map(p => p.packageId));
+
+    const result: Record<string, { hasAccess: boolean; reason: string }> = {};
+    for (const slug of slugList) {
+      const pkg = packages.find(p => p.slug === slug);
+      if (!pkg) {
+        result[slug] = { hasAccess: false, reason: 'not_found' };
+      } else if (purchasePackageIds.has(pkg.id)) {
+        result[slug] = { hasAccess: true, reason: 'purchased' };
+      } else {
+        result[slug] = { hasAccess: false, reason: 'not_purchased' };
+      }
+    }
+
+    return res.json({ results: result });
+  } catch (error) {
+    logger.error('[Packages] Bulk access check error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
  * GET /api/packages
  * 활성화된 단품 패키지 목록 조회
  */

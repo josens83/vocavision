@@ -9,7 +9,7 @@ import { useAuthStore, useExamCourseStore, useUserSettingsStore, ExamType } from
 import { canAccessExamWithPurchase, canAccessContentWithPurchase, getAvailableExams, getSubscriptionTier } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
-import { useDashboardSummary, usePackageAccess, usePrefetchDashboard } from '@/hooks/useQueries';
+import { useDashboardSummary, usePackageAccessBulk, usePrefetchDashboard } from '@/hooks/useQueries';
 
 // ============================================
 // DashboardItem 컴포넌트 (미니멀 스타일)
@@ -162,10 +162,17 @@ function DashboardContent() {
     isFetching: summaryFetching
   } = useDashboardSummary(examCategory, validLevel, !!user && hasHydrated && examHasHydrated);
 
-  const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user && hasHydrated);
-  const { data: ebsAccessData } = usePackageAccess('ebs-vocab', !!user && hasHydrated);
-  const { data: toeflAccessData } = usePackageAccess('toefl-complete', !!user && hasHydrated);
-  const { data: toeicAccessData } = usePackageAccess('toeic-complete', !!user && hasHydrated);
+  // 4개 패키지 접근 권한을 1번의 API 호출로 체크
+  const { data: bulkAccessData } = usePackageAccessBulk(
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete'],
+    !!user && hasHydrated
+  );
+
+  // 개별 데이터 추출 (기존 변수명 유지하여 하위 코드 변경 최소화)
+  const accessData = bulkAccessData?.['2026-csat-analysis'] ? { hasAccess: bulkAccessData['2026-csat-analysis'].hasAccess } : undefined;
+  const ebsAccessData = bulkAccessData?.['ebs-vocab'] ? { hasAccess: bulkAccessData['ebs-vocab'].hasAccess } : undefined;
+  const toeflAccessData = bulkAccessData?.['toefl-complete'] ? { hasAccess: bulkAccessData['toefl-complete'].hasAccess } : undefined;
+  const toeicAccessData = bulkAccessData?.['toeic-complete'] ? { hasAccess: bulkAccessData['toeic-complete'].hasAccess } : undefined;
 
   // 프리패치 훅 (hover 시 미리 로딩)
   const prefetchDashboard = usePrefetchDashboard();
