@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Search } from "lucide-react";
 import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore, useUserSettingsStore, useExamCourseStore } from "@/lib/store";
@@ -152,6 +152,8 @@ function MemberInfoCard() {
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
   const examHasHydrated = useExamCourseStore((state) => state._hasHydrated);
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
 
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
@@ -161,11 +163,11 @@ function MemberInfoCard() {
   const prefetchReviews = usePrefetchReviews();
 
   // React Query: 캐싱된 대시보드 데이터 사용
-  // 🚀 exam store 하이드레이션 완료 후 쿼리 시작 (queryKey 변경으로 인한 요청 취소 방지)
+  // 홈페이지(/)에서만 활성화 — 다른 페이지에서 렌더되더라도 API 호출 방지
   const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
     activeExam || 'CSAT',
     activeLevel || 'L1',
-    !!user && _hasHydrated && examHasHydrated
+    isHomePage && !!user && _hasHydrated && examHasHydrated
   );
 
   // 데이터 추출
@@ -552,6 +554,8 @@ function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
   const examHasHydrated = useExamCourseStore((state) => state._hasHydrated);
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
 
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
   const plan = (user as any)?.subscriptionPlan || 'FREE';
@@ -565,11 +569,11 @@ function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
   const setDailyGoal = useUserSettingsStore((state) => state.setDailyGoal);
 
   // React Query: 캐싱된 대시보드 데이터 사용
-  // 🚀 exam store 하이드레이션 완료 후 쿼리 시작 (queryKey 변경으로 인한 요청 취소 방지)
+  // 홈페이지(/)에서만 활성화 — 다른 페이지에서 렌더되더라도 API 호출 방지
   const { data: summaryData, isLoading: loading, isError, refetch } = useDashboardSummary(
     activeExam || 'CSAT',
     activeLevel || 'L1',
-    !!user && _hasHydrated && examHasHydrated
+    isHomePage && !!user && _hasHydrated && examHasHydrated
   );
 
   // dailyGoal 동기화
