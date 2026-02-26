@@ -1,7 +1,7 @@
 // Force redeploy - 2026-01-31 v3 (fix exam order: 수능→TEPS→2026기출)
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
@@ -156,11 +156,21 @@ function DashboardContent() {
   const examCategory = activeExam || 'CSAT';
   const validLevel = getValidLevelForExam(examCategory, activeLevel || 'L1');
 
+  // queryKey 안정화: hydration 후 effects 체인(URL sync → fallback → level validation)이
+  // 모두 settle된 후에만 쿼리 시작. 중간 상태의 exam/level로 불필요한 요청 방지.
+  const [isSettled, setIsSettled] = useState(false);
+  useEffect(() => {
+    if (hasHydrated && examHasHydrated) {
+      const timer = setTimeout(() => setIsSettled(true), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [hasHydrated, examHasHydrated]);
+
   const {
     data: summaryData,
     isLoading: summaryLoading,
     isFetching: summaryFetching
-  } = useDashboardSummary(examCategory, validLevel, !!user && hasHydrated && examHasHydrated);
+  } = useDashboardSummary(examCategory, validLevel, !!user && isSettled);
 
   // 4개 패키지 접근 권한을 1번의 API 호출로 체크
   const { data: bulkAccessData } = usePackageAccessBulk(
@@ -178,17 +188,22 @@ function DashboardContent() {
   const prefetchDashboard = usePrefetchDashboard();
 
   // 페이지 포커스 시 데이터 갱신 (학습 후 복귀 시 최신 데이터 표시)
+  // 30초 디바운스: 탭 전환, 창 클릭 등 빈번한 focus 이벤트에서 중복 refetch 방지
   const queryClient = useQueryClient();
+  const lastFocusRef = useRef(0);
   useEffect(() => {
     const handleFocus = () => {
+      const now = Date.now();
+      if (now - lastFocusRef.current < 30_000) return;
+      lastFocusRef.current = now;
       queryClient.invalidateQueries({
-        queryKey: ['dashboardSummary'],
+        queryKey: ['dashboardSummary', examCategory, validLevel],
         refetchType: 'active',
       });
     };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [queryClient]);
+  }, [queryClient, examCategory, validLevel]);
 
   // React Query 데이터에서 추출
   const stats = summaryData?.stats || null;

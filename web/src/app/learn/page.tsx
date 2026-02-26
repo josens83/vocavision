@@ -6,6 +6,7 @@ import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSessio
 import { progressAPI, wordsAPI, learningAPI, bookmarkAPI, api } from '@/lib/api';
 import { canAccessContent } from '@/lib/subscription';
 import { useInvalidateDashboard } from '@/hooks/useQueries';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
@@ -167,6 +168,12 @@ function LearnPageContent() {
 
   // 캐시 무효화 훅
   const invalidateDashboard = useInvalidateDashboard();
+
+  // 학습 페이지 진입 시 대시보드 in-flight 요청 취소 (불필요한 retry 방지)
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    queryClient.cancelQueries({ queryKey: ['dashboardSummary'] });
+  }, [queryClient]);
 
   // Demo 체험 횟수 관리 (localStorage) - 최대 5회 허용
   const DEMO_KEY = 'vocavision_demo_count';
