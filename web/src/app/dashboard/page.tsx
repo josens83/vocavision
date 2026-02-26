@@ -1,7 +1,7 @@
 // Force redeploy - 2026-01-31 v3 (fix exam order: 수능→TEPS→2026기출)
 'use client';
 
-import { useEffect, Suspense, useState, useRef } from 'react';
+import { useEffect, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
@@ -156,22 +156,6 @@ function DashboardContent() {
   const examCategory = activeExam || 'CSAT';
   const validLevel = getValidLevelForExam(examCategory, activeLevel || 'L1');
 
-  // queryKey 안정화: hydration 후 effects 체인(URL sync → fallback → level validation)이
-  // 모두 settle된 후에만 쿼리 시작. 중간 상태의 exam/level로 불필요한 요청 방지.
-  const [isSettled, setIsSettled] = useState(false);
-  useEffect(() => {
-    if (hasHydrated && examHasHydrated) {
-      const timer = setTimeout(() => setIsSettled(true), 0);
-      return () => clearTimeout(timer);
-    }
-  }, [hasHydrated, examHasHydrated]);
-
-  const {
-    data: summaryData,
-    isLoading: summaryLoading,
-    isFetching: summaryFetching
-  } = useDashboardSummary(examCategory, validLevel, !!user && isSettled);
-
   // 4개 패키지 접근 권한을 1번의 API 호출로 체크
   const { data: bulkAccessData } = usePackageAccessBulk(
     ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete'],
@@ -183,6 +167,15 @@ function DashboardContent() {
   const ebsAccessData = bulkAccessData?.['ebs-vocab'] ? { hasAccess: bulkAccessData['ebs-vocab'].hasAccess } : undefined;
   const toeflAccessData = bulkAccessData?.['toefl-complete'] ? { hasAccess: bulkAccessData['toefl-complete'].hasAccess } : undefined;
   const toeicAccessData = bulkAccessData?.['toeic-complete'] ? { hasAccess: bulkAccessData['toeic-complete'].hasAccess } : undefined;
+
+  // dashboard-summary: bulkAccessData 로딩 완료 후에만 쿼리 시작
+  // → fallback effect가 접근 권한 확인 전에 exam을 CSAT으로 리셋하는 race condition 방지
+  // → exam/level이 완전히 안정된 후 1회만 호출
+  const {
+    data: summaryData,
+    isLoading: summaryLoading,
+    isFetching: summaryFetching
+  } = useDashboardSummary(examCategory, validLevel, !!user && hasHydrated && examHasHydrated && !!bulkAccessData);
 
   // 프리패치 훅 (hover 시 미리 로딩)
   const prefetchDashboard = usePrefetchDashboard();
@@ -273,8 +266,9 @@ function DashboardContent() {
   }, [hasHydrated, examHasHydrated, searchParams, setActiveExam, setActiveLevel]);
 
   // CSAT_2026/TEPS 접근권한 없으면 CSAT으로 fallback
+  // bulkAccessData 로딩 전에는 실행하지 않음 (접근 권한 미확인 상태에서 시험 리셋 방지)
   useEffect(() => {
-    if (!hasHydrated) return;
+    if (!hasHydrated || !bulkAccessData) return;
 
     // CSAT_2026 접근 불가 → CSAT으로 fallback
     if (activeExam === 'CSAT_2026' && !hasCsat2026Access && !isPremium) {
@@ -310,7 +304,7 @@ function DashboardContent() {
       setActiveLevel('L1');
       return;
     }
-  }, [hasHydrated, activeExam, hasCsat2026Access, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium, canAccessExam, setActiveExam, setActiveLevel]);
+  }, [hasHydrated, activeExam, hasCsat2026Access, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium, canAccessExam, setActiveExam, setActiveLevel, bulkAccessData]);
 
   // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
   // 하이드레이션 후 activeLevel이 없으면 L1 자동 설정
