@@ -417,12 +417,7 @@ function DashboardContent() {
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
 
-          <div className={`grid gap-3 ${
-            [hasCsat2026Access || isPremium, hasEbsAccess || isPremium, hasToeflAccess, hasToeicAccess].filter(Boolean).length >= 4 ? 'grid-cols-6' :
-            [hasCsat2026Access || isPremium, hasEbsAccess || isPremium, hasToeflAccess, hasToeicAccess].filter(Boolean).length === 3 ? 'grid-cols-5' :
-            [hasCsat2026Access || isPremium, hasEbsAccess || isPremium, hasToeflAccess, hasToeicAccess].filter(Boolean).length === 2 ? 'grid-cols-4' :
-            [hasCsat2026Access || isPremium, hasEbsAccess || isPremium, hasToeflAccess, hasToeicAccess].filter(Boolean).length === 1 ? 'grid-cols-3' : 'grid-cols-2'
-          }`}>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
             {/* 수능 버튼 */}
             <button
               onMouseEnter={() => {

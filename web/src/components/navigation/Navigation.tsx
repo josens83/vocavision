@@ -58,6 +58,8 @@ export const guestNavigationItems: NavItem[] = [
     children: [
       { label: "2026 기출 분석", href: "/auth/register?from=csat2026" },
       { label: "EBS 연계단어", href: "/auth/register?from=ebs" },
+      { label: "TOEFL 완전정복", href: "/packages/toefl-complete" },
+      { label: "TOEIC 점수폭발", href: "/packages/toeic-complete" },
     ],
   },
   {
@@ -97,6 +99,8 @@ export const authNavigationItems: NavItem[] = [
     children: [
       { label: "2026 기출 분석", href: "/dashboard?exam=CSAT_2026" },
       { label: "EBS 연계단어", href: "/dashboard?exam=EBS" },
+      { label: "TOEFL 완전정복", href: "/dashboard?exam=TOEFL" },
+      { label: "TOEIC 점수폭발", href: "/dashboard?exam=TOEIC" },
     ],
   },
   {

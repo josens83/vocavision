@@ -52,7 +52,7 @@ function getStaticPackages(): ProductPackage[] {
       id: "static-3",
       name: "TOEFL 완전정복",
       slug: "toefl-complete",
-      shortDesc: "2026 Updated TOEFL 대비 3,651개 단어 — Core(기본필수) + Advanced(실전고난도) 전체 학습",
+      shortDesc: "Updated TOEFL 2026 대비, Core + Advanced 전체 학습",
       price: 9900,
       durationDays: 180,
       badge: "NEW",
