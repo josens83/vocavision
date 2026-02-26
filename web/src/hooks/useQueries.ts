@@ -11,10 +11,10 @@ export function useDashboardSummary(examCategory: string, level: string, enabled
     queryKey: ['dashboardSummary', examCategory, level],
     queryFn: () => progressAPI.getDashboardSummary(examCategory, level),
     enabled,
-    staleTime: 0, // 마운트 시 항상 refetch (최신 데이터 보장)
+    staleTime: 30_000, // 30초 캐시 (시험/레벨 전환 시 즉시 표시)
     placeholderData: (previousData: any) => previousData, // 이전 캐시 데이터 표시 (0 방지)
-    retry: 4, // cold start 커버 (2s + 4s + 8s + 10s = ~24초 윈도우)
-    retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 10000),
+    retry: 2, // cold start 커버 (2번이면 충분)
+    retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 8000),
   });
 }
 
@@ -31,6 +31,32 @@ export function usePackageAccess(slug: string, enabled = true) {
         return response.data;
       } catch {
         return { hasAccess: false };
+      }
+    },
+    enabled,
+    staleTime: 5 * 60_000,  // 5분
+    gcTime: 30 * 60_000,    // 30분
+  });
+}
+
+/**
+ * 패키지 접근 권한 일괄 체크 훅
+ * - 4개 패키지를 1번의 API 호출로 체크
+ * - 5분 캐시
+ */
+export function usePackageAccessBulk(slugs: string[], enabled = true) {
+  return useQuery({
+    queryKey: ['packageAccessBulk', ...slugs.sort()],
+    queryFn: async () => {
+      try {
+        const response = await api.get(`/packages/check-access-bulk?slugs=${slugs.join(',')}`);
+        return response.data.results as Record<string, { hasAccess: boolean; reason: string }>;
+      } catch {
+        const fallback: Record<string, { hasAccess: boolean; reason: string }> = {};
+        for (const slug of slugs) {
+          fallback[slug] = { hasAccess: false, reason: 'error' };
+        }
+        return fallback;
       }
     },
     enabled,
