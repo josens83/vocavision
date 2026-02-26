@@ -1,7 +1,7 @@
 // Force redeploy - 2026-01-31 v3 (fix exam order: 수능→TEPS→2026기출)
 'use client';
 
-import { useEffect, Suspense, useRef } from 'react';
+import { useEffect, Suspense, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
@@ -168,14 +168,18 @@ function DashboardContent() {
   const toeflAccessData = bulkAccessData?.['toefl-complete'] ? { hasAccess: bulkAccessData['toefl-complete'].hasAccess } : undefined;
   const toeicAccessData = bulkAccessData?.['toeic-complete'] ? { hasAccess: bulkAccessData['toeic-complete'].hasAccess } : undefined;
 
-  // dashboard-summary: bulkAccessData 로딩 완료 후에만 쿼리 시작
-  // → fallback effect가 접근 권한 확인 전에 exam을 CSAT으로 리셋하는 race condition 방지
+  // accessChecked: fallback effect 완료 후에만 true
+  // → bulkAccessData 도착 즉시 query 시작하면, fallback이 다음 렌더에서 exam 변경 → 2회 호출
+  // → fallback effect가 exam/level을 최종 확정한 후 1회만 호출하도록 게이트
+  const [accessChecked, setAccessChecked] = useState(false);
+
+  // dashboard-summary: fallback effect 완료 후에만 쿼리 시작
   // → exam/level이 완전히 안정된 후 1회만 호출
   const {
     data: summaryData,
     isLoading: summaryLoading,
     isFetching: summaryFetching
-  } = useDashboardSummary(examCategory, validLevel, !!user && hasHydrated && examHasHydrated && !!bulkAccessData);
+  } = useDashboardSummary(examCategory, validLevel, !!user && hasHydrated && examHasHydrated && accessChecked);
 
   // 프리패치 훅 (hover 시 미리 로딩)
   const prefetchDashboard = usePrefetchDashboard();
@@ -304,6 +308,9 @@ function DashboardContent() {
       setActiveLevel('L1');
       return;
     }
+
+    // 모든 fallback 체크 통과 → exam/level 확정 → query 시작 허용
+    setAccessChecked(true);
   }, [hasHydrated, activeExam, hasCsat2026Access, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium, canAccessExam, setActiveExam, setActiveLevel, bulkAccessData]);
 
   // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
