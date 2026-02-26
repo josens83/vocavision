@@ -3,7 +3,8 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSession, clearLearningSession } from '@/lib/store';
-import { progressAPI, wordsAPI, learningAPI, bookmarkAPI, api } from '@/lib/api';
+import { progressAPI, wordsAPI, learningAPI, bookmarkAPI } from '@/lib/api';
+import { usePackageAccessBulk } from '@/hooks/useQueries';
 import { canAccessContent } from '@/lib/subscription';
 import { motion } from 'framer-motion';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
@@ -164,6 +165,20 @@ function LearnPageContent() {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
+  // 패키지 접근 권한 체크 (대시보드와 동일한 queryKey → 캐시 공유, 추가 API 호출 없음)
+  const packageSlugMap: Record<string, string> = {
+    'CSAT_2026': '2026-csat-analysis',
+    'EBS': 'ebs-vocab',
+    'TOEFL': 'toefl-complete',
+    'TOEIC': 'toeic-complete',
+  };
+  const packageSlug = examParam ? (packageSlugMap[examParam] || '') : '';
+  const { data: bulkAccessData } = usePackageAccessBulk(
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete'],
+    !!user && !!packageSlug && hasHydrated && !isDemo
+  );
+  const packageAccessData = packageSlug && bulkAccessData ? bulkAccessData[packageSlug] : undefined;
+
   // Demo 체험 횟수 관리 (localStorage) - 최대 5회 허용
   const DEMO_KEY = 'vocavision_demo_count';
   const MAX_DEMO_COUNT = 10;
@@ -182,42 +197,24 @@ function LearnPageContent() {
   }, [isDemo, user]);
 
   // 구독 기반 접근 제어 및 단품 구매 체크
+  // usePackageAccess 훅 데이터 활용 (React Query 5분 캐시 — 개별 API 호출 제거)
   useEffect(() => {
     if (!hasHydrated || isDemo) return;
+    if (!user || !examParam || !levelParam) return;
 
-    const checkAccess = async () => {
-      if (user && examParam && levelParam) {
-        // 단품 구매 상품: CSAT_2026, EBS (프리미엄 또는 구매 확인)
-        const packageSlugMap: Record<string, string> = {
-          'CSAT_2026': '2026-csat-analysis',
-          'EBS': 'ebs-vocab',
-          'TOEFL': 'toefl-complete',
-          'TOEIC': 'toeic-complete',
-        };
-        const packageSlug = packageSlugMap[examParam];
-
-        if (packageSlug) {
-          try {
-            const response = await api.get(`/packages/check-access?slug=${packageSlug}`);
-            if (!response.data?.hasAccess) {
-              setPackageBlocked(true);
-            }
-          } catch (error) {
-            console.error('Package access check failed:', error);
-            setPackageBlocked(true);
-          }
-          return;
-        }
-
-        // 기존 구독 기반 접근 제어 (CSAT, TEPS 등)
-        if (!canAccessContent(user, examParam, levelParam)) {
-          setAccessBlocked(true);
-        }
+    // 단품 구매 상품: usePackageAccess 훅 결과 사용
+    if (packageSlug) {
+      if (packageAccessData !== undefined && !packageAccessData?.hasAccess) {
+        setPackageBlocked(true);
       }
-    };
+      return;
+    }
 
-    checkAccess();
-  }, [hasHydrated, user, examParam, levelParam, isDemo]);
+    // 기존 구독 기반 접근 제어 (CSAT, TEPS 등)
+    if (!canAccessContent(user, examParam, levelParam)) {
+      setAccessBlocked(true);
+    }
+  }, [hasHydrated, user, examParam, levelParam, isDemo, packageSlug, packageAccessData]);
 
   // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트 (복습/북마크 모드 제외)
   useEffect(() => {
