@@ -157,8 +157,11 @@ export function useInvalidateReviews() {
       });
     }
     // 대시보드도 같이 무효화 (dueReviewCount 갱신)
+    // 특정 시험/레벨이 있으면 해당 쿼리만 무효화 (불필요한 전체 refetch 방지)
     queryClient.invalidateQueries({
-      queryKey: ['dashboardSummary'],
+      queryKey: examCategory && level
+        ? ['dashboardSummary', examCategory, level]
+        : ['dashboardSummary'],
     });
   };
 }
