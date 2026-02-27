@@ -211,22 +211,25 @@ export const getDueReviews = async (
     weekEndKST.setDate(weekEndKST.getDate() + 7);
     const weekEndUTC = new Date(weekEndKST.getTime() - 9 * 60 * 60 * 1000);
 
-    // 기본 where 조건
+    // 기본 where 조건 (word 모델 필터 — 비활성/아카이브 단어 제외)
     const wordWhere: any = {
       isActive: true,
       examCategory: { not: 'CSAT_ARCHIVE' }
     };
 
-    // 시험 필터 (CSAT_ARCHIVE 제외 유지)
+    // UserProgress 레벨 필터 (exam/level은 UserProgress 자체 필드로 필터)
+    // → word.examCategory가 아닌 userProgress.examCategory로 필터해야
+    //   examLevels 기반 단어(TOEFL, TOEIC 등)도 정확히 매칭됨
+    const progressWhere: any = { userId };
+
+    // 시험 필터 (UserProgress.examCategory)
     if (examCategory && examCategory !== 'all') {
-      wordWhere.examCategory = examCategory as string;
+      progressWhere.examCategory = examCategory as string;
     }
 
-    // 레벨 필터 (WordExamLevel 조인)
+    // 레벨 필터 (UserProgress.level)
     if (level && level !== 'all') {
-      wordWhere.examLevels = {
-        some: { level: level as string }
-      };
+      progressWhere.level = level as string;
     }
 
     // 🚀 메인 쿼리 + 7개 통계 쿼리 = 8개 전부 병렬 실행 (워터폴 제거)
@@ -243,7 +246,7 @@ export const getDueReviews = async (
       // 1. 복습 대상 후보 조회 (경량화된 include - 필요한 필드만)
       prisma.userProgress.findMany({
         where: {
-          userId,
+          ...progressWhere,
           correctCount: { lt: 2 },
           nextReviewDate: { lte: new Date() },
           word: wordWhere
@@ -272,7 +275,6 @@ export const getDueReviews = async (
                   translation: true,
                 },
                 orderBy: { order: 'asc' },
-                take: 2,
               },
             }
           }
@@ -287,14 +289,14 @@ export const getDueReviews = async (
 
       // 2. 전체 학습 기록에서 정답률 계산
       prisma.userProgress.findMany({
-        where: { userId, word: wordWhere },
+        where: { ...progressWhere, word: wordWhere },
         select: { correctCount: true, incorrectCount: true }
       }),
 
       // 3. 마지막 복습 날짜 조회
       prisma.userProgress.findFirst({
         where: {
-          userId,
+          ...progressWhere,
           lastReviewDate: { not: null },
           word: wordWhere
         },
@@ -305,7 +307,7 @@ export const getDueReviews = async (
       // 4. 취약 단어 수 (incorrectCount > 0인 단어)
       prisma.userProgress.count({
         where: {
-          userId,
+          ...progressWhere,
           incorrectCount: { gt: 0 },
           word: wordWhere
         }
@@ -314,7 +316,7 @@ export const getDueReviews = async (
       // 5. 오늘 맞춘 복습 수 (KST 기준)
       prisma.userProgress.count({
         where: {
-          userId,
+          ...progressWhere,
           lastReviewDate: { gte: todayStartUTC },
           nextReviewDate: { gt: new Date() },
           totalReviews: { gte: 2 },
@@ -330,7 +332,7 @@ export const getDueReviews = async (
       // 7. 내일 복습 예정
       prisma.userProgress.count({
         where: {
-          userId,
+          ...progressWhere,
           correctCount: { lt: 2 },
           nextReviewDate: {
             gte: tomorrowStartUTC,
@@ -343,7 +345,7 @@ export const getDueReviews = async (
       // 8. 이번 주 복습 예정
       prisma.userProgress.count({
         where: {
-          userId,
+          ...progressWhere,
           correctCount: { lt: 2 },
           nextReviewDate: {
             gte: tomorrowEndUTC,
