@@ -228,23 +228,29 @@ function StatisticsPageContent() {
     };
   };
 
+  // 시험별 레벨 키 목록
+  const getExamLevels = (exam: string): string[] => {
+    if (exam === 'CSAT_2026') return ['LISTENING', 'READING_2', 'READING_3'];
+    if (exam === 'EBS') return ['LISTENING', 'READING_BASIC', 'READING_ADV'];
+    if (exam === 'TEPS' || exam === 'TOEFL' || exam === 'TOEIC') return ['L1', 'L2'];
+    return ['L1', 'L2', 'L3'];
+  };
+
   // 레벨별 학습 현황 (독립적 필터)
   const getLevelDistribution = () => {
-    const distribution = {
-      L1: 0,
-      L2: 0,
-      L3: 0,
-    };
+    const levels = getExamLevels(levelProgressExam);
+    const distribution: Record<string, number> = {};
+    levels.forEach(l => { distribution[l] = 0; });
 
     const filtered = getFilteredProgress(levelProgressExam);
 
     filtered.forEach((p) => {
-      let level = 'L1';
+      let level = levels[0];
       if (p.word.examLevels && p.word.examLevels.length > 0) {
         const matchingExamLevel = p.word.examLevels.find((el) => el.examCategory === levelProgressExam);
-        level = matchingExamLevel?.level || p.word.level || 'L1';
+        level = matchingExamLevel?.level || p.word.level || levels[0];
       } else {
-        level = p.word.level || 'L1';
+        level = p.word.level || levels[0];
       }
       if (distribution.hasOwnProperty(level)) {
         distribution[level as keyof typeof distribution]++;
@@ -295,22 +301,37 @@ function StatisticsPageContent() {
   const masteryData = getMasteryData();
 
   // 레벨별 배경색 (은행 앱 스타일)
-  const levelColors = {
+  const levelColors: Record<string, string> = {
     L1: 'bg-[#10B981]',
     L2: 'bg-[#3B82F6]',
     L3: 'bg-[#A855F7]',
+    LISTENING: 'bg-[#F59E0B]',
+    READING_2: 'bg-[#3B82F6]',
+    READING_3: 'bg-[#A855F7]',
+    READING_BASIC: 'bg-[#3B82F6]',
+    READING_ADV: 'bg-[#A855F7]',
   };
 
-  const levelLabels = {
+  const levelLabels: Record<string, string> = {
     L1: 'L1(기초)',
     L2: 'L2(중급)',
     L3: 'L3(고급)',
+    LISTENING: '듣기영역',
+    READING_2: '독해 2점',
+    READING_3: '독해 3점',
+    READING_BASIC: '독해 기본',
+    READING_ADV: '독해 실력',
   };
 
-  const levelNames = {
+  const levelNames: Record<string, string> = {
     L1: '기초',
     L2: '중급',
     L3: '고급',
+    LISTENING: '듣기',
+    READING_2: '독해2점',
+    READING_3: '독해3점',
+    READING_BASIC: '독해기본',
+    READING_ADV: '독해실력',
   };
 
   if (loading) {
@@ -449,7 +470,6 @@ function StatisticsPageContent() {
               <select
                 value={masteryExam}
                 onMouseEnter={() => {
-                  // 모든 시험 옵션 프리패치
                   prefetchMastery('CSAT', masteryLevel);
                   prefetchMastery('TEPS', masteryLevel === 'L3' ? 'all' : masteryLevel);
                 }}
@@ -460,8 +480,16 @@ function StatisticsPageContent() {
                 onChange={(e) => {
                   const newExam = e.target.value;
                   setMasteryExam(newExam);
-                  // TEPS는 L1/L2만 유효 - L3 선택 시 전체로 리셋
-                  if (newExam === 'TEPS' && masteryLevel === 'L3') {
+                  // L1/L2만 있는 시험: L3 선택 시 전체로 리셋
+                  const twoLevelExams = ['TEPS', 'TOEFL', 'TOEIC'];
+                  if (twoLevelExams.includes(newExam) && masteryLevel === 'L3') {
+                    setMasteryLevel('all');
+                  }
+                  // CSAT_2026/EBS는 다른 레벨 체계 → 전체로 리셋
+                  if (['CSAT_2026', 'EBS'].includes(newExam) && ['L1', 'L2', 'L3'].includes(masteryLevel)) {
+                    setMasteryLevel('all');
+                  }
+                  if (!['CSAT_2026', 'EBS'].includes(newExam) && !['all', 'L1', 'L2', 'L3'].includes(masteryLevel)) {
                     setMasteryLevel('all');
                   }
                 }}
@@ -469,15 +497,18 @@ function StatisticsPageContent() {
               >
                 <option value="CSAT">수능</option>
                 <option value="TEPS">TEPS</option>
+                <option value="CSAT_2026">2026 기출</option>
+                <option value="EBS">EBS 연계</option>
+                <option value="TOEFL">TOEFL</option>
+                <option value="TOEIC">TOEIC</option>
               </select>
               <select
                 value={masteryLevel}
                 onMouseEnter={() => {
-                  // 모든 레벨 옵션 프리패치
                   prefetchMastery(masteryExam, 'all');
                   prefetchMastery(masteryExam, 'L1');
                   prefetchMastery(masteryExam, 'L2');
-                  if (masteryExam !== 'TEPS') {
+                  if (masteryExam === 'CSAT') {
                     prefetchMastery(masteryExam, 'L3');
                   }
                 }}
@@ -485,7 +516,7 @@ function StatisticsPageContent() {
                   prefetchMastery(masteryExam, 'all');
                   prefetchMastery(masteryExam, 'L1');
                   prefetchMastery(masteryExam, 'L2');
-                  if (masteryExam !== 'TEPS') {
+                  if (masteryExam === 'CSAT') {
                     prefetchMastery(masteryExam, 'L3');
                   }
                 }}
@@ -493,9 +524,25 @@ function StatisticsPageContent() {
                 className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
                 <option value="all">전체</option>
-                <option value="L1">L1</option>
-                <option value="L2">L2</option>
-                {masteryExam !== 'TEPS' && <option value="L3">L3</option>}
+                {masteryExam === 'CSAT_2026' ? (
+                  <>
+                    <option value="LISTENING">듣기</option>
+                    <option value="READING_2">독해 2점</option>
+                    <option value="READING_3">독해 3점</option>
+                  </>
+                ) : masteryExam === 'EBS' ? (
+                  <>
+                    <option value="LISTENING">듣기</option>
+                    <option value="READING_BASIC">독해 기본</option>
+                    <option value="READING_ADV">독해 실력</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="L1">L1</option>
+                    <option value="L2">L2</option>
+                    {masteryExam === 'CSAT' && <option value="L3">L3</option>}
+                  </>
+                )}
               </select>
             </div>
           </div>
@@ -612,21 +659,17 @@ function StatisticsPageContent() {
             >
               <option value="CSAT">수능</option>
               <option value="TEPS">TEPS</option>
+              <option value="CSAT_2026">2026 기출</option>
+              <option value="EBS">EBS 연계</option>
+              <option value="TOEFL">TOEFL</option>
+              <option value="TOEIC">TOEIC</option>
             </select>
           </div>
 
           <div className="space-y-3">
             {Object.entries(levelDist)
-              .filter(([level]) => {
-                // TEPS는 L1, L2만 표시 (L3 없음)
-                if (levelProgressExam === 'TEPS' && level === 'L3') {
-                  return false;
-                }
-                return true;
-              })
               .map(([level, count]) => {
-              const filteredLevelDist = Object.entries(levelDist)
-                .filter(([l]) => !(levelProgressExam === 'TEPS' && l === 'L3'));
+              const filteredLevelDist = Object.entries(levelDist);
               const total = filteredLevelDist.reduce((a, [, c]) => a + c, 0);
               const percentage = total > 0 ? (count / total) * 100 : 0;
               const safePercentage = isNaN(percentage) ? 0 : Math.round(percentage);
@@ -638,15 +681,12 @@ function StatisticsPageContent() {
                   className="flex items-center justify-between p-4 bg-gray-100 rounded-xl"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-[40px] h-[40px] rounded-full flex items-center justify-center ${levelColors[level as keyof typeof levelColors]}`}>
-                      <span className="text-white font-bold text-[14px]">{level}</span>
+                    <div className={`w-[40px] h-[40px] rounded-full flex items-center justify-center ${levelColors[level] || 'bg-gray-400'}`}>
+                      <span className="text-white font-bold text-[14px]">{levelNames[level] || level}</span>
                     </div>
                     <div>
                       <p className="text-[14px] font-semibold text-[#1c1c1e]">
-                        {levelNames[level as keyof typeof levelNames]}
-                      </p>
-                      <p className="text-[12px] text-gray-500">
-                        {levelLabels[level as keyof typeof levelLabels]}
+                        {levelLabels[level] || level}
                       </p>
                     </div>
                   </div>
