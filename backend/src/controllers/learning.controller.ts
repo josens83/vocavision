@@ -49,7 +49,6 @@ const FLASHCARD_WORD_SELECT = {
     }
   },
   examples: {
-    take: 2,
     select: {
       sentence: true,
       translation: true,
@@ -102,7 +101,7 @@ export const getLearningMethods = async (
         definitionKo: true,
         mnemonics: { select: { content: true, koreanHint: true, imageUrl: true } },
         etymology: { select: { origin: true, breakdown: true } },
-        examples: { take: 3, select: { sentence: true, translation: true } },
+        examples: { select: { sentence: true, translation: true } },
         rhymes: { take: 3, select: { rhymingWord: true } },
       },
     });
