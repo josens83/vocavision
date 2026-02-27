@@ -321,8 +321,8 @@ function DashboardContent() {
     // 모든 fallback 체크 통과 → exam/level 확정 → query 시작 허용
     // prev ?? ... : 이미 stableQuery가 설정된 경우 유지 (사용자 명시적 변경 보호)
     setStableQuery(prev => prev ?? {
-      exam: activeExam,
-      level: getValidLevelForExam(activeExam, activeLevel || 'L1'),
+      exam: activeExam || 'CSAT',
+      level: getValidLevelForExam(activeExam || 'CSAT', activeLevel || 'L1'),
     });
   }, [hasHydrated, activeExam, activeLevel, hasCsat2026Access, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium, canAccessExam, setActiveExam, setActiveLevel, bulkAccessData]);
 
