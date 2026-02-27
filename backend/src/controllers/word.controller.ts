@@ -174,7 +174,7 @@ export const getWords = async (
             take: 1,
             orderBy: { rating: 'desc' } as const,
           },
-          examples: { take: 3 },
+          examples: true,
           etymology: true,
           collocations: { take: 5 },
           visuals: { orderBy: { order: 'asc' } as const },
@@ -908,7 +908,7 @@ export const getWordsBatchWithVisuals = async (
         status: 'PUBLISHED' as const,
       },
       include: {
-        examples: { take: 3 },
+        examples: true,
         mnemonics: { take: 1, orderBy: { rating: 'desc' } },
         etymology: true,
         collocations: { take: 5, orderBy: { frequency: 'desc' } },
@@ -1189,7 +1189,7 @@ export const getWordWithVisuals = async (
         status: 'PUBLISHED' as const,
       },
       include: {
-        examples: { take: 3 },
+        examples: true,
         images: { take: 1 },
         mnemonics: { take: 1, orderBy: { rating: 'desc' } },
         etymology: true,
