@@ -210,7 +210,7 @@ function ReviewPageContent() {
     if (typeof window !== 'undefined') {
       const lastLevel = localStorage.getItem(`review_${activeExam}_level`);
       if (lastLevel && lastLevel !== activeLevel) {
-        finalLevel = lastLevel;
+        finalLevel = lastLevel as 'L1' | 'L2' | 'L3';
         setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
       }
     }
