@@ -91,6 +91,7 @@ const corsOptions = {
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  maxAge: 3600, // preflight 응답 1시간 캐시 (OPTIONS 요청 감소)
   optionsSuccessStatus: 200, // Some legacy browsers choke on 204
 };
 

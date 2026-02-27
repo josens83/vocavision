@@ -171,36 +171,45 @@ function DashboardContent() {
   // accessChecked: fallback effect 완료 후에만 true
   // → bulkAccessData 도착 즉시 query 시작하면, fallback이 다음 렌더에서 exam 변경 → 2회 호출
   // → fallback effect가 exam/level을 최종 확정한 후 1회만 호출하도록 게이트
-  const [accessChecked, setAccessChecked] = useState(false);
+  // stableQuery: effects 체인 완료 후의 최종 exam/level을 고정
+  // → 이후 effects 체인이 state를 변경해도 queryKey는 변하지 않음
+  // → 사용자가 UI에서 시험/레벨을 명시적으로 변경할 때만 업데이트
+  const [stableQuery, setStableQuery] = useState<{exam: string, level: string} | null>(null);
 
-  // dashboard-summary: fallback effect 완료 후에만 쿼리 시작
+  // dashboard-summary: stableQuery가 설정된 후에만 쿼리 시작
   // → exam/level이 완전히 안정된 후 1회만 호출
   const {
     data: summaryData,
     isLoading: summaryLoading,
     isFetching: summaryFetching
-  } = useDashboardSummary(examCategory, validLevel, !!user && hasHydrated && examHasHydrated && accessChecked);
+  } = useDashboardSummary(
+    stableQuery?.exam || 'CSAT',
+    stableQuery?.level || 'L1',
+    !!stableQuery && !!user && hasHydrated && examHasHydrated
+  );
 
   // 프리패치 훅 (hover 시 미리 로딩)
   const prefetchDashboard = usePrefetchDashboard();
 
   // 페이지 포커스 시 데이터 갱신 (학습 후 복귀 시 최신 데이터 표시)
   // 30초 디바운스: 탭 전환, 창 클릭 등 빈번한 focus 이벤트에서 중복 refetch 방지
+  // lastFocusRef: Date.now()로 초기화하여 마운트 직후 focus 이벤트에서 불필요한 refetch 방지
   const queryClient = useQueryClient();
-  const lastFocusRef = useRef(0);
+  const lastFocusRef = useRef(Date.now());
   useEffect(() => {
     const handleFocus = () => {
+      if (!stableQuery) return;
       const now = Date.now();
       if (now - lastFocusRef.current < 30_000) return;
       lastFocusRef.current = now;
       queryClient.invalidateQueries({
-        queryKey: ['dashboardSummary', examCategory, validLevel],
+        queryKey: ['dashboardSummary', stableQuery.exam, stableQuery.level],
         refetchType: 'active',
       });
     };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [queryClient, examCategory, validLevel]);
+  }, [queryClient, stableQuery]);
 
   // React Query 데이터에서 추출
   const stats = summaryData?.stats || null;
@@ -310,8 +319,12 @@ function DashboardContent() {
     }
 
     // 모든 fallback 체크 통과 → exam/level 확정 → query 시작 허용
-    setAccessChecked(true);
-  }, [hasHydrated, activeExam, hasCsat2026Access, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium, canAccessExam, setActiveExam, setActiveLevel, bulkAccessData]);
+    // prev ?? ... : 이미 stableQuery가 설정된 경우 유지 (사용자 명시적 변경 보호)
+    setStableQuery(prev => prev ?? {
+      exam: activeExam,
+      level: getValidLevelForExam(activeExam, activeLevel || 'L1'),
+    });
+  }, [hasHydrated, activeExam, activeLevel, hasCsat2026Access, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium, canAccessExam, setActiveExam, setActiveLevel, bulkAccessData]);
 
   // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
   // 하이드레이션 후 activeLevel이 없으면 L1 자동 설정
@@ -448,9 +461,11 @@ function DashboardContent() {
                 prefetchDashboard('CSAT', lastLevel);
               }}
               onClick={() => {
-                setActiveExam('CSAT' as ExamType);
                 const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
-                setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
+                const lvl = getValidLevelForExam('CSAT', lastLevel);
+                setActiveExam('CSAT' as ExamType);
+                setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                setStableQuery({ exam: 'CSAT', level: lvl });
               }}
               className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                 selectedExam === 'CSAT'
@@ -473,10 +488,11 @@ function DashboardContent() {
               }}
               onClick={() => {
                 if (canAccessExam('TEPS')) {
-                  setActiveExam('TEPS' as ExamType);
                   const lastLevel = localStorage.getItem('dashboard_TEPS_level') || 'L1';
-                  const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
-                  setActiveLevel(validLevel as 'L1' | 'L2' | 'L3');
+                  const lvl = getValidLevelForExam('TEPS', lastLevel);
+                  setActiveExam('TEPS' as ExamType);
+                  setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                  setStableQuery({ exam: 'TEPS', level: lvl });
                 } else {
                   router.push('/pricing');
                 }
@@ -502,9 +518,11 @@ function DashboardContent() {
                   prefetchDashboard('CSAT_2026', lastLevel);
                 }}
                 onClick={() => {
-                  setActiveExam('CSAT_2026' as ExamType);
                   const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
-                  setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
+                  const lvl = getValidLevelForExam('CSAT_2026', lastLevel);
+                  setActiveExam('CSAT_2026' as ExamType);
+                  setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                  setStableQuery({ exam: 'CSAT_2026', level: lvl });
                 }}
                 className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                   selectedExam === 'CSAT_2026'
@@ -525,9 +543,11 @@ function DashboardContent() {
                   prefetchDashboard('EBS', lastLevel);
                 }}
                 onClick={() => {
-                  setActiveExam('EBS' as ExamType);
                   const lastLevel = localStorage.getItem('dashboard_EBS_level') || 'LISTENING';
-                  setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
+                  const lvl = getValidLevelForExam('EBS', lastLevel);
+                  setActiveExam('EBS' as ExamType);
+                  setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                  setStableQuery({ exam: 'EBS', level: lvl });
                 }}
                 className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                   selectedExam === 'EBS'
@@ -549,10 +569,11 @@ function DashboardContent() {
                   prefetchDashboard('TOEFL', validLevel);
                 }}
                 onClick={() => {
-                  setActiveExam('TOEFL' as ExamType);
                   const lastLevel = localStorage.getItem('dashboard_TOEFL_level') || 'L1';
-                  const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
-                  setActiveLevel(validLevel as 'L1' | 'L2' | 'L3');
+                  const lvl = getValidLevelForExam('TOEFL', lastLevel);
+                  setActiveExam('TOEFL' as ExamType);
+                  setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                  setStableQuery({ exam: 'TOEFL', level: lvl });
                 }}
                 className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                   selectedExam === 'TOEFL'
@@ -574,10 +595,11 @@ function DashboardContent() {
                   prefetchDashboard('TOEIC', validLevel);
                 }}
                 onClick={() => {
-                  setActiveExam('TOEIC' as ExamType);
                   const lastLevel = localStorage.getItem('dashboard_TOEIC_level') || 'L1';
-                  const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
-                  setActiveLevel(validLevel as 'L1' | 'L2' | 'L3');
+                  const lvl = getValidLevelForExam('TOEIC', lastLevel);
+                  setActiveExam('TOEIC' as ExamType);
+                  setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                  setStableQuery({ exam: 'TOEIC', level: lvl });
                 }}
                 className={`flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${
                   selectedExam === 'TOEIC'
@@ -644,6 +666,7 @@ function DashboardContent() {
                     } else {
                       setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
                       localStorage.setItem(`dashboard_${selectedExam}_level`, lvl);
+                      setStableQuery(prev => prev ? { ...prev, level: lvl } : null);
                     }
                   }}
                   className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all ${
