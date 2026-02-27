@@ -141,18 +141,22 @@ function ReviewPageContent() {
   const selectedExam = activeExam || 'CSAT';
   const selectedLevel = activeLevel || 'L1';
 
+  // stableQuery: localStorage 복원 + fallback 완료 후에만 query 시작
+  // → exam/level이 안정된 후 1회만 호출 (dashboard 패턴과 동일)
+  const [stableQuery, setStableQuery] = useState<{exam: string, level: string} | null>(null);
+
   // React Query: 복습 데이터 + 대시보드 요약 (streak 등)
-  // 🚀 exam store 하이드레이션 완료 후 쿼리 시작 (queryKey 변경으로 인한 요청 취소 방지)
+  // stableQuery 기반으로 queryKey 고정 → effects 체인 완료 전 중복 호출 방지
   const { data: reviewData, isLoading: reviewLoading, isFetching: reviewFetching } = useDueReviews(
-    selectedExam,
-    selectedLevel,
-    !!user && hasHydrated && examHasHydrated && !isDemo
+    stableQuery?.exam || 'CSAT',
+    stableQuery?.level || 'L1',
+    !!stableQuery && !!user && hasHydrated && examHasHydrated && !isDemo
   );
 
   const { data: summaryData } = useDashboardSummary(
-    selectedExam,
-    selectedLevel,
-    !!user && hasHydrated && examHasHydrated && !isDemo
+    stableQuery?.exam || 'CSAT',
+    stableQuery?.level || 'L1',
+    !!stableQuery && !!user && hasHydrated && examHasHydrated && !isDemo
   );
 
   // 프리패치 훅
@@ -196,17 +200,27 @@ function ReviewPageContent() {
 
   const loading = reviewLoading && !isDemo;
 
-  // 초기 로드 시 localStorage에서 마지막 선택한 레벨 복원
+  // 초기 로드 시 localStorage에서 마지막 선택한 레벨 복원 + stableQuery 설정
+  // localStorage 복원과 stableQuery 설정을 하나의 effect에서 처리
+  // → query가 복원 전 값으로 먼저 호출되는 것을 방지
   useEffect(() => {
-    if (typeof window !== 'undefined' && activeExam) {
+    if (!examHasHydrated || !activeExam) return;
+
+    let finalLevel = activeLevel || 'L1';
+    if (typeof window !== 'undefined') {
       const lastLevel = localStorage.getItem(`review_${activeExam}_level`);
       if (lastLevel && lastLevel !== activeLevel) {
+        finalLevel = lastLevel;
         setActiveLevel(lastLevel as 'L1' | 'L2' | 'L3');
       }
     }
-  }, [activeExam]);
 
-  // 필터 변경 시 store 업데이트 + localStorage 저장
+    // stableQuery: 최초 1회만 설정 (prev ?? ...)
+    // 사용자가 UI에서 시험/레벨 변경 시는 handleExamChange/handleLevelChange에서 직접 설정
+    setStableQuery(prev => prev ?? { exam: activeExam, level: finalLevel });
+  }, [examHasHydrated, activeExam]);
+
+  // 필터 변경 시 store 업데이트 + localStorage 저장 + stableQuery 업데이트
   const handleExamChange = (exam: string) => {
     setActiveExam(exam as ExamType);
     // localStorage에서 마지막 선택한 레벨 가져오기
@@ -218,15 +232,21 @@ function ReviewPageContent() {
       ? ['LISTENING', 'READING_2', 'READING_3']
       : exam === 'EBS'
       ? ['LISTENING', 'READING_BASIC', 'READING_ADV']
+      : exam === 'TOEFL'
+      ? ['L1', 'L2']
+      : exam === 'TOEIC'
+      ? ['L1', 'L2']
       : ['L1', 'L2', 'L3'];
     const level = lastLevel && validLevels.includes(lastLevel) ? lastLevel : validLevels[0];
     setActiveLevel(level as 'L1' | 'L2' | 'L3');
+    setStableQuery({ exam, level });
   };
 
   const handleLevelChange = (level: string) => {
     setActiveLevel(level as 'L1' | 'L2' | 'L3');
     // localStorage에 마지막 선택한 레벨 저장
     localStorage.setItem(`review_${selectedExam}_level`, level);
+    setStableQuery(prev => prev ? { ...prev, level } : null);
   };
 
   // 로그인 체크
@@ -242,6 +262,7 @@ function ReviewPageContent() {
     if (activeExam === 'EBS' && !(hasEbsAccess || isPremium)) {
       setActiveExam('CSAT' as ExamType);
       setActiveLevel('L1');
+      setStableQuery({ exam: 'CSAT', level: 'L1' });
     }
   }, [activeExam, hasEbsAccess, isPremium]);
 
