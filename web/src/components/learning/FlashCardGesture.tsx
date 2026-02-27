@@ -228,7 +228,7 @@ export default function FlashCardGesture({
   const definition = word.definitionKo || word.definition || '정의 없음';
   const englishDefinition = word.definition || '';
   const mnemonic = word.mnemonics?.[0];
-  const examples = word.examples?.slice(0, 3) || [];
+  const examples = word.examples || [];
 
   const hasVisualImages = word.visuals && word.visuals.length > 0;
 
