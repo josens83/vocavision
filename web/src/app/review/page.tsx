@@ -61,12 +61,14 @@ interface ReviewWord {
   incorrectCount: number;
 }
 
-// 시험 순서: 수능 → TEPS → 2026 기출 → EBS (단품은 오른쪽에 배치)
+// 시험 순서: 수능 → TEPS → 2026 기출 → EBS → TOEFL → TOEIC
 const examInfo: Record<string, { name: string; icon: string }> = {
   CSAT: { name: '수능', icon: '📝' },
   TEPS: { name: 'TEPS', icon: '🎓' },
   CSAT_2026: { name: '2026 기출', icon: '📋' },
   EBS: { name: 'EBS 연계', icon: '📗' },
+  TOEFL: { name: 'TOEFL', icon: '🌍' },
+  TOEIC: { name: 'TOEIC', icon: '💼' },
 };
 
 // 시험별 레벨 정보 가져오기 함수 (TEPS는 L1/L2만)
@@ -90,6 +92,18 @@ const getLevelInfo = (exam: string): Record<string, { name: string; description:
       LISTENING: { name: '듣기영역', description: 'EBS 수능특강 영어듣기' },
       READING_BASIC: { name: '독해 기본', description: 'EBS 수능특강 영어' },
       READING_ADV: { name: '독해 실력', description: 'EBS 수능특강 영어독해연습' },
+    };
+  }
+  if (exam === 'TOEFL') {
+    return {
+      L1: { name: 'Core 핵심필수', description: '수능/EBS 수준 기본 단어' },
+      L2: { name: 'Advanced 실전고난도', description: '실전 고난도 학술 어휘' },
+    };
+  }
+  if (exam === 'TOEIC') {
+    return {
+      L1: { name: '토익 Start', description: '600~700점 목표 기초 비즈니스 어휘' },
+      L2: { name: '토익 Boost', description: '800점+ 고득점 비즈니스 어휘' },
     };
   }
   return {
@@ -169,6 +183,14 @@ function ReviewPageContent() {
   // EBS 접근 권한 확인
   const { data: ebsAccessData } = usePackageAccess('ebs-vocab', !!user);
   const hasEbsAccess = ebsAccessData?.hasAccess || false;
+
+  // TOEFL 접근 권한 확인
+  const { data: toeflAccessData } = usePackageAccess('toefl-complete', !!user);
+  const hasToeflAccess = toeflAccessData?.hasAccess || false;
+
+  // TOEIC 접근 권한 확인
+  const { data: toeicAccessData } = usePackageAccess('toeic-complete', !!user);
+  const hasToeicAccess = toeicAccessData?.hasAccess || false;
 
   // 구독 상태 확인 (프리미엄 회원은 모든 단품 접근 가능)
   const isPremium = (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY');
@@ -257,14 +279,24 @@ function ReviewPageContent() {
     }
   }, [user, hasHydrated, router, isDemo]);
 
-  // EBS 접근 권한 없으면 CSAT으로 폴백
+  // 단품 시험 접근 권한 없으면 CSAT으로 폴백
   useEffect(() => {
     if (activeExam === 'EBS' && !(hasEbsAccess || isPremium)) {
       setActiveExam('CSAT' as ExamType);
       setActiveLevel('L1');
       setStableQuery({ exam: 'CSAT', level: 'L1' });
     }
-  }, [activeExam, hasEbsAccess, isPremium]);
+    if (activeExam === 'TOEFL' && !(hasToeflAccess || isPremium)) {
+      setActiveExam('CSAT' as ExamType);
+      setActiveLevel('L1');
+      setStableQuery({ exam: 'CSAT', level: 'L1' });
+    }
+    if (activeExam === 'TOEIC' && !(hasToeicAccess || isPremium)) {
+      setActiveExam('CSAT' as ExamType);
+      setActiveLevel('L1');
+      setStableQuery({ exam: 'CSAT', level: 'L1' });
+    }
+  }, [activeExam, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium]);
 
   if (!hasHydrated || loading) {
     return (
@@ -376,20 +408,21 @@ function ReviewPageContent() {
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">시험 선택</h3>
 
-          <div className={`grid gap-3 ${
-            (hasCsat2026Access || isPremium) && (hasEbsAccess || isPremium) ? 'grid-cols-4' :
-            (hasCsat2026Access || isPremium) || (hasEbsAccess || isPremium) ? 'grid-cols-3' : 'grid-cols-2'
-          }`}>
+          <div className="grid gap-3 grid-cols-3">
             {Object.entries(examInfo)
               .filter(([key]) => {
                 if (key === 'CSAT_2026') return hasCsat2026Access || isPremium;
                 if (key === 'EBS') return hasEbsAccess || isPremium;
+                if (key === 'TOEFL') return hasToeflAccess || isPremium;
+                if (key === 'TOEIC') return hasToeicAccess || isPremium;
                 return true;
               })
               .map(([key, info]) => {
-              // CSAT_2026/EBS는 프리미엄 또는 단품 구매, 나머지는 구독 권한으로 체크
+              // 단품 시험: 프리미엄 또는 단품 구매, 나머지는 구독 권한으로 체크
               const isLocked = (key === 'CSAT_2026') ? !(hasCsat2026Access || isPremium)
                 : (key === 'EBS') ? !(hasEbsAccess || isPremium)
+                : (key === 'TOEFL') ? !(hasToeflAccess || isPremium)
+                : (key === 'TOEIC') ? !(hasToeicAccess || isPremium)
                 : !canAccessExam(user, key);
               return (
                 <button
@@ -397,7 +430,12 @@ function ReviewPageContent() {
                   onMouseEnter={() => {
                     if (!isLocked) {
                       const lastLevel = localStorage.getItem(`review_${key}_level`) || 'L1';
-                      const validLevels = key === 'TEPS' ? ['L1', 'L2'] : key === 'CSAT_2026' ? ['LISTENING', 'READING_2', 'READING_3'] : key === 'EBS' ? ['LISTENING', 'READING_BASIC', 'READING_ADV'] : ['L1', 'L2', 'L3'];
+                      const validLevels = key === 'TEPS' ? ['L1', 'L2']
+                        : key === 'CSAT_2026' ? ['LISTENING', 'READING_2', 'READING_3']
+                        : key === 'EBS' ? ['LISTENING', 'READING_BASIC', 'READING_ADV']
+                        : key === 'TOEFL' ? ['L1', 'L2']
+                        : key === 'TOEIC' ? ['L1', 'L2']
+                        : ['L1', 'L2', 'L3'];
                       const level = validLevels.includes(lastLevel) ? lastLevel : validLevels[0];
                       prefetchReviews(key, level);
                     }
@@ -418,6 +456,10 @@ function ReviewPageContent() {
                         : key === 'CSAT_2026'
                         ? 'bg-[#F59E0B] text-white shadow-sm'
                         : key === 'EBS'
+                        ? 'bg-[#10B981] text-white shadow-sm'
+                        : key === 'TOEFL'
+                        ? 'bg-[#3B82F6] text-white shadow-sm'
+                        : key === 'TOEIC'
                         ? 'bg-[#10B981] text-white shadow-sm'
                         : 'bg-[#A855F7] text-white shadow-sm'
                       : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
