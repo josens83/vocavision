@@ -678,49 +678,57 @@ export async function saveMissingContent(
       }
     }
 
-    // Etymology가 없는 경우에만 생성
+    // Etymology가 없는 경우에만 생성 (upsert로 unique constraint 충돌 방지)
     if (missingFields.includes('etymology') && generated.etymology) {
-      await prisma.etymology.create({
-        data: {
+      await prisma.etymology.upsert({
+        where: { wordId },
+        create: {
           wordId,
           origin: generated.etymology.description,
           language: generated.etymology.language,
           evolution: generated.etymology.description,
           breakdown: generated.etymology.breakdown,
         },
+        update: {},  // 이미 있으면 건드리지 않음
       });
       saved.push('etymology');
     }
 
-    // Mnemonic이 없는 경우에만 생성
+    // Mnemonic이 없는 경우에만 생성 (count 체크로 race condition 방지)
     if (missingFields.includes('mnemonic') && generated.mnemonic) {
-      await prisma.mnemonic.create({
-        data: {
-          wordId,
-          title: 'AI Generated Mnemonic',
-          content: generated.mnemonic.description,
-          koreanHint: generated.mnemonic.koreanAssociation,
-          whiskPrompt: generated.mnemonic.imagePrompt,
-          source: 'AI_GENERATED',
-        },
-      });
-      saved.push('mnemonic');
+      const existingMnemonicCount = await prisma.mnemonic.count({ where: { wordId } });
+      if (existingMnemonicCount === 0) {
+        await prisma.mnemonic.create({
+          data: {
+            wordId,
+            title: 'AI Generated Mnemonic',
+            content: generated.mnemonic.description,
+            koreanHint: generated.mnemonic.koreanAssociation,
+            whiskPrompt: generated.mnemonic.imagePrompt,
+            source: 'AI_GENERATED',
+          },
+        });
+        saved.push('mnemonic');
+      }
     }
 
-    // Examples가 없는 경우에만 생성
+    // Examples가 없는 경우에만 생성 (count 체크로 race condition 방지)
     if (missingFields.includes('examples') && generated.examples?.length > 0) {
-      await prisma.example.createMany({
-        data: generated.examples.map((example, i) => ({
-          wordId,
-          sentence: example.sentenceEn,
-          translation: example.sentenceKo,
-          isFunny: example.isFunny,
-          isReal: !example.isFunny,
-          source: example.source,
-          order: i,
-        })),
-      });
-      saved.push('examples');
+      const existingExampleCount = await prisma.example.count({ where: { wordId } });
+      if (existingExampleCount === 0) {
+        await prisma.example.createMany({
+          data: generated.examples.map((example, i) => ({
+            wordId,
+            sentence: example.sentenceEn,
+            translation: example.sentenceKo,
+            isFunny: example.isFunny,
+            isReal: !example.isFunny,
+            source: example.source,
+            order: i,
+          })),
+        });
+        saved.push('examples');
+      }
     }
   }, 3, 1000);
 
