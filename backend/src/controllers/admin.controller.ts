@@ -3906,3 +3906,128 @@ async function processVisualsRegeneration(
   logger.info(`[VisualsRegen] Time: ${Math.floor(totalTime / 60)}m ${totalTime % 60}s`);
   logger.info(`[VisualsRegen] ========================================`);
 }
+
+// ============================================
+// Fill Missing Content (누락 콘텐츠 배치 채우기)
+// GET /admin/fill-missing-content
+// → PUBLISHED 단어 중 예문/연상법/어원/형태분석 누락 단어 선별 생성
+// → 기존 콘텐츠 절대 건드리지 않음
+// ============================================
+
+import { processFillMissingJob } from '../services/contentGenerator.service';
+
+export const fillMissingContent = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const batchSize = parseInt(req.query.batchSize as string) || 50;
+    const startOffset = parseInt(req.query.start as string) || 0;
+    const delayMs = parseInt(req.query.delayMs as string) || 1500;
+    const dryRun = req.query.dryRun === 'true';
+    const examCategory = req.query.exam as string | undefined;
+    const level = req.query.level as string | undefined;
+
+    // 1. 누락 현황 조회
+    const baseWhere: any = { status: 'PUBLISHED' };
+    if (examCategory) baseWhere.examCategory = examCategory;
+    if (level) baseWhere.level = level;
+
+    const whereClause: any = {
+      ...baseWhere,
+      OR: [
+        { examples: { none: {} } },
+        { mnemonics: { none: {} } },
+        { etymology: null },
+        { morphologyNote: null },
+        { morphologyNote: '' },
+      ],
+    };
+
+    const totalMissing = await prisma.word.count({ where: whereClause });
+
+    // 필드별 누락 카운트 (진단용)
+    const [missingExamples, missingMnemonics, missingEtymology, missingMorphology] = await Promise.all([
+      prisma.word.count({ where: { ...baseWhere, examples: { none: {} } } }),
+      prisma.word.count({ where: { ...baseWhere, mnemonics: { none: {} } } }),
+      prisma.word.count({ where: { ...baseWhere, etymology: null } }),
+      prisma.word.count({ where: { ...baseWhere, OR: [{ morphologyNote: null }, { morphologyNote: '' }] } }),
+    ]);
+
+    // dryRun이면 카운트만 반환
+    if (dryRun) {
+      // 샘플 단어 10개
+      const sampleWords = await prisma.word.findMany({
+        where: whereClause,
+        select: { word: true, examCategory: true, level: true },
+        orderBy: { word: 'asc' },
+        skip: startOffset,
+        take: 10,
+      });
+
+      return res.json({
+        success: true,
+        dryRun: true,
+        totalMissing,
+        breakdown: {
+          missingExamples,
+          missingMnemonics,
+          missingEtymology,
+          missingMorphology,
+        },
+        sampleWords: sampleWords.map(w => `${w.word} (${w.examCategory}/${w.level})`),
+        estimatedTime: `${Math.ceil((Math.min(batchSize, totalMissing - startOffset) * (delayMs + 3000)) / 60000)}분`,
+      });
+    }
+
+    // 2. 배치 제한 검증
+    if (batchSize > 200) {
+      return res.status(400).json({
+        success: false,
+        error: 'batchSize는 최대 200개까지 가능합니다.',
+      });
+    }
+
+    // 3. ContentGenerationJob 생성 (진행률 추적용)
+    const job = await prisma.contentGenerationJob.create({
+      data: {
+        inputWords: [`fill-missing:${totalMissing}words`],
+        examCategory: examCategory as any || undefined,
+        status: 'pending',
+        progress: 0,
+        generateFields: ['examples', 'mnemonic', 'etymology', 'morphology'],
+        requestedById: req.userId,
+      },
+    });
+
+    // 4. 백그라운드 처리 시작
+    processFillMissingJob(job.id, {
+      batchSize,
+      startOffset,
+      delayMs,
+      examCategory,
+      level,
+    }).catch((error) => {
+      logger.error(`[FillMissing] Background job ${job.id} failed:`, error);
+    });
+
+    res.json({
+      success: true,
+      jobId: job.id,
+      message: `누락 콘텐츠 배치 생성 시작 (총 ${totalMissing}개 중 ${startOffset}부터 ${batchSize}개 처리)`,
+      totalMissing,
+      breakdown: {
+        missingExamples,
+        missingMnemonics,
+        missingEtymology,
+        missingMorphology,
+      },
+      params: { batchSize, startOffset, delayMs, examCategory, level },
+      checkProgress: `/api/content/jobs/${job.id}`,
+    });
+  } catch (error) {
+    logger.error('[FillMissing] Endpoint error:', error);
+    next(error);
+  }
+};

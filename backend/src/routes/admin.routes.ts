@@ -54,6 +54,8 @@ import {
   startCloudinaryMigration,
   getCloudinaryMigrationProgress,
   stopCloudinaryMigration,
+  // Fill Missing Content
+  fillMissingContent,
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -177,6 +179,56 @@ router.get('/generate-concept-bulk', authOrSecretKey, generateConceptBulk);
  *         description: Started regenerating visuals
  */
 router.get('/regenerate-visuals', authOrSecretKey, regenerateVisualsByWords);
+
+/**
+ * @swagger
+ * /admin/fill-missing-content:
+ *   get:
+ *     summary: 누락 콘텐츠 배치 생성 (예문/연상법/어원/형태분석)
+ *     tags: [Admin - Content Generation]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: dryRun
+ *         schema:
+ *           type: string
+ *           enum: ['true', 'false']
+ *           default: 'false'
+ *         description: true면 카운트만 반환 (실제 생성 안 함)
+ *       - in: query
+ *         name: batchSize
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: 처리할 단어 수 (최대 200)
+ *       - in: query
+ *         name: start
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: 시작 오프셋
+ *       - in: query
+ *         name: delayMs
+ *         schema:
+ *           type: integer
+ *           default: 1500
+ *         description: AI 호출 간격 (ms)
+ *       - in: query
+ *         name: exam
+ *         schema:
+ *           type: string
+ *         description: 특정 시험만 필터 (CSAT, TEPS, TOEFL 등)
+ *       - in: query
+ *         name: level
+ *         schema:
+ *           type: string
+ *         description: 특정 레벨만 필터 (L1, L2, L3)
+ *     responses:
+ *       200:
+ *         description: 배치 작업 시작됨 (jobId 반환) 또는 dryRun 결과
+ */
+router.get('/fill-missing-content', authOrSecretKey, fillMissingContent);
 
 /**
  * @swagger
