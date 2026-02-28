@@ -1,7 +1,7 @@
 // Force redeploy - 2026-01-31 v3 (fix exam order: 수능→TEPS→2026기출)
 'use client';
 
-import { useEffect, Suspense, useRef, useState } from 'react';
+import { useEffect, Suspense, useRef, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
@@ -168,13 +168,13 @@ function DashboardContent() {
   const toeflAccessData = bulkAccessData?.['toefl-complete'] ? { hasAccess: bulkAccessData['toefl-complete'].hasAccess } : undefined;
   const toeicAccessData = bulkAccessData?.['toeic-complete'] ? { hasAccess: bulkAccessData['toeic-complete'].hasAccess } : undefined;
 
-  // accessChecked: fallback effect 완료 후에만 true
-  // → bulkAccessData 도착 즉시 query 시작하면, fallback이 다음 렌더에서 exam 변경 → 2회 호출
-  // → fallback effect가 exam/level을 최종 확정한 후 1회만 호출하도록 게이트
   // stableQuery: effects 체인 완료 후의 최종 exam/level을 고정
   // → 이후 effects 체인이 state를 변경해도 queryKey는 변하지 않음
   // → 사용자가 UI에서 시험/레벨을 명시적으로 변경할 때만 업데이트
   const [stableQuery, setStableQuery] = useState<{exam: string, level: string} | null>(null);
+  // ref 가드: fallback effect에서 stableQuery 초기화를 1회로 제한
+  // → useEffect 재실행 시에도 중복 초기화 방지 (state 업데이트 + ref 이중 가드)
+  const stableQueryInitRef = useRef(false);
 
   // dashboard-summary: stableQuery가 설정된 후에만 쿼리 시작
   // → exam/level이 완전히 안정된 후 1회만 호출
@@ -235,7 +235,8 @@ function DashboardContent() {
   }, [summaryData?.stats?.dailyGoal, setDailyGoal]);
 
   // 구독 + 단품 구매 상태에 따른 접근 권한 체크
-  const canAccessExam = (exam: string) => canAccessExamWithPurchase(user, exam);
+  // useCallback으로 안정된 참조 유지 → fallback effect의 불필요한 재실행 방지
+  const canAccessExam = useCallback((exam: string) => canAccessExamWithPurchase(user, exam), [user]);
   const canAccessLevel = (exam: string, level: string) => canAccessContentWithPurchase(user, exam, level);
   const availableExams = getAvailableExams(user);
   const isPremium = getSubscriptionTier(user) === 'PREMIUM';
@@ -283,6 +284,9 @@ function DashboardContent() {
   useEffect(() => {
     if (!hasHydrated || !bulkAccessData) return;
 
+    // 이미 초기화 완료 → fallback 체크 불필요 (사용자 명시적 변경은 onClick에서 처리)
+    if (stableQueryInitRef.current) return;
+
     // CSAT_2026 접근 불가 → CSAT으로 fallback
     if (activeExam === 'CSAT_2026' && !hasCsat2026Access && !isPremium) {
       setActiveExam('CSAT' as ExamType);
@@ -318,9 +322,9 @@ function DashboardContent() {
       return;
     }
 
-    // 모든 fallback 체크 통과 → exam/level 확정 → query 시작 허용
-    // prev ?? ... : 이미 stableQuery가 설정된 경우 유지 (사용자 명시적 변경 보호)
-    setStableQuery(prev => prev ?? {
+    // 모든 fallback 체크 통과 → exam/level 확정 → query 시작 허용 (1회만)
+    stableQueryInitRef.current = true;
+    setStableQuery({
       exam: activeExam || 'CSAT',
       level: getValidLevelForExam(activeExam || 'CSAT', activeLevel || 'L1'),
     });
