@@ -12,6 +12,8 @@ export function useDashboardSummary(examCategory: string, level: string, enabled
     queryFn: () => progressAPI.getDashboardSummary(examCategory, level),
     enabled,
     staleTime: 30_000, // 30초 캐시 (시험/레벨 전환 시 즉시 표시)
+    refetchOnMount: false,        // staleTime 내 remount 시 중복 요청 방지
+    refetchOnWindowFocus: false,  // 탭 전환 복귀 시 자동 refetch 방지 (dashboard에서 수동 focus 핸들러 사용)
     placeholderData: (previousData: any) => previousData, // 이전 캐시 데이터 표시 (0 방지)
     retry: 2, // cold start 커버 (2번이면 충분)
     retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 8000),
