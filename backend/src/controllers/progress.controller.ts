@@ -1277,8 +1277,8 @@ export const getReviewQuiz = async (
           audioUrlUk: word.audioUrlUk,
           // 추가 필드
           pronunciationKo: word.phonetic,  // 한국어 발음 (phonetic 필드 사용)
-          examCategory: word.examCategory,
-          level: wordLevel,
+          examCategory: review.examCategory || word.examCategory,
+          level: review.level || wordLevel,
         },
         visuals,
         options,

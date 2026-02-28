@@ -9,7 +9,7 @@ import { canAccessExam, canAccessLevel } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
-import { useDueReviews, useDashboardSummary, usePrefetchReviews, usePackageAccess } from '@/hooks/useQueries';
+import { useDueReviews, useDashboardSummary, usePrefetchReviews, usePackageAccessBulk } from '@/hooks/useQueries';
 
 // ============================================
 // DashboardItem 컴포넌트 (은행 앱 스타일)
@@ -176,21 +176,15 @@ function ReviewPageContent() {
   // 프리패치 훅
   const prefetchReviews = usePrefetchReviews();
 
-  // 2026 기출 접근 권한 확인
-  const { data: csat2026AccessData } = usePackageAccess('2026-csat-analysis', !!user);
-  const hasCsat2026Access = csat2026AccessData?.hasAccess || false;
-
-  // EBS 접근 권한 확인
-  const { data: ebsAccessData } = usePackageAccess('ebs-vocab', !!user);
-  const hasEbsAccess = ebsAccessData?.hasAccess || false;
-
-  // TOEFL 접근 권한 확인
-  const { data: toeflAccessData } = usePackageAccess('toefl-complete', !!user);
-  const hasToeflAccess = toeflAccessData?.hasAccess || false;
-
-  // TOEIC 접근 권한 확인
-  const { data: toeicAccessData } = usePackageAccess('toeic-complete', !!user);
-  const hasToeicAccess = toeicAccessData?.hasAccess || false;
+  // 접근 권한 일괄 확인 (4회 개별 → 1회 bulk)
+  const { data: bulkAccessData } = usePackageAccessBulk(
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete'],
+    !!user
+  );
+  const hasCsat2026Access = bulkAccessData?.['2026-csat-analysis']?.hasAccess || false;
+  const hasEbsAccess = bulkAccessData?.['ebs-vocab']?.hasAccess || false;
+  const hasToeflAccess = bulkAccessData?.['toefl-complete']?.hasAccess || false;
+  const hasToeicAccess = bulkAccessData?.['toeic-complete']?.hasAccess || false;
 
   // 구독 상태 확인 (프리미엄 회원은 모든 단품 접근 가능)
   const isPremium = (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY');
