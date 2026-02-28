@@ -651,10 +651,290 @@ export async function processGenerationJob(jobId: string): Promise<void> {
   }
 }
 
+// ---------------------------------------------
+// Save ONLY Missing Content (기존 콘텐츠 보존)
+// → 누락 필드만 선별 저장, 기존 데이터 절대 삭제하지 않음
+// ---------------------------------------------
+
+export async function saveMissingContent(
+  wordId: string,
+  generated: GeneratedContent,
+  missingFields: string[]
+): Promise<string[]> {
+  const saved: string[] = [];
+
+  await withRetry(async () => {
+    // morphologyNote가 누락된 경우에만 형태분석 업데이트
+    if (missingFields.includes('morphology')) {
+      const updateData: Record<string, any> = {};
+      if (generated.morphology?.prefix?.part) updateData.prefix = generated.morphology.prefix.part;
+      if (generated.morphology?.root?.part) updateData.root = generated.morphology.root.part;
+      if (generated.morphology?.suffix?.part) updateData.suffix = generated.morphology.suffix.part;
+      if (generated.morphology?.note) updateData.morphologyNote = generated.morphology.note;
+
+      if (Object.keys(updateData).length > 0) {
+        await prisma.word.update({ where: { id: wordId }, data: updateData });
+        saved.push('morphology');
+      }
+    }
+
+    // Etymology가 없는 경우에만 생성
+    if (missingFields.includes('etymology') && generated.etymology) {
+      await prisma.etymology.create({
+        data: {
+          wordId,
+          origin: generated.etymology.description,
+          language: generated.etymology.language,
+          evolution: generated.etymology.description,
+          breakdown: generated.etymology.breakdown,
+        },
+      });
+      saved.push('etymology');
+    }
+
+    // Mnemonic이 없는 경우에만 생성
+    if (missingFields.includes('mnemonic') && generated.mnemonic) {
+      await prisma.mnemonic.create({
+        data: {
+          wordId,
+          title: 'AI Generated Mnemonic',
+          content: generated.mnemonic.description,
+          koreanHint: generated.mnemonic.koreanAssociation,
+          whiskPrompt: generated.mnemonic.imagePrompt,
+          source: 'AI_GENERATED',
+        },
+      });
+      saved.push('mnemonic');
+    }
+
+    // Examples가 없는 경우에만 생성
+    if (missingFields.includes('examples') && generated.examples?.length > 0) {
+      await prisma.example.createMany({
+        data: generated.examples.map((example, i) => ({
+          wordId,
+          sentence: example.sentenceEn,
+          translation: example.sentenceKo,
+          isFunny: example.isFunny,
+          isReal: !example.isFunny,
+          source: example.source,
+          order: i,
+        })),
+      });
+      saved.push('examples');
+    }
+  }, 3, 1000);
+
+  return saved;
+}
+
+// ---------------------------------------------
+// Fill Missing Content Job (누락 콘텐츠 배치 채우기)
+// → PUBLISHED 단어 중 누락 필드만 선별 생성/저장
+// → 기존 콘텐츠 절대 건드리지 않음
+// ---------------------------------------------
+
+export interface FillMissingOptions {
+  batchSize?: number;    // 처리할 단어 수 (기본 50)
+  startOffset?: number;  // 시작 오프셋 (기본 0)
+  delayMs?: number;      // AI 호출 간격 ms (기본 1500)
+  dryRun?: boolean;      // true면 카운트만 반환
+  examCategory?: string; // 특정 시험만 필터
+  level?: string;        // 특정 레벨만 필터
+}
+
+export interface FillMissingResult {
+  word: string;
+  wordId: string;
+  missingFields: string[];
+  savedFields: string[];
+  success: boolean;
+  error?: string;
+}
+
+export async function processFillMissingJob(
+  jobId: string,
+  options: FillMissingOptions = {}
+): Promise<void> {
+  const {
+    batchSize = 50,
+    startOffset = 0,
+    delayMs = 1500,
+    examCategory,
+    level,
+  } = options;
+
+  try {
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: { status: 'processing', startedAt: new Date() },
+    });
+
+    // 1. 누락 콘텐츠가 있는 PUBLISHED 단어 조회
+    const whereClause: any = {
+      status: 'PUBLISHED',
+      OR: [
+        { examples: { none: {} } },
+        { mnemonics: { none: {} } },
+        { etymology: null },
+        { morphologyNote: null },
+        { morphologyNote: '' },
+      ],
+    };
+    if (examCategory) whereClause.examCategory = examCategory;
+    if (level) whereClause.level = level;
+
+    const words = await prisma.word.findMany({
+      where: whereClause,
+      include: {
+        examples: { select: { id: true }, take: 1 },
+        mnemonics: { select: { id: true }, take: 1 },
+        etymology: { select: { id: true } },
+      },
+      orderBy: { word: 'asc' },
+      skip: startOffset,
+      take: batchSize,
+    });
+
+    const totalCount = await prisma.word.count({ where: whereClause });
+
+    logger.info(`[FillMissing] Found ${totalCount} words with missing content (processing ${words.length} from offset ${startOffset})`);
+
+    const results: FillMissingResult[] = [];
+    let successCount = 0;
+    let failCount = 0;
+    let skipCount = 0;
+
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+
+      // 2. 누락 필드 판별
+      const missingFields: string[] = [];
+      if (word.examples.length === 0) missingFields.push('examples');
+      if (word.mnemonics.length === 0) missingFields.push('mnemonic');
+      if (!word.etymology) missingFields.push('etymology');
+      if (!word.morphologyNote || word.morphologyNote === '') missingFields.push('morphology');
+
+      if (missingFields.length === 0) {
+        skipCount++;
+        continue;
+      }
+
+      try {
+        // 3. Claude AI로 콘텐츠 생성
+        const generated = await generateWordContent({
+          word: word.word,
+          examCategory: word.examCategory as ExamCategory,
+          cefrLevel: (word.cefrLevel || 'B1') as CEFRLevel,
+        });
+
+        // 4. 누락 필드만 저장
+        const savedFields = await saveMissingContent(word.id, generated, missingFields);
+
+        results.push({
+          word: word.word,
+          wordId: word.id,
+          missingFields,
+          savedFields,
+          success: true,
+        });
+        successCount++;
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        logger.error(`[FillMissing] Failed: ${word.word} — ${errorMsg}`);
+        results.push({
+          word: word.word,
+          wordId: word.id,
+          missingFields,
+          savedFields: [],
+          success: false,
+          error: errorMsg,
+        });
+        failCount++;
+
+        // 1회 재시도
+        try {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          const retryGenerated = await generateWordContent({
+            word: word.word,
+            examCategory: word.examCategory as ExamCategory,
+            cefrLevel: (word.cefrLevel || 'B1') as CEFRLevel,
+          });
+          const retrySaved = await saveMissingContent(word.id, retryGenerated, missingFields);
+          // 재시도 성공 시 결과 업데이트
+          results[results.length - 1] = {
+            word: word.word,
+            wordId: word.id,
+            missingFields,
+            savedFields: retrySaved,
+            success: true,
+          };
+          successCount++;
+          failCount--;
+          logger.info(`[FillMissing] Retry succeeded: ${word.word}`);
+        } catch (retryError) {
+          logger.error(`[FillMissing] Retry also failed: ${word.word}`);
+        }
+      }
+
+      // 5. 진행률 업데이트
+      const progress = Math.round(((i + 1) / words.length) * 100);
+      await withRetry(async () => {
+        return prisma.contentGenerationJob.update({
+          where: { id: jobId },
+          data: { progress },
+        });
+      });
+
+      // 6. 매 10개마다 로그
+      if ((i + 1) % 10 === 0) {
+        logger.info(`[FillMissing] Progress: ${i + 1}/${words.length} (success: ${successCount}, fail: ${failCount}, skip: ${skipCount})`);
+      }
+
+      // 7. Rate limiting
+      if (i < words.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+
+    // 8. 완료 업데이트
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'completed',
+        progress: 100,
+        result: {
+          totalFound: totalCount,
+          processed: words.length,
+          success: successCount,
+          failed: failCount,
+          skipped: skipCount,
+          startOffset,
+          details: results,
+        } as any,
+        completedAt: new Date(),
+      },
+    });
+
+    logger.info(`[FillMissing] Job ${jobId} completed. Total: ${totalCount}, Processed: ${words.length}, Success: ${successCount}, Failed: ${failCount}, Skipped: ${skipCount}`);
+  } catch (error) {
+    await prisma.contentGenerationJob.update({
+      where: { id: jobId },
+      data: {
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        completedAt: new Date(),
+      },
+    });
+    throw error;
+  }
+}
+
 export default {
   generateWordContent,
   saveGeneratedContent,
+  saveMissingContent,
   generateBatchContent,
   generateWhiskPrompt,
   processGenerationJob,
+  processFillMissingJob,
 };
