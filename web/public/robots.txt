@@ -1,11 +1,15 @@
 User-agent: *
 Allow: /
 
-Disallow: /words/
 Disallow: /auth/
 Disallow: /dashboard/
 Disallow: /admin/
 Disallow: /settings/
 Disallow: /api/
+Disallow: /learn/
+Disallow: /review/
+Disallow: /quiz/
+Disallow: /checkout/
+Disallow: /account/
 
 Sitemap: https://vocavision.kr/sitemap.xml
