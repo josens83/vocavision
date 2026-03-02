@@ -10,6 +10,7 @@ import { canAccessExamWithPurchase, canAccessContentWithPurchase, getAvailableEx
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 import { useDashboardSummary, usePackageAccessBulk, usePrefetchDashboard } from '@/hooks/useQueries';
+import { EXAM_MAP, VALID_EXAM_KEYS, getValidLevelForExam, getValidLevelsForExam, getLevelLabel, getLevelShortLabel } from '@/constants/exams';
 
 // ============================================
 // DashboardItem 컴포넌트 (미니멀 스타일)
@@ -35,35 +36,7 @@ function DashboardItem({ value, label, color, loading }: { value: string | numbe
   );
 }
 
-// Exam info (순서: 수능 → TEPS → 2026 기출 → EBS 연계)
-const examInfo: Record<string, { name: string; icon: string; color: string }> = {
-  CSAT: { name: '수능', icon: '📝', color: 'blue' },
-  TEPS: { name: 'TEPS', icon: '🎓', color: 'purple' },
-  CSAT_2026: { name: '2026 수능 기출', icon: '📋', color: 'emerald' },
-  EBS: { name: 'EBS 연계', icon: '📗', color: 'green' },
-  TOEFL: { name: 'TOEFL', icon: '🌍', color: 'blue' },
-  TOEIC: { name: 'TOEIC', icon: '💼', color: 'green' },
-};
-
-// Get valid level for exam
-const getValidLevelForExam = (exam: string, level: string): string => {
-  if (exam === 'TEPS') {
-    return ['L1', 'L2'].includes(level) ? level : 'L1';
-  }
-  if (exam === 'CSAT_2026') {
-    return ['LISTENING', 'READING_2', 'READING_3'].includes(level) ? level : 'LISTENING';
-  }
-  if (exam === 'EBS') {
-    return ['LISTENING', 'READING_BASIC', 'READING_ADV'].includes(level) ? level : 'LISTENING';
-  }
-  if (exam === 'TOEFL') {
-    return ['L1', 'L2'].includes(level) ? level : 'L1';
-  }
-  if (exam === 'TOEIC') {
-    return ['L1', 'L2'].includes(level) ? level : 'L1';
-  }
-  return ['L1', 'L2', 'L3'].includes(level) ? level : 'L1';
-};
+// examInfo / getValidLevelForExam → @/constants/exams 에서 import
 
 // Level info - exam-specific
 const getLevelInfo = (exam: string, level: string) => {
@@ -266,7 +239,7 @@ function DashboardContent() {
     if (!examParam) return; // 쿼리 파라미터 없으면 Zustand 기존값 유지 (재방문 시나리오)
 
     // 유효한 시험인지 확인
-    const validExams = ['CSAT', 'TEPS', 'CSAT_2026', 'EBS', 'TOEFL', 'TOEIC'];
+    const validExams = VALID_EXAM_KEYS;
     if (validExams.includes(examParam)) {
       setActiveExam(examParam as ExamType);
 
@@ -343,7 +316,8 @@ function DashboardContent() {
 
   const selectedExam = activeExam || 'CSAT';
   const selectedLevel = activeLevel || 'L1';
-  const exam = examInfo[selectedExam];
+  const examCfg = EXAM_MAP[selectedExam];
+  const exam = { name: examCfg?.label || selectedExam, icon: examCfg?.icon || '📝', color: examCfg?.color || 'blue' };
   const level = getLevelInfo(selectedExam, selectedLevel);
 
   const totalWords = examLevelTotalWords || level.wordCount;
@@ -486,8 +460,7 @@ function DashboardContent() {
               onMouseEnter={() => {
                 if (canAccessExam('TEPS')) {
                   const lastLevel = localStorage.getItem('dashboard_TEPS_level') || 'L1';
-                  const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
-                  prefetchDashboard('TEPS', validLevel);
+                  prefetchDashboard('TEPS', getValidLevelForExam('TEPS', lastLevel));
                 }
               }}
               onClick={() => {
@@ -569,8 +542,7 @@ function DashboardContent() {
               <button
                 onMouseEnter={() => {
                   const lastLevel = localStorage.getItem('dashboard_TOEFL_level') || 'L1';
-                  const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
-                  prefetchDashboard('TOEFL', validLevel);
+                  prefetchDashboard('TOEFL', getValidLevelForExam('TOEFL', lastLevel));
                 }}
                 onClick={() => {
                   const lastLevel = localStorage.getItem('dashboard_TOEFL_level') || 'L1';
@@ -595,8 +567,7 @@ function DashboardContent() {
               <button
                 onMouseEnter={() => {
                   const lastLevel = localStorage.getItem('dashboard_TOEIC_level') || 'L1';
-                  const validLevel = ['L1', 'L2'].includes(lastLevel) ? lastLevel : 'L1';
-                  prefetchDashboard('TOEIC', validLevel);
+                  prefetchDashboard('TOEIC', getValidLevelForExam('TOEIC', lastLevel));
                 }}
                 onClick={() => {
                   const lastLevel = localStorage.getItem('dashboard_TOEIC_level') || 'L1';
@@ -625,37 +596,12 @@ function DashboardContent() {
           </h3>
 
           <div className="flex gap-3">
-            {(selectedExam === 'CSAT_2026'
-              ? ['LISTENING', 'READING_2', 'READING_3'] as const
-              : selectedExam === 'TEPS'
-                ? ['L1', 'L2'] as const
-                : selectedExam === 'EBS'
-                  ? ['LISTENING', 'READING_BASIC', 'READING_ADV'] as const
-                  : (selectedExam === 'TOEFL' || selectedExam === 'TOEIC')
-                    ? ['L1', 'L2'] as const
-                    : ['L1', 'L2', 'L3'] as const
-            ).map((lvl) => {
-              const isLocked = (selectedExam !== 'CSAT_2026' && selectedExam !== 'EBS' && selectedExam !== 'TOEFL' && selectedExam !== 'TOEIC') && !canAccessLevel(selectedExam, lvl as 'L1' | 'L2' | 'L3');
-              const levelLabel = selectedExam === 'CSAT_2026'
-                ? (lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_2' ? '독해 2점' : '독해 3점')
-                : selectedExam === 'EBS'
-                  ? (lvl === 'LISTENING' ? '듣기영역' : lvl === 'READING_BASIC' ? '독해 기본' : '독해 실력')
-                  : selectedExam === 'TEPS'
-                    ? (lvl === 'L1' ? '기본' : '필수')
-                    : selectedExam === 'TOEFL'
-                      ? (lvl === 'L1' ? 'Core 핵심필수' : 'Advanced 실전고난도')
-                      : selectedExam === 'TOEIC'
-                        ? (lvl === 'L1' ? '토익 Start' : '토익 Boost')
-                        : (lvl === 'L1' ? '기초' : lvl === 'L2' ? '중급' : '고급');
-              const displayName = selectedExam === 'CSAT_2026'
-                ? (lvl === 'LISTENING' ? '듣기' : lvl === 'READING_2' ? '2점' : '3점')
-                : selectedExam === 'EBS'
-                  ? (lvl === 'LISTENING' ? '듣기' : lvl === 'READING_BASIC' ? '기본' : '실력')
-                  : selectedExam === 'TOEFL'
-                    ? (lvl === 'L1' ? 'Core' : 'Adv')
-                    : selectedExam === 'TOEIC'
-                      ? (lvl === 'L1' ? 'Start' : 'Boost')
-                      : lvl;
+            {getValidLevelsForExam(selectedExam).map((lvl) => {
+              const isLocked = !EXAM_MAP[selectedExam]?.packageSlug && !canAccessLevel(selectedExam, lvl as 'L1' | 'L2' | 'L3');
+              // CSAT/TEPS: key(L1) + shortLabel(기초), TOEFL/TOEIC: shortLabel + label
+              const useKeyDisplay = selectedExam === 'CSAT' || selectedExam === 'TEPS';
+              const levelLabel = useKeyDisplay ? getLevelShortLabel(selectedExam, lvl) : getLevelLabel(selectedExam, lvl);
+              const displayName = useKeyDisplay ? lvl : getLevelShortLabel(selectedExam, lvl);
               return (
                 <button
                   key={lvl}

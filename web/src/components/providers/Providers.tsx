@@ -25,7 +25,7 @@ export default function Providers({ children }: ProvidersProps) {
             staleTime: 30_000,          // 30초 동안 신선 → 페이지 이동 시 즉시 표시
             gcTime: 10 * 60_000,        // 10분 캐시 유지
             refetchOnWindowFocus: false,
-            retry: 1,
+            retry: 2,
           },
         },
       })
