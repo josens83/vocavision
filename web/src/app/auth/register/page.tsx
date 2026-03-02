@@ -29,6 +29,7 @@ function RegisterContent() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    passwordConfirm: '',
     name: '',
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -38,7 +39,7 @@ function RegisterContent() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
 
-  const validateField = useCallback((field: string, value: string) => {
+  const validateField = useCallback((field: string, value: string, allData?: typeof formData) => {
     let result;
     switch (field) {
       case 'name':
@@ -50,6 +51,12 @@ function RegisterContent() {
       case 'password':
         result = validatePassword(value, { minLength: 8 });
         break;
+      case 'passwordConfirm': {
+        const pw = allData?.password ?? formData.password;
+        const isMatch = value === pw;
+        result = { isValid: isMatch, error: isMatch ? '' : '비밀번호가 일치하지 않습니다' };
+        break;
+      }
       default:
         return;
     }
@@ -58,14 +65,19 @@ function RegisterContent() {
       ...prev,
       [field]: result.isValid ? '' : result.error || '',
     }));
-  }, []);
+  }, [formData.password]);
 
   const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
 
     // Only validate if the field has been touched
     if (touched[field]) {
-      validateField(field, value);
+      validateField(field, value, newData);
+    }
+    // 비밀번호 변경 시 확인 필드도 재검증
+    if (field === 'password' && touched.passwordConfirm) {
+      validateField('passwordConfirm', newData.passwordConfirm, newData);
     }
   };
 
@@ -79,15 +91,17 @@ function RegisterContent() {
     setServerError('');
 
     // Validate all fields
+    const passwordsMatch = formData.password === formData.passwordConfirm;
     const validation = validateForm({
       name: validateName(formData.name, { required: false }),
       email: validateEmail(formData.email),
       password: validatePassword(formData.password, { minLength: 8 }),
+      passwordConfirm: { isValid: passwordsMatch, error: passwordsMatch ? '' : '비밀번호가 일치하지 않습니다' },
     });
 
     if (!validation.isValid) {
       setErrors(validation.errors);
-      setTouched({ name: true, email: true, password: true });
+      setTouched({ name: true, email: true, password: true, passwordConfirm: true });
       return;
     }
 
@@ -246,7 +260,23 @@ function RegisterContent() {
               showPasswordStrength
             />
 
-            <SubmitButton loading={loading} loadingText="가입 중...">
+            <FormInput
+              label="비밀번호 확인"
+              type="password"
+              required
+              value={formData.passwordConfirm}
+              onChange={(e) => handleChange('passwordConfirm', e.target.value)}
+              onBlur={() => handleBlur('passwordConfirm')}
+              error={touched.passwordConfirm ? errors.passwordConfirm : undefined}
+              placeholder="비밀번호를 다시 입력하세요"
+              autoComplete="new-password"
+            />
+
+            <SubmitButton
+              loading={loading}
+              loadingText="가입 중..."
+              disabled={formData.passwordConfirm.length > 0 && formData.password !== formData.passwordConfirm}
+            >
               가입하기
             </SubmitButton>
           </form>
