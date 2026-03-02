@@ -216,17 +216,27 @@ function LoginContent() {
               autoComplete="email"
             />
 
-            <FormInput
-              label="비밀번호"
-              type="password"
-              required
-              value={formData.password}
-              onChange={(e) => handleChange('password', e.target.value)}
-              onBlur={() => handleBlur('password')}
-              error={touched.password ? errors.password : undefined}
-              placeholder="비밀번호를 입력하세요"
-              autoComplete="current-password"
-            />
+            <div>
+              <FormInput
+                label="비밀번호"
+                type="password"
+                required
+                value={formData.password}
+                onChange={(e) => handleChange('password', e.target.value)}
+                onBlur={() => handleBlur('password')}
+                error={touched.password ? errors.password : undefined}
+                placeholder="비밀번호를 입력하세요"
+                autoComplete="current-password"
+              />
+              <div className="mt-1.5 text-right">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm text-brand-primary hover:underline"
+                >
+                  비밀번호를 잊으셨나요?
+                </Link>
+              </div>
+            </div>
 
             <SubmitButton loading={loading} loadingText="로그인 중...">
               이메일로 로그인
