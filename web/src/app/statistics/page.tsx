@@ -8,6 +8,7 @@ import { isFreeUser } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LearningHeatmap from '@/components/statistics/LearningHeatmap';
 import { useStatistics, useActivityHeatmap, useMasteryDistribution, usePrefetchMasteryDistribution } from '@/hooks/useQueries';
+import { EXAM_LIST, EXAM_MAP, getValidLevelsForExam, getLevelLabel, getLevelShortLabel, LEVEL_COLORS } from '@/constants/exams';
 
 // Benchmarking: Advanced statistics dashboard
 // Phase 2-2: 고급 통계 및 예측 분석 대시보드
@@ -228,17 +229,11 @@ function StatisticsPageContent() {
     };
   };
 
-  // 시험별 레벨 키 목록
-  const getExamLevels = (exam: string): string[] => {
-    if (exam === 'CSAT_2026') return ['LISTENING', 'READING_2', 'READING_3'];
-    if (exam === 'EBS') return ['LISTENING', 'READING_BASIC', 'READING_ADV'];
-    if (exam === 'TEPS' || exam === 'TOEFL' || exam === 'TOEIC') return ['L1', 'L2'];
-    return ['L1', 'L2', 'L3'];
-  };
+  // getExamLevels → getValidLevelsForExam from @/constants/exams
 
   // 레벨별 학습 현황 (독립적 필터)
   const getLevelDistribution = () => {
-    const levels = getExamLevels(levelProgressExam);
+    const levels = getValidLevelsForExam(levelProgressExam);
     const distribution: Record<string, number> = {};
     levels.forEach(l => { distribution[l] = 0; });
 
@@ -300,39 +295,7 @@ function StatisticsPageContent() {
   const totalAccuracy = getTotalAccuracy();
   const masteryData = getMasteryData();
 
-  // 레벨별 배경색 (은행 앱 스타일)
-  const levelColors: Record<string, string> = {
-    L1: 'bg-[#10B981]',
-    L2: 'bg-[#3B82F6]',
-    L3: 'bg-[#A855F7]',
-    LISTENING: 'bg-[#F59E0B]',
-    READING_2: 'bg-[#3B82F6]',
-    READING_3: 'bg-[#A855F7]',
-    READING_BASIC: 'bg-[#3B82F6]',
-    READING_ADV: 'bg-[#A855F7]',
-  };
-
-  const levelLabels: Record<string, string> = {
-    L1: 'L1(기초)',
-    L2: 'L2(중급)',
-    L3: 'L3(고급)',
-    LISTENING: '듣기영역',
-    READING_2: '독해 2점',
-    READING_3: '독해 3점',
-    READING_BASIC: '독해 기본',
-    READING_ADV: '독해 실력',
-  };
-
-  const levelNames: Record<string, string> = {
-    L1: '기초',
-    L2: '중급',
-    L3: '고급',
-    LISTENING: '듣기',
-    READING_2: '독해2점',
-    READING_3: '독해3점',
-    READING_BASIC: '독해기본',
-    READING_ADV: '독해실력',
-  };
+  // levelColors → LEVEL_COLORS, levelLabels → getLevelLabel, levelNames → getLevelShortLabel from @/constants/exams
 
   if (loading) {
     return (
@@ -480,27 +443,14 @@ function StatisticsPageContent() {
                 onChange={(e) => {
                   const newExam = e.target.value;
                   setMasteryExam(newExam);
-                  // L1/L2만 있는 시험: L3 선택 시 전체로 리셋
-                  const twoLevelExams = ['TEPS', 'TOEFL', 'TOEIC'];
-                  if (twoLevelExams.includes(newExam) && masteryLevel === 'L3') {
-                    setMasteryLevel('all');
-                  }
-                  // CSAT_2026/EBS는 다른 레벨 체계 → 전체로 리셋
-                  if (['CSAT_2026', 'EBS'].includes(newExam) && ['L1', 'L2', 'L3'].includes(masteryLevel)) {
-                    setMasteryLevel('all');
-                  }
-                  if (!['CSAT_2026', 'EBS'].includes(newExam) && !['all', 'L1', 'L2', 'L3'].includes(masteryLevel)) {
+                  // 현재 레벨이 새 시험의 유효 레벨이 아니면 전체로 리셋
+                  if (masteryLevel !== 'all' && !getValidLevelsForExam(newExam).includes(masteryLevel)) {
                     setMasteryLevel('all');
                   }
                 }}
                 className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
-                <option value="CSAT">수능</option>
-                <option value="TEPS">TEPS</option>
-                <option value="CSAT_2026">2026 기출</option>
-                <option value="EBS">EBS 연계</option>
-                <option value="TOEFL">TOEFL</option>
-                <option value="TOEIC">TOEIC</option>
+                {EXAM_LIST.map(e => <option key={e.key} value={e.key}>{e.label}</option>)}
               </select>
               <select
                 value={masteryLevel}
@@ -524,25 +474,9 @@ function StatisticsPageContent() {
                 className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
                 <option value="all">전체</option>
-                {masteryExam === 'CSAT_2026' ? (
-                  <>
-                    <option value="LISTENING">듣기</option>
-                    <option value="READING_2">독해 2점</option>
-                    <option value="READING_3">독해 3점</option>
-                  </>
-                ) : masteryExam === 'EBS' ? (
-                  <>
-                    <option value="LISTENING">듣기</option>
-                    <option value="READING_BASIC">독해 기본</option>
-                    <option value="READING_ADV">독해 실력</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="L1">L1</option>
-                    <option value="L2">L2</option>
-                    {masteryExam === 'CSAT' && <option value="L3">L3</option>}
-                  </>
-                )}
+                {EXAM_MAP[masteryExam]?.levels.map(l => (
+                  <option key={l.key} value={l.key}>{l.shortLabel}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -657,12 +591,7 @@ function StatisticsPageContent() {
               onChange={(e) => setLevelProgressExam(e.target.value)}
               className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
             >
-              <option value="CSAT">수능</option>
-              <option value="TEPS">TEPS</option>
-              <option value="CSAT_2026">2026 기출</option>
-              <option value="EBS">EBS 연계</option>
-              <option value="TOEFL">TOEFL</option>
-              <option value="TOEIC">TOEIC</option>
+              {EXAM_LIST.map(e => <option key={e.key} value={e.key}>{e.label}</option>)}
             </select>
           </div>
 
@@ -681,12 +610,12 @@ function StatisticsPageContent() {
                   className="flex items-center justify-between p-4 bg-gray-100 rounded-xl"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-[40px] h-[40px] rounded-full flex items-center justify-center ${levelColors[level] || 'bg-gray-400'}`}>
-                      <span className="text-white font-bold text-[14px]">{levelNames[level] || level}</span>
+                    <div className={`w-[40px] h-[40px] rounded-full flex items-center justify-center ${LEVEL_COLORS[level] || 'bg-gray-400'}`}>
+                      <span className="text-white font-bold text-[14px]">{getLevelShortLabel(levelProgressExam, level) || level}</span>
                     </div>
                     <div>
                       <p className="text-[14px] font-semibold text-[#1c1c1e]">
-                        {levelLabels[level] || level}
+                        {getLevelLabel(levelProgressExam, level) || level}
                       </p>
                     </div>
                   </div>

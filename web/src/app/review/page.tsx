@@ -10,6 +10,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { useDueReviews, useDashboardSummary, usePrefetchReviews, usePackageAccessBulk } from '@/hooks/useQueries';
+import { EXAM_LIST, EXAM_MAP, getValidLevelsForExam, getValidLevelForExam } from '@/constants/exams';
 
 // ============================================
 // DashboardItem 컴포넌트 (은행 앱 스타일)
@@ -61,56 +62,14 @@ interface ReviewWord {
   incorrectCount: number;
 }
 
-// 시험 순서: 수능 → TEPS → 2026 기출 → EBS → TOEFL → TOEIC
-const examInfo: Record<string, { name: string; icon: string }> = {
-  CSAT: { name: '수능', icon: '📝' },
-  TEPS: { name: 'TEPS', icon: '🎓' },
-  CSAT_2026: { name: '2026 기출', icon: '📋' },
-  EBS: { name: 'EBS 연계', icon: '📗' },
-  TOEFL: { name: 'TOEFL', icon: '🌍' },
-  TOEIC: { name: 'TOEIC', icon: '💼' },
-};
-
-// 시험별 레벨 정보 가져오기 함수 (TEPS는 L1/L2만)
-const getLevelInfo = (exam: string): Record<string, { name: string; description: string }> => {
-  if (exam === 'TEPS') {
-    // TEPS는 L1, L2만 (L3 없음)
-    return {
-      L1: { name: 'L1(기본)', description: 'TEPS 기본 어휘' },
-      L2: { name: 'L2(필수)', description: 'TEPS 필수 어휘' },
-    };
-  }
-  if (exam === 'CSAT_2026') {
-    return {
-      LISTENING: { name: '듣기영역', description: '2026 수능 듣기 영역' },
-      READING_2: { name: '독해 2점', description: '2026 수능 독해 2점' },
-      READING_3: { name: '독해 3점', description: '2026 수능 독해 3점' },
-    };
-  }
-  if (exam === 'EBS') {
-    return {
-      LISTENING: { name: '듣기영역', description: 'EBS 수능특강 영어듣기' },
-      READING_BASIC: { name: '독해 기본', description: 'EBS 수능특강 영어' },
-      READING_ADV: { name: '독해 실력', description: 'EBS 수능특강 영어독해연습' },
-    };
-  }
-  if (exam === 'TOEFL') {
-    return {
-      L1: { name: 'Core 핵심필수', description: '수능/EBS 수준 기본 단어' },
-      L2: { name: 'Advanced 실전고난도', description: '실전 고난도 학술 어휘' },
-    };
-  }
-  if (exam === 'TOEIC') {
-    return {
-      L1: { name: '토익 Start', description: '600~700점 목표 기초 비즈니스 어휘' },
-      L2: { name: '토익 Boost', description: '800점+ 고득점 비즈니스 어휘' },
-    };
-  }
-  return {
-    L1: { name: 'L1(기초)', description: '기초 필수 단어' },
-    L2: { name: 'L2(중급)', description: '핵심 심화 단어' },
-    L3: { name: 'L3(고급)', description: '고난도 단어' },
-  };
+// examInfo / getLevelInfo → @/constants/exams 에서 import
+// getLevelInfoForReview: 복습 페이지 전용 레벨 정보 (label 기반)
+const getLevelInfoForReview = (exam: string): Record<string, { name: string; description: string }> => {
+  const examCfg = EXAM_MAP[exam];
+  if (!examCfg) return { L1: { name: 'L1', description: '' } };
+  return Object.fromEntries(
+    examCfg.levels.map(l => [l.key, { name: l.label, description: '' }])
+  );
 };
 
 // 데모 모드용 샘플 데이터
@@ -239,21 +198,8 @@ function ReviewPageContent() {
   // 필터 변경 시 store 업데이트 + localStorage 저장 + stableQuery 업데이트
   const handleExamChange = (exam: string) => {
     setActiveExam(exam as ExamType);
-    // localStorage에서 마지막 선택한 레벨 가져오기
     const lastLevel = localStorage.getItem(`review_${exam}_level`);
-    // 시험별 유효 레벨 설정
-    const validLevels = exam === 'TEPS'
-      ? ['L1', 'L2']
-      : exam === 'CSAT_2026'
-      ? ['LISTENING', 'READING_2', 'READING_3']
-      : exam === 'EBS'
-      ? ['LISTENING', 'READING_BASIC', 'READING_ADV']
-      : exam === 'TOEFL'
-      ? ['L1', 'L2']
-      : exam === 'TOEIC'
-      ? ['L1', 'L2']
-      : ['L1', 'L2', 'L3'];
-    const level = lastLevel && validLevels.includes(lastLevel) ? lastLevel : validLevels[0];
+    const level = getValidLevelForExam(exam, lastLevel || '');
     setActiveLevel(level as 'L1' | 'L2' | 'L3');
     setStableQuery({ exam, level });
   };
@@ -403,15 +349,17 @@ function ReviewPageContent() {
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">시험 선택</h3>
 
           <div className="grid gap-3 grid-cols-3">
-            {Object.entries(examInfo)
-              .filter(([key]) => {
-                if (key === 'CSAT_2026') return hasCsat2026Access || isPremium;
-                if (key === 'EBS') return hasEbsAccess || isPremium;
-                if (key === 'TOEFL') return hasToeflAccess || isPremium;
-                if (key === 'TOEIC') return hasToeicAccess || isPremium;
+            {EXAM_LIST
+              .filter((e) => {
+                if (e.key === 'CSAT_2026') return hasCsat2026Access || isPremium;
+                if (e.key === 'EBS') return hasEbsAccess || isPremium;
+                if (e.key === 'TOEFL') return hasToeflAccess || isPremium;
+                if (e.key === 'TOEIC') return hasToeicAccess || isPremium;
                 return true;
               })
-              .map(([key, info]) => {
+              .map((e) => {
+              const key = e.key;
+              const info = { name: e.label, icon: e.icon };
               // 단품 시험: 프리미엄 또는 단품 구매, 나머지는 구독 권한으로 체크
               const isLocked = (key === 'CSAT_2026') ? !(hasCsat2026Access || isPremium)
                 : (key === 'EBS') ? !(hasEbsAccess || isPremium)
@@ -424,14 +372,7 @@ function ReviewPageContent() {
                   onMouseEnter={() => {
                     if (!isLocked) {
                       const lastLevel = localStorage.getItem(`review_${key}_level`) || 'L1';
-                      const validLevels = key === 'TEPS' ? ['L1', 'L2']
-                        : key === 'CSAT_2026' ? ['LISTENING', 'READING_2', 'READING_3']
-                        : key === 'EBS' ? ['LISTENING', 'READING_BASIC', 'READING_ADV']
-                        : key === 'TOEFL' ? ['L1', 'L2']
-                        : key === 'TOEIC' ? ['L1', 'L2']
-                        : ['L1', 'L2', 'L3'];
-                      const level = validLevels.includes(lastLevel) ? lastLevel : validLevels[0];
-                      prefetchReviews(key, level);
+                      prefetchReviews(key, getValidLevelForExam(key, lastLevel));
                     }
                   }}
                   onClick={() => {
@@ -475,7 +416,7 @@ function ReviewPageContent() {
           </h3>
 
           <div className="flex gap-3">
-            {Object.entries(getLevelInfo(selectedExam)).map(([key, info]) => {
+            {Object.entries(getLevelInfoForReview(selectedExam)).map(([key, info]) => {
               const isLocked = !canAccessLevel(user, key);
               return (
                 <button
@@ -557,7 +498,7 @@ function ReviewPageContent() {
             </div>
             <div>
               <p className="text-[16px] font-bold text-[#1c1c1e]">
-                {examInfo[selectedExam]?.name || selectedExam} {selectedLevel}
+                {EXAM_MAP[selectedExam]?.label || selectedExam} {selectedLevel}
               </p>
               <p className="text-[13px] text-gray-500">복습 대기 단어 • 기억 강화</p>
             </div>
