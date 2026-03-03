@@ -1336,27 +1336,29 @@ export const getMasteryDistribution = async (
       }
     });
 
-    // 4. 숙련도 분포 계산 (correctCount 기준)
-    // - 복습 중: correctCount = 1
+    // 4. 숙련도 분포 계산 (복습 대상 단어 중 correctCount 기준)
+    const reviewTargetWhere = { ...progressWhere, initialRating: 1 };
+
+    // - 복습 중: initialRating=1 AND correctCount = 1
     const reviewingCount = await prisma.userProgress.count({
       where: {
-        ...progressWhere,
+        ...reviewTargetWhere,
         correctCount: 1
       }
     });
 
-    // - 어느 정도 암기: correctCount >= 2 AND correctCount < 5
+    // - 어느 정도 암기: initialRating=1 AND correctCount >= 2 AND correctCount < 5
     const familiarCount = await prisma.userProgress.count({
       where: {
-        ...progressWhere,
+        ...reviewTargetWhere,
         correctCount: { gte: 2, lt: 5 }
       }
     });
 
-    // - 완전 암기: correctCount >= 5
+    // - 완전 암기: initialRating=1 AND correctCount >= 5
     const masteredCount = await prisma.userProgress.count({
       where: {
-        ...progressWhere,
+        ...reviewTargetWhere,
         correctCount: { gte: 5 }
       }
     });
@@ -1373,10 +1375,10 @@ export const getMasteryDistribution = async (
       ? Math.round((correctWords / totalLearnedWords) * 100)
       : 0;
 
-    // 6. % 계산 (전체 학습 단어 대비)
-    const reviewingPercent = totalLearnedWords > 0 ? Math.round((reviewingCount / totalLearnedWords) * 100) : 0;
-    const familiarPercent = totalLearnedWords > 0 ? Math.round((familiarCount / totalLearnedWords) * 100) : 0;
-    const masteredPercent = totalLearnedWords > 0 ? Math.round((masteredCount / totalLearnedWords) * 100) : 0;
+    // 6. % 계산 (복습 대상 단어 대비)
+    const reviewingPercent = needsReviewWords > 0 ? Math.round((reviewingCount / needsReviewWords) * 100) : 0;
+    const familiarPercent = needsReviewWords > 0 ? Math.round((familiarCount / needsReviewWords) * 100) : 0;
+    const masteredPercent = needsReviewWords > 0 ? Math.round((masteredCount / needsReviewWords) * 100) : 0;
 
     // 7. 전체 단어 수 (진행률 표시용)
     const wordFilter: any = { examCategory: examCategory as string };
