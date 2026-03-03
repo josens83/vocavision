@@ -499,77 +499,79 @@ function StatisticsPageContent() {
           <div className="border-t border-gray-200 my-4" />
 
           {/* 숙련도 분포 (복습 대상 단어 기준 %) */}
-          <div className="space-y-4 w-full min-w-0">
-            {/* 미복습 (아직 복습 시작 안 함) */}
-            {(() => {
-              const notStarted = masteryData.reviewTarget - masteryData.reviewing.count - masteryData.familiar.count - masteryData.mastered.count;
-              const notStartedPercent = masteryData.reviewTarget > 0
-                ? Math.round((notStarted / masteryData.reviewTarget) * 100)
-                : 0;
-              return notStarted > 0 ? (
+          {(() => {
+            // 각 카테고리 개수 산출
+            const reviewingCount = masteryData.reviewing.count;
+            const memorizedCount = masteryData.familiar.count + masteryData.mastered.count;
+            const notStartedCount = Math.max(0, masteryData.reviewTarget - reviewingCount - memorizedCount);
+
+            // 분모 = 미복습 + 복습 중 + 암기 완료 (항상 이 세 개 합, 100% 보장)
+            const total = notStartedCount + reviewingCount + memorizedCount;
+
+            const notStartedPct = total > 0 ? Math.round((notStartedCount / total) * 100) : 0;
+            const reviewingPct = total > 0 ? Math.round((reviewingCount / total) * 100) : 0;
+            const memorizedPct = total > 0 ? Math.round((memorizedCount / total) * 100) : 0;
+
+            return (
+              <div className="space-y-4 w-full min-w-0">
+                {/* 미복습 (아직 복습 시작 안 함) */}
+                {notStartedCount > 0 && (
+                  <div className="w-full min-w-0">
+                    <div className="flex justify-between items-center mb-1.5 gap-2">
+                      <span className="text-[13px] text-gray-500 truncate min-w-0">
+                        미복습
+                      </span>
+                      <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
+                        {notStartedCount}개 ({notStartedPct}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500 bg-gray-400"
+                        style={{ width: `${notStartedPct}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 복습 중 (correctCount = 1) */}
                 <div className="w-full min-w-0">
                   <div className="flex justify-between items-center mb-1.5 gap-2">
                     <span className="text-[13px] text-gray-500 truncate min-w-0">
-                      미복습
+                      복습 중
                     </span>
                     <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                      {notStarted}개 ({notStartedPercent}%)
+                      {reviewingCount}개 ({reviewingPct}%)
                     </span>
                   </div>
                   <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-500 bg-gray-400"
-                      style={{ width: `${notStartedPercent}%` }}
+                      className="h-full rounded-full transition-all duration-500 bg-[#F59E0B]"
+                      style={{ width: `${reviewingPct}%` }}
                     />
                   </div>
                 </div>
-              ) : null;
-            })()}
 
-            {/* 복습 중 (correctCount = 1) */}
-            <div className="w-full min-w-0">
-              <div className="flex justify-between items-center mb-1.5 gap-2">
-                <span className="text-[13px] text-gray-500 truncate min-w-0">
-                  복습 중
-                </span>
-                <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                  {masteryData.reviewing.count}개 ({masteryData.reviewTarget > 0
-                    ? Math.round((masteryData.reviewing.count / masteryData.reviewTarget) * 100)
-                    : 0}%)
-                </span>
+                {/* 암기 완료 (correctCount >= 2) */}
+                <div className="w-full min-w-0">
+                  <div className="flex justify-between items-center mb-1.5 gap-2">
+                    <span className="text-[13px] text-gray-500 truncate min-w-0">
+                      암기 완료
+                    </span>
+                    <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
+                      {memorizedCount}개 ({memorizedPct}%)
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500 bg-[#10B981]"
+                      style={{ width: `${memorizedPct}%` }}
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500 bg-[#F59E0B]"
-                  style={{ width: `${masteryData.reviewTarget > 0
-                    ? Math.round((masteryData.reviewing.count / masteryData.reviewTarget) * 100)
-                    : 0}%` }}
-                />
-              </div>
-            </div>
-
-            {/* 암기 완료 (correctCount >= 2) */}
-            <div className="w-full min-w-0">
-              <div className="flex justify-between items-center mb-1.5 gap-2">
-                <span className="text-[13px] text-gray-500 truncate min-w-0">
-                  암기 완료
-                </span>
-                <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                  {masteryData.familiar.count + masteryData.mastered.count}개 ({masteryData.reviewTarget > 0
-                    ? Math.round(((masteryData.familiar.count + masteryData.mastered.count) / masteryData.reviewTarget) * 100)
-                    : 0}%)
-                </span>
-              </div>
-              <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500 bg-[#10B981]"
-                  style={{ width: `${masteryData.reviewTarget > 0
-                    ? Math.round(((masteryData.familiar.count + masteryData.mastered.count) / masteryData.reviewTarget) * 100)
-                    : 0}%` }}
-                />
-              </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* 안내 메시지 */}
           {masteryData.reviewTarget === 0 && (
