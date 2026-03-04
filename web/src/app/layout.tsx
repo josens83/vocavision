@@ -83,9 +83,6 @@ export const metadata: Metadata = {
 
   // 추가 메타
   metadataBase: new URL(siteUrl),
-  alternates: {
-    canonical: '/',
-  },
 
   // 앱 정보
   applicationName: 'VocaVision AI',
