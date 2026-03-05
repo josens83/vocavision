@@ -576,13 +576,13 @@ function DashboardContent() {
                   setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
                   setStableQuery({ exam: 'TOEIC', level: lvl });
                 }}
-                className={`flex-1 min-w-[80px] flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${
+                className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                   selectedExam === 'TOEIC'
-                    ? 'bg-green-50 border-2 border-green-400 shadow-sm'
-                    : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                <span className="text-lg">💼</span>
+                <span className="text-2xl">💼</span>
                 <span className="font-semibold text-xs">TOEIC</span>
               </button>
             )}

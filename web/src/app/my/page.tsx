@@ -8,6 +8,14 @@ import { getPlanDisplay, isPremiumPlan } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useClearAllCache } from '@/hooks/useQueries';
 
+// 패키지별 단어 수
+const PACKAGE_WORD_COUNTS: Record<string, number> = {
+  '2026-csat-analysis': 521,
+  'ebs-vocab': 3837,
+  'toefl-complete': 3651,
+  'toeic-complete': 2491,
+};
+
 // ChevronRight 아이콘
 function ChevronRight({ className }: { className?: string }) {
   return (
@@ -51,6 +59,7 @@ export default function MyPage() {
   }
 
   const currentSub = getPlanDisplay(user);
+  const activePurchases = (user as any).purchases || [];
 
   return (
     <DashboardLayout>
@@ -97,6 +106,43 @@ export default function MyPage() {
               </div>
             </div>
           </section>
+
+          {/* 내 구매 상품 */}
+          {activePurchases.length > 0 && (
+            <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-200">
+                <h3 className="text-[13px] font-semibold text-gray-500">내 구매 상품</h3>
+              </div>
+              {activePurchases.map((purchase) => {
+                const startDate = new Date(purchase.createdAt || purchase.expiresAt);
+                const expiresDate = new Date(purchase.expiresAt);
+                const isExpired = expiresDate < new Date();
+                const wordCount = PACKAGE_WORD_COUNTS[purchase.package.slug];
+                // 시작일이 없으면 만료일 기준 180일 전으로 추정
+                const displayStart = purchase.createdAt
+                  ? startDate.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
+                  : null;
+                const displayEnd = expiresDate.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+
+                return (
+                  <div key={purchase.id} className="px-5 py-4 border-b border-gray-200 last:border-b-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[15px] font-medium text-[#1c1c1e]">{purchase.package.name}</span>
+                      {isExpired ? (
+                        <span className="text-[12px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500">만료됨</span>
+                      ) : (
+                        <span className="text-[12px] font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">이용중</span>
+                      )}
+                    </div>
+                    <div className="text-[13px] text-gray-500 space-y-0.5">
+                      <p>유효기간: {displayStart ? `${displayStart} ~ ` : ''}{displayEnd}</p>
+                      {wordCount && <p>단어 수: {wordCount.toLocaleString()}개</p>}
+                    </div>
+                  </div>
+                );
+              })}
+            </section>
+          )}
 
           {/* 계정 설정 메뉴 (은행 앱 스타일) */}
           <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">

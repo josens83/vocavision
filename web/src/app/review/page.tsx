@@ -417,7 +417,7 @@ function ReviewPageContent() {
 
           <div className="flex gap-3">
             {Object.entries(getLevelInfoForReview(selectedExam)).map(([key, info]) => {
-              const isLocked = !canAccessLevel(user, key);
+              const isLocked = !EXAM_MAP[selectedExam]?.packageSlug && !canAccessLevel(user, key);
               return (
                 <button
                   key={key}
