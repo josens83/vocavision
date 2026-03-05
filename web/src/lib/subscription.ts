@@ -132,9 +132,12 @@ export function canAccessExam(user: User | null, exam: string): boolean {
   if (exam === 'EBS' || exam === 'CSAT_2026') {
     return getSubscriptionTier(user) === 'PREMIUM' || hasPurchasedExam(user, exam);
   }
-  // TOEFL: 단품 구매 전용 (구독 미포함)
+  // TOEFL, TOEIC: 단품 구매 전용 (구독 미포함)
   if (exam === 'TOEFL') {
     return hasPurchasedExam(user, 'TOEFL');
+  }
+  if (exam === 'TOEIC') {
+    return hasPurchasedExam(user, 'TOEIC');
   }
   return false;
 }
@@ -146,8 +149,8 @@ export function canAccessLevel(user: User | null, level: string): boolean {
 }
 
 export function canAccessContent(user: User | null, exam: string, level: string): boolean {
-  // EBS, CSAT_2026, TOEFL: 시험 접근 가능하면 전체 레벨 접근 가능 (레벨 체크 불필요)
-  if (exam === 'EBS' || exam === 'CSAT_2026' || exam === 'TOEFL') {
+  // EBS, CSAT_2026, TOEFL, TOEIC: 시험 접근 가능하면 전체 레벨 접근 가능 (레벨 체크 불필요)
+  if (exam === 'EBS' || exam === 'CSAT_2026' || exam === 'TOEFL' || exam === 'TOEIC') {
     return canAccessExam(user, exam);
   }
   return canAccessExam(user, exam) && canAccessLevel(user, level);
@@ -252,6 +255,7 @@ export function getAvailableExams(user: User | null): { exam: string; locked: bo
     { exam: 'CSAT_2026', locked: !canAccessExamWithPurchase(user, 'CSAT_2026'), reason: '단품 구매 필요' },
     { exam: 'EBS', locked: !canAccessExamWithPurchase(user, 'EBS'), reason: '단품 구매 필요' },
     { exam: 'TOEFL', locked: !hasPurchasedExam(user, 'TOEFL'), reason: '단품 구매 필요' },
+    { exam: 'TOEIC', locked: !hasPurchasedExam(user, 'TOEIC'), reason: '단품 구매 필요' },
   ];
 
   return exams;
