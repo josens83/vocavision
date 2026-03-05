@@ -45,15 +45,16 @@ const Icons = {
 
 // Hero 섹션 통계 (실제 데이터 기반)
 const heroStats = [
-  { label: "수능 필수", value: PLATFORM_STATS.totalWords.toLocaleString(), suffix: "개" },
-  { label: "TEPS 핵심", value: PLATFORM_STATS.exams.TEPS.words.toLocaleString(), suffix: "개" },
-  { label: "AI 콘텐츠", value: String(PLATFORM_STATS.learningModes), suffix: "단계" },
+  { label: "전체 단어", value: PLATFORM_STATS.totalWords.toLocaleString() + "+", suffix: "개" },
+  { label: "시험 완벽 대비", value: String(PLATFORM_STATS.examCount), suffix: "개" },
+  { label: "AI 생성 콘텐츠", value: "100", suffix: "%" },
+  { label: "학습 섹션", value: String(PLATFORM_STATS.learningModes), suffix: "섹션" },
 ];
 
 const features = [
-  { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn", demoHref: "/learn?exam=CSAT&level=L1&demo=true" },
-  { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템", href: "/review", demoHref: "/review/quiz?demo=true" },
-  { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공", href: "/statistics", demoHref: "/statistics?demo=true" },
+  { icon: Icons.BookOpen, title: "어원 분석 & 연상 이미지", description: "라틴어·그리스어 뿌리 해부 + AI 시각적 연상", href: "/learn", demoHref: "/learn?exam=CSAT&level=L1&demo=true" },
+  { icon: Icons.Brain, title: "라임 & 콜로케이션", description: "소리로 각인 + 원어민이 실제 쓰는 조합", href: "/review", demoHref: "/review/quiz?demo=true" },
+  { icon: Icons.ChartBar, title: "간격 반복 & 맞춤 퀴즈", description: "틀린 단어 중심 스마트 복습 스케줄", href: "/statistics", demoHref: "/statistics?demo=true" },
 ];
 
 // ============================================
@@ -687,31 +688,33 @@ export default function Hero() {
             <div className={`space-y-8 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
                 <Icons.Sparkles />
-                <span className="text-sm font-medium text-slate-600">스마트 영어 학습 플랫폼</span>
+                <span className="text-sm font-medium text-slate-600">AI가 만든 {PLATFORM_STATS.totalWords.toLocaleString()}개 단어, 당신의 시험에 맞게</span>
               </div>
 
               <h1 className="font-display">
-                <span className="block text-[1.75rem] sm:text-4xl md:text-display-lg text-slate-900 whitespace-nowrap">
-                  영어 단어 학습의
+                <span className="block text-[1.75rem] sm:text-4xl md:text-display-lg text-slate-900">
+                  외우지 마세요.
                 </span>
-                <span className="block text-[1.75rem] sm:text-4xl md:text-display-xl text-gradient whitespace-nowrap">
-                  새로운 비전
+                <span className="block text-[1.75rem] sm:text-4xl md:text-display-xl text-gradient">
+                  이해하세요.
                 </span>
               </h1>
 
               <p className="text-lg md:text-xl text-slate-600 max-w-xl leading-relaxed">
-                과학적으로 검증된 <strong className="text-slate-800">간격 반복 학습</strong>과{' '}
-                <strong className="text-slate-800">적응형 퀴즈</strong>로 효율적인 어휘력 향상을 경험하세요.
+                어원부터 연상 이미지, 라임까지 — 단어 하나를{' '}
+                <strong className="text-slate-800">8가지 방법</strong>으로 학습하면 잊히지 않습니다.
+                <br />
+                <span className="text-base text-slate-500">수능 · TEPS · TOEFL · TOEIC · EBS, 모든 시험을 하나의 플랫폼에서.</span>
               </p>
 
               <div className="flex flex-wrap gap-4 pt-4">
-                <Link href="/learn?exam=CSAT&level=L1&demo=true" className="btn btn-primary group">
-                  <Icons.Play />
-                  <span>60초 맛보기</span>
-                </Link>
-                <Link href="/auth/login" className="btn btn-outline text-brand-primary border-brand-primary hover:bg-brand-primary/5">
+                <Link href="/auth/login" className="btn btn-primary group">
                   <Icons.Sparkles />
-                  <span>무료 회원가입</span>
+                  <span>무료로 시작하기</span>
+                </Link>
+                <Link href="/learn?exam=CSAT&level=L1&demo=true" className="btn btn-outline text-brand-primary border-brand-primary hover:bg-brand-primary/5">
+                  <Icons.Play />
+                  <span>60초 체험</span>
                 </Link>
               </div>
 
@@ -729,7 +732,7 @@ export default function Hero() {
 
             {/* 오른쪽 열: 체험 카드들 */}
             <div className={`flex flex-col gap-4 w-full max-w-full sm:max-w-md mx-auto lg:mx-0 lg:max-w-lg overflow-hidden ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
-              <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
+              <p className="text-sm text-slate-500 text-center mb-2">하나의 단어, 8가지 시선 — 클릭하여 체험해보세요 →</p>
 
               {features.map((feature, index) => (
                 <Link key={feature.title} href={feature.demoHref} className="block">
@@ -764,17 +767,17 @@ export default function Hero() {
               {/* 체험 유도 카드 */}
               <div className="relative overflow-hidden card p-6 bg-gradient-to-br from-brand-primary to-brand-secondary text-white">
                 <div className="relative z-10">
-                  <h4 className="text-lg font-semibold mb-2">60초 안에 체험해보세요!</h4>
-                  <p className="text-white/80 mb-4">회원가입 없이 샘플 단어로 빠르게 체험</p>
+                  <h4 className="text-lg font-semibold mb-2">첫 단어부터 다릅니다</h4>
+                  <p className="text-white/80 mb-4">수능 기초 어휘 383개 — 완전 무료, 기간 제한 없음</p>
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <Link href="/learn?exam=CSAT&level=L1&demo=true" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
-                      <span>맛보기 시작</span>
+                    <Link href="/auth/login" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
+                      <span>무료로 시작하기</span>
                       <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
                     </Link>
-                    <Link href="/auth/login" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white/20 text-white hover:bg-white/30 border border-white/30 rounded-lg font-medium transition-colors">
-                      <span>수능 기초단어 학습</span>
+                    <Link href="/learn?exam=CSAT&level=L1&demo=true" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white/20 text-white hover:bg-white/30 border border-white/30 rounded-lg font-medium transition-colors">
+                      <span>60초 체험</span>
                     </Link>
                   </div>
                 </div>
