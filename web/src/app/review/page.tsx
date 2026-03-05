@@ -348,7 +348,7 @@ function ReviewPageContent() {
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">시험 선택</h3>
 
-          <div className="grid gap-3 grid-cols-3">
+          <div className="flex flex-wrap gap-3">
             {EXAM_LIST
               .filter((e) => {
                 if (e.key === 'CSAT_2026') return hasCsat2026Access || isPremium;
@@ -382,7 +382,7 @@ function ReviewPageContent() {
                       handleExamChange(key);
                     }
                   }}
-                  className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
+                  className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                     isLocked
                       ? 'bg-gray-100 text-[#999999] cursor-not-allowed'
                       : selectedExam === key

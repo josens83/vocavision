@@ -111,7 +111,7 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
   return (
     <Link
       href={pkg.isComingSoon ? "#" : `/packages/${pkg.slug}`}
-      className={`group block ${
+      className={`group block h-full ${
         pkg.isComingSoon ? "cursor-not-allowed" : ""
       }`}
     >
@@ -137,7 +137,7 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
         </h3>
 
         {/* 설명 */}
-        <p className="text-gray-500 text-sm mt-2 line-clamp-2">
+        <p className="text-gray-500 text-sm mt-2 line-clamp-2 flex-1">
           {pkg.shortDesc || pkg.description || "핵심 어휘만 골라 담은 단어장"}
         </p>
 
