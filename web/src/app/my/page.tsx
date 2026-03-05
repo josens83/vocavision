@@ -113,7 +113,7 @@ export default function MyPage() {
               <div className="px-5 py-4 border-b border-gray-200">
                 <h3 className="text-[13px] font-semibold text-gray-500">내 구매 상품</h3>
               </div>
-              {activePurchases.map((purchase) => {
+              {activePurchases.map((purchase: any) => {
                 const startDate = new Date(purchase.createdAt || purchase.expiresAt);
                 const expiresDate = new Date(purchase.expiresAt);
                 const isExpired = expiresDate < new Date();
