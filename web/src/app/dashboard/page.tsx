@@ -431,7 +431,7 @@ function DashboardContent() {
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+          <div className="flex flex-wrap gap-3">
             {/* 수능 버튼 */}
             <button
               onMouseEnter={() => {
@@ -445,7 +445,7 @@ function DashboardContent() {
                 setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
                 setStableQuery({ exam: 'CSAT', level: lvl });
               }}
-              className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
+              className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                 selectedExam === 'CSAT'
                   ? 'bg-teal-500 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -474,7 +474,7 @@ function DashboardContent() {
                   router.push('/pricing');
                 }
               }}
-              className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
+              className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                 !canAccessExam('TEPS')
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : selectedExam === 'TEPS'
@@ -501,7 +501,7 @@ function DashboardContent() {
                   setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
                   setStableQuery({ exam: 'CSAT_2026', level: lvl });
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
+                className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                   selectedExam === 'CSAT_2026'
                     ? 'bg-emerald-500 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -526,7 +526,7 @@ function DashboardContent() {
                   setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
                   setStableQuery({ exam: 'EBS', level: lvl });
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
+                className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                   selectedExam === 'EBS'
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -551,7 +551,7 @@ function DashboardContent() {
                   setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
                   setStableQuery({ exam: 'TOEFL', level: lvl });
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
+                className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                   selectedExam === 'TOEFL'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -576,7 +576,7 @@ function DashboardContent() {
                   setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
                   setStableQuery({ exam: 'TOEIC', level: lvl });
                 }}
-                className={`flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${
+                className={`flex-1 min-w-[80px] flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${
                   selectedExam === 'TOEIC'
                     ? 'bg-green-50 border-2 border-green-400 shadow-sm'
                     : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100'

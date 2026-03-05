@@ -156,7 +156,8 @@ function MemberInfoCard() {
   const isHomePage = pathname === '/';
 
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
-  const plan = (user as any)?.subscriptionPlan || 'FREE';
+  const rawPlan = (user as any)?.subscriptionPlan || 'FREE';
+  const plan = daysRemaining !== null ? rawPlan : 'FREE';
 
   // 프리패치 훅
   const prefetchDashboard = usePrefetchDashboard();
@@ -558,7 +559,8 @@ function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
   const isHomePage = pathname === '/';
 
   const daysRemaining = getDaysRemaining(user?.subscriptionEnd);
-  const plan = (user as any)?.subscriptionPlan || 'FREE';
+  const rawPlan = (user as any)?.subscriptionPlan || 'FREE';
+  const plan = daysRemaining !== null ? rawPlan : 'FREE';
 
   // 프리패치 훅
   const prefetchDashboard = usePrefetchDashboard();
