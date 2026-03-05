@@ -46,8 +46,9 @@ const Icons = {
 // Hero 섹션 통계 (실제 데이터 기반)
 const heroStats = [
   { label: "전체 단어", value: PLATFORM_STATS.totalWords.toLocaleString() + "+", suffix: "개" },
-  { label: "시험 대비", value: String(PLATFORM_STATS.examCount), suffix: "개" },
+  { label: "시험 대비", value: "수능 · TEPS · TOEFL · TOEIC 외", suffix: "" },
   { label: "AI 콘텐츠", value: "100", suffix: "%" },
+  { label: "단어당 예문", value: "4.0", suffix: "개" },
 ];
 
 const features = [
@@ -691,16 +692,16 @@ export default function Hero() {
               </div>
 
               <h1 className="font-display">
-                <span className="block text-[1.75rem] sm:text-4xl md:text-display-lg text-slate-900 whitespace-nowrap">
-                  영어 단어,
+                <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
+                  데이터 기반 AI 시각화 학습
                 </span>
-                <span className="block text-[1.75rem] sm:text-4xl md:text-display-xl text-gradient whitespace-nowrap">
-                  제대로 한 번.
+                <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
+                  모든 영어 시험을 위한 단어 솔루션
                 </span>
               </h1>
 
               <p className="text-lg md:text-xl text-slate-600 max-w-xl leading-relaxed">
-                수능 · TEPS · TOEFL · TOEIC · 공무원 · 편입 · SAT<br />
+                수능 · TEPS · TOEFL · TOEIC · 공무원 · 편입 등<br />
                 모든 시험을 하나의 플랫폼에서.
               </p>
 
