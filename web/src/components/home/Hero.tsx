@@ -46,7 +46,7 @@ const Icons = {
 // Hero 섹션 통계 (실제 데이터 기반)
 const heroStats = [
   { label: "전체 단어", value: PLATFORM_STATS.totalWords.toLocaleString() + "+", suffix: "개" },
-  { label: "시험 대비", value: "수능 · TEPS · TOEFL · TOEIC 외", suffix: "" },
+  { label: "시험 대비", value: "6+", suffix: "개" },
   { label: "AI 콘텐츠", value: "100", suffix: "%" },
   { label: "단어당 예문", value: "4.0", suffix: "개" },
 ];
@@ -693,7 +693,7 @@ export default function Hero() {
 
               <h1 className="font-display">
                 <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
-                  데이터 기반 AI 시각화 학습
+                  AI 시각화 학습
                 </span>
                 <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
                   모든 영어 시험을 위한 단어 솔루션
@@ -716,13 +716,13 @@ export default function Hero() {
                 </Link>
               </div>
 
-              <div className="flex gap-8 pt-8 border-t border-slate-200">
+              <div className="grid grid-cols-2 md:flex md:gap-8 gap-4 pt-8 border-t border-slate-200">
                 {heroStats.map((stat, index) => (
                   <div key={stat.label} className={`${isVisible ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: `${0.3 + index * 0.1}s` }}>
-                    <div className="text-3xl font-display font-bold text-slate-900">
-                      {stat.value}<span className="text-lg text-slate-500">{stat.suffix}</span>
+                    <div className="text-2xl md:text-3xl font-display font-bold text-slate-900">
+                      {stat.value}<span className="text-sm md:text-lg text-slate-500">{stat.suffix}</span>
                     </div>
-                    <div className="text-sm text-slate-500">{stat.label}</div>
+                    <div className="text-xs md:text-sm text-slate-500">{stat.label}</div>
                   </div>
                 ))}
               </div>
