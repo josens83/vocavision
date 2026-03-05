@@ -39,7 +39,7 @@ export const PLATFORM_STATS = {
   },
 
   // 대비 가능한 시험 수
-  examCount: 6,
+  examCount: '6+',
 
   // AI 콘텐츠 단계 수
   learningModes: 8,
