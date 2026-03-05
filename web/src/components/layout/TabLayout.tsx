@@ -113,7 +113,7 @@ export default function TabLayout({
                             : 'bg-gray-100 text-gray-600'
                         }`}>
                           {user.subscriptionStatus === 'ACTIVE' && '프리미엄'}
-                          {user.subscriptionStatus === 'TRIAL' && '무료 체험'}
+                          {user.subscriptionStatus === 'TRIAL' && '무료'}
                           {user.subscriptionStatus === 'FREE' && '무료'}
                           {!user.subscriptionStatus && '무료'}
                         </span>

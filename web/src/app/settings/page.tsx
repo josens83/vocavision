@@ -407,7 +407,7 @@ function SettingsContent() {
                               <span className="text-[#10B981]">활성</span>
                             )}
                             {subscription.subscriptionStatus === 'TRIAL' && (
-                              <span className="text-[#3B82F6]">무료 체험</span>
+                              <span className="text-[#3B82F6]">무료</span>
                             )}
                             {subscription.subscriptionStatus === 'CANCELLED' && (
                               <span className="text-[#F59E0B]">취소됨</span>
