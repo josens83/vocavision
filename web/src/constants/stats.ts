@@ -1,13 +1,16 @@
 // /web/src/constants/stats.ts
 // VocaVision 플랫폼 상수 정의
-// 실제 DB 수치 기준 (2024년 12월 업데이트)
+// 실제 DB 수치 기준 (2026년 3월 업데이트)
 
 /**
  * 플랫폼 전체 통계
  */
 export const PLATFORM_STATS = {
+  // 전체 단어 수 (수능 1,787 + TEPS 388 + TOEFL 3,651 + TOEIC 2,491 + EBS 3,837 + 기출 521)
+  totalWords: 12675,
+
   // 수능 단어 수 (기본 무료 제공)
-  totalWords: 1787,
+  csatWords: 1787,
 
   // 레벨별 단어 수 (CSAT 기준)
   levels: {
@@ -20,9 +23,10 @@ export const PLATFORM_STATS = {
   exams: {
     CSAT: { name: '수능', words: 1787, active: true },
     TEPS: { name: 'TEPS', words: 388, active: true, premium: true },
-    TOEFL: { name: 'TOEFL', words: 4, active: false },
-    TOEIC: { name: 'TOEIC', words: 3, active: false },
-    SAT: { name: 'SAT', words: 3, active: false },
+    TOEFL: { name: 'TOEFL', words: 3651, active: true },
+    TOEIC: { name: 'TOEIC', words: 2491, active: true },
+    EBS: { name: 'EBS', words: 3837, active: true },
+    CSAT_2026: { name: '2026 기출', words: 521, active: true },
   },
 
   // 프리미엄 통계
@@ -30,6 +34,9 @@ export const PLATFORM_STATS = {
     totalWords: 2175, // CSAT 1,787 + TEPS 388
     exams: ['CSAT', 'TEPS'],
   },
+
+  // 대비 가능한 시험 수
+  examCount: 6,
 
   // AI 콘텐츠 단계 수
   learningModes: 8,

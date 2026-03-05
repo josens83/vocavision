@@ -36,7 +36,7 @@ const examCategories: ExamCategory[] = [
     icon: "🌍",
     color: "bg-blue-100 text-blue-600",
     href: "/learn?exam=TOEFL",
-    available: false,
+    available: true,
   },
   {
     id: "TOEIC",
@@ -44,7 +44,7 @@ const examCategories: ExamCategory[] = [
     icon: "💼",
     color: "bg-green-100 text-green-600",
     href: "/learn?exam=TOEIC",
-    available: false,
+    available: true,
   },
   {
     id: "SAT",
