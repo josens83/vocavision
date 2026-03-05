@@ -36,7 +36,7 @@ export interface PlanDisplay {
  * 사용자 플랜 표시 정보 반환
  * - YEARLY/FAMILY = 프리미엄
  * - MONTHLY + ACTIVE = 베이직
- * - TRIAL = 무료 체험
+ * - TRIAL = 무료
  * - 그 외 = 무료
  */
 export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscriptionStatus?: string | null } | null): PlanDisplay {
@@ -67,10 +67,10 @@ export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscri
     };
   }
 
-  // TRIAL = 무료 체험
+  // TRIAL = 무료
   if (status === 'TRIAL') {
     return {
-      text: '무료 체험',
+      text: '무료',
       bgColor: 'bg-[#EFF6FF]',
       textColor: 'text-[#3B82F6]',
       icon: '🎁'
