@@ -52,10 +52,10 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
-              수능 · TEPS · TOEFL · TOEIC · EBS —<br />
+              수능 · TEPS · TOEFL · TOEIC · 공무원 · 편입 · SAT<br />
               모든 영어 시험을 위한 AI 어휘 학습 플랫폼.<br />
-              어원, 연상 이미지, 라임, 콜로케이션, 예문까지<br />
-              단어 하나를 8가지 방법으로 완전히 이해시킵니다.
+              과학적으로 검증된 간격 반복 학습과 AI 이미지 연상법으로<br />
+              효율적인 어휘력 향상을 경험하세요.
             </p>
           </div>
 
