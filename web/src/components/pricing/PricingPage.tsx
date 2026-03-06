@@ -17,7 +17,8 @@ const features: PlanFeature[] = [
   { name: "수능 L1(기초)", free: true, basic: true, premium: true },
   { name: "수능 L2(중급)", free: false, basic: true, premium: true },
   { name: "수능 L3(고급)", free: false, basic: true, premium: true },
-  { name: "TEPS L1(기본)/L2(필수)", free: false, basic: false, premium: true },
+  { name: "TEPS L1(기본)/L2(필수)", free: false, basic: true, premium: true },
+  { name: "단어장 (TOEFL/TOEIC/EBS/기출)", free: false, basic: false, premium: true },
   { name: "AI 생성 이미지", free: "일부", basic: true, premium: true },
   { name: "플래시카드", free: true, basic: true, premium: true },
   { name: "퀴즈 모드", free: "전체", basic: "전체", premium: "전체" },
@@ -139,6 +140,14 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
+                <span>TEPS</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
+                <X className="w-5 h-5 flex-shrink-0" />
+                <span>단어장 (TOEFL/TOEIC/EBS/기출)</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
+                <X className="w-5 h-5 flex-shrink-0" />
                 <span>학습 통계</span>
               </li>
             </ul>
@@ -234,7 +243,7 @@ export default function PricingPage() {
             </div>
 
             <p className="text-gray-500 text-[13px] mb-6">
-              수능 영어 완벽 대비를 원하는 분께 추천
+              수능 + TEPS 대비를 원하는 분께 추천
             </p>
 
             <button
@@ -247,7 +256,11 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>수능 L1(기초)/L2(중급)/L3(고급) 전체 (1,700+개)</span>
+                <span>수능 전체 (L1/L2/L3) — 1,787개 단어</span>
+              </li>
+              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
+                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
+                <span className="font-semibold">TEPS 전체 (L1/L2) — 388개 단어</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -263,7 +276,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
-                <span>TEPS 단어</span>
+                <span>단어장 (TOEFL/TOEIC/EBS/기출)</span>
               </li>
             </ul>
           </div>
