@@ -126,7 +126,8 @@ export function getSubscriptionTier(user: User | null): SubscriptionTier {
 export function canAccessExam(user: User | null, exam: string): boolean {
   if (exam === 'CSAT') return true;
   if (exam === 'TEPS') {
-    return getSubscriptionTier(user) === 'PREMIUM';
+    const tier = getSubscriptionTier(user);
+    return tier === 'PREMIUM' || tier === 'BASIC';
   }
   // EBS, CSAT_2026: 프리미엄 또는 단품 구매
   if (exam === 'EBS' || exam === 'CSAT_2026') {
@@ -167,7 +168,7 @@ export function getAccessibleLevels(user: User | null): { CSAT: string[]; TEPS: 
     case 'PREMIUM':
       return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'], EBS: ['LISTENING', 'READING_BASIC', 'READING_ADV'] };
     case 'BASIC':
-      return { CSAT: ['L1', 'L2', 'L3'], TEPS: [], EBS: ebsLevels };
+      return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2'], EBS: ebsLevels };
     case 'FREE':
     default:
       return { CSAT: ['L1'], TEPS: [], EBS: ebsLevels };
@@ -209,7 +210,7 @@ export function hasPurchasedExam(user: User | null, examCategory: string): boole
 /**
  * 프리미엄 또는 단품 구매로 시험에 접근 가능한지 확인
  * - CSAT: 모든 사용자
- * - TEPS: 프리미엄만
+ * - TEPS: 베이직 이상
  * - CSAT_2026: 프리미엄 또는 단품 구매자
  */
 export function canAccessExamWithPurchase(user: User | null, exam: string): boolean {
@@ -228,7 +229,7 @@ export function canAccessExamWithPurchase(user: User | null, exam: string): bool
 /**
  * 프리미엄 또는 단품 구매로 콘텐츠에 접근 가능한지 확인
  * - 프리미엄: 모든 콘텐츠 접근 가능 (CSAT, TEPS, 단품 포함)
- * - 베이직: CSAT 전체 레벨
+ * - 베이직: CSAT 전체 레벨 + TEPS L1/L2
  * - 무료: CSAT L1만
  * - 단품 구매: 해당 시험 전체 레벨
  */
@@ -251,7 +252,7 @@ export function getAvailableExams(user: User | null): { exam: string; locked: bo
 
   const exams = [
     { exam: 'CSAT', locked: false },
-    { exam: 'TEPS', locked: tier !== 'PREMIUM', reason: '프리미엄 전용' },
+    { exam: 'TEPS', locked: tier !== 'PREMIUM' && tier !== 'BASIC', reason: '베이직 이상 전용' },
     { exam: 'CSAT_2026', locked: !canAccessExamWithPurchase(user, 'CSAT_2026'), reason: '단품 구매 필요' },
     { exam: 'EBS', locked: !canAccessExamWithPurchase(user, 'EBS'), reason: '단품 구매 필요' },
     { exam: 'TOEFL', locked: !hasPurchasedExam(user, 'TOEFL'), reason: '단품 구매 필요' },
