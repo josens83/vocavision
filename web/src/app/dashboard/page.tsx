@@ -268,9 +268,7 @@ function DashboardContent() {
       (activeExam === 'TOEIC' && !hasToeicAccess);
 
     if (needsFallback) {
-      if (activeExam !== 'CSAT' || activeLevel !== 'L1') {
-        setActiveExamWithLevel('CSAT' as ExamType, 'L1');
-      }
+      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
       return;
     }
 
