@@ -1,7 +1,7 @@
 // Force redeploy - 2026-01-31 v3 (fix exam order: 수능→TEPS→2026기출)
 'use client';
 
-import { useEffect, Suspense, useRef, useState, useCallback } from 'react';
+import { useEffect, Suspense, useRef, useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
@@ -127,8 +127,8 @@ function DashboardContent() {
   const setDailyGoal = useUserSettingsStore((state) => state.setDailyGoal);
 
   // React Query: 대시보드 데이터 캐싱
-  const examCategory = activeExam || 'CSAT';
-  const validLevel = getValidLevelForExam(examCategory, activeLevel || 'L1');
+  const examCategory = useMemo(() => activeExam || 'CSAT', [activeExam]);
+  const validLevel = useMemo(() => getValidLevelForExam(examCategory, activeLevel || 'L1'), [examCategory, activeLevel]);
 
   // 4개 패키지 접근 권한을 1번의 API 호출로 체크
   const { data: bulkAccessData } = usePackageAccessBulk(
@@ -259,33 +259,18 @@ function DashboardContent() {
     // 이미 초기화 완료 → fallback 체크 불필요 (사용자 명시적 변경은 onClick에서 처리)
     if (stableQueryInitRef.current) return;
 
-    // CSAT_2026 접근 불가 → CSAT으로 fallback
-    if (activeExam === 'CSAT_2026' && !hasCsat2026Access && !isPremium) {
-      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
-      return;
-    }
+    // 접근 불가 시험 → CSAT/L1로 fallback (이미 CSAT/L1이면 skip)
+    const needsFallback =
+      (activeExam === 'CSAT_2026' && !hasCsat2026Access && !isPremium) ||
+      (activeExam === 'TEPS' && !canAccessExam('TEPS')) ||
+      (activeExam === 'EBS' && !canAccessExam('EBS')) ||
+      (activeExam === 'TOEFL' && !hasToeflAccess) ||
+      (activeExam === 'TOEIC' && !hasToeicAccess);
 
-    // TEPS 접근 불가 (프리미엄 아님) → CSAT으로 fallback
-    if (activeExam === 'TEPS' && !canAccessExam('TEPS')) {
-      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
-      return;
-    }
-
-    // EBS 접근 불가 → CSAT으로 fallback
-    if (activeExam === 'EBS' && !canAccessExam('EBS')) {
-      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
-      return;
-    }
-
-    // TOEFL 접근 불가 → CSAT으로 fallback
-    if (activeExam === 'TOEFL' && !hasToeflAccess) {
-      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
-      return;
-    }
-
-    // TOEIC 접근 불가 → CSAT으로 fallback
-    if (activeExam === 'TOEIC' && !hasToeicAccess) {
-      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
+    if (needsFallback) {
+      if (activeExam !== 'CSAT' || activeLevel !== 'L1') {
+        setActiveExamWithLevel('CSAT' as ExamType, 'L1');
+      }
       return;
     }
 
