@@ -210,6 +210,22 @@ function MemberInfoCard() {
         </p>
       </div>
 
+      {/* 활성 단품 구매 표시 */}
+      {(() => {
+        const activePurchases = (user as any)?.purchases?.filter(
+          (p: any) => new Date(p.expiresAt) > new Date()
+        ) || [];
+        return activePurchases.length > 0 ? (
+          <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3 -mt-2">
+            {activePurchases.map((p: any) => (
+              <span key={p.id} className="text-xs text-blue-600">
+                📦 {p.package?.name || p.packageName} (~{new Date(p.expiresAt).toLocaleDateString('ko-KR')})
+              </span>
+            ))}
+          </div>
+        ) : null;
+      })()}
+
       {/* 중단: 오늘의 학습 현황 통계 */}
       <div className="py-4 border-t border-gray-100">
         <div className="flex items-center justify-between mb-3">
@@ -485,6 +501,22 @@ function DesktopMemberCard({
           )}
         </p>
       </div>
+
+      {/* 활성 단품 구매 표시 */}
+      {(() => {
+        const activePurchases = (user as any)?.purchases?.filter(
+          (p: any) => new Date(p.expiresAt) > new Date()
+        ) || [];
+        return activePurchases.length > 0 ? (
+          <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3 -mt-2">
+            {activePurchases.map((p: any) => (
+              <span key={p.id} className="text-xs text-blue-600">
+                📦 {p.package?.name || p.packageName} (~{new Date(p.expiresAt).toLocaleDateString('ko-KR')})
+              </span>
+            ))}
+          </div>
+        ) : null;
+      })()}
 
       {/* 중단: 오늘의 학습 현황 */}
       <div className="flex-1 py-3 border-t border-gray-100">
