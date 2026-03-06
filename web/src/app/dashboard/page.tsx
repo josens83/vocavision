@@ -119,6 +119,7 @@ function DashboardContent() {
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
   const setActiveExam = useExamCourseStore((state) => state.setActiveExam);
   const setActiveLevel = useExamCourseStore((state) => state.setActiveLevel);
+  const setActiveExamWithLevel = useExamCourseStore((state) => state.setActiveExamWithLevel);
   const examHasHydrated = useExamCourseStore((state) => state._hasHydrated);
 
   // dailyGoal: Zustand store에서 관리 (Hero.tsx와 동기화)
@@ -241,16 +242,14 @@ function DashboardContent() {
     // 유효한 시험인지 확인
     const validExams = VALID_EXAM_KEYS;
     if (validExams.includes(examParam)) {
-      setActiveExam(examParam as ExamType);
-
       // 레벨도 함께 왔으면 설정
       const validLevel = getValidLevelForExam(examParam, levelParam || 'L1');
-      setActiveLevel(validLevel as 'L1' | 'L2' | 'L3');
+      setActiveExamWithLevel(examParam as ExamType, validLevel as 'L1' | 'L2' | 'L3');
 
       // 개별 localStorage도 업데이트 (시험 탭 전환 시 사용)
       localStorage.setItem(`dashboard_${examParam}_level`, validLevel);
     }
-  }, [hasHydrated, examHasHydrated, searchParams, setActiveExam, setActiveLevel]);
+  }, [hasHydrated, examHasHydrated, searchParams, setActiveExamWithLevel]);
 
   // CSAT_2026/TEPS 접근권한 없으면 CSAT으로 fallback
   // bulkAccessData 로딩 전에는 실행하지 않음 (접근 권한 미확인 상태에서 시험 리셋 방지)
@@ -262,36 +261,31 @@ function DashboardContent() {
 
     // CSAT_2026 접근 불가 → CSAT으로 fallback
     if (activeExam === 'CSAT_2026' && !hasCsat2026Access && !isPremium) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
+      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
       return;
     }
 
     // TEPS 접근 불가 (프리미엄 아님) → CSAT으로 fallback
     if (activeExam === 'TEPS' && !canAccessExam('TEPS')) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
+      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
       return;
     }
 
     // EBS 접근 불가 → CSAT으로 fallback
     if (activeExam === 'EBS' && !canAccessExam('EBS')) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
+      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
       return;
     }
 
     // TOEFL 접근 불가 → CSAT으로 fallback
     if (activeExam === 'TOEFL' && !hasToeflAccess) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
+      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
       return;
     }
 
     // TOEIC 접근 불가 → CSAT으로 fallback
     if (activeExam === 'TOEIC' && !hasToeicAccess) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
+      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
       return;
     }
 
@@ -301,7 +295,7 @@ function DashboardContent() {
       exam: activeExam || 'CSAT',
       level: getValidLevelForExam(activeExam || 'CSAT', activeLevel || 'L1'),
     });
-  }, [hasHydrated, activeExam, activeLevel, hasCsat2026Access, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium, canAccessExam, setActiveExam, setActiveLevel, bulkAccessData]);
+  }, [hasHydrated, activeExam, activeLevel, hasCsat2026Access, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium, canAccessExam, setActiveExamWithLevel, bulkAccessData]);
 
   // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
   // 하이드레이션 후 activeLevel이 없으면 L1 자동 설정
@@ -441,8 +435,7 @@ function DashboardContent() {
               onClick={() => {
                 const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
                 const lvl = getValidLevelForExam('CSAT', lastLevel);
-                setActiveExam('CSAT' as ExamType);
-                setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                setActiveExamWithLevel('CSAT' as ExamType, lvl as 'L1' | 'L2' | 'L3');
                 setStableQuery({ exam: 'CSAT', level: lvl });
               }}
               className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
@@ -467,8 +460,7 @@ function DashboardContent() {
                 if (canAccessExam('TEPS')) {
                   const lastLevel = localStorage.getItem('dashboard_TEPS_level') || 'L1';
                   const lvl = getValidLevelForExam('TEPS', lastLevel);
-                  setActiveExam('TEPS' as ExamType);
-                  setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                  setActiveExamWithLevel('TEPS' as ExamType, lvl as 'L1' | 'L2' | 'L3');
                   setStableQuery({ exam: 'TEPS', level: lvl });
                 } else {
                   router.push('/pricing');
@@ -497,8 +489,7 @@ function DashboardContent() {
                 onClick={() => {
                   const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
                   const lvl = getValidLevelForExam('CSAT_2026', lastLevel);
-                  setActiveExam('CSAT_2026' as ExamType);
-                  setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                  setActiveExamWithLevel('CSAT_2026' as ExamType, lvl as 'L1' | 'L2' | 'L3');
                   setStableQuery({ exam: 'CSAT_2026', level: lvl });
                 }}
                 className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
@@ -522,8 +513,7 @@ function DashboardContent() {
                 onClick={() => {
                   const lastLevel = localStorage.getItem('dashboard_EBS_level') || 'LISTENING';
                   const lvl = getValidLevelForExam('EBS', lastLevel);
-                  setActiveExam('EBS' as ExamType);
-                  setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                  setActiveExamWithLevel('EBS' as ExamType, lvl as 'L1' | 'L2' | 'L3');
                   setStableQuery({ exam: 'EBS', level: lvl });
                 }}
                 className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
@@ -547,8 +537,7 @@ function DashboardContent() {
                 onClick={() => {
                   const lastLevel = localStorage.getItem('dashboard_TOEFL_level') || 'L1';
                   const lvl = getValidLevelForExam('TOEFL', lastLevel);
-                  setActiveExam('TOEFL' as ExamType);
-                  setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                  setActiveExamWithLevel('TOEFL' as ExamType, lvl as 'L1' | 'L2' | 'L3');
                   setStableQuery({ exam: 'TOEFL', level: lvl });
                 }}
                 className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
@@ -572,8 +561,7 @@ function DashboardContent() {
                 onClick={() => {
                   const lastLevel = localStorage.getItem('dashboard_TOEIC_level') || 'L1';
                   const lvl = getValidLevelForExam('TOEIC', lastLevel);
-                  setActiveExam('TOEIC' as ExamType);
-                  setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                  setActiveExamWithLevel('TOEIC' as ExamType, lvl as 'L1' | 'L2' | 'L3');
                   setStableQuery({ exam: 'TOEIC', level: lvl });
                 }}
                 className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
