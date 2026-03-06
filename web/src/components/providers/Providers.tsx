@@ -5,15 +5,32 @@
 
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmModal';
 import { AuthRequiredProvider } from '@/components/ui/AuthRequiredModal';
 import { ComingSoonProvider } from '@/components/ui/ComingSoonModal';
+import { useAuthStore } from '@/lib/store';
 
 interface ProvidersProps {
   children: ReactNode;
+}
+
+// 앱 로드 시 인증된 사용자의 최신 데이터를 서버에서 가져옴
+// (로그인 응답에는 purchases 등 일부 필드가 없으므로 /users/me로 보완)
+function AuthRefresher() {
+  const token = useAuthStore((state) => state.token);
+  const _hasHydrated = useAuthStore((state) => state._hasHydrated);
+  const refreshUser = useAuthStore((state) => state.refreshUser);
+
+  useEffect(() => {
+    if (_hasHydrated && token) {
+      refreshUser();
+    }
+  }, [_hasHydrated, token, refreshUser]);
+
+  return null;
 }
 
 export default function Providers({ children }: ProvidersProps) {
@@ -33,6 +50,7 @@ export default function Providers({ children }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthRefresher />
       <ToastProvider>
         <ConfirmProvider>
           <AuthRequiredProvider>
