@@ -411,10 +411,6 @@ function DashboardContent() {
           <div className="flex flex-wrap gap-3">
             {/* 수능 버튼 */}
             <button
-              onMouseEnter={() => {
-                const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
-                prefetchDashboard('CSAT', lastLevel);
-              }}
               onClick={() => {
                 const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
                 const lvl = getValidLevelForExam('CSAT', lastLevel);
@@ -433,12 +429,6 @@ function DashboardContent() {
 
             {/* TEPS 버튼 */}
             <button
-              onMouseEnter={() => {
-                if (canAccessExam('TEPS')) {
-                  const lastLevel = localStorage.getItem('dashboard_TEPS_level') || 'L1';
-                  prefetchDashboard('TEPS', getValidLevelForExam('TEPS', lastLevel));
-                }
-              }}
               onClick={() => {
                 if (canAccessExam('TEPS')) {
                   const lastLevel = localStorage.getItem('dashboard_TEPS_level') || 'L1';
@@ -465,10 +455,6 @@ function DashboardContent() {
             {/* 2026 기출 버튼 - 프리미엄 또는 단품 구매자만 표시 */}
             {(hasCsat2026Access || isPremium) && (
               <button
-                onMouseEnter={() => {
-                  const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
-                  prefetchDashboard('CSAT_2026', lastLevel);
-                }}
                 onClick={() => {
                   const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
                   const lvl = getValidLevelForExam('CSAT_2026', lastLevel);
@@ -489,10 +475,6 @@ function DashboardContent() {
             {/* EBS 연계어휘 버튼 - 프리미엄 또는 단품 구매자만 표시 */}
             {(hasEbsAccess || isPremium) && (
               <button
-                onMouseEnter={() => {
-                  const lastLevel = localStorage.getItem('dashboard_EBS_level') || 'LISTENING';
-                  prefetchDashboard('EBS', lastLevel);
-                }}
                 onClick={() => {
                   const lastLevel = localStorage.getItem('dashboard_EBS_level') || 'LISTENING';
                   const lvl = getValidLevelForExam('EBS', lastLevel);
@@ -513,10 +495,6 @@ function DashboardContent() {
             {/* TOEFL 버튼 - 단품 구매자만 표시 */}
             {hasToeflAccess && (
               <button
-                onMouseEnter={() => {
-                  const lastLevel = localStorage.getItem('dashboard_TOEFL_level') || 'L1';
-                  prefetchDashboard('TOEFL', getValidLevelForExam('TOEFL', lastLevel));
-                }}
                 onClick={() => {
                   const lastLevel = localStorage.getItem('dashboard_TOEFL_level') || 'L1';
                   const lvl = getValidLevelForExam('TOEFL', lastLevel);
@@ -537,10 +515,6 @@ function DashboardContent() {
             {/* TOEIC 버튼 - 단품 구매자만 표시 */}
             {hasToeicAccess && (
               <button
-                onMouseEnter={() => {
-                  const lastLevel = localStorage.getItem('dashboard_TOEIC_level') || 'L1';
-                  prefetchDashboard('TOEIC', getValidLevelForExam('TOEIC', lastLevel));
-                }}
                 onClick={() => {
                   const lastLevel = localStorage.getItem('dashboard_TOEIC_level') || 'L1';
                   const lvl = getValidLevelForExam('TOEIC', lastLevel);
