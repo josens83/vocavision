@@ -194,6 +194,7 @@ interface ExamCourseState {
   _hasHydrated: boolean;
   setActiveExam: (exam: ExamType) => void;
   setActiveLevel: (level: LevelType) => void;
+  setActiveExamWithLevel: (exam: ExamType, level: LevelType) => void;
   setGoalScore: (score: string) => void;
   setHasHydrated: (state: boolean) => void;
   clearExam: () => void;
@@ -208,6 +209,7 @@ export const useExamCourseStore = create<ExamCourseState>()(
       _hasHydrated: false,
       setActiveExam: (exam) => set({ activeExam: exam }),
       setActiveLevel: (level) => set({ activeLevel: level }),
+      setActiveExamWithLevel: (exam, level) => set({ activeExam: exam, activeLevel: level }),
       setGoalScore: (score) => set({ goalScore: score }),
       setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
       clearExam: () => set({ activeExam: 'CSAT', activeLevel: 'L1', goalScore: null }),
