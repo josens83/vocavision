@@ -550,11 +550,6 @@ function DashboardContent() {
               return (
                 <button
                   key={lvl}
-                  onMouseEnter={() => {
-                    if (!isLocked) {
-                      prefetchDashboard(selectedExam, lvl);
-                    }
-                  }}
                   onClick={() => {
                     if (isLocked) {
                       router.push('/pricing');
