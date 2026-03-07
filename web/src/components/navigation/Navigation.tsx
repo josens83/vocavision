@@ -438,16 +438,34 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, u
   const router = useRouter();
 
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
-    // 배너 숨김을 위한 속성 추가
     if (isOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
       document.body.setAttribute('data-menu-open', 'true');
     } else {
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
       document.body.removeAttribute('data-menu-open');
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY, 10) * -1);
+      }
     }
     return () => {
-      document.body.style.overflow = "";
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
       document.body.removeAttribute('data-menu-open');
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY, 10) * -1);
+      }
     };
   }, [isOpen]);
 
