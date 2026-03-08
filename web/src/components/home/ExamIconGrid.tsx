@@ -49,10 +49,10 @@ const examCategories: ExamCategory[] = [
   {
     id: "SAT",
     name: "SAT",
-    icon: "🎓",
-    color: "bg-amber-100 text-amber-600",
-    href: "/learn?exam=SAT",
-    available: false,
+    icon: "🇺🇸",
+    color: "bg-indigo-100 text-indigo-600",
+    href: "/packages/sat-complete",
+    available: true,
   },
   {
     id: "IELTS",

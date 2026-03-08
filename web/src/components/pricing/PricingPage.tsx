@@ -18,7 +18,7 @@ const features: PlanFeature[] = [
   { name: "수능 L2(중급)", free: false, basic: true, premium: true },
   { name: "수능 L3(고급)", free: false, basic: true, premium: true },
   { name: "TEPS L1(기본)/L2(필수)", free: false, basic: true, premium: true },
-  { name: "단어장 (TOEFL/TOEIC/EBS/기출)", free: false, basic: false, premium: true },
+  { name: "단어장 (TOEFL/TOEIC/SAT/EBS/기출)", free: false, basic: false, premium: true },
   { name: "AI 생성 이미지", free: "일부", basic: true, premium: true },
   { name: "플래시카드", free: true, basic: true, premium: true },
   { name: "퀴즈 모드", free: "전체", basic: "전체", premium: "전체" },

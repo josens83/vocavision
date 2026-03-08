@@ -14,6 +14,7 @@ const PACKAGE_WORD_COUNTS: Record<string, number> = {
   'ebs-vocab': 3837,
   'toefl-complete': 3651,
   'toeic-complete': 2491,
+  'sat-complete': 1935,
 };
 
 // ChevronRight 아이콘

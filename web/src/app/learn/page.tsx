@@ -171,10 +171,11 @@ function LearnPageContent() {
     'EBS': 'ebs-vocab',
     'TOEFL': 'toefl-complete',
     'TOEIC': 'toeic-complete',
+    'SAT': 'sat-complete',
   };
   const packageSlug = examParam ? (packageSlugMap[examParam] || '') : '';
   const { data: bulkAccessData } = usePackageAccessBulk(
-    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete'],
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete'],
     !!user && !!packageSlug && hasHydrated && !isDemo
   );
   const packageAccessData = packageSlug && bulkAccessData ? bulkAccessData[packageSlug] : undefined;

@@ -95,6 +95,17 @@ export const EXAM_LIST: ExamConfig[] = [
       { key: 'L2', label: '토익 Boost', shortLabel: 'Boost' },
     ],
   },
+  {
+    key: 'SAT',
+    label: 'SAT',
+    icon: '🇺🇸',
+    color: 'indigo',
+    packageSlug: 'sat-complete',
+    levels: [
+      { key: 'L1', label: 'Thematic 주제별', shortLabel: 'Thematic' },
+      { key: 'L2', label: 'Confusable 혼동어', shortLabel: 'Confusable' },
+    ],
+  },
 ];
 
 // ---------------------------------------------

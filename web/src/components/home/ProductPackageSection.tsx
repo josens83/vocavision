@@ -70,11 +70,22 @@ function getStaticPackages(): ProductPackage[] {
       isComingSoon: false,
       wordCount: 2491,
     },
+    {
+      id: "static-sat",
+      name: "SAT 완전정복",
+      slug: "sat-complete",
+      shortDesc: "미국 대입 SAT 핵심 1,935단어를 AI 이미지로 정복. Thematic(주제별 1,786) + Confusable(혼동어 149) 2단계 구성으로 고득점 어휘를 효율적으로 학습합니다.",
+      price: 9900,
+      durationDays: 180,
+      badge: "NEW",
+      isComingSoon: false,
+      wordCount: 1935,
+    },
   ];
 }
 
 // 메인페이지에 표시할 패키지 slug 목록
-const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete'];
+const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete'];
 
 // 표시용 단어 수 오버라이드 (교재별 레벨 중복 포함 수치)
 const DISPLAY_WORD_COUNTS: Record<string, number> = {
@@ -82,6 +93,7 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   '2026-csat-analysis': 521,
   'toefl-complete': 3651,
   'toeic-complete': 2491,
+  'sat-complete': 1935,
 };
 
 // 뱃지 스타일 결정

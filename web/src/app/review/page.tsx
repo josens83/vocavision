@@ -137,13 +137,14 @@ function ReviewPageContent() {
 
   // 접근 권한 일괄 확인 (4회 개별 → 1회 bulk)
   const { data: bulkAccessData } = usePackageAccessBulk(
-    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete'],
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete'],
     !!user
   );
   const hasCsat2026Access = bulkAccessData?.['2026-csat-analysis']?.hasAccess || false;
   const hasEbsAccess = bulkAccessData?.['ebs-vocab']?.hasAccess || false;
   const hasToeflAccess = bulkAccessData?.['toefl-complete']?.hasAccess || false;
   const hasToeicAccess = bulkAccessData?.['toeic-complete']?.hasAccess || false;
+  const hasSatAccess = bulkAccessData?.['sat-complete']?.hasAccess || false;
 
   // 구독 상태 확인 (프리미엄 회원은 모든 단품 접근 가능)
   const isPremium = (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY');
@@ -236,7 +237,12 @@ function ReviewPageContent() {
       setActiveLevel('L1');
       setStableQuery({ exam: 'CSAT', level: 'L1' });
     }
-  }, [activeExam, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium]);
+    if (activeExam === 'SAT' && !(hasSatAccess || isPremium)) {
+      setActiveExam('CSAT' as ExamType);
+      setActiveLevel('L1');
+      setStableQuery({ exam: 'CSAT', level: 'L1' });
+    }
+  }, [activeExam, hasEbsAccess, hasToeflAccess, hasToeicAccess, hasSatAccess, isPremium]);
 
   if (!hasHydrated || loading) {
     return (
@@ -355,6 +361,7 @@ function ReviewPageContent() {
                 if (e.key === 'EBS') return hasEbsAccess || isPremium;
                 if (e.key === 'TOEFL') return hasToeflAccess || isPremium;
                 if (e.key === 'TOEIC') return hasToeicAccess || isPremium;
+                if (e.key === 'SAT') return hasSatAccess || isPremium;
                 return true;
               })
               .map((e) => {
@@ -365,6 +372,7 @@ function ReviewPageContent() {
                 : (key === 'EBS') ? !(hasEbsAccess || isPremium)
                 : (key === 'TOEFL') ? !(hasToeflAccess || isPremium)
                 : (key === 'TOEIC') ? !(hasToeicAccess || isPremium)
+                : (key === 'SAT') ? !(hasSatAccess || isPremium)
                 : !canAccessExam(user, key);
               return (
                 <button
