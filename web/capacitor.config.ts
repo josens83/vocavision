@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
 
   // Live URL 방식 - Vercel 배포된 웹앱 사용
   server: {
-    url: 'https://www.vocavision.kr',
+    url: 'https://vocavision.kr',
     cleartext: true,
   },
 
