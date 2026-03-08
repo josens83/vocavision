@@ -65,6 +65,14 @@ const getLevelInfo = (exam: string, level: string) => {
     return toeicLevels[level] || toeicLevels.L1;
   }
 
+  if (exam === 'SAT') {
+    const satLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
+      L1: { name: 'Thematic 주제별', description: 'SAT 주제별 핵심 어휘', target: '주제별 학습', wordCount: 1786 },
+      L2: { name: 'Confusable 혼동어', description: 'SAT 자주 혼동되는 어휘', target: '혼동어 정복', wordCount: 149 },
+    };
+    return satLevels[level] || satLevels.L1;
+  }
+
   if (exam === 'TEPS') {
     // TEPS는 L1, L2만 (L3 없음)
     const tepsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
@@ -132,7 +140,7 @@ function DashboardContent() {
 
   // 4개 패키지 접근 권한을 1번의 API 호출로 체크
   const { data: bulkAccessData } = usePackageAccessBulk(
-    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete'],
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete'],
     !!user && hasHydrated
   );
 
@@ -141,6 +149,7 @@ function DashboardContent() {
   const ebsAccessData = bulkAccessData?.['ebs-vocab'] ? { hasAccess: bulkAccessData['ebs-vocab'].hasAccess } : undefined;
   const toeflAccessData = bulkAccessData?.['toefl-complete'] ? { hasAccess: bulkAccessData['toefl-complete'].hasAccess } : undefined;
   const toeicAccessData = bulkAccessData?.['toeic-complete'] ? { hasAccess: bulkAccessData['toeic-complete'].hasAccess } : undefined;
+  const satAccessData = bulkAccessData?.['sat-complete'] ? { hasAccess: bulkAccessData['sat-complete'].hasAccess } : undefined;
 
   // stableQuery: effects 체인 완료 후의 최종 exam/level을 고정
   // → 이후 effects 체인이 state를 변경해도 queryKey는 변하지 않음
@@ -196,6 +205,7 @@ function DashboardContent() {
   const hasEbsAccess = ebsAccessData?.hasAccess || false;
   const hasToeflAccess = toeflAccessData?.hasAccess || false;
   const hasToeicAccess = toeicAccessData?.hasAccess || false;
+  const hasSatAccess = satAccessData?.hasAccess || false;
 
   // 로딩 상태
   const loading = summaryLoading;
@@ -531,13 +541,33 @@ function DashboardContent() {
                 <span className="font-semibold text-xs">TOEIC</span>
               </button>
             )}
+
+            {/* SAT 버튼 - 단품 구매자만 표시 */}
+            {hasSatAccess && (
+              <button
+                onClick={() => {
+                  const lastLevel = localStorage.getItem('dashboard_SAT_level') || 'L1';
+                  const lvl = getValidLevelForExam('SAT', lastLevel);
+                  setActiveExamWithLevel('SAT' as ExamType, lvl as 'L1' | 'L2' | 'L3');
+                  setStableQuery({ exam: 'SAT', level: lvl });
+                }}
+                className={`flex-1 min-w-[80px] flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
+                  selectedExam === 'SAT'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <span className="text-2xl">🇺🇸</span>
+                <span className="font-semibold text-xs">SAT</span>
+              </button>
+            )}
           </div>
         </section>
 
         {/* 레벨/유형 선택 섹션 */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : (selectedExam === 'TOEFL' || selectedExam === 'TOEIC') ? '난이도 선택' : '레벨 선택'}
+            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : (selectedExam === 'TOEFL' || selectedExam === 'TOEIC' || selectedExam === 'SAT') ? '난이도 선택' : '레벨 선택'}
           </h3>
 
           <div className="flex gap-3">

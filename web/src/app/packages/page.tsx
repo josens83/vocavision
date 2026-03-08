@@ -102,6 +102,23 @@ const packages: Package[] = [
     isActive: true,
     badge: 'NEW',
   },
+  {
+    id: 'sat-complete',
+    slug: 'sat-complete',
+    name: 'SAT 완전정복',
+    description: '미국 대입 SAT 시험 대비 핵심 어휘를 주제별·혼동어별로 정리했습니다. AI가 만든 이미지로 외우면 잊히지 않습니다.',
+    price: 9900,
+    duration: '6개월',
+    wordCount: 1935,
+    features: [
+      'SAT 핵심 어휘 1,935개 (주제별 + 혼동어)',
+      'Thematic(주제별) 1,786개 + Confusable(혼동어) 149개',
+      'AI 이미지 연상법 + 어원 분석 + 라임 암기법',
+      '6개월 이용권 (자동갱신 없음)',
+    ],
+    isActive: true,
+    badge: 'NEW',
+  },
 ];
 
 export default function PackagesPage() {

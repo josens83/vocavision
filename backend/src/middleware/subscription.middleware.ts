@@ -9,6 +9,8 @@ const PACKAGE_EXAM_SLUGS: Record<string, string> = {
   'CSAT_2026': '2026-csat-analysis',
   'EBS': 'ebs-vocab',
   'TOEFL': 'toefl-complete',
+  'TOEIC': 'toeic-complete',
+  'SAT': 'sat-complete',
 };
 
 /**
@@ -125,7 +127,7 @@ export const checkContentAccess = async (
   // 비로그인 사용자는 CSAT L1만 허용
   if (!req.userId) {
     if (examCategory && examCategory !== 'CSAT') {
-      const examNames: Record<string, string> = { 'TEPS': 'TEPS', 'EBS': 'EBS 연계', 'CSAT_2026': '2026 기출' };
+      const examNames: Record<string, string> = { 'TEPS': 'TEPS', 'EBS': 'EBS 연계', 'CSAT_2026': '2026 기출', 'TOEIC': 'TOEIC', 'TOEFL': 'TOEFL', 'SAT': 'SAT' };
       const examName = examNames[examCategory] || examCategory;
       return res.status(403).json({
         error: 'SUBSCRIPTION_REQUIRED',

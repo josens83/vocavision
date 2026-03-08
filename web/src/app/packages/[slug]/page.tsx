@@ -61,6 +61,16 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
     badge: 'NEW',
     wordCount: 2491,
   },
+  'sat-complete': {
+    id: 'static-sat',
+    name: 'SAT 완전정복',
+    slug: 'sat-complete',
+    description: '미국 대입 SAT 고득점을 위한 핵심 어휘 1,935개. 주제별(Thematic) 단어와 자주 혼동되는(Confusable) 단어를 AI 이미지 연상법으로 체계적으로 학습합니다.',
+    price: 9900,
+    durationDays: 180,
+    badge: 'NEW',
+    wordCount: 1935,
+  },
 };
 
 // 표시용 단어 수 (교재 레벨 중복 포함)
@@ -69,6 +79,7 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   '2026-csat-analysis': 521,
   'toefl-complete': 3651,
   'toeic-complete': 2491,
+  'sat-complete': 1935,
 };
 
 export default function PackageDetailPage() {

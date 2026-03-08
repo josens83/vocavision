@@ -140,6 +140,9 @@ export function canAccessExam(user: User | null, exam: string): boolean {
   if (exam === 'TOEIC') {
     return hasPurchasedExam(user, 'TOEIC');
   }
+  if (exam === 'SAT') {
+    return hasPurchasedExam(user, 'SAT');
+  }
   return false;
 }
 
@@ -150,8 +153,8 @@ export function canAccessLevel(user: User | null, level: string): boolean {
 }
 
 export function canAccessContent(user: User | null, exam: string, level: string): boolean {
-  // EBS, CSAT_2026, TOEFL, TOEIC: 시험 접근 가능하면 전체 레벨 접근 가능 (레벨 체크 불필요)
-  if (exam === 'EBS' || exam === 'CSAT_2026' || exam === 'TOEFL' || exam === 'TOEIC') {
+  // EBS, CSAT_2026, TOEFL, TOEIC, SAT: 시험 접근 가능하면 전체 레벨 접근 가능 (레벨 체크 불필요)
+  if (exam === 'EBS' || exam === 'CSAT_2026' || exam === 'TOEFL' || exam === 'TOEIC' || exam === 'SAT') {
     return canAccessExam(user, exam);
   }
   return canAccessExam(user, exam) && canAccessLevel(user, level);
@@ -196,6 +199,7 @@ const slugToExamMap: Record<string, string> = {
   'ebs-vocab': 'EBS',
   'toefl-complete': 'TOEFL',
   'toeic-complete': 'TOEIC',
+  'sat-complete': 'SAT',
   'csat-core-200': 'CSAT_CORE',
 };
 
@@ -257,6 +261,7 @@ export function getAvailableExams(user: User | null): { exam: string; locked: bo
     { exam: 'EBS', locked: !canAccessExamWithPurchase(user, 'EBS'), reason: '단품 구매 필요' },
     { exam: 'TOEFL', locked: !hasPurchasedExam(user, 'TOEFL'), reason: '단품 구매 필요' },
     { exam: 'TOEIC', locked: !hasPurchasedExam(user, 'TOEIC'), reason: '단품 구매 필요' },
+    { exam: 'SAT', locked: !hasPurchasedExam(user, 'SAT'), reason: '단품 구매 필요' },
   ];
 
   return exams;
