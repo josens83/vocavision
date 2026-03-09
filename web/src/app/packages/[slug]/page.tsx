@@ -65,7 +65,7 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
     id: 'static-sat',
     name: 'SAT 완전정복',
     slug: 'sat-complete',
-    description: '미국 대입 SAT 고득점을 위한 핵심 어휘 1,935개. 주제별(Thematic) 단어와 자주 혼동되는(Confusable) 단어를 AI 이미지 연상법으로 체계적으로 학습합니다.',
+    description: 'SAT/PSAT 고득점을 위한 필수 어휘 1,935개. 테마별 핵심어휘(L1) 1,784개와 혼동하기 쉬운 어휘(L2) 150개로 구성. AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.',
     price: 9900,
     durationDays: 180,
     badge: 'NEW',
@@ -280,6 +280,25 @@ export default function PackageDetailPage() {
                         <span>AI 이미지 연상법으로 3,651개 단어를 효율적으로 암기하고 싶은 분</span>
                       </li>
                     </>
+                  ) : slug === 'sat-complete' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>미국 대학 입시(SAT/PSAT)를 준비하는 수험생</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>고득점을 위해 어휘력을 집중적으로 키우고 싶은 분</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>단어를 외워도 금방 잊어버리는 분</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>단기간에 효율적으로 어휘력을 향상시키고 싶은 분</span>
+                      </li>
+                    </>
                   ) : (
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
@@ -378,6 +397,29 @@ export default function PackageDetailPage() {
                         <span><strong>스마트 복습</strong> 시스템</span>
                       </li>
                     </>
+                  ) : slug === 'sat-complete' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>L1 테마별 핵심어휘</strong> 1,784개</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>L2 혼동하기 쉬운 어휘</strong> 150개</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>AI 이미지 3종</strong> (의미·연상·라임)</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>어원 분석</strong> + 한국어 암기법 + 예문 4개</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>스마트 복습</strong> 시스템</span>
+                      </li>
+                    </>
                   ) : (
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
@@ -438,6 +480,11 @@ export default function PackageDetailPage() {
                     ₩{packageInfo.price.toLocaleString()}
                   </span>
                   <span className="text-gray-500">/ {durationText}</span>
+                  {packageInfo.durationDays >= 30 && (
+                    <span className="ml-2 px-2 py-0.5 bg-teal-100 text-teal-700 text-xs font-semibold rounded-full">
+                      월 {Math.round(packageInfo.price / (packageInfo.durationDays / 30)).toLocaleString()}원
+                    </span>
+                  )}
                 </div>
 
                 <p className="text-sm text-gray-500 mb-6">

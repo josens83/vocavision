@@ -74,7 +74,7 @@ function getStaticPackages(): ProductPackage[] {
       id: "static-sat",
       name: "SAT 완전정복",
       slug: "sat-complete",
-      shortDesc: "미국 대입 SAT 핵심 1,935단어를 AI 이미지로 정복. Thematic(주제별 1,786) + Confusable(혼동어 149) 2단계 구성으로 고득점 어휘를 효율적으로 학습합니다.",
+      shortDesc: "SAT/PSAT 고득점 필수! 1,935단어를 AI 이미지로 정복. 테마별 핵심어휘(L1) 1,784개 + 혼동어(L2) 150개 구성으로 어원·라임 8단계 학습하면 단기간에 완성됩니다.",
       price: 9900,
       durationDays: 180,
       badge: "NEW",
