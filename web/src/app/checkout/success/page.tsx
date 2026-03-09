@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import Navigation from "@/components/navigation/Navigation";
@@ -12,9 +12,11 @@ import { useQueryClient } from "@tanstack/react-query";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [navigating, setNavigating] = useState(false);
 
   const paymentKey = searchParams.get("paymentKey");
   const orderId = searchParams.get("orderId");
@@ -112,15 +114,27 @@ function SuccessContent() {
                 : "VocaVision AI 프리미엄 서비스를 이용해주셔서 감사합니다."}
             </p>
             <div className="space-y-3">
-              <Link
-                href={isPackagePurchase ? "/dashboard" : "/my"}
-                className="block w-full py-3 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
+              <button
+                onClick={async () => {
+                  setNavigating(true);
+                  try {
+                    const { refreshUser } = useAuthStore.getState();
+                    await refreshUser();
+                  } catch (e) {
+                    console.error('Failed to refresh user before navigation:', e);
+                  }
+                  queryClient.invalidateQueries({ queryKey: ['packageAccess'] });
+                  queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+                  router.push(isPackagePurchase ? "/dashboard" : "/my");
+                }}
+                disabled={navigating}
+                className="block w-full py-3 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors text-center disabled:opacity-70"
               >
-                {isPackagePurchase ? "학습 시작하기" : "내 구독 확인하기"}
-              </Link>
+                {navigating ? "이동 중..." : isPackagePurchase ? "학습 시작하기" : "내 구독 확인하기"}
+              </button>
               <Link
                 href="/"
-                className="block w-full py-3 px-6 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+                className="block w-full py-3 px-6 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-center"
               >
                 홈으로 가기
               </Link>
