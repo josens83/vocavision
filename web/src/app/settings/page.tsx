@@ -412,6 +412,9 @@ function SettingsContent() {
                             {subscription.subscriptionStatus === 'CANCELLED' && (
                               <span className="text-[#F59E0B]">취소됨</span>
                             )}
+                            {subscription.subscriptionStatus === 'EXPIRED' && (
+                              <span className="text-[#EF4444]">만료됨</span>
+                            )}
                             {subscription.subscriptionStatus === 'FREE' && (
                               <span className="text-gray-500">무료 플랜</span>
                             )}
@@ -422,7 +425,7 @@ function SettingsContent() {
                           <div className="text-[16px] font-semibold text-[#1c1c1e]">
                             {subscription.subscriptionPlan === 'MONTHLY' && '월간 구독'}
                             {subscription.subscriptionPlan === 'YEARLY' && '연간 구독'}
-                            {!subscription.subscriptionPlan && '없음'}
+                            {!subscription.subscriptionPlan && '구독 없음'}
                           </div>
                         </div>
                       </div>
@@ -450,7 +453,7 @@ function SettingsContent() {
                       </div>
                     )}
 
-                    {subscription.subscriptionStatus === 'CANCELLED' && subscription.subscriptionEnd && (
+                    {subscription.subscriptionStatus === 'CANCELLED' && subscription.subscriptionEnd && new Date(subscription.subscriptionEnd) >= new Date() && (
                       <div className="bg-[#FFFBEB] p-4 rounded-xl border border-[#FDE68A]">
                         <p className="text-[14px] text-[#B45309] font-medium">
                           ⚠️ 구독이 취소되었습니다.
@@ -461,7 +464,21 @@ function SettingsContent() {
                       </div>
                     )}
 
+                    {(subscription.subscriptionStatus === 'EXPIRED' ||
+                      (subscription.subscriptionStatus === 'CANCELLED' && subscription.subscriptionEnd && new Date(subscription.subscriptionEnd) < new Date())) && (
+                      <div className="bg-[#FEF2F2] p-4 rounded-xl border border-[#FECACA]">
+                        <p className="text-[14px] text-[#DC2626] font-medium">
+                          구독이 만료되었습니다.
+                        </p>
+                        <p className="text-[13px] text-[#767676] mt-1">
+                          {subscription.subscriptionEnd && `만료일: ${new Date(subscription.subscriptionEnd).toLocaleDateString('ko-KR')}`}
+                          {' '}— 다시 구독하시면 모든 기능을 이용하실 수 있습니다.
+                        </p>
+                      </div>
+                    )}
+
                     {(subscription.subscriptionStatus === 'FREE' || subscription.subscriptionStatus === 'TRIAL' ||
+                      subscription.subscriptionStatus === 'EXPIRED' ||
                       (subscription.subscriptionStatus === 'CANCELLED' && (!subscription.subscriptionEnd || new Date(subscription.subscriptionEnd) < new Date()))) && (
                       <div className="flex flex-col gap-3">
                         <Link
