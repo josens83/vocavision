@@ -732,6 +732,20 @@ export const updateAutoRenewal = async (
       });
     }
 
+    // billingKey 없으면 autoRenewal 켤 수 없음
+    if (autoRenewal) {
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { billingKey: true },
+      });
+      if (!currentUser?.billingKey) {
+        return res.status(400).json({
+          success: false,
+          error: '등록된 결제 수단이 없어 자동갱신을 켤 수 없습니다. 카드를 먼저 등록해주세요.',
+        });
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id: userId },
       data: { autoRenewal },

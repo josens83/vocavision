@@ -57,6 +57,31 @@ export async function processSubscriptionRenewals(): Promise<{
 
     logger.info(`[SubscriptionRenewal] Found ${expiringUsers.length} expiring subscriptions`);
 
+    // 안전장치: autoRenewal=true인데 billingKey가 없는 사용자 감지 및 수정
+    const inconsistentUsers = await prisma.user.findMany({
+      where: {
+        subscriptionStatus: 'ACTIVE',
+        autoRenewal: true,
+        billingKey: null,
+        subscriptionEnd: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+      select: { id: true, email: true },
+    });
+
+    if (inconsistentUsers.length > 0) {
+      logger.warn(
+        `[SubscriptionRenewal] Found ${inconsistentUsers.length} users with autoRenewal=true but no billingKey: ${inconsistentUsers.map(u => u.email || u.id).join(', ')}`
+      );
+      await prisma.user.updateMany({
+        where: { id: { in: inconsistentUsers.map(u => u.id) } },
+        data: { autoRenewal: false },
+      });
+      logger.info(`[SubscriptionRenewal] Fixed autoRenewal for ${inconsistentUsers.length} inconsistent users`);
+    }
+
     for (const user of expiringUsers) {
       results.processed++;
 
