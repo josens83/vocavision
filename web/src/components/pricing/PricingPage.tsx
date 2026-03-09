@@ -291,7 +291,7 @@ export default function PricingPage() {
             필요한 콘텐츠만 골라서 구매하세요. 구독 없이 바로 이용!
           </p>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-5 max-w-6xl mx-auto">
             {/* 2026 수능기출완전분석 - 베스트 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
@@ -411,6 +411,37 @@ export default function PricingPage() {
               <button
                 onClick={() => router.push("/checkout?package=toeic-complete")}
                 className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#10B981] text-white hover:bg-[#059669] transition-colors"
+              >
+                구매하기
+              </button>
+            </div>
+
+            {/* SAT 핵심어휘 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
+              <div className="absolute -top-3 right-4">
+                <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
+                  NEW
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#6366F1] to-[#4338CA] rounded-xl flex items-center justify-center">
+                  <span className="text-white text-xl">📚</span>
+                </div>
+                <div>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">SAT 핵심 어휘</h3>
+                  <p className="text-[12px] text-[#999999]">1,935개 단어</p>
+                </div>
+              </div>
+              <p className="text-gray-500 text-[13px] mb-4">
+                SAT/PSAT 고득점 필수 어휘. Greek·Latin 어근 기반 테마별(L1) + 혼동어휘(L2) 체계적 구성.
+              </p>
+              <div className="flex items-end gap-1 mb-4">
+                <span className="text-[28px] font-bold text-[#1c1c1e]">₩9,900</span>
+                <span className="text-[#999999] text-[12px] mb-1">6개월</span>
+              </div>
+              <button
+                onClick={() => router.push("/checkout?package=sat-complete")}
+                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#6366F1] text-white hover:bg-[#4338CA] transition-colors"
               >
                 구매하기
               </button>

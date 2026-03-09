@@ -49,6 +49,7 @@ const heroStats = [
   { label: "시험 대비", value: "6+", suffix: "개" },
   { label: "AI 콘텐츠", value: "100", suffix: "%" },
   { label: "단어당 예문", value: "4.0", suffix: "개" },
+  { label: "단어당 학습법", value: "8", suffix: "섹션" },
 ];
 
 const features = [
@@ -748,7 +749,7 @@ export default function Hero() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 md:flex md:gap-8 gap-4 pt-8 border-t border-slate-200">
+              <div className="grid grid-cols-3 sm:grid-cols-5 md:flex md:gap-8 gap-4 pt-8 border-t border-slate-200">
                 {heroStats.map((stat, index) => (
                   <div key={stat.label} className={`${isVisible ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: `${0.3 + index * 0.1}s` }}>
                     <div className="text-2xl md:text-3xl font-display font-bold text-slate-900">
