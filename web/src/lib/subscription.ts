@@ -224,6 +224,9 @@ export function canAccessExamWithPurchase(user: User | null, exam: string): bool
   // 프리미엄 회원은 모든 것에 접근 가능
   if (getSubscriptionTier(user) === 'PREMIUM') return true;
 
+  // TEPS: 베이직 이상 접근 가능
+  if (exam === 'TEPS' && getSubscriptionTier(user) === 'BASIC') return true;
+
   // 단품 구매 확인
   if (hasPurchasedExam(user, exam)) return true;
 
