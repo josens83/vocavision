@@ -98,7 +98,7 @@ export const EXAM_LIST: ExamConfig[] = [
   {
     key: 'SAT',
     label: 'SAT',
-    icon: '🇺🇸',
+    icon: '📚',
     color: 'indigo',
     packageSlug: 'sat-complete',
     levels: [

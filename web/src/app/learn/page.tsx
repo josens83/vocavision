@@ -87,6 +87,13 @@ const getLevelName = (exam: string, level: string): string => {
       default: return level;
     }
   }
+  if (exam === 'SAT') {
+    switch (level) {
+      case 'L1': return 'Thematic';
+      case 'L2': return 'Confusable';
+      default: return level;
+    }
+  }
   // CSAT 및 기타
   switch (level) {
     case 'L1': return 'L1(기초)';
@@ -1111,6 +1118,7 @@ function LearnPageContent() {
       'EBS': { name: 'EBS 연계 어휘', slug: 'ebs-vocab' },
       'TOEFL': { name: 'TOEFL 완전정복', slug: 'toefl-complete' },
       'TOEIC': { name: 'TOEIC 점수폭발', slug: 'toeic-complete' },
+      'SAT': { name: 'SAT 핵심 어휘', slug: 'sat-complete' },
     };
     const pkg = packageInfo[examParam || ''] || { name: examParam, slug: '' };
 

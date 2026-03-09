@@ -275,7 +275,8 @@ function DashboardContent() {
       (activeExam === 'TEPS' && !canAccessExam('TEPS')) ||
       (activeExam === 'EBS' && !canAccessExam('EBS')) ||
       (activeExam === 'TOEFL' && !hasToeflAccess) ||
-      (activeExam === 'TOEIC' && !hasToeicAccess);
+      (activeExam === 'TOEIC' && !hasToeicAccess) ||
+      (activeExam === 'SAT' && !hasSatAccess);
 
     if (needsFallback) {
       setActiveExamWithLevel('CSAT' as ExamType, 'L1');
@@ -557,7 +558,7 @@ function DashboardContent() {
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                <span className="text-2xl">🇺🇸</span>
+                <span className="text-2xl">📚</span>
                 <span className="font-semibold text-xs">SAT</span>
               </button>
             )}
