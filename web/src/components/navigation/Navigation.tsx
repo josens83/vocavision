@@ -60,7 +60,7 @@ export const guestNavigationItems: NavItem[] = [
       { label: "EBS 연계단어", href: "/auth/register?from=ebs" },
       { label: "TOEFL 완전정복", href: "/packages/toefl-complete" },
       { label: "TOEIC 점수폭발", href: "/packages/toeic-complete" },
-      { label: "SAT 완전정복", href: "/packages/sat-complete" },
+      { label: "SAT 핵심 어휘", href: "/packages/sat-complete" },
     ],
   },
   {
@@ -102,7 +102,7 @@ export const authNavigationItems: NavItem[] = [
       { label: "EBS 연계단어", href: "/dashboard?exam=EBS" },
       { label: "TOEFL 완전정복", href: "/dashboard?exam=TOEFL" },
       { label: "TOEIC 점수폭발", href: "/dashboard?exam=TOEIC" },
-      { label: "SAT 완전정복", href: "/dashboard?exam=SAT" },
+      { label: "SAT 핵심 어휘", href: "/dashboard?exam=SAT" },
     ],
   },
   {

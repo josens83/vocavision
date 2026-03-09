@@ -63,9 +63,9 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
   },
   'sat-complete': {
     id: 'static-sat',
-    name: 'SAT 완전정복',
+    name: 'SAT 핵심 어휘',
     slug: 'sat-complete',
-    description: 'SAT/PSAT 고득점을 위한 필수 어휘 1,935개. 테마별 핵심어휘(L1) 1,784개와 혼동하기 쉬운 어휘(L2) 150개로 구성. AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.',
+    description: '미국 대학 입시의 관문, SAT 어휘를 단기간에 완성. Greek·Latin 어근 기반 테마별 핵심어휘(L1)와 혼동하기 쉬운 어휘(L2)로 1,935개를 체계적으로 정복.',
     price: 9900,
     durationDays: 180,
     badge: 'NEW',
@@ -196,7 +196,7 @@ export default function PackageDetailPage() {
 
             <p className="text-xl text-white/90 mb-8 max-w-2xl">
               {slug === 'sat-complete' ? (
-                <>SAT/PSAT 고득점을 위한 필수 어휘 1,935개.<br />테마별 핵심어휘(L1) 1,784개와 혼동하기 쉬운 어휘(L2) 150개로 구성. AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
+                <>SAT/PSAT 고득점을 위한 필수 어휘 1,935개.<br />테마별 핵심어휘(L1) 1,784개와 혼동하기 쉬운 어휘(L2) 150개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
               ) : (packageInfo.description || packageInfo.shortDesc ||
                 (slug === '2026-csat-analysis'
                   ? '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
