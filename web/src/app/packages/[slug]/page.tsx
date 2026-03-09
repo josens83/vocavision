@@ -195,14 +195,16 @@ export default function PackageDetailPage() {
             </h1>
 
             <p className="text-xl text-white/90 mb-8 max-w-2xl">
-              {packageInfo.description || packageInfo.shortDesc ||
+              {slug === 'sat-complete' ? (
+                <>SAT/PSAT 고득점을 위한 필수 어휘 1,935개.<br />테마별 핵심어휘(L1) 1,784개와 혼동하기 쉬운 어휘(L2) 150개로 구성. AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
+              ) : (packageInfo.description || packageInfo.shortDesc ||
                 (slug === '2026-csat-analysis'
                   ? '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
                   : slug === 'ebs-vocab'
                   ? '2026학년도 EBS 수능특강 영어영역 단어·숙어 완벽 대비. 3개 교재(영어, 영어독해연습, 영어듣기) 수록 어휘 3,837개.'
                   : slug === 'toefl-complete'
                   ? '2026 Updated TOEFL 완벽 대비. 적응형 시험·새 문제 유형에 필요한 3,651개 핵심 어휘를 Core와 Advanced로 나누어 체계적으로 학습합니다.'
-                  : '고득점을 위한 필수 단어장')}
+                  : '고득점을 위한 필수 단어장'))}
             </p>
 
             <div className="flex flex-wrap items-center gap-6 text-lg">
@@ -475,13 +477,15 @@ export default function PackageDetailPage() {
                   </div>
                 )}
 
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-3xl font-bold text-gray-900">
-                    ₩{packageInfo.price.toLocaleString()}
-                  </span>
-                  <span className="text-gray-500">/ {durationText}</span>
+                <div className="mb-2">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-bold text-gray-900">
+                      ₩{packageInfo.price.toLocaleString()}
+                    </span>
+                    <span className="text-gray-500">/ {durationText}</span>
+                  </div>
                   {packageInfo.durationDays >= 30 && (
-                    <span className="ml-2 px-2 py-0.5 bg-teal-100 text-teal-700 text-xs font-semibold rounded-full">
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-teal-100 text-teal-700 text-xs font-semibold rounded-full">
                       월 {Math.round(packageInfo.price / (packageInfo.durationDays / 30)).toLocaleString()}원
                     </span>
                   )}
