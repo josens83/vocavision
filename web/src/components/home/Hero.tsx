@@ -732,8 +732,8 @@ export default function Hero() {
                 </span>
               </h1>
 
-              <p className="text-lg md:text-xl text-slate-600 max-w-xl leading-relaxed">
-                수능 · TEPS · TOEFL · TOEIC · SAT · 공무원 · 편입 등<br />
+              <p className="text-base md:text-xl text-slate-600 max-w-xl leading-relaxed">
+                수능 · TEPS · TOEFL · TOEIC · SAT 등<br />
                 모든 시험을 하나의 플랫폼에서.
               </p>
 
