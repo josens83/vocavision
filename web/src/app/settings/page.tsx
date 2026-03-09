@@ -442,15 +442,30 @@ function SettingsContent() {
 
                     {/* 구독 상태별 안내 */}
                     {subscription.subscriptionStatus === 'ACTIVE' && (
-                      <div className="bg-[#F0FDF4] p-4 rounded-xl border border-[#BBF7D0]">
-                        <p className="text-[14px] text-[#15803D] font-medium">
-                          ✅ 현재 구독이 활성화되어 있습니다.
-                        </p>
-                        <p className="text-[13px] text-[#767676] mt-1">
-                          만료일({subscription.subscriptionEnd ? new Date(subscription.subscriptionEnd).toLocaleDateString('ko-KR') : '-'})까지 이용 가능합니다.
-                          즉시 환불이 필요하시면 support@vocavision.kr로 문의해주세요.
-                        </p>
-                      </div>
+                      <>
+                        <div className="bg-[#F0FDF4] p-4 rounded-xl border border-[#BBF7D0]">
+                          <p className="text-[14px] text-[#15803D] font-medium">
+                            ✅ 현재 구독이 활성화되어 있습니다.
+                          </p>
+                          <p className="text-[13px] text-[#767676] mt-1">
+                            만료일({subscription.subscriptionEnd ? new Date(subscription.subscriptionEnd).toLocaleDateString('ko-KR') : '-'})까지 이용 가능합니다.
+                            즉시 환불이 필요하시면 support@vocavision.kr로 문의해주세요.
+                          </p>
+                        </div>
+                        {subscription.autoRenewal ? (
+                          <div className="flex items-center gap-2 px-4 py-3 bg-[#F0FDF4] rounded-xl border border-[#BBF7D0]">
+                            <span className="text-[14px] text-[#15803D] font-medium">자동갱신 ON</span>
+                            <span className="text-[13px] text-[#767676]">— 만료일에 자동으로 결제됩니다.</span>
+                          </div>
+                        ) : (
+                          <div className="px-4 py-3 bg-[#FFFBEB] rounded-xl border border-[#FDE68A]">
+                            <p className="text-[14px] text-[#B45309] font-medium">자동갱신 OFF</p>
+                            <p className="text-[13px] text-[#767676] mt-1">
+                              만료일 이후 자동갱신되지 않습니다. {!subscription.hasBillingKey && '카드를 등록하면 자동갱신을 켤 수 있습니다.'}
+                            </p>
+                          </div>
+                        )}
+                      </>
                     )}
 
                     {subscription.subscriptionStatus === 'CANCELLED' && subscription.subscriptionEnd && new Date(subscription.subscriptionEnd) >= new Date() && (
