@@ -257,15 +257,42 @@ export function canAccessContentWithPurchase(user: User | null, exam: string, le
 export function getAvailableExams(user: User | null): { exam: string; locked: boolean; reason?: string }[] {
   const tier = getSubscriptionTier(user);
 
-  const exams = [
-    { exam: 'CSAT', locked: false },
-    { exam: 'TEPS', locked: tier !== 'PREMIUM' && tier !== 'BASIC', reason: '베이직 이상 전용' },
-    { exam: 'CSAT_2026', locked: !canAccessExamWithPurchase(user, 'CSAT_2026'), reason: '단품 구매 필요' },
-    { exam: 'EBS', locked: !canAccessExamWithPurchase(user, 'EBS'), reason: '단품 구매 필요' },
-    { exam: 'TOEFL', locked: !hasPurchasedExam(user, 'TOEFL'), reason: '단품 구매 필요' },
-    { exam: 'TOEIC', locked: !hasPurchasedExam(user, 'TOEIC'), reason: '단품 구매 필요' },
-    { exam: 'SAT', locked: !hasPurchasedExam(user, 'SAT'), reason: '단품 구매 필요' },
-  ];
+  // 프리미엄: 전체 7개 노출, 잠금 없음
+  if (tier === 'PREMIUM') {
+    return [
+      { exam: 'CSAT',      locked: false },
+      { exam: 'TEPS',      locked: false },
+      { exam: 'CSAT_2026', locked: false },
+      { exam: 'EBS',       locked: false },
+      { exam: 'TOEFL',     locked: false },
+      { exam: 'TOEIC',     locked: false },
+      { exam: 'SAT',       locked: false },
+    ];
+  }
 
+  // 베이직: 수능 + TEPS 잠금 없음 + 구매한 단품 추가
+  if (tier === 'BASIC') {
+    const exams: { exam: string; locked: boolean; reason?: string }[] = [
+      { exam: 'CSAT', locked: false },
+      { exam: 'TEPS', locked: false },
+    ];
+    if (hasPurchasedExam(user, 'CSAT_2026')) exams.push({ exam: 'CSAT_2026', locked: false });
+    if (hasPurchasedExam(user, 'EBS'))       exams.push({ exam: 'EBS',       locked: false });
+    if (hasPurchasedExam(user, 'TOEFL'))     exams.push({ exam: 'TOEFL',     locked: false });
+    if (hasPurchasedExam(user, 'TOEIC'))     exams.push({ exam: 'TOEIC',     locked: false });
+    if (hasPurchasedExam(user, 'SAT'))       exams.push({ exam: 'SAT',       locked: false });
+    return exams;
+  }
+
+  // 무료: 수능(열림) + TEPS(잠김)만 노출 + 단품 구매한 게 있으면 추가
+  const exams: { exam: string; locked: boolean; reason?: string }[] = [
+    { exam: 'CSAT', locked: false },
+    { exam: 'TEPS', locked: true, reason: '베이직 이상 전용' },
+  ];
+  if (hasPurchasedExam(user, 'CSAT_2026')) exams.push({ exam: 'CSAT_2026', locked: false });
+  if (hasPurchasedExam(user, 'EBS'))       exams.push({ exam: 'EBS',       locked: false });
+  if (hasPurchasedExam(user, 'TOEFL'))     exams.push({ exam: 'TOEFL',     locked: false });
+  if (hasPurchasedExam(user, 'TOEIC'))     exams.push({ exam: 'TOEIC',     locked: false });
+  if (hasPurchasedExam(user, 'SAT'))       exams.push({ exam: 'SAT',       locked: false });
   return exams;
 }

@@ -89,8 +89,8 @@ const getLevelName = (exam: string, level: string): string => {
   }
   if (exam === 'SAT') {
     switch (level) {
-      case 'L1': return 'Thematic';
-      case 'L2': return 'Confusable';
+      case 'L1': return 'Starter';
+      case 'L2': return 'Advanced';
       default: return level;
     }
   }

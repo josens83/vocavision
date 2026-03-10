@@ -32,8 +32,8 @@ function getSubscriptionTier(subscriptionPlan: string | null, subscriptionStatus
  * 시험+레벨 접근 가능 여부 체크 (구독 기반, 단품 제외)
  */
 function canAccessContent(tier: SubscriptionTier, exam: string, level: string): boolean {
-  // TEPS는 PREMIUM만
-  if (exam === 'TEPS' && tier !== 'PREMIUM') {
+  // TEPS는 BASIC 이상
+  if (exam === 'TEPS' && tier === 'FREE') {
     return false;
   }
 
@@ -96,7 +96,7 @@ export async function verifyContentAccess(
 
   // 기존 구독 기반 접근 체크 (CSAT, TEPS)
   if (!canAccessContent(tier, examCategory, level)) {
-    const requiredPlan = examCategory === 'TEPS' ? 'PREMIUM' : 'BASIC';
+    const requiredPlan = 'BASIC';
     return {
       error: 'SUBSCRIPTION_REQUIRED',
       message: `이 콘텐츠는 ${requiredPlan === 'PREMIUM' ? '프리미엄' : '베이직'} 플랜이 필요합니다.`,
