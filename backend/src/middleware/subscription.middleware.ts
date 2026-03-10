@@ -99,7 +99,7 @@ export async function verifyContentAccess(
     const requiredPlan = 'BASIC';
     return {
       error: 'SUBSCRIPTION_REQUIRED',
-      message: `이 콘텐츠는 ${requiredPlan === 'PREMIUM' ? '프리미엄' : '베이직'} 플랜이 필요합니다.`,
+      message: '이 콘텐츠는 베이직 플랜 이상이 필요합니다.',
       requiredPlan,
     };
   }
