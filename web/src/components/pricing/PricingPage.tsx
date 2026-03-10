@@ -424,8 +424,8 @@ export default function PricingPage() {
                 </span>
               </div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#6366F1] to-[#4338CA] rounded-xl flex items-center justify-center">
-                  <span className="text-white text-xl">📚</span>
+                <div className="w-12 h-12 bg-gradient-to-br from-[#F97316] to-[#EA580C] rounded-xl flex items-center justify-center">
+                  <span className="text-white text-xl">🎯</span>
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">SAT 핵심 어휘</h3>
@@ -441,7 +441,7 @@ export default function PricingPage() {
               </div>
               <button
                 onClick={() => router.push("/checkout?package=sat-complete")}
-                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#6366F1] text-white hover:bg-[#4338CA] transition-colors"
+                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#F97316] text-white hover:bg-[#EA580C] transition-colors"
               >
                 구매하기
               </button>

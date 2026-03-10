@@ -67,8 +67,8 @@ const getLevelInfo = (exam: string, level: string) => {
 
   if (exam === 'SAT') {
     const satLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: 'Thematic 주제별', description: 'SAT 주제별 핵심 어휘', target: '주제별 학습', wordCount: 1786 },
-      L2: { name: 'Confusable 혼동어', description: 'SAT 자주 혼동되는 어휘', target: '혼동어 정복', wordCount: 149 },
+      L1: { name: 'SAT Starter', description: 'SAT 기초 핵심 어휘', target: '기초 학습', wordCount: 1786 },
+      L2: { name: 'SAT Advanced', description: 'SAT 고급 실전 어휘', target: '고급 정복', wordCount: 149 },
     };
     return satLevels[level] || satLevels.L1;
   }
@@ -270,13 +270,8 @@ function DashboardContent() {
     if (stableQueryInitRef.current) return;
 
     // 접근 불가 시험 → CSAT/L1로 fallback (이미 CSAT/L1이면 skip)
-    const needsFallback =
-      (activeExam === 'CSAT_2026' && !hasCsat2026Access && !isPremium) ||
-      (activeExam === 'TEPS' && !canAccessExam('TEPS')) ||
-      (activeExam === 'EBS' && !canAccessExam('EBS')) ||
-      (activeExam === 'TOEFL' && !hasToeflAccess) ||
-      (activeExam === 'TOEIC' && !hasToeicAccess) ||
-      (activeExam === 'SAT' && !hasSatAccess);
+    const examEntry = availableExams.find(e => e.exam === activeExam);
+    const needsFallback = !examEntry || examEntry.locked;
 
     if (needsFallback) {
       setActiveExamWithLevel('CSAT' as ExamType, 'L1');
@@ -289,7 +284,7 @@ function DashboardContent() {
       exam: activeExam || 'CSAT',
       level: getValidLevelForExam(activeExam || 'CSAT', activeLevel || 'L1'),
     });
-  }, [hasHydrated, activeExam, activeLevel, hasCsat2026Access, hasEbsAccess, hasToeflAccess, hasToeicAccess, isPremium, canAccessExam, setActiveExamWithLevel, bulkAccessData]);
+  }, [hasHydrated, activeExam, activeLevel, availableExams, setActiveExamWithLevel, bulkAccessData]);
 
   // 잘못된 시험/레벨 조합 수정 (예: TEPS + L3 → TEPS + L1)
   // 하이드레이션 후 activeLevel이 없으면 L1 자동 설정
@@ -420,148 +415,39 @@ function DashboardContent() {
           <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
 
           <div className="grid grid-cols-4 gap-2">
-            {/* 수능 버튼 */}
-            <button
-              onClick={() => {
-                const lastLevel = localStorage.getItem('dashboard_CSAT_level') || 'L1';
-                const lvl = getValidLevelForExam('CSAT', lastLevel);
-                setActiveExamWithLevel('CSAT' as ExamType, lvl as 'L1' | 'L2' | 'L3');
-                setStableQuery({ exam: 'CSAT', level: lvl });
-              }}
-              className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
-                selectedExam === 'CSAT'
-                  ? 'bg-teal-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              <span className="text-2xl">📝</span>
-              <span className="font-semibold text-xs">수능</span>
-            </button>
-
-            {/* TEPS 버튼 */}
-            <button
-              onClick={() => {
-                if (canAccessExam('TEPS')) {
-                  const lastLevel = localStorage.getItem('dashboard_TEPS_level') || 'L1';
-                  const lvl = getValidLevelForExam('TEPS', lastLevel);
-                  setActiveExamWithLevel('TEPS' as ExamType, lvl as 'L1' | 'L2' | 'L3');
-                  setStableQuery({ exam: 'TEPS', level: lvl });
-                } else {
-                  router.push('/pricing');
-                }
-              }}
-              className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
-                !canAccessExam('TEPS')
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : selectedExam === 'TEPS'
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              <span className="text-2xl">🎓</span>
-              <span className="font-semibold text-xs">TEPS</span>
-              {!canAccessExam('TEPS') && <span className="text-xs">🔒</span>}
-            </button>
-
-            {/* 2026 기출 버튼 - 프리미엄 또는 단품 구매자만 표시 */}
-            {(hasCsat2026Access || isPremium) && (
-              <button
-                onClick={() => {
-                  const lastLevel = localStorage.getItem('dashboard_CSAT_2026_level') || 'LISTENING';
-                  const lvl = getValidLevelForExam('CSAT_2026', lastLevel);
-                  setActiveExamWithLevel('CSAT_2026' as ExamType, lvl as 'L1' | 'L2' | 'L3');
-                  setStableQuery({ exam: 'CSAT_2026', level: lvl });
-                }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
-                  selectedExam === 'CSAT_2026'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <span className="text-2xl">📋</span>
-                <span className="font-semibold text-xs">2026 기출</span>
-              </button>
-            )}
-
-            {/* EBS 연계어휘 버튼 - 프리미엄 또는 단품 구매자만 표시 */}
-            {(hasEbsAccess || isPremium) && (
-              <button
-                onClick={() => {
-                  const lastLevel = localStorage.getItem('dashboard_EBS_level') || 'LISTENING';
-                  const lvl = getValidLevelForExam('EBS', lastLevel);
-                  setActiveExamWithLevel('EBS' as ExamType, lvl as 'L1' | 'L2' | 'L3');
-                  setStableQuery({ exam: 'EBS', level: lvl });
-                }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
-                  selectedExam === 'EBS'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <span className="text-2xl">📗</span>
-                <span className="font-semibold text-xs">EBS 연계</span>
-              </button>
-            )}
-
-            {/* TOEFL 버튼 - 단품 구매자만 표시 */}
-            {hasToeflAccess && (
-              <button
-                onClick={() => {
-                  const lastLevel = localStorage.getItem('dashboard_TOEFL_level') || 'L1';
-                  const lvl = getValidLevelForExam('TOEFL', lastLevel);
-                  setActiveExamWithLevel('TOEFL' as ExamType, lvl as 'L1' | 'L2' | 'L3');
-                  setStableQuery({ exam: 'TOEFL', level: lvl });
-                }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
-                  selectedExam === 'TOEFL'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <span className="text-2xl">🌍</span>
-                <span className="font-semibold text-xs">TOEFL</span>
-              </button>
-            )}
-
-            {/* TOEIC 버튼 - 단품 구매자만 표시 */}
-            {hasToeicAccess && (
-              <button
-                onClick={() => {
-                  const lastLevel = localStorage.getItem('dashboard_TOEIC_level') || 'L1';
-                  const lvl = getValidLevelForExam('TOEIC', lastLevel);
-                  setActiveExamWithLevel('TOEIC' as ExamType, lvl as 'L1' | 'L2' | 'L3');
-                  setStableQuery({ exam: 'TOEIC', level: lvl });
-                }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
-                  selectedExam === 'TOEIC'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <span className="text-2xl">💼</span>
-                <span className="font-semibold text-xs">TOEIC</span>
-              </button>
-            )}
-
-            {/* SAT 버튼 - 단품 구매자만 표시 */}
-            {hasSatAccess && (
-              <button
-                onClick={() => {
-                  const lastLevel = localStorage.getItem('dashboard_SAT_level') || 'L1';
-                  const lvl = getValidLevelForExam('SAT', lastLevel);
-                  setActiveExamWithLevel('SAT' as ExamType, lvl as 'L1' | 'L2' | 'L3');
-                  setStableQuery({ exam: 'SAT', level: lvl });
-                }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
-                  selectedExam === 'SAT'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <span className="text-2xl">📚</span>
-                <span className="font-semibold text-xs">SAT</span>
-              </button>
-            )}
+            {availableExams.map(({ exam: key, locked }) => {
+              const cfg = EXAM_MAP[key];
+              if (!cfg) return null;
+              const activeColors: Record<string, string> = {
+                CSAT: 'bg-teal-500', TEPS: 'bg-purple-500', CSAT_2026: 'bg-emerald-500',
+                EBS: 'bg-green-500', TOEFL: 'bg-blue-600', TOEIC: 'bg-green-500',
+                SAT: 'bg-orange-500',
+              };
+              const defaultLevel = getValidLevelsForExam(key)[0];
+              return (
+                <button
+                  key={key}
+                  onClick={() => {
+                    if (locked) { router.push('/pricing'); return; }
+                    const lastLevel = localStorage.getItem(`dashboard_${key}_level`) || defaultLevel;
+                    const lvl = getValidLevelForExam(key, lastLevel);
+                    setActiveExamWithLevel(key as ExamType, lvl as 'L1' | 'L2' | 'L3');
+                    setStableQuery({ exam: key, level: lvl });
+                  }}
+                  className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
+                    locked
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : selectedExam === key
+                      ? `${activeColors[key] || 'bg-teal-500'} text-white`
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <span className="text-2xl">{cfg.icon}</span>
+                  <span className="font-semibold text-xs">{cfg.label}</span>
+                  {locked && <span className="text-xs">🔒</span>}
+                </button>
+              );
+            })}
           </div>
         </section>
 

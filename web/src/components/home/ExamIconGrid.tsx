@@ -49,8 +49,8 @@ const examCategories: ExamCategory[] = [
   {
     id: "SAT",
     name: "SAT",
-    icon: "🇺🇸",
-    color: "bg-indigo-100 text-indigo-600",
+    icon: "🎯",
+    color: "bg-orange-100 text-orange-600",
     href: "/packages/sat-complete",
     available: true,
   },

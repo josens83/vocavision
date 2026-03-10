@@ -98,12 +98,12 @@ export const EXAM_LIST: ExamConfig[] = [
   {
     key: 'SAT',
     label: 'SAT',
-    icon: '📚',
-    color: 'indigo',
+    icon: '🎯',
+    color: 'orange',
     packageSlug: 'sat-complete',
     levels: [
-      { key: 'L1', label: 'Thematic 주제별', shortLabel: 'Thematic' },
-      { key: 'L2', label: 'Confusable 혼동어', shortLabel: 'Confusable' },
+      { key: 'L1', label: 'SAT Starter', shortLabel: 'Starter' },
+      { key: 'L2', label: 'SAT Advanced', shortLabel: 'Advanced' },
     ],
   },
 ];
