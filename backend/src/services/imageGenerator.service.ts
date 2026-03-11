@@ -247,21 +247,83 @@ export async function generateAndUploadImage(
 // ---------------------------------------------
 
 export function generateConceptPrompt(definitionEn: string, word: string): string {
-  // 2D cartoon style for intuitive understanding (consistent with batch generation)
-  return `Cartoon style illustration. A simple scene showing the meaning of "${word}" (${definitionEn || word}). Soft pastel colors with gentle lighting. Clean and simple composition. Plain white background. No text. No words. No letters. No numbers. No symbols. No labels. No captions. No titles. No icons. No speech bubbles. No signs. No watermarks. Square composition.`;
+  return `Flat 2D editorial cartoon illustration vector illustration style clean bold outlines simple shapes soft flat colors educational illustration
+
+NOT 3D NOT clay render NOT pixar style NOT realistic rendering
+
+Scene: a clear situation showing the meaning of "${word}".
+
+Camera angle: medium-close cinematic framing focused on the interaction.
+
+In the center of the frame, a person or character demonstrates the action or state of "${word}" (${definitionEn || word}).
+
+The surrounding elements reinforce the meaning of the word through context and objects.
+
+The moment clearly shows the concept of "${word}" through action and result.
+
+High resolution 1:1 square composition
+
+The main subject must fill most of the frame. Avoid empty background areas. Foreground elements dominate the composition.
+
+STRICT NO TEXT RULE
+
+Absolutely no text anywhere. No letters. No numbers. No logos. No labels. No signage.
+
+If any text appears, remove it completely. Replace text areas with blank surfaces.`;
 }
 
 export function generateMnemonicPrompt(mnemonic: string, word: string): string {
-  // If mnemonic is just the word itself or empty, create a more descriptive prompt
-  if (!mnemonic || mnemonic === word || mnemonic.length < 5) {
-    return `A 1:1 square cartoon illustration showing the action or concept of "${word}" in a funny, exaggerated, memorable way. The image should help students remember this vocabulary word. Style: cute cartoon, bright colors, humorous, memorable, dynamic poses or expressions. CRITICAL: Absolutely NO text, NO letters, NO words in the image.`;
-  }
+  const scene = (!mnemonic || mnemonic === word || mnemonic.length < 5)
+    ? `a funny, exaggerated scene that helps remember the word "${word}"`
+    : `a memorable scene visualizing: "${mnemonic}" to remember "${word}"`;
 
-  return `A 1:1 square cartoon illustration visualizing this memory technique: "${mnemonic}". This helps remember the English word "${word}". Style: cute cartoon, memorable, colorful, exaggerated for humor. CRITICAL: Absolutely NO text, NO letters, NO words in the image.`;
+  return `Flat 2D editorial cartoon illustration vector illustration style clean bold outlines simple shapes soft flat colors educational illustration
+
+NOT 3D NOT clay render NOT pixar style NOT realistic rendering
+
+Scene: ${scene}.
+
+Camera angle: medium-close cinematic framing.
+
+In the center of the frame, a character acts out an exaggerated, humorous situation that makes "${word}" unforgettable.
+
+The image uses visual humor and clear action to create a strong memory hook.
+
+High resolution 1:1 square composition
+
+The main subject must fill most of the frame. Avoid empty background areas. Foreground elements dominate the composition.
+
+STRICT NO TEXT RULE
+
+Absolutely no text anywhere. No letters. No numbers. No logos. No labels. No signage.
+
+If any text appears, remove it completely. Replace text areas with blank surfaces.`;
 }
 
 export function generateRhymePrompt(definitionEn: string, word: string): string {
-  return `A 1:1 square humorous cartoon illustration showing: "${definitionEn || word}". Style: playful cartoon, bright colors. CRITICAL: NO text in image.`;
+  return `Flat 2D editorial cartoon illustration vector illustration style clean bold outlines simple shapes soft flat colors educational illustration
+
+NOT 3D NOT clay render NOT pixar style NOT realistic rendering
+
+Scene: a vivid situation connected to the meaning of "${word}" (${definitionEn || word}).
+
+Camera angle: medium-close cinematic framing.
+
+In the center of the frame, a character is actively engaged in a situation that represents "${word}".
+
+Nearby objects and environment reinforce the word's meaning and emotional tone.
+
+The moment conveys the core meaning of "${word}" through a memorable scene.
+
+High resolution 1:1 square composition
+
+The main subject must fill most of the frame. Avoid empty background areas. Foreground elements dominate the composition.
+
+STRICT NO TEXT RULE
+
+Absolutely no text anywhere. No letters. No numbers. No logos. No labels. No signage.
+
+If any text appears, remove it completely. Replace text areas with blank surfaces.`;
 }
 
 // ---------------------------------------------
