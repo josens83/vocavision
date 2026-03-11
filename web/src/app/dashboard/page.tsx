@@ -10,7 +10,7 @@ import { canAccessExamWithPurchase, canAccessContentWithPurchase, getAvailableEx
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 import { useDashboardSummary, usePackageAccessBulk, usePrefetchDashboard } from '@/hooks/useQueries';
-import { EXAM_MAP, VALID_EXAM_KEYS, getValidLevelForExam, getValidLevelsForExam, getLevelLabel, getLevelShortLabel } from '@/constants/exams';
+import { EXAM_MAP, VALID_EXAM_KEYS, getValidLevelForExam, getValidLevelsForExam, getLevelLabel, getLevelShortLabel, SAT_THEMES, getSatTheme } from '@/constants/exams';
 
 // ============================================
 // DashboardItem 컴포넌트 (미니멀 스타일)
@@ -66,6 +66,16 @@ const getLevelInfo = (exam: string, level: string) => {
   }
 
   if (exam === 'SAT') {
+    // 테마별 학습
+    if (level.startsWith('THEME_')) {
+      const theme = getSatTheme(level);
+      return {
+        name: theme ? theme.label : level,
+        description: `SAT 테마별 학습 • ${theme?.label || level}`,
+        target: '테마 정복',
+        wordCount: 0, // API에서 반환되는 값 사용
+      };
+    }
     const satLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
       L1: { name: 'SAT Starter', description: 'SAT 기초 핵심 어휘', target: '기초 학습', wordCount: 1786 },
       L2: { name: 'SAT Advanced', description: 'SAT 고급 실전 어휘', target: '고급 정복', wordCount: 149 },
@@ -508,6 +518,33 @@ function DashboardContent() {
             })}
           </div>
         </section>
+
+        {/* SAT 테마별 학습 섹션 */}
+        {selectedExam === 'SAT' && (
+          <section className="bg-white border border-gray-200 rounded-2xl p-5">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">테마별 학습</h3>
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              {SAT_THEMES.map((theme) => (
+                <button
+                  key={theme.key}
+                  onClick={() => {
+                    setActiveLevel(theme.key as any);
+                    localStorage.setItem(`dashboard_SAT_level`, theme.key);
+                    setStableQuery(prev => prev ? { ...prev, level: theme.key } : null);
+                  }}
+                  className={`flex flex-col items-center py-3 px-1 rounded-xl transition-all text-center ${
+                    selectedLevel === theme.key
+                      ? 'bg-orange-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <span className="text-xl mb-1">{theme.emoji}</span>
+                  <span className="font-medium text-[11px] leading-tight">{theme.label}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* 바로 학습 이어가기 카드 (전체 너비) */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
