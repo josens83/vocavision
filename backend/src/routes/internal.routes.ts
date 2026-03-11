@@ -1264,6 +1264,7 @@ const activeImageSessions: Map<string, {
   skippedWordIds: Set<string>;
   types: VisualType[];
   skipExisting: boolean;
+  maxWords?: number;
 }> = new Map();
 
 /**
@@ -1285,6 +1286,7 @@ router.get('/generate-images-continuous', async (req: Request, res: Response) =>
     const examCategory = req.query.examCategory as string;
     const typesParam = req.query.types as string;
     const skipExisting = req.query.skipExisting !== 'false'; // Default true
+    const maxWords = req.query.maxWords ? parseInt(req.query.maxWords as string, 10) : undefined;
 
     // Parse visual types
     const types: VisualType[] = typesParam
@@ -1319,11 +1321,12 @@ router.get('/generate-images-continuous', async (req: Request, res: Response) =>
       examCategory,
       types,
       skipExisting,
+      maxWords,
       skippedWordIds: new Set<string>(),
     });
 
     // Start the continuous image generation process
-    runContinuousImageGeneration(sessionId, level, examCategory, types, skipExisting);
+    runContinuousImageGeneration(sessionId, level, examCategory, types, skipExisting, maxWords);
 
     logger.info(`[Internal/ImageGen] Started session ${sessionId}: level=${level || 'all'}, examCategory=${examCategory || 'all'}, types=${types.join(',')}, skipExisting=${skipExisting}`);
 
@@ -1335,6 +1338,7 @@ router.get('/generate-images-continuous', async (req: Request, res: Response) =>
         examCategory: examCategory || 'all',
         types,
         skipExisting,
+        maxWords: maxWords || 'unlimited',
       },
     });
   } catch (error) {
@@ -1469,13 +1473,20 @@ async function runContinuousImageGeneration(
   level?: string,
   examCategory?: string,
   types: VisualType[] = ['CONCEPT', 'MNEMONIC', 'RHYME'],
-  skipExisting: boolean = true
+  skipExisting: boolean = true,
+  maxWords?: number
 ): Promise<void> {
   const session = activeImageSessions.get(sessionId);
   if (!session) return;
 
   // Process words one at a time to avoid rate limits
   while (session.isRunning) {
+    // maxWords 제한 체크
+    if (maxWords && session.wordsProcessed >= maxWords) {
+      logger.info(`[Internal/ImageGen] Session ${sessionId}: Reached maxWords limit (${maxWords})`);
+      session.isRunning = false;
+      break;
+    }
     try {
       // Build where clause for words that have AI content
       const whereClause: any = {
