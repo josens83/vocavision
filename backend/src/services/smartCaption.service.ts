@@ -335,28 +335,18 @@ JSON만 출력하세요:`;
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
 
-        // Format the prompt for Stability AI
-        const finalPrompt = `Cartoon style illustration.
+        // Format the prompt for Stability AI (design spec v1)
+        const finalPrompt = `Flat 2D editorial cartoon illustration, vector illustration style, clean bold outlines, solid color fills, minimal shading.
+NOT 3D, NOT clay render, NOT pixar style, NOT realistic rendering.
 
-${parsed.scene}
+Scene: ${parsed.scene}
 
+Camera angle: medium-close cinematic framing, 1:1 square ratio.
 Style: cute cartoon, bright colors, humorous, exaggerated expressions, memorable for Korean students.
 Everyday setting with ONE absurd or unusual action.
 
-No text.
-No words.
-No letters.
-No numbers.
-No symbols.
-No labels.
-No captions.
-No titles.
-No icons.
-No speech bubbles.
-No signs.
-No watermarks.
-
-Square composition.`;
+STRICT NO TEXT RULE — no text, no letters, no numbers, no symbols, no labels, no captions, no titles, no speech bubbles, no signs, no watermarks anywhere in the image.
+Replace text areas with blank surfaces.`;
 
         logger.info('[SmartCaption] Extracted mnemonic scene for', word, ':', {
           captionKo: parsed.captionKo,
@@ -459,27 +449,16 @@ JSON만 출력하세요:`;
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
 
-        const finalPrompt = `Cartoon style illustration.
+        const finalPrompt = `Flat 2D editorial cartoon illustration, vector illustration style, clean bold outlines, solid color fills, minimal shading.
+NOT 3D, NOT clay render, NOT pixar style, NOT realistic rendering.
 
-${parsed.scene}
+Scene: ${parsed.scene}
 
-Style: clean cartoon, soft colors, calm composition.
-Focus on meaning, minimal emotion.
+Camera angle: medium-close cinematic framing, 1:1 square ratio.
+Style: clean cartoon, soft colors, calm composition, focus on meaning.
 
-No text.
-No words.
-No letters.
-No numbers.
-No symbols.
-No labels.
-No captions.
-No titles.
-No icons.
-No speech bubbles.
-No signs.
-No watermarks.
-
-Square composition.`;
+STRICT NO TEXT RULE — no text, no letters, no numbers, no symbols, no labels, no captions, no titles, no speech bubbles, no signs, no watermarks anywhere in the image.
+Replace text areas with blank surfaces.`;
 
         logger.info('[SmartCaption] Generated rhyme scene for', word, ':', {
           selectedRhymes: parsed.selectedRhymes,
@@ -589,29 +568,17 @@ Output JSON only:`;
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
 
-        // Format the final prompt for Stability AI
-        const finalPrompt = `Cartoon style illustration.
+        // Format the final prompt for Stability AI (design spec v1)
+        const finalPrompt = `Flat 2D editorial cartoon illustration, vector illustration style, clean bold outlines, solid color fills, minimal shading.
+NOT 3D, NOT clay render, NOT pixar style, NOT realistic rendering.
 
-${parsed.scene}
+Scene: ${parsed.scene}
 
-Soft pastel colors with gentle lighting.
-Clean and simple composition.
-Plain white background.
+Camera angle: medium-close cinematic framing, 1:1 square ratio.
+Style: soft pastel colors with gentle lighting, clean and simple composition.
 
-No text.
-No words.
-No letters.
-No numbers.
-No symbols.
-No labels.
-No captions.
-No titles.
-No icons.
-No speech bubbles.
-No signs.
-No watermarks.
-
-Square composition.`;
+STRICT NO TEXT RULE — no text, no letters, no numbers, no symbols, no labels, no captions, no titles, no speech bubbles, no signs, no watermarks anywhere in the image.
+Replace text areas with blank surfaces.`;
 
         logger.info('[SmartCaption] Generated concept scene for', word, ':', {
           captionKo: parsed.captionKo,

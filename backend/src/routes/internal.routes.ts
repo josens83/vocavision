@@ -21,6 +21,7 @@ import {
 import {
   extractMnemonicScene,
   generateRhymeScene,
+  generateConceptScene,
 } from '../services/smartCaption.service';
 
 const router = Router();
@@ -1606,9 +1607,14 @@ async function runContinuousImageGeneration(
           let captionEn: string;
 
           if (visualType === 'CONCEPT') {
-            prompt = generateConceptPrompt(currentWord.definition || '', currentWord.word);
-            captionKo = currentWord.definitionKo || currentWord.definition || '';
-            captionEn = currentWord.definition || '';
+            const conceptResult = await generateConceptScene(
+              currentWord.word,
+              currentWord.definition || '',
+              currentWord.definitionKo || ''
+            );
+            prompt = conceptResult.prompt;
+            captionKo = conceptResult.captionKo;
+            captionEn = conceptResult.captionEn;
           } else if (visualType === 'MNEMONIC') {
             const firstMnemonic = currentWord.mnemonics?.[0];
             const mnemonicContent = firstMnemonic?.content;
