@@ -684,16 +684,25 @@ export const startLearningSession = async (
     }
 
     // 해당 레벨의 모든 단어 ID 조회
+    const isThematic = level.startsWith('THEME_');
     const allWords = await prisma.word.findMany({
-      where: {
-        examLevels: {
-          some: {
-            examCategory: exam,
-            level: level,
+      where: isThematic
+        ? {
+            // THEME_ 접두사: tags 배열에 해당 테마 포함된 단어 조회
+            tags: { has: level },
+            examCategory: exam as any,
+            isActive: true,
+          }
+        : {
+            // 기존 레벨 기반 조회 (L1, L2 등)
+            examLevels: {
+              some: {
+                examCategory: exam,
+                level: level,
+              },
+            },
+            isActive: true,
           },
-        },
-        isActive: true,
-      },
       select: { id: true },
       orderBy: { word: 'asc' },
     });
