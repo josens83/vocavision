@@ -11,6 +11,7 @@ import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
 import { event as gaEvent } from '@/lib/monitoring/analytics';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import { SAT_THEMES } from '@/constants/exams';
 
 interface WordVisual {
   type: 'CONCEPT' | 'MNEMONIC' | 'RHYME';
@@ -88,6 +89,10 @@ const getLevelName = (exam: string, level: string): string => {
     }
   }
   if (exam === 'SAT') {
+    if (level.startsWith('THEME_')) {
+      const theme = SAT_THEMES.find(t => t.key === level);
+      return theme ? theme.label : level;
+    }
     switch (level) {
       case 'L1': return 'Starter';
       case 'L2': return 'Advanced';
