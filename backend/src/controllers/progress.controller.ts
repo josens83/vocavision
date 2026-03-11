@@ -1656,12 +1656,22 @@ export const getDashboardSummary = async (
         (async () => {
           const cachedCount = appCache.getWordCount(examCategory as string, level as string);
           if (cachedCount !== undefined) return cachedCount;
-          const count = await prisma.wordExamLevel.count({
-            where: {
-              examCategory: examCategory as ExamCategory,
-              level: level as string,
-            }
-          });
+          // THEME_ 레벨은 tags 기반 조회 (WordExamLevel에 없음)
+          const isThematic = (level as string).startsWith('THEME_');
+          const count = isThematic
+            ? await prisma.word.count({
+                where: {
+                  tags: { has: level as string },
+                  examCategory: examCategory as ExamCategory,
+                  isActive: true,
+                }
+              })
+            : await prisma.wordExamLevel.count({
+                where: {
+                  examCategory: examCategory as ExamCategory,
+                  level: level as string,
+                }
+              });
           appCache.setWordCount(examCategory as string, level as string, count);
           return count;
         })(),
