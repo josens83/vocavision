@@ -137,7 +137,7 @@ function ReviewPageContent() {
 
   // 접근 권한 일괄 확인 (4회 개별 → 1회 bulk)
   const { data: bulkAccessData } = usePackageAccessBulk(
-    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete'],
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete'],
     !!user
   );
   const hasCsat2026Access = bulkAccessData?.['2026-csat-analysis']?.hasAccess || false;
@@ -145,6 +145,7 @@ function ReviewPageContent() {
   const hasToeflAccess = bulkAccessData?.['toefl-complete']?.hasAccess || false;
   const hasToeicAccess = bulkAccessData?.['toeic-complete']?.hasAccess || false;
   const hasSatAccess = bulkAccessData?.['sat-complete']?.hasAccess || false;
+  const hasGreAccess = bulkAccessData?.['gre-complete']?.hasAccess || false;
 
   // 구독 상태 확인 (프리미엄 회원은 모든 단품 접근 가능)
   const isPremium = (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY');
@@ -242,7 +243,12 @@ function ReviewPageContent() {
       setActiveLevel('L1');
       setStableQuery({ exam: 'CSAT', level: 'L1' });
     }
-  }, [activeExam, hasEbsAccess, hasToeflAccess, hasToeicAccess, hasSatAccess, isPremium]);
+    if (activeExam === 'GRE' && !(hasGreAccess || isPremium)) {
+      setActiveExam('CSAT' as ExamType);
+      setActiveLevel('L1');
+      setStableQuery({ exam: 'CSAT', level: 'L1' });
+    }
+  }, [activeExam, hasEbsAccess, hasToeflAccess, hasToeicAccess, hasSatAccess, hasGreAccess, isPremium]);
 
   if (!hasHydrated || loading) {
     return (
@@ -362,6 +368,7 @@ function ReviewPageContent() {
                 if (e.key === 'TOEFL') return hasToeflAccess || isPremium;
                 if (e.key === 'TOEIC') return hasToeicAccess || isPremium;
                 if (e.key === 'SAT') return hasSatAccess || isPremium;
+                if (e.key === 'GRE') return hasGreAccess || isPremium;
                 return true;
               })
               .map((e) => {
@@ -373,6 +380,7 @@ function ReviewPageContent() {
                 : (key === 'TOEFL') ? !(hasToeflAccess || isPremium)
                 : (key === 'TOEIC') ? !(hasToeicAccess || isPremium)
                 : (key === 'SAT') ? !(hasSatAccess || isPremium)
+                : (key === 'GRE') ? !(hasGreAccess || isPremium)
                 : !canAccessExam(user, key);
               return (
                 <button
@@ -404,6 +412,8 @@ function ReviewPageContent() {
                         ? 'bg-[#3B82F6] text-white shadow-sm'
                         : key === 'TOEIC'
                         ? 'bg-[#10B981] text-white shadow-sm'
+                        : key === 'GRE'
+                        ? 'bg-[#6366F1] text-white shadow-sm'
                         : 'bg-[#A855F7] text-white shadow-sm'
                       : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                   }`}

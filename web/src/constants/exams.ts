@@ -106,6 +106,17 @@ export const EXAM_LIST: ExamConfig[] = [
       { key: 'L2', label: 'SAT Advanced', shortLabel: 'Advanced' },
     ],
   },
+  {
+    key: 'GRE',
+    label: 'GRE',
+    icon: '🎓',
+    color: 'indigo',
+    packageSlug: 'gre-complete',
+    levels: [
+      { key: 'L1', label: 'Verbal 핵심', shortLabel: '핵심' },
+      { key: 'L2', label: 'Verbal 고급', shortLabel: '고급' },
+    ],
+  },
 ];
 
 // ---------------------------------------------
