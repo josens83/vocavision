@@ -710,23 +710,39 @@ export const submitReviewBatch = async (
           initialNextReviewDate.setDate(initialNextReviewDate.getDate() + 3);
         }
 
-        progress = await prisma.userProgress.upsert({
-          where: {
-            userId_wordId_examCategory_level: {
-              userId, wordId, examCategory: wordExamCategory, level: wordLevel,
+        try {
+          progress = await prisma.userProgress.upsert({
+            where: {
+              userId_wordId_examCategory_level: {
+                userId, wordId, examCategory: wordExamCategory, level: wordLevel,
+              },
             },
-          },
-          create: {
-            userId, wordId,
-            examCategory: wordExamCategory,
-            level: wordLevel,
-            nextReviewDate: initialNextReviewDate,
-            masteryLevel: 'NEW',
-            initialRating: rating,
-            learnedAt: new Date(),
-          },
-          update: {},
-        });
+            create: {
+              userId, wordId,
+              examCategory: wordExamCategory,
+              level: wordLevel,
+              nextReviewDate: initialNextReviewDate,
+              masteryLevel: 'NEW',
+              initialRating: rating,
+              learnedAt: new Date(),
+            },
+            update: {},
+          });
+        } catch (upsertError: any) {
+          // P2002: 동시 요청으로 이미 생성됨 → 기존 레코드 조회
+          if (upsertError?.code === 'P2002') {
+            progress = await prisma.userProgress.findUnique({
+              where: {
+                userId_wordId_examCategory_level: {
+                  userId, wordId, examCategory: wordExamCategory, level: wordLevel,
+                },
+              },
+            });
+            if (!progress) throw upsertError; // 조회도 실패하면 원래 에러 throw
+          } else {
+            throw upsertError;
+          }
+        }
         progressMap.set(progressKey, progress);
       }
 
@@ -1652,12 +1668,14 @@ export const getDashboardSummary = async (
           return Number(result[0]?.count ?? 0);
         })(),
 
-        // 3. 전체 단어 수 (🚀 캐시 사용 - TTL 1시간)
+        // 3. 전체 단어 수 (🚀 캐시 사용 - TTL 1시간, THEME_는 캐시 스킵)
         (async () => {
-          const cachedCount = appCache.getWordCount(examCategory as string, level as string);
-          if (cachedCount !== undefined) return cachedCount;
-          // THEME_ 레벨은 tags 기반 조회 (WordExamLevel에 없음)
           const isThematic = (level as string).startsWith('THEME_');
+          // THEME_ 레벨은 캐시 스킵 (잘못된 0 값이 캐시될 수 있음)
+          if (!isThematic) {
+            const cachedCount = appCache.getWordCount(examCategory as string, level as string);
+            if (cachedCount !== undefined) return cachedCount;
+          }
           const count = isThematic
             ? await prisma.word.count({
                 where: {
