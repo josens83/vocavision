@@ -1794,8 +1794,9 @@ export const getDashboardSummary = async (
       learningSession,
     };
 
-    // 학습 후 갱신 필요 → no-cache로 매번 검증
-    res.set('Cache-Control', 'private, no-cache');
+    // 학습 후 갱신 필요 → no-store로 브라우저 HTTP 캐시 완전 방지
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
     res.json(responseData);
   } catch (error: any) {
     // 타임아웃 에러 시 의미 있는 응답 반환
