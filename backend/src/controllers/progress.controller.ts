@@ -609,10 +609,6 @@ export const submitReview = async (
     // Update user stats
     await updateUserStats(userId);
 
-    // 🚀 대시보드 캐시 무효화 (학습 결과 즉시 반영)
-    const dashboardKeys = appCache.getKeys().filter(k => k.startsWith(`dashboard:${userId}:`));
-    dashboardKeys.forEach(k => appCache.del(k));
-
     res.json({
       message: 'Review submitted successfully',
       progress: updatedProgress,
@@ -830,10 +826,6 @@ export const submitReviewBatch = async (
 
     // 5. updateUserStats 1회만 실행
     await updateUserStats(userId);
-
-    // 6. 대시보드 캐시 무효화
-    const dashboardKeys = appCache.getKeys().filter(k => k.startsWith(`dashboard:${userId}:`));
-    dashboardKeys.forEach(k => appCache.del(k));
 
     console.log(`[submitReviewBatch] Completed: ${processed.length}/${uniqueReviews.length} reviews processed`);
 
@@ -1599,13 +1591,8 @@ export const getDashboardSummary = async (
     const userId = req.userId!;
     const { examCategory = 'CSAT', level = 'L1' } = req.query;
 
-    // 🚀 캐시 확인 (30초 TTL - 빈번한 요청 차단)
-    const cacheKey = `dashboard:${userId}:${examCategory}:${level}`;
-    const cached = appCache.get<any>(cacheKey);
-    if (cached) {
-      res.set('Cache-Control', 'private, no-cache');
-      return res.json(cached);
-    }
+    // UserProgress 기반 데이터(learnedCount, progress 등)는 매 학습마다 변하므로
+    // 전체 응답 캐시 사용하지 않음. 단어 수(wordCount)만 개별 캐시 유지.
 
     // KST 기준 오늘 시작 시간 (00:00:00)
     const now = new Date();
@@ -1790,10 +1777,7 @@ export const getDashboardSummary = async (
       learningSession,
     };
 
-    // 🚀 결과 캐시 (30초 TTL)
-    appCache.set(cacheKey, responseData, 30);
-
-    // 학습 후 갱신 필요 → no-cache로 매번 검증, 네트워크 실패 시 캐시 사용 가능
+    // 학습 후 갱신 필요 → no-cache로 매번 검증
     res.set('Cache-Control', 'private, no-cache');
     res.json(responseData);
   } catch (error: any) {
