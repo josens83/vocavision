@@ -898,26 +898,43 @@ export const submitReviewBatchBeacon = async (
       const examCategory = review.examCategory || word.examCategory;
       const level = review.level || (word as any).examLevels?.[0]?.level || 'L1';
 
-      await prisma.userProgress.upsert({
-        where: {
-          userId_wordId_examCategory_level: {
-            userId, wordId: review.wordId, examCategory, level,
+      try {
+        await prisma.userProgress.upsert({
+          where: {
+            userId_wordId_examCategory_level: {
+              userId, wordId: review.wordId, examCategory, level,
+            },
           },
-        },
-        create: {
-          userId, wordId: review.wordId, examCategory, level,
-          initialRating: review.rating,
-          correctCount: review.rating >= 4 ? 1 : 0,
-          incorrectCount: review.rating < 3 ? 1 : 0,
-          nextReviewDate: new Date(),
-          learnedAt: new Date(),
-        },
-        update: {
-          correctCount: review.rating >= 4 ? { increment: 1 } : undefined,
-          incorrectCount: review.rating < 3 ? { increment: 1 } : undefined,
-          lastReviewDate: new Date(),
-        },
-      });
+          create: {
+            userId, wordId: review.wordId, examCategory, level,
+            initialRating: review.rating,
+            correctCount: review.rating >= 4 ? 1 : 0,
+            incorrectCount: review.rating < 3 ? 1 : 0,
+            nextReviewDate: new Date(),
+            learnedAt: new Date(),
+          },
+          update: {
+            correctCount: review.rating >= 4 ? { increment: 1 } : undefined,
+            incorrectCount: review.rating < 3 ? { increment: 1 } : undefined,
+            lastReviewDate: new Date(),
+          },
+        });
+      } catch (upsertError: any) {
+        // P2002: 동시 요청으로 이미 생성됨 → 기존 레코드로 진행
+        if (upsertError?.code === 'P2002') {
+          // beacon은 fire-and-forget이므로 기존 레코드 존재 확인만
+          const existing = await prisma.userProgress.findUnique({
+            where: {
+              userId_wordId_examCategory_level: {
+                userId, wordId: review.wordId, examCategory, level,
+              },
+            },
+          });
+          if (!existing) throw upsertError;
+        } else {
+          throw upsertError;
+        }
+      }
 
       reviewRecords.push({
         userId, wordId: review.wordId,
