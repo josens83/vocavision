@@ -1,5 +1,5 @@
 # Backend Dockerfile
-# Build context: repository root (not backend directory)
+# Build context: backend/ directory (Railway Root Directory = backend)
 FROM node:20-slim AS base
 
 # Install dependencies only when needed
@@ -7,9 +7,9 @@ FROM base AS deps
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
-# Copy package files from backend directory
-COPY backend/package.json ./
-COPY backend/prisma ./prisma/
+# Copy package files
+COPY package.json ./
+COPY prisma ./prisma/
 
 # Install ALL dependencies (including dev for TypeScript build)
 RUN npm install
@@ -18,7 +18,7 @@ RUN npm install
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY backend/ .
+COPY . .
 
 # Generate Prisma Client
 RUN npx prisma generate
@@ -38,7 +38,7 @@ RUN groupadd --system --gid 1001 nodejs
 RUN useradd --system --uid 1001 vocavision
 
 # Copy package.json for production install
-COPY backend/package.json ./
+COPY package.json ./
 
 # Install production dependencies only
 RUN npm install --omit=dev
