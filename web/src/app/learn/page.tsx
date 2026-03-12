@@ -983,8 +983,8 @@ function LearnPageContent() {
     resetSession();
     clearLearningSession();
 
-    // 2. 대시보드 캐시 무효화 → 학습완료 수 즉시 반영
-    queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+    // 2. 대시보드 캐시 무효화 (flush는 handleSetComplete에서 이미 완료)
+    await queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
 
     // 3. 대시보드로 이동
     router.push('/dashboard');
@@ -1054,15 +1054,13 @@ function LearnPageContent() {
   const exitPath = (isReviewMode || isBookmarksMode) ? '/review' : (user ? '/dashboard' : '/');
 
   // 나가기 버튼 핸들러 - 현재 진행 위치를 서버에 저장
-  const handleExit = () => {
-    // 대시보드 캐시 무효화 → 돌아갔을 때 최신 데이터 표시
-    queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+  const handleExit = async () => {
+    // 1. 미전송 리뷰 먼저 flush (DB 반영까지 대기)
+    if (pendingReviews.current.length > 0) {
+      await flushPendingReviews();
+    }
 
-    // 즉시 네비게이션 (사용자 체감 속도 최우선)
-    router.push(exitPath);
-
-    // 백그라운드로 저장 (fire-and-forget)
-    flushPendingReviews().catch(console.error);
+    // 2. 세션 진행 위치 저장 (fire-and-forget)
     if (serverSession && user) {
       learningAPI.updateSessionProgress({
         sessionId: serverSession.id,
@@ -1070,6 +1068,11 @@ function LearnPageContent() {
       }).catch(console.error);
     }
 
+    // 3. flush 완료 후 캐시 무효화 → 대시보드에서 최신 데이터 표시
+    await queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+
+    // 4. 이동
+    router.push(exitPath);
   };
 
   // beforeunload 이벤트 - 페이지 떠날 때 진행 위치 + 미전송 리뷰 저장
@@ -1432,8 +1435,11 @@ function LearnPageContent() {
           score={wordsCorrect}
           total={reviews.length}
           onRetry={allCompleted ? undefined : handleRestart}
-          onHome={allCompleted ? handleCompleteAndGoHome : () => {
-            queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+          onHome={allCompleted ? handleCompleteAndGoHome : async () => {
+            if (pendingReviews.current.length > 0) {
+              await flushPendingReviews();
+            }
+            await queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
             router.push(exitPath);
           }}
           onNext={user && hasMoreWords && examParam && !serverSession ? handleNextBatch : undefined}
