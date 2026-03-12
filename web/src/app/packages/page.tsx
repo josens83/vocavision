@@ -119,6 +119,24 @@ const packages: Package[] = [
     isActive: true,
     badge: 'NEW',
   },
+  {
+    id: 'gre-complete',
+    slug: 'gre-complete',
+    name: 'GRE 완전정복',
+    description: '대학원 유학의 관문 GRE Verbal 핵심~고급 어휘 4,346개. Greek·Latin 어근 기반으로 핵심(L1) 1,858개 + 고급(L2) 2,488개를 AI 이미지·어원·라임으로 단기 완성.',
+    price: 9900,
+    duration: '6개월',
+    wordCount: 4346,
+    features: [
+      'GRE Verbal 핵심~고급 어휘 4,346개',
+      'L1 Verbal 핵심 1,858개 (빈출 핵심 어휘)',
+      'L2 Verbal 고급 2,488개 (고난도 어휘)',
+      'AI 이미지·어원·라임 8단계 학습',
+      '6개월 이용권 (자동갱신 없음)',
+    ],
+    isActive: true,
+    badge: 'NEW',
+  },
 ];
 
 export default function PackagesPage() {
