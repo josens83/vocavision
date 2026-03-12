@@ -324,13 +324,14 @@ function DashboardContent() {
   const level = getLevelInfo(selectedExam, selectedLevel);
 
   const totalWords = examLevelTotalWords || level.wordCount;
-  // IN_PROGRESS: 세션 값만 사용 (리셋 후 0부터 시작 — Math.max 하면 이전 값 잔존)
-  // COMPLETED: Math.max(세션, DB) — updateSessionProgress 실패해도 UserProgress 기준 표시
-  // 세션 없음: UserProgress 사용
+  // 학습 완료 단어 수: DB 기준값(examLevelLearnedWords)과 세션 진도 중 큰 값 사용.
+  // THEME_ 단어는 L1/L2로 이미 학습된 경우가 많아 DB값 > 세션값이 됨.
+  // 리셋 직후(세션 진도 0)에도 DB에 이미 학습된 단어가 있으면 그 값을 표시해야 정확.
+  const sessionLearnedWords = learningSession
+    ? learningSession.totalReviewed + learningSession.currentIndex
+    : 0;
   const learnedWords = learningSession
-    ? (learningSession.status === 'COMPLETED'
-        ? Math.max(learningSession.totalReviewed + learningSession.currentIndex, examLevelLearnedWords)
-        : learningSession.totalReviewed + learningSession.currentIndex)
+    ? Math.max(sessionLearnedWords, examLevelLearnedWords)
     : examLevelLearnedWords;
   const remainingWords = Math.max(totalWords - learnedWords, 0);
   const progressPercent = totalWords > 0 ? Math.min(Math.round((learnedWords / totalWords) * 100), 100) : 0;
