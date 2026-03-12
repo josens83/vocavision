@@ -707,6 +707,8 @@ export const startLearningSession = async (
       orderBy: { word: 'asc' },
     });
 
+    console.log(`[Learning] startSession: exam=${exam}, level=${level}, isThematic=${isThematic}, allWords.length=${allWords.length}`);
+
     if (allWords.length === 0) {
       throw new AppError('No words found for this exam/level', 404);
     }
