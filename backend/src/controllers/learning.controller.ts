@@ -689,8 +689,9 @@ export const startLearningSession = async (
       where: isThematic
         ? {
             // THEME_ 접두사: tags 배열에 해당 테마 포함된 단어 조회
+            // Word.examCategory는 원래 시험 카테고리 — SAT 매핑은 WordExamLevel로 확인
             tags: { has: level },
-            examCategory: exam as any,
+            examLevels: { some: { examCategory: exam } },
             isActive: true,
           }
         : {

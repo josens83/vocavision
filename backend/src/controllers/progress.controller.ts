@@ -1662,7 +1662,7 @@ export const getDashboardSummary = async (
             ? await prisma.word.count({
                 where: {
                   tags: { has: level as string },
-                  examCategory: examCategory as ExamCategory,
+                  examLevels: { some: { examCategory: examCategory as ExamCategory } },
                   isActive: true,
                 }
               })
