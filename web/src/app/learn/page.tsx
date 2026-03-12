@@ -993,7 +993,7 @@ function LearnPageContent() {
     clearLearningSession();
 
     // 2. 대시보드 캐시 무효화 (flush는 handleSetComplete에서 이미 완료)
-    await queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+    queryClient.removeQueries({ queryKey: ['dashboardSummary'] });
 
     // 3. 대시보드로 이동
     router.push('/dashboard');
@@ -1078,7 +1078,7 @@ function LearnPageContent() {
     }
 
     // 3. flush 완료 후 캐시 무효화 → 대시보드에서 최신 데이터 표시
-    await queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+    queryClient.removeQueries({ queryKey: ['dashboardSummary'] });
 
     // 4. 이동
     router.push(exitPath);
@@ -1449,7 +1449,7 @@ function LearnPageContent() {
             if (pendingReviews.current.length > 0) {
               await flushPendingReviews();
             }
-            await queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+            queryClient.removeQueries({ queryKey: ['dashboardSummary'] });
             router.push(exitPath);
           }}
           onNext={user && hasMoreWords && examParam && !serverSession ? handleNextBatch : undefined}
