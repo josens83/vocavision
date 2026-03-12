@@ -1672,6 +1672,7 @@ export const getDashboardSummary = async (
                   level: level as string,
                 }
               });
+          console.log(`[DashboardSummary] wordCount: exam=${examCategory}, level=${level}, isThematic=${isThematic}, count=${count}`);
           appCache.setWordCount(examCategory as string, level as string, count);
           return count;
         })(),
