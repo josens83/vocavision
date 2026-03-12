@@ -1157,6 +1157,7 @@ model LearningSession {
   // 통계
   completedSets Int       @default(0)   // 완료된 세트 수
   totalReviewed Int       @default(0)   // 총 학습한 단어 수
+  isRestart     Boolean   @default(false) // 처음부터 다시 학습 여부
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
