@@ -576,6 +576,7 @@ export const getLearningSession = async (
         completedSets: session.completedSets,
         totalReviewed: session.totalReviewed,
         status: session.status,
+        isRestart: session.isRestart,
       },
       words: orderedWords,
       setInfo: {
@@ -676,6 +677,7 @@ export const startLearningSession = async (
             completedSets: existingSession.completedSets,
             totalReviewed: existingSession.totalReviewed,
             status: existingSession.status,
+            isRestart: existingSession.isRestart,
           },
           words: orderedWords,
           isExisting: true,
@@ -729,6 +731,7 @@ export const startLearningSession = async (
         currentSet: 0,
         currentIndex: 0,
         status: 'IN_PROGRESS',
+        isRestart: restart === true || restart === 'true',
       },
     });
 
@@ -759,6 +762,7 @@ export const startLearningSession = async (
         completedSets: 0,
         totalReviewed: 0,
         status: newSession.status,
+        isRestart: newSession.isRestart,
       },
       words: orderedWords,
       isNew: true,
@@ -819,6 +823,7 @@ export const updateSessionProgress = async (
           completedSets: session.completedSets,
           totalReviewed: session.totalReviewed,
           status: session.status,
+          isRestart: session.isRestart,
         },
         isCompleted: true,
       });
@@ -903,6 +908,7 @@ export const updateSessionProgress = async (
         completedSets: updatedSession.completedSets,
         totalReviewed: updatedSession.totalReviewed,
         status: updatedSession.status,
+        isRestart: updatedSession.isRestart,
       },
       words: nextWords.length > 0 ? nextWords : undefined,
       isCompleted: updatedSession.status === 'COMPLETED',

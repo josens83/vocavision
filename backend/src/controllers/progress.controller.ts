@@ -1757,6 +1757,7 @@ export const getDashboardSummary = async (
             totalWords: true,
             totalReviewed: true,
             status: true,
+            isRestart: true,
           }
         }),
 
