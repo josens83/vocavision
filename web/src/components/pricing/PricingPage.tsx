@@ -18,7 +18,7 @@ const features: PlanFeature[] = [
   { name: "수능 L2(중급)", free: false, basic: true, premium: true },
   { name: "수능 L3(고급)", free: false, basic: true, premium: true },
   { name: "TEPS L1(기본)/L2(필수)", free: false, basic: true, premium: true },
-  { name: "단어장 (TOEFL/TOEIC/SAT/EBS/기출)", free: false, basic: false, premium: true },
+  { name: "단어장 (TOEFL/TOEIC/SAT/GRE/EBS/기출)", free: false, basic: false, premium: true },
   { name: "AI 생성 이미지", free: "일부", basic: true, premium: true },
   { name: "플래시카드", free: true, basic: true, premium: true },
   { name: "퀴즈 모드", free: "전체", basic: "전체", premium: "전체" },
@@ -144,7 +144,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
-                <span>단어장 (TOEFL/TOEIC/EBS/기출)</span>
+                <span>단어장 (TOEFL/TOEIC/GRE/EBS/기출)</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
@@ -276,7 +276,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
-                <span>단어장 (TOEFL/TOEIC/EBS/기출)</span>
+                <span>단어장 (TOEFL/TOEIC/GRE/EBS/기출)</span>
               </li>
             </ul>
           </div>
@@ -291,7 +291,7 @@ export default function PricingPage() {
             필요한 콘텐츠만 골라서 구매하세요. 구독 없이 바로 이용!
           </p>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-5 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
             {/* 2026 수능기출완전분석 - 베스트 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
@@ -442,6 +442,37 @@ export default function PricingPage() {
               <button
                 onClick={() => router.push("/checkout?package=sat-complete")}
                 className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#F97316] text-white hover:bg-[#EA580C] transition-colors"
+              >
+                구매하기
+              </button>
+            </div>
+
+            {/* GRE 완전정복 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
+              <div className="absolute -top-3 right-4">
+                <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
+                  NEW
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#6366F1] to-[#4338CA] rounded-xl flex items-center justify-center">
+                  <span className="text-white text-xl">🎓</span>
+                </div>
+                <div>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">GRE 완전정복</h3>
+                  <p className="text-[12px] text-[#999999]">4,346개 단어</p>
+                </div>
+              </div>
+              <p className="text-gray-500 text-[13px] mb-4">
+                GRE Verbal 핵심(L1) 1,858개 + 고급(L2) 2,488개. Greek·Latin 어원 기반 단기 완성.
+              </p>
+              <div className="flex items-end gap-1 mb-4">
+                <span className="text-[28px] font-bold text-[#1c1c1e]">₩9,900</span>
+                <span className="text-[#999999] text-[12px] mb-1">6개월</span>
+              </div>
+              <button
+                onClick={() => router.push("/checkout?package=gre-complete")}
+                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#6366F1] text-white hover:bg-[#4338CA] transition-colors"
               >
                 구매하기
               </button>
