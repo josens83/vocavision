@@ -1692,24 +1692,53 @@ export const getDashboardSummary = async (
           return count;
         })(),
 
-        // 4. 학습 완료 단어 수
-        prisma.userProgress.count({
-          where: {
-            userId,
-            examCategory: examCategory as ExamCategory,
-            level: level as string,
+        // 4. 학습 완료 단어 수 (THEME_: wordId 기준, 일반: level 기준)
+        (async () => {
+          const isThematic = (level as string).startsWith('THEME_');
+          if (!isThematic) {
+            return prisma.userProgress.count({
+              where: { userId, examCategory: examCategory as ExamCategory, level: level as string },
+            });
           }
-        }),
+          // THEME_ 단어는 L1/L2 등 다른 level로 학습되었을 수 있으므로
+          // 해당 태그의 wordId 목록과 UserProgress를 wordId 기준으로 매칭
+          const themeWords = await prisma.word.findMany({
+            where: {
+              tags: { has: level as string },
+              examLevels: { some: { examCategory: examCategory as ExamCategory } },
+              isActive: true,
+            },
+            select: { id: true },
+          });
+          if (themeWords.length === 0) return 0;
+          const wordIds = themeWords.map(w => w.id);
+          return prisma.userProgress.count({
+            where: { userId, wordId: { in: wordIds } },
+          });
+        })(),
 
-        // 5. 취약 단어 수 (needsReview = true)
-        prisma.userProgress.count({
-          where: {
-            userId,
-            needsReview: true,
-            examCategory: examCategory as ExamCategory,
-            level: level as string,
+        // 5. 취약 단어 수 (needsReview = true, THEME_: wordId 기준)
+        (async () => {
+          const isThematic = (level as string).startsWith('THEME_');
+          if (!isThematic) {
+            return prisma.userProgress.count({
+              where: { userId, needsReview: true, examCategory: examCategory as ExamCategory, level: level as string },
+            });
           }
-        }),
+          const themeWords = await prisma.word.findMany({
+            where: {
+              tags: { has: level as string },
+              examLevels: { some: { examCategory: examCategory as ExamCategory } },
+              isActive: true,
+            },
+            select: { id: true },
+          });
+          if (themeWords.length === 0) return 0;
+          const wordIds = themeWords.map(w => w.id);
+          return prisma.userProgress.count({
+            where: { userId, needsReview: true, wordId: { in: wordIds } },
+          });
+        })(),
 
         // 6. 학습 세션
         prisma.learningSession.findFirst({
