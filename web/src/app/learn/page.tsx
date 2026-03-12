@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams, redirect } from 'next/navigation';
 import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSession, clearLearningSession } from '@/lib/store';
 import { progressAPI, wordsAPI, learningAPI, bookmarkAPI } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePackageAccessBulk } from '@/hooks/useQueries';
 import { canAccessContent } from '@/lib/subscription';
 import { motion } from 'framer-motion';
@@ -165,6 +166,7 @@ export default function LearnPage() {
 
 function LearnPageContent() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const examParam = searchParams.get('exam')?.toUpperCase();
   const levelParam = searchParams.get('level');
@@ -981,6 +983,9 @@ function LearnPageContent() {
     resetSession();
     clearLearningSession();
 
+    // 2. 대시보드 캐시 무효화 → 학습완료 수 즉시 반영
+    queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+
     // 3. 대시보드로 이동
     router.push('/dashboard');
   };
@@ -1050,6 +1055,9 @@ function LearnPageContent() {
 
   // 나가기 버튼 핸들러 - 현재 진행 위치를 서버에 저장
   const handleExit = () => {
+    // 대시보드 캐시 무효화 → 돌아갔을 때 최신 데이터 표시
+    queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+
     // 즉시 네비게이션 (사용자 체감 속도 최우선)
     router.push(exitPath);
 
@@ -1424,7 +1432,10 @@ function LearnPageContent() {
           score={wordsCorrect}
           total={reviews.length}
           onRetry={allCompleted ? undefined : handleRestart}
-          onHome={allCompleted ? handleCompleteAndGoHome : () => router.push(exitPath)}
+          onHome={allCompleted ? handleCompleteAndGoHome : () => {
+            queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+            router.push(exitPath);
+          }}
           onNext={user && hasMoreWords && examParam && !serverSession ? handleNextBatch : undefined}
           isGuest={!user}
           isAllCompleted={!!allCompleted}
