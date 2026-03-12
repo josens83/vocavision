@@ -988,14 +988,20 @@ function LearnPageContent() {
   // 세션은 이미 handleSetComplete에서 COMPLETED 처리됨 → restart 불필요
   // (restart 호출이 race condition 원인: COMPLETED 전에 실행되면 세션 ABANDONED 처리)
   const handleCompleteAndGoHome = async () => {
-    // 1. 로컬 상태 정리
+    // 1. 방어적 flush — handleCompleteSet에서 이미 완료되었지만,
+    //    P2002 retry 등으로 누락된 리뷰가 있을 수 있음
+    if (pendingReviews.current.length > 0) {
+      await flushPendingReviews();
+    }
+
+    // 2. 로컬 상태 정리
     resetSession();
     clearLearningSession();
 
-    // 2. 대시보드 캐시 무효화 (flush는 handleSetComplete에서 이미 완료)
+    // 3. 대시보드 캐시 무효화
     queryClient.removeQueries({ queryKey: ['dashboardSummary'] });
 
-    // 3. 대시보드로 이동
+    // 4. 대시보드로 이동
     router.push('/dashboard');
   };
 
