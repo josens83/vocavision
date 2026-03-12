@@ -726,13 +726,10 @@ export const submitReviewBatch = async (
           });
         } catch (upsertError: any) {
           // P2002: 동시 요청으로 이미 생성됨 → 기존 레코드 조회
+          // DB에 (userId, wordId) 2-field unique가 존재하므로 findFirst로 조회
           if (upsertError?.code === 'P2002') {
-            progress = await prisma.userProgress.findUnique({
-              where: {
-                userId_wordId_examCategory_level: {
-                  userId, wordId, examCategory: wordExamCategory, level: wordLevel,
-                },
-              },
+            progress = await prisma.userProgress.findFirst({
+              where: { userId, wordId },
             });
             if (!progress) throw upsertError; // 조회도 실패하면 원래 에러 throw
           } else {
@@ -921,14 +918,10 @@ export const submitReviewBatchBeacon = async (
         });
       } catch (upsertError: any) {
         // P2002: 동시 요청으로 이미 생성됨 → 기존 레코드로 진행
+        // DB에 (userId, wordId) 2-field unique가 존재하므로 findFirst로 조회
         if (upsertError?.code === 'P2002') {
-          // beacon은 fire-and-forget이므로 기존 레코드 존재 확인만
-          const existing = await prisma.userProgress.findUnique({
-            where: {
-              userId_wordId_examCategory_level: {
-                userId, wordId: review.wordId, examCategory, level,
-              },
-            },
+          const existing = await prisma.userProgress.findFirst({
+            where: { userId, wordId: review.wordId },
           });
           if (!existing) throw upsertError;
         } else {
