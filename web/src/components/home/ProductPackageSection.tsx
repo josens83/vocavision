@@ -81,11 +81,22 @@ function getStaticPackages(): ProductPackage[] {
       isComingSoon: false,
       wordCount: 1935,
     },
+    {
+      id: "static-gre",
+      name: "GRE 완전정복",
+      slug: "gre-complete",
+      shortDesc: "대학원 유학의 관문 GRE Verbal. Greek·Latin 어근 기반 핵심(L1) 1,858개 + 고급(L2) 2,488개를 AI 이미지·어원·라임으로 단기 완성.",
+      price: 9900,
+      durationDays: 180,
+      badge: "NEW",
+      isComingSoon: false,
+      wordCount: 4346,
+    },
   ];
 }
 
 // 메인페이지에 표시할 패키지 slug 목록
-const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete'];
+const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete'];
 
 // 표시용 단어 수 오버라이드 (교재별 레벨 중복 포함 수치)
 const DISPLAY_WORD_COUNTS: Record<string, number> = {
@@ -94,6 +105,7 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'toefl-complete': 3651,
   'toeic-complete': 2491,
   'sat-complete': 1935,
+  'gre-complete': 4346,
 };
 
 // 뱃지 스타일 결정

@@ -55,6 +55,7 @@ const examNames: Record<string, string> = {
   TOEIC: 'TOEIC',
   TEPS: 'TEPS',
   EBS: 'EBS 연계',
+  GRE: 'GRE',
 };
 
 // Level name mapping - exam-specific
@@ -97,6 +98,13 @@ const getLevelName = (exam: string, level: string): string => {
     switch (level) {
       case 'L1': return 'Starter';
       case 'L2': return 'Advanced';
+      default: return level;
+    }
+  }
+  if (exam === 'GRE') {
+    switch (level) {
+      case 'L1': return 'Verbal 핵심';
+      case 'L2': return 'Verbal 고급';
       default: return level;
     }
   }
@@ -186,10 +194,11 @@ function LearnPageContent() {
     'TOEFL': 'toefl-complete',
     'TOEIC': 'toeic-complete',
     'SAT': 'sat-complete',
+    'GRE': 'gre-complete',
   };
   const packageSlug = examParam ? (packageSlugMap[examParam] || '') : '';
   const { data: bulkAccessData } = usePackageAccessBulk(
-    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete'],
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete'],
     !!user && !!packageSlug && hasHydrated && !isDemo
   );
   const packageAccessData = packageSlug && bulkAccessData ? bulkAccessData[packageSlug] : undefined;
@@ -1135,6 +1144,7 @@ function LearnPageContent() {
       'TOEFL': { name: 'TOEFL 완전정복', slug: 'toefl-complete' },
       'TOEIC': { name: 'TOEIC 점수폭발', slug: 'toeic-complete' },
       'SAT': { name: 'SAT 핵심 어휘', slug: 'sat-complete' },
+      'GRE': { name: 'GRE 완전정복', slug: 'gre-complete' },
     };
     const pkg = packageInfo[examParam || ''] || { name: examParam, slug: '' };
 
