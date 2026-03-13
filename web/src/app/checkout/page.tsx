@@ -77,6 +77,9 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'ebs-vocab': 3837,
   '2026-csat-analysis': 521,
   'toefl-complete': 3651,
+  'toeic-complete': 2491,
+  'sat-complete': 1935,
+  'gre-complete': 4346,
 };
 
 // 단품 패키지 결제 컴포넌트
