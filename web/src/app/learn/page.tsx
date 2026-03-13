@@ -1075,9 +1075,9 @@ function LearnPageContent() {
       await flushPendingReviews();
     }
 
-    // 2. 세션 진행 위치 저장 (fire-and-forget)
+    // 2. 세션 진행 위치 저장 (대시보드 이동 전 완료 대기)
     if (serverSession && user) {
-      learningAPI.updateSessionProgress({
+      await learningAPI.updateSessionProgress({
         sessionId: serverSession.id,
         currentIndex: currentWordIndex,
       }).catch(console.error);
