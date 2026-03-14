@@ -726,17 +726,15 @@ export default function Hero() {
 
               <h1 className="font-display">
                 <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
-                  단어를 <span className="text-cyan-500 font-black">보면</span>, 기억됩니다.
+                  단어를 <span className="text-cyan-500 font-black">보면,</span>
+                </span>
+                <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-cyan-500 font-black">
+                  기억됩니다.
                 </span>
                 <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
                   AI 이미지 · 라임 · 어원으로 수능 · TEPS · TOEFL · TOEIC · SAT 단어를 오래 기억하세요.
                 </span>
               </h1>
-
-              <p className="text-base md:text-xl text-slate-600 max-w-xl leading-relaxed">
-                수능 · TEPS · TOEFL · TOEIC · SAT 등<br />
-                모든 시험을 하나의 플랫폼에서.
-              </p>
 
               <div className="flex flex-wrap gap-4 pt-4">
                 <Link href="/auth/login" className="btn btn-primary group">
