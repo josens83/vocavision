@@ -45,11 +45,11 @@ const Icons = {
 
 // Hero 섹션 통계 (실제 데이터 기반)
 const heroStats = [
-  { label: "전체 단어", value: PLATFORM_STATS.totalWords.toLocaleString() + "+", suffix: "개" },
-  { label: "시험 대비", value: "6+", suffix: "개" },
-  { label: "AI 콘텐츠", value: "100", suffix: "%" },
-  { label: "단어당 예문", value: "4.0", suffix: "개" },
-  { label: "단어당 학습법", value: "8", suffix: "섹션" },
+  { label: "영어 단어", value: PLATFORM_STATS.totalWords.toLocaleString() + "+" },
+  { label: "시험 대비", value: "7" },
+  { label: "예문 데이터", value: "40,000+" },
+  { label: "AI 이미지", value: "10,000+" },
+  { label: "학습 방식", value: "8" },
 ];
 
 const features = [
@@ -721,15 +721,15 @@ export default function Hero() {
             <div className={`space-y-8 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
                 <Icons.Sparkles />
-                <span className="text-sm font-medium text-slate-600">AI 기반 영어 단어 학습 플랫폼</span>
+                <span className="text-sm font-medium text-slate-600">One Word. Eight Ways to Remember.</span>
               </div>
 
               <h1 className="font-display">
                 <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
-                  AI 시각화 학습
+                  단어를 <span className="text-cyan-500 font-black">보면</span>, 기억됩니다.
                 </span>
                 <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
-                  모든 영어 시험을 위한 단어 솔루션
+                  AI 이미지 · 라임 · 어원으로 수능 · TEPS · TOEFL · TOEIC · SAT 단어를 오래 기억하세요.
                 </span>
               </h1>
 
@@ -753,7 +753,7 @@ export default function Hero() {
                 {heroStats.map((stat, index) => (
                   <div key={stat.label} className={`${isVisible ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: `${0.3 + index * 0.1}s` }}>
                     <div className="text-2xl md:text-3xl font-display font-bold text-slate-900">
-                      {stat.value}<span className="text-sm md:text-lg text-slate-500">{stat.suffix}</span>
+                      {stat.value}
                     </div>
                     <div className="text-xs md:text-sm text-slate-500">{stat.label}</div>
                   </div>
