@@ -724,8 +724,8 @@ export default function Hero() {
                 <span className="text-sm font-medium text-slate-600">One Word. Eight Ways to Remember.</span>
               </div>
 
-              <h1 className="font-display">
-                <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
+              <h1 className="font-display leading-snug">
+                <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-2">
                   단어를 <span className="text-cyan-500 font-black">보면,</span>
                 </span>
                 <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-cyan-500 font-black">
@@ -737,7 +737,7 @@ export default function Hero() {
               </h1>
 
               <div className="flex flex-wrap gap-4 pt-4">
-                <Link href="/auth/login" className="btn btn-primary group">
+                <Link href="/auth/login" className="btn bg-emerald-500 hover:bg-emerald-600 text-white focus:ring-emerald-500 group">
                   <Icons.Sparkles />
                   <span>무료로 시작하기</span>
                 </Link>
