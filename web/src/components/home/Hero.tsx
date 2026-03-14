@@ -46,7 +46,7 @@ const Icons = {
 // Hero 섹션 통계 (실제 데이터 기반)
 const heroStats = [
   { label: "영어 단어", value: PLATFORM_STATS.totalWords.toLocaleString() + "+" },
-  { label: "시험 대비", value: "7" },
+  { label: "시험 대비", value: "8" },
   { label: "예문 데이터", value: "40,000+" },
   { label: "AI 이미지", value: "10,000+" },
   { label: "학습 방식", value: "8" },

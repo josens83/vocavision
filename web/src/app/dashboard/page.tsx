@@ -91,6 +91,14 @@ const getLevelInfo = (exam: string, level: string) => {
     return greLevels[level] || greLevels.L1;
   }
 
+  if (exam === 'IELTS') {
+    const ieltsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
+      L1: { name: 'Foundation', description: 'IELTS Band 5~6.5 기초 필수 어휘', target: 'Band 6.5 목표', wordCount: 330 },
+      L2: { name: 'Academic', description: 'IELTS Band 7~8 학술 핵심 어휘', target: 'Band 8.0 목표', wordCount: 258 },
+    };
+    return ieltsLevels[level] || ieltsLevels.L1;
+  }
+
   if (exam === 'TEPS') {
     // TEPS는 L1, L2만 (L3 없음)
     const tepsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
@@ -478,7 +486,7 @@ function DashboardContent() {
         {/* 레벨/유형 선택 섹션 */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : (selectedExam === 'TOEFL' || selectedExam === 'TOEIC' || selectedExam === 'SAT' || selectedExam === 'GRE') ? '난이도 선택' : '레벨 선택'}
+            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : (selectedExam === 'TOEFL' || selectedExam === 'TOEIC' || selectedExam === 'SAT' || selectedExam === 'GRE' || selectedExam === 'IELTS') ? '난이도 선택' : '레벨 선택'}
           </h3>
 
           <div className="flex gap-3">

@@ -108,6 +108,13 @@ const getLevelName = (exam: string, level: string): string => {
       default: return level;
     }
   }
+  if (exam === 'IELTS') {
+    switch (level) {
+      case 'L1': return 'Foundation';
+      case 'L2': return 'Academic';
+      default: return level;
+    }
+  }
   // CSAT 및 기타
   switch (level) {
     case 'L1': return 'L1(기초)';
@@ -195,10 +202,11 @@ function LearnPageContent() {
     'TOEIC': 'toeic-complete',
     'SAT': 'sat-complete',
     'GRE': 'gre-complete',
+    'IELTS': 'ielts-complete',
   };
   const packageSlug = examParam ? (packageSlugMap[examParam] || '') : '';
   const { data: bulkAccessData } = usePackageAccessBulk(
-    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete'],
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete'],
     !!user && !!packageSlug && hasHydrated && !isDemo
   );
   const packageAccessData = packageSlug && bulkAccessData ? bulkAccessData[packageSlug] : undefined;

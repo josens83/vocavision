@@ -146,6 +146,9 @@ export function canAccessExam(user: User | null, exam: string): boolean {
   if (exam === 'GRE') {
     return hasPurchasedExam(user, 'GRE');
   }
+  if (exam === 'IELTS') {
+    return hasPurchasedExam(user, 'IELTS');
+  }
   return false;
 }
 
@@ -157,7 +160,7 @@ export function canAccessLevel(user: User | null, level: string): boolean {
 
 export function canAccessContent(user: User | null, exam: string, level: string): boolean {
   // EBS, CSAT_2026, TOEFL, TOEIC, SAT: 시험 접근 가능하면 전체 레벨 접근 가능 (레벨 체크 불필요)
-  if (exam === 'EBS' || exam === 'CSAT_2026' || exam === 'TOEFL' || exam === 'TOEIC' || exam === 'SAT' || exam === 'GRE') {
+  if (exam === 'EBS' || exam === 'CSAT_2026' || exam === 'TOEFL' || exam === 'TOEIC' || exam === 'SAT' || exam === 'GRE' || exam === 'IELTS') {
     return canAccessExam(user, exam);
   }
   return canAccessExam(user, exam) && canAccessLevel(user, level);
@@ -204,6 +207,7 @@ const slugToExamMap: Record<string, string> = {
   'toeic-complete': 'TOEIC',
   'sat-complete': 'SAT',
   'gre-complete': 'GRE',
+  'ielts-complete': 'IELTS',
   'csat-core-200': 'CSAT_CORE',
 };
 
@@ -272,6 +276,7 @@ export function getAvailableExams(user: User | null): { exam: string; locked: bo
       { exam: 'TOEIC',     locked: false },
       { exam: 'SAT',       locked: false },
       { exam: 'GRE',       locked: false },
+      { exam: 'IELTS',     locked: false },
     ];
   }
 
@@ -287,6 +292,7 @@ export function getAvailableExams(user: User | null): { exam: string; locked: bo
     if (hasPurchasedExam(user, 'TOEIC'))     exams.push({ exam: 'TOEIC',     locked: false });
     if (hasPurchasedExam(user, 'SAT'))       exams.push({ exam: 'SAT',       locked: false });
     if (hasPurchasedExam(user, 'GRE'))       exams.push({ exam: 'GRE',       locked: false });
+    if (hasPurchasedExam(user, 'IELTS'))     exams.push({ exam: 'IELTS',     locked: false });
     return exams;
   }
 
@@ -300,5 +306,6 @@ export function getAvailableExams(user: User | null): { exam: string; locked: bo
   if (hasPurchasedExam(user, 'TOEFL'))     exams.push({ exam: 'TOEFL',     locked: false });
   if (hasPurchasedExam(user, 'TOEIC'))     exams.push({ exam: 'TOEIC',     locked: false });
   if (hasPurchasedExam(user, 'SAT'))       exams.push({ exam: 'SAT',       locked: false });
+  if (hasPurchasedExam(user, 'IELTS'))     exams.push({ exam: 'IELTS',     locked: false });
   return exams;
 }

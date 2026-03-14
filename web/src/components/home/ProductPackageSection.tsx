@@ -92,11 +92,22 @@ function getStaticPackages(): ProductPackage[] {
       isComingSoon: false,
       wordCount: 4346,
     },
+    {
+      id: "static-ielts",
+      name: "IELTS 완전정복",
+      slug: "ielts-complete",
+      shortDesc: "영국 유학·이민의 관문 IELTS. Foundation(L1) 330개 + Academic(L2) 258개를 AI 이미지·어원·라임으로 단기 완성.",
+      price: 9900,
+      durationDays: 180,
+      badge: "NEW",
+      isComingSoon: false,
+      wordCount: 588,
+    },
   ];
 }
 
 // 메인페이지에 표시할 패키지 slug 목록
-const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete'];
+const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete'];
 
 // 표시용 단어 수 오버라이드 (교재별 레벨 중복 포함 수치)
 const DISPLAY_WORD_COUNTS: Record<string, number> = {
@@ -106,6 +117,7 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'toeic-complete': 2491,
   'sat-complete': 1935,
   'gre-complete': 4346,
+  'ielts-complete': 588,
 };
 
 // 뱃지 스타일 결정
@@ -285,7 +297,7 @@ export default function ProductPackageSection() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             {packages.map((pkg, index) => (
               <div
                 key={pkg.id}
