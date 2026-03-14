@@ -117,6 +117,17 @@ export const EXAM_LIST: ExamConfig[] = [
       { key: 'L2', label: 'Verbal 고급', shortLabel: '고급' },
     ],
   },
+  {
+    key: 'IELTS',
+    label: 'IELTS',
+    icon: '🇬🇧',
+    color: 'sky',
+    packageSlug: 'ielts-complete',
+    levels: [
+      { key: 'L1', label: 'Foundation Band 5~6.5', shortLabel: 'Foundation' },
+      { key: 'L2', label: 'Academic Band 7~8', shortLabel: 'Academic' },
+    ],
+  },
 ];
 
 // ---------------------------------------------

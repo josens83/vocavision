@@ -62,6 +62,7 @@ export const guestNavigationItems: NavItem[] = [
       { label: "TOEIC 점수폭발", href: "/packages/toeic-complete" },
       { label: "SAT 핵심 어휘", href: "/packages/sat-complete" },
       { label: "GRE 완전정복", href: "/packages/gre-complete" },
+      { label: "IELTS 완전정복", href: "/packages/ielts-complete" },
     ],
   },
   {
@@ -105,6 +106,7 @@ export const authNavigationItems: NavItem[] = [
       { label: "TOEIC 점수폭발", href: "/dashboard?exam=TOEIC" },
       { label: "SAT 핵심 어휘", href: "/dashboard?exam=SAT" },
       { label: "GRE 완전정복", href: "/dashboard?exam=GRE" },
+      { label: "IELTS 완전정복", href: "/dashboard?exam=IELTS" },
     ],
   },
   {

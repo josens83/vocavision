@@ -81,6 +81,16 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
     badge: 'NEW',
     wordCount: 4346,
   },
+  'ielts-complete': {
+    id: 'static-ielts',
+    name: 'IELTS 완전정복',
+    slug: 'ielts-complete',
+    description: 'IELTS Foundation~Academic 어휘 588개를 단기간에 완성. Band 5~8 전 구간을 AI 이미지·어원·라임 8단계 학습으로 완전 정복.',
+    price: 9900,
+    durationDays: 180,
+    badge: 'NEW',
+    wordCount: 588,
+  },
 };
 
 // 표시용 단어 수 (교재 레벨 중복 포함)
@@ -91,6 +101,7 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'toeic-complete': 2491,
   'sat-complete': 1935,
   'gre-complete': 4346,
+  'ielts-complete': 588,
 };
 
 export default function PackageDetailPage() {
@@ -206,7 +217,9 @@ export default function PackageDetailPage() {
             </h1>
 
             <p className="text-xl text-white/90 mb-8 max-w-2xl">
-              {slug === 'gre-complete' ? (
+              {slug === 'ielts-complete' ? (
+                <>IELTS Band 5~8 필수 어휘 588개.<br />Foundation(L1) 330개와 Academic(L2) 258개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
+              ) : slug === 'gre-complete' ? (
                 <>GRE Verbal 핵심~고급 어휘 4,346개.<br />Verbal 핵심(L1) 1,858개와 고급(L2) 2,488개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
               ) : slug === 'sat-complete' ? (
                 <>SAT/PSAT 고득점을 위한 필수 어휘 1,935개.<br />테마별 핵심어휘(L1) 1,784개와 혼동하기 쉬운 어휘(L2) 150개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
@@ -293,6 +306,21 @@ export default function PackageDetailPage() {
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
                         <span>AI 이미지 연상법으로 3,651개 단어를 효율적으로 암기하고 싶은 분</span>
+                      </li>
+                    </>
+                  ) : slug === 'ielts-complete' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>영국·호주·캐나다 유학을 준비하는 수험생</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>이민 비자(IELTS General) 준비생</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>TOEFL 이후 IELTS 고득점을 목표로 하는 학습자</span>
                       </li>
                     </>
                   ) : slug === 'gre-complete' ? (
@@ -421,6 +449,29 @@ export default function PackageDetailPage() {
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
                         <span>적응형 시험 단어 완성 유형 대비 <strong>8섹션 플래시카드</strong> 학습</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>스마트 복습</strong> 시스템</span>
+                      </li>
+                    </>
+                  ) : slug === 'ielts-complete' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>588개</strong> IELTS Foundation~Academic 어휘</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <span className="flex-shrink-0 mt-0.5">🔵</span>
+                        <span><strong>L1 Foundation</strong> — 330개 (Band 5~6.5 기초 필수)</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <span className="flex-shrink-0 mt-0.5">🔴</span>
+                        <span><strong>L2 Academic</strong> — 258개 (Band 7~8 학술 핵심)</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span>단어별 <strong>AI 이미지 연상법</strong> + 어원 분석 + 라임 암기법</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />

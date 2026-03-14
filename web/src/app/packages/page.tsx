@@ -137,6 +137,24 @@ const packages: Package[] = [
     isActive: true,
     badge: 'NEW',
   },
+  {
+    id: 'ielts-complete',
+    slug: 'ielts-complete',
+    name: 'IELTS 완전정복',
+    description: 'IELTS Foundation~Academic 어휘 588개 완성. Band 5~8을 AI 이미지·어원·라임 8단계 학습으로 단기 정복.',
+    price: 9900,
+    duration: '6개월',
+    wordCount: 588,
+    features: [
+      'IELTS Band 5~8 필수 어휘 588개',
+      'L1 Foundation 330개 (Band 5~6.5)',
+      'L2 Academic 258개 (Band 7~8)',
+      'AI 이미지·어원·라임 8단계 학습',
+      '6개월 이용권 (자동갱신 없음)',
+    ],
+    isActive: true,
+    badge: 'NEW',
+  },
 ];
 
 export default function PackagesPage() {
