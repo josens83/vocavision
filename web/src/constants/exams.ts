@@ -120,7 +120,7 @@ export const EXAM_LIST: ExamConfig[] = [
   {
     key: 'IELTS',
     label: 'IELTS',
-    icon: '🇬🇧',
+    icon: '🌐',
     color: 'sky',
     packageSlug: 'ielts-complete',
     levels: [

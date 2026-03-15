@@ -445,7 +445,7 @@ function DashboardContent() {
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
 
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {availableExams.map(({ exam: key, locked }) => {
               const cfg = EXAM_MAP[key];
               if (!cfg) return null;
@@ -454,6 +454,7 @@ function DashboardContent() {
                 EBS: 'bg-green-500', TOEFL: 'bg-blue-600', TOEIC: 'bg-green-500',
                 SAT: 'bg-orange-500',
                 GRE: 'bg-indigo-500',
+                IELTS: 'bg-sky-500',
               };
               const defaultLevel = getValidLevelsForExam(key)[0];
               return (
