@@ -54,7 +54,7 @@ const packages: Package[] = [
   {
     id: 'ebs-vocab',
     slug: 'ebs-vocab',
-    name: 'EBS 연계어휘 완전정복',
+    name: 'EBS 연계 핵심 어휘',
     description: '수능 연계 교재 3종(영어듣기·영어·영어독해연습) 핵심 어휘 3,837개. EBS에서 나오면 수능에 나온다 — 연계율 70% 완벽 대비.',
     price: 6900,
     duration: '6개월',
@@ -71,7 +71,7 @@ const packages: Package[] = [
   {
     id: 'toefl-complete',
     slug: 'toefl-complete',
-    name: 'TOEFL 완전정복',
+    name: 'TOEFL Core Vocabulary',
     description: '세계 6,000개 이상 대학이 요구하는 TOEFL. Core 기본필수부터 Advanced 실전 고난도까지 3,651개 완전 정복. Greek·Latin 어원 기반으로 한 번 외우면 절대 잊히지 않는다.',
     price: 9900,
     duration: '6개월',
@@ -88,7 +88,7 @@ const packages: Package[] = [
   {
     id: 'toeic-complete',
     slug: 'toeic-complete',
-    name: 'TOEIC 점수폭발',
+    name: 'TOEIC Score Booster',
     description: '취업·승진을 결정짓는 TOEIC. Starter 기초부터 Booster 고득점까지 2,491개 핵심 어휘만 골라담았다. AI 이미지로 외우면 시험장에서 잊히지 않는다.',
     price: 9900,
     duration: '6개월',
@@ -105,7 +105,7 @@ const packages: Package[] = [
   {
     id: 'sat-complete',
     slug: 'sat-complete',
-    name: 'SAT 핵심 어휘',
+    name: 'SAT Advanced Vocabulary',
     description: '미국 대학 입시의 관문, SAT 어휘를 단기간에 완성. Greek·Latin 어근 기반 테마별 핵심어휘(L1)와 혼동하기 쉬운 어휘(L2)로 1,935개를 체계적으로 정복.',
     price: 9900,
     duration: '6개월',
@@ -122,7 +122,7 @@ const packages: Package[] = [
   {
     id: 'gre-complete',
     slug: 'gre-complete',
-    name: 'GRE 완전정복',
+    name: 'GRE Verbal Mastery',
     description: '대학원 유학의 관문 GRE Verbal 핵심~고급 어휘 4,346개. Greek·Latin 어근 기반으로 핵심(L1) 1,858개 + 고급(L2) 2,488개를 AI 이미지·어원·라임으로 단기 완성.',
     price: 9900,
     duration: '6개월',
@@ -140,7 +140,7 @@ const packages: Package[] = [
   {
     id: 'ielts-complete',
     slug: 'ielts-complete',
-    name: 'IELTS 완전정복',
+    name: 'IELTS Academic Mastery',
     description: 'IELTS Foundation~Academic 어휘 588개 완성. Band 5~8을 AI 이미지·어원·라임 8단계 학습으로 단기 정복.',
     price: 9900,
     duration: '6개월',

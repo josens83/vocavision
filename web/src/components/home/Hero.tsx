@@ -728,7 +728,7 @@ export default function Hero() {
                 <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-2">
                   단어를 <span className="text-cyan-500 font-black">보면,</span>
                 </span>
-                <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-cyan-500 font-black">
+                <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
                   기억됩니다.
                 </span>
                 <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">

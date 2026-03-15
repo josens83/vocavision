@@ -33,7 +33,7 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
   },
   'ebs-vocab': {
     id: 'static-ebs',
-    name: 'EBS 연계어휘',
+    name: 'EBS 연계 핵심 어휘',
     slug: 'ebs-vocab',
     description: 'EBSi 공식 단어장 PDF 기반, 수능특강 영어영역 3개 교재(영어, 영어독해연습, 영어듣기)에 수록된 영단어·숙어 3,837개를 AI 학습 콘텐츠로 제공합니다.',
     price: 6900,
@@ -43,7 +43,7 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
   },
   'toefl-complete': {
     id: 'static-toefl',
-    name: 'TOEFL 완전정복',
+    name: 'TOEFL Core Vocabulary',
     slug: 'toefl-complete',
     description: '2026 Updated TOEFL 완벽 대비. 적응형 시험, 새로운 문제 유형에 필요한 3,651개 핵심 어휘를 Core(기본필수)와 Advanced(실전고난도)로 나누어 체계적으로 학습합니다.',
     price: 9900,
@@ -53,7 +53,7 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
   },
   'toeic-complete': {
     id: 'static-toeic',
-    name: 'TOEIC 점수폭발',
+    name: 'TOEIC Score Booster',
     slug: 'toeic-complete',
     description: '매일 나오는 그 단어, 이제 확실하게. 취업·이직·승진에 필수인 TOEIC 핵심 어휘를 AI 이미지 연상법으로 한 번에 정복하세요. Starter(기초)부터 Booster(고득점)까지 단계별로 학습합니다.',
     price: 9900,
@@ -63,7 +63,7 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
   },
   'sat-complete': {
     id: 'static-sat',
-    name: 'SAT 핵심 어휘',
+    name: 'SAT Advanced Vocabulary',
     slug: 'sat-complete',
     description: '미국 대학 입시의 관문, SAT 어휘를 단기간에 완성. Greek·Latin 어근 기반 테마별 핵심어휘(L1)와 혼동하기 쉬운 어휘(L2)로 1,935개를 체계적으로 정복.',
     price: 9900,
@@ -73,7 +73,7 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
   },
   'gre-complete': {
     id: 'static-gre',
-    name: 'GRE 완전정복',
+    name: 'GRE Verbal Mastery',
     slug: 'gre-complete',
     description: 'GRE Verbal 핵심~고급 어휘 4,346개를 단기간에 완성. Greek·Latin 어근 기반 어휘를 AI 이미지·어원·라임 8단계 학습으로 완전 정복.',
     price: 9900,
@@ -83,7 +83,7 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
   },
   'ielts-complete': {
     id: 'static-ielts',
-    name: 'IELTS 완전정복',
+    name: 'IELTS Academic Mastery',
     slug: 'ielts-complete',
     description: 'IELTS Foundation~Academic 어휘 588개를 단기간에 완성. Band 5~8 전 구간을 AI 이미지·어원·라임 8단계 학습으로 완전 정복.',
     price: 9900,
