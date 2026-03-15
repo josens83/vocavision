@@ -42,7 +42,7 @@ const defaultSlides: HeroSlide[] = [
     id: "new-update",
     badge: "NEW",
     badgeColor: "bg-green-500",
-    title: "EBS 연계어휘 추가",
+    title: "EBS 연계 핵심 어휘 추가",
     subtitle: "4,811개 EBS 어휘 업데이트",
     description: "2027학년도 수능 EBS 연계 어휘가 추가되었습니다. 지금 바로 학습하세요!",
     ctaText: "EBS 어휘 학습",
