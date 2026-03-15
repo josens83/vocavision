@@ -323,7 +323,7 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* EBS 연계 핵심 어휘 */}
+            {/* EBS 연계어휘 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
@@ -335,7 +335,7 @@ export default function PricingPage() {
                   <span className="text-white text-xl">📚</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">EBS 연계 핵심 어휘</h3>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">EBS 연계어휘</h3>
                   <p className="text-[12px] text-[#999999]">3,837개 단어</p>
                 </div>
               </div>
@@ -354,7 +354,7 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* TOEFL Core Vocabulary */}
+            {/* TOEFL 완전정복 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
@@ -366,7 +366,7 @@ export default function PricingPage() {
                   <span className="text-white text-xl">🌍</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">TOEFL Core Vocabulary</h3>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">TOEFL 완전정복</h3>
                   <p className="text-[12px] text-[#999999]">3,651개 단어</p>
                 </div>
               </div>
@@ -385,7 +385,7 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* TOEIC Score Booster */}
+            {/* TOEIC 점수폭발 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
@@ -397,7 +397,7 @@ export default function PricingPage() {
                   <span className="text-white text-xl">🏢</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">TOEIC Score Booster</h3>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">TOEIC 점수폭발</h3>
                   <p className="text-[12px] text-[#999999]">2,491개 단어</p>
                 </div>
               </div>
@@ -416,7 +416,7 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* SAT 핵심어휘 */}
+            {/* SAT 핵심 어휘 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
@@ -428,7 +428,7 @@ export default function PricingPage() {
                   <span className="text-white text-xl">🎯</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">SAT Advanced Vocabulary</h3>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">SAT 핵심 어휘</h3>
                   <p className="text-[12px] text-[#999999]">1,935개 단어</p>
                 </div>
               </div>
@@ -447,7 +447,7 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* GRE Verbal Mastery */}
+            {/* GRE 완전정복 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
@@ -459,7 +459,7 @@ export default function PricingPage() {
                   <span className="text-white text-xl">🎓</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">GRE Verbal Mastery</h3>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">GRE 완전정복</h3>
                   <p className="text-[12px] text-[#999999]">4,346개 단어</p>
                 </div>
               </div>
@@ -478,7 +478,7 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* IELTS Academic Mastery */}
+            {/* IELTS 완전정복 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
@@ -487,10 +487,10 @@ export default function PricingPage() {
               </div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-[#0EA5E9] to-[#0284C7] rounded-xl flex items-center justify-center">
-                  <span className="text-white text-xl">🇬🇧</span>
+                  <span className="text-white text-base font-bold">UK</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">IELTS Academic Mastery</h3>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">IELTS 완전정복</h3>
                   <p className="text-[12px] text-[#999999]">588개 단어</p>
                 </div>
               </div>

@@ -1154,11 +1154,12 @@ function LearnPageContent() {
     const levelName = examParam && levelParam ? getLevelName(examParam, levelParam) : levelParam;
     const packageInfo: Record<string, { name: string; slug: string }> = {
       'CSAT_2026': { name: '2026 수능기출완전분석', slug: '2026-csat-analysis' },
-      'EBS': { name: 'EBS 연계 어휘', slug: 'ebs-vocab' },
-      'TOEFL': { name: 'TOEFL Core Vocabulary', slug: 'toefl-complete' },
-      'TOEIC': { name: 'TOEIC Score Booster', slug: 'toeic-complete' },
-      'SAT': { name: 'SAT Advanced Vocabulary', slug: 'sat-complete' },
-      'GRE': { name: 'GRE Verbal Mastery', slug: 'gre-complete' },
+      'EBS': { name: 'EBS 연계어휘', slug: 'ebs-vocab' },
+      'TOEFL': { name: 'TOEFL 완전정복', slug: 'toefl-complete' },
+      'TOEIC': { name: 'TOEIC 점수폭발', slug: 'toeic-complete' },
+      'SAT': { name: 'SAT 핵심 어휘', slug: 'sat-complete' },
+      'GRE': { name: 'GRE 완전정복', slug: 'gre-complete' },
+      'IELTS': { name: 'IELTS 완전정복', slug: 'ielts-complete' },
     };
     const pkg = packageInfo[examParam || ''] || { name: examParam, slug: '' };
 

@@ -39,7 +39,7 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-2",
-      name: "EBS 연계 핵심 어휘",
+      name: "EBS 연계어휘",
       slug: "ebs-vocab",
       shortDesc: "수능 연계율 70% 완벽 대비. EBS 3개 교재 핵심 어휘 3,837개 — EBS에서 나오면 수능에 나온다.",
       price: 6900,
@@ -50,7 +50,7 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-3",
-      name: "TOEFL Core Vocabulary",
+      name: "TOEFL 완전정복",
       slug: "toefl-complete",
       shortDesc: "세계 6,000개 이상 대학이 요구하는 TOEFL. Core~Advanced 3,651개, Greek·Latin 어원으로 한 번 외우면 잊히지 않는다.",
       price: 9900,
@@ -61,7 +61,7 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-toeic",
-      name: "TOEIC Score Booster",
+      name: "TOEIC 점수폭발",
       slug: "toeic-complete",
       shortDesc: "취업·승진을 결정짓는 TOEIC. Starter~Booster 2,491개 핵심 어휘, AI 이미지로 외우면 시험장에서 잊히지 않는다.",
       price: 9900,
@@ -72,7 +72,7 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-sat",
-      name: "SAT Advanced Vocabulary",
+      name: "SAT 핵심 어휘",
       slug: "sat-complete",
       shortDesc: "미국 대학 입시의 관문 SAT. Greek·Latin 어근 기반 1,935개를 테마별(L1)·혼동어휘(L2)로 체계적으로 정복.",
       price: 9900,
@@ -83,7 +83,7 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-gre",
-      name: "GRE Verbal Mastery",
+      name: "GRE 완전정복",
       slug: "gre-complete",
       shortDesc: "대학원 유학의 관문 GRE Verbal. Greek·Latin 어근 기반 핵심(L1) 1,858개 + 고급(L2) 2,488개를 AI 이미지·어원·라임으로 단기 완성.",
       price: 9900,
@@ -94,7 +94,7 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-ielts",
-      name: "IELTS Academic Mastery",
+      name: "IELTS 완전정복",
       slug: "ielts-complete",
       shortDesc: "영국 유학·이민의 관문 IELTS. Foundation(L1) 330개 + Academic(L2) 258개를 AI 이미지·어원·라임으로 단기 완성.",
       price: 9900,
