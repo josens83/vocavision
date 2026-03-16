@@ -10,7 +10,7 @@ const cache = new NodeCache({
   stdTTL: 300,        // 기본 5분
   checkperiod: 60,    // 1분마다 만료 체크
   useClones: false,   // 성능 최적화 (직접 참조 반환)
-  maxKeys: 500,       // 메모리 무한 증가 방지 (SIGSEGV 크래시 원인)
+  maxKeys: 3000,      // 19,544개 단어 기준 상향 (단어 조회 캐시)
 });
 
 export const appCache = {
