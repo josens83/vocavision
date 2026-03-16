@@ -6,8 +6,8 @@
  * 플랫폼 전체 통계
  */
 export const PLATFORM_STATS = {
-  // 전체 단어 수 (수능 1,787 + TEPS 388 + TOEFL 3,651 + TOEIC 2,491 + EBS 3,837 + 기출 521)
-  totalWords: 12675,
+  // 전체 단어 수 (수능1,787+TEPS388+2026기출521+EBS3,837+TOEFL3,651+TOEIC2,491+SAT1,934+GRE4,346(net-new1,268)+IELTS588)
+  totalWords: 16465,
 
   // 수능 단어 수 (기본 무료 제공)
   csatWords: 1787,
@@ -30,6 +30,9 @@ export const PLATFORM_STATS = {
     TOEIC: { name: 'TOEIC', words: 2491, active: true },
     EBS: { name: 'EBS', words: 3837, active: true },
     CSAT_2026: { name: '2026 기출', words: 521, active: true },
+    SAT: { name: 'SAT', words: 1934, active: true },
+    GRE: { name: 'GRE', words: 4346, active: true },
+    IELTS: { name: 'IELTS', words: 588, active: true },
   },
 
   // 프리미엄 통계
@@ -39,7 +42,7 @@ export const PLATFORM_STATS = {
   },
 
   // 대비 가능한 시험 수
-  examCount: '6+',
+  examCount: '7',
 
   // AI 콘텐츠 단계 수
   learningModes: 8,
