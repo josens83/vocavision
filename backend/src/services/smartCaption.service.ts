@@ -495,6 +495,7 @@ export interface ConceptSceneResult {
  * Generate a concrete visual scene for CONCEPT image
  * Transforms abstract definitions into specific, memorable visual scenarios
  */
+// Prompt v2: Whisk-validated 9-section structure (2026-03-16)
 export async function generateConceptScene(
   word: string,
   definitionEn: string,
