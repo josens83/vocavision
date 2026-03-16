@@ -502,7 +502,7 @@ export async function generateConceptScene(
 ): Promise<ConceptSceneResult> {
   const defaultResult: ConceptSceneResult = {
     scene: definitionEn || word,
-    prompt: `Cartoon style illustration. A simple scene showing the meaning of "${word}" (${definitionEn || word}). Soft pastel colors. Clean composition. White background. No text. No words. No letters. No numbers. No symbols. Square composition.`,
+    prompt: `A high-quality 2D cartoon illustration centered on the concept of "${word}" (${definitionEn || word}). Scene: A clear, everyday situation showing the meaning. Camera angle: medium-close cinematic framing focused on the main subject. In the center of the frame, a character clearly demonstrates the meaning of "${word}" through action and expression. The moment clearly shows: ${definitionEn || word}. Style: High-quality 2D vector cartoon illustration with bold outlines and expressive details. Color palette: vibrant colors with strong contrast between subject and environment. High resolution 1:1 square composition The main subject must fill most of the frame Avoid empty background areas STRICT NO TEXT RULE Absolutely no text anywhere No letters No numbers No logos No labels No signage Replace any text areas with blank surfaces`,
     captionKo: definitionKo || word,
     captionEn: definitionEn || word,
   };
@@ -514,7 +514,7 @@ export async function generateConceptScene(
   }
 
   try {
-    const prompt = `You are an expert at creating visual scenes for English vocabulary learning images.
+    const claudePrompt = `You are an expert Stability AI prompt engineer specializing in vocabulary learning images.
 
 ## Word Information
 - Word: ${word}
@@ -522,77 +522,88 @@ export async function generateConceptScene(
 ${definitionKo ? `- Korean meaning: ${definitionKo}` : ''}
 
 ## Task
-Create a **specific, concrete visual scene** that clearly demonstrates the meaning of this word.
+Create a complete, ready-to-use Stability AI image generation prompt for this vocabulary word. The prompt must vividly illustrate the word's meaning through a concrete scene.
 
-## Rules
-1. Describe a specific situation with **at least 2 characters** interacting
-2. Show **cause → action → result** in one scene
-3. The scene must IMMEDIATELY convey the word's meaning without any text
-4. Include expressive body language and facial expressions
-5. Make it memorable (slightly humorous OK, but meaning is priority)
-6. Avoid abstract concepts - everything must be visually concrete
-7. Do NOT include any text, letters, numbers, or symbols
+## Required Output Structure (follow EXACTLY)
 
-## Good Examples
+Line 1: "A [adjective] 2D cartoon illustration centered on [core concept of the word]."
+Line 2: "Scene: [specific, concrete, real-world location]."
+Line 3: "Camera angle: medium-close cinematic framing focused on [main subject]."
+Line 4: "In the center of the frame,"
+Lines 5-11: 5 to 7 sentences describing the scene in this order:
+  - Main character's action (2 sentences)
+  - Cause-effect or before-after chain (2 sentences)
+  - Supporting characters or environment reaction (1-2 sentences)
+  - "The moment clearly shows [explicit restatement of the word's meaning]."
+Line 12: "Style: High-quality 2D vector cartoon illustration with bold outlines and [choose one: expressive reactions / strong action / dramatic tension / warm emotional detail]."
+Line 13: "Color palette: [primary color theme] contrasted with [contrasting secondary color]."
+Line 14: "High resolution"
+Line 15: "1:1 square composition"
+Line 16: "The main subject must fill most of the frame"
+Line 17: "Avoid empty background areas"
+Line 18: "STRICT NO TEXT RULE"
+Line 19: "Absolutely no text anywhere"
+Line 20: "No letters"
+Line 21: "No numbers"
+Line 22: "No logos"
+Line 23: "No labels"
+Line 24: "No signage"
+Line 25: "Replace any text areas with blank surfaces"
 
-### Example 1: abrupt
-Meaning: happening suddenly without warning
-Scene: Two friends walking and chatting on a sidewalk. The ground in front of them suddenly ends at a sharp cliff edge with no warning. One person stops abruptly with arms raised, grabbing their friend's sleeve. Both have wide eyes in surprise, feet hovering over the edge.
+## Good Examples (follow this quality level)
 
-### Example 2: abundant
-Meaning: existing in large quantities, plentiful
-Scene: A farmer and his child standing in front of an overflowing harvest. Apples, tomatoes, and vegetables are piled so high they're tumbling out of baskets and covering the ground. The farmer gestures proudly while the child tries to catch falling apples.
+### Example 1: suppress (to put an end to; to prevent from being known)
+A high-impact 2D cartoon illustration centered on suppressing a dangerous situation. Scene: a burning building during an active firefighting effort. Camera angle: medium-close cinematic framing focused on the firefighter and flames. In the center of the frame, a firefighter sprays a powerful stream of water toward growing flames. The water pushes back the fire as smoke rises upward. Parts of the fire begin shrinking where the water hits. Other firefighters move equipment nearby to control the situation. The moment clearly shows the fire being suppressed before it spreads further. Style: High-quality 2D vector cartoon illustration with bold outlines and strong action. Color palette: bright orange flames contrasted with cool blue water spray and dark smoke. High resolution 1:1 square composition The main subject must fill most of the frame Avoid empty background areas STRICT NO TEXT RULE Absolutely no text anywhere No letters No numbers No logos No labels No signage Replace any text areas with blank surfaces
 
-### Example 3: meticulous
-Meaning: showing great attention to detail
-Scene: A chef carefully placing a single tiny herb leaf on a dish with tweezers while an assistant holds a magnifying glass. Both squint in concentration. Other kitchen staff in background watch nervously with bated breath.
+### Example 2: astound (to shock or greatly surprise)
+A dramatic 2D cartoon illustration centered on a moment of complete surprise. Scene: a lively street magic performance in a busy city square. Camera angle: medium-close cinematic framing focused on the magician and the crowd. In the center of the frame, a magician dramatically pulls a large colorful scarf out of a small empty hat. The scarf keeps coming out longer and longer in an impossible way. The crowd surrounding the magician reacts with wide eyes and open mouths. Some people clap while others lean forward in disbelief. The moment clearly shows people being completely astounded by the unexpected spectacle. Style: High-quality 2D vector cartoon illustration with bold outlines and expressive reactions. Color palette: bright festive colors contrasted with strong spotlight lighting on the magician. High resolution 1:1 square composition The main subject must fill most of the frame Avoid empty background areas STRICT NO TEXT RULE Absolutely no text anywhere No letters No numbers No logos No labels No signage Replace any text areas with blank surfaces
 
-## Output Format (JSON only)
-{
-  "scene": "Detailed scene description in English (60-100 words). Include: at least 2 characters, their interaction, cause-action-result flow, facial expressions, body language, setting details.",
-  "captionKo": "Korean caption summarizing the meaning (10-20 characters)",
-  "captionEn": "English caption (5-10 words)"
-}
+## Additional Rules
+- NEVER use white or plain background — always use a real, contextual environment
+- ALWAYS include at least 2 characters interacting
+- The word "${word}" must NEVER appear visually in the image
+- Avoid abstract or metaphorical scenes — everything must be physically visible
+- The scene must work WITHOUT any text to convey the word's meaning
 
-Output JSON only:`;
+## Output
+Output the prompt text ONLY. No JSON. No explanation. No preamble. No word labels. Start directly with "A [adjective] 2D cartoon illustration..."`;
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 500,
-      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 700,
+      messages: [{ role: 'user', content: claudePrompt }],
     });
 
     const content = message.content[0];
     if (content.type === 'text') {
-      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
+      const generatedPrompt = content.text.trim();
 
-        // Format the final prompt for Stability AI (design spec v1)
-        const finalPrompt = `Flat 2D editorial cartoon illustration, vector illustration style, clean bold outlines, solid color fills, minimal shading.
-NOT 3D, NOT clay render, NOT pixar style, NOT realistic rendering.
+      // Validate: must start with "A " and be long enough
+      if (generatedPrompt.startsWith('A ') && generatedPrompt.length > 300) {
+        // Extract scene description (lines 4-11) for caption use
+        const lines = generatedPrompt.split('\n').filter(l => l.trim());
+        const sceneLines = lines.slice(3, 11).join(' ');
 
-Scene: ${parsed.scene}
-
-Camera angle: medium-close cinematic framing, 1:1 square ratio.
-Style: soft pastel colors with gentle lighting, clean and simple composition.
-
-STRICT NO TEXT RULE — no text, no letters, no numbers, no symbols, no labels, no captions, no titles, no speech bubbles, no signs, no watermarks anywhere in the image.
-Replace text areas with blank surfaces.`;
+        // Generate captions from Claude output
+        const captionEn = lines.find(l => l.includes('clearly shows'))
+          ?.replace('The moment clearly shows', '').trim()
+          .replace(/\.$/, '') || definitionEn;
 
         logger.info('[SmartCaption] Generated concept scene for', word, ':', {
-          captionKo: parsed.captionKo,
-          sceneLength: parsed.scene?.length,
+          promptLength: generatedPrompt.length,
+          captionEn: captionEn.slice(0, 50),
         });
 
         return {
-          scene: parsed.scene,
-          prompt: finalPrompt,
-          captionKo: parsed.captionKo || defaultResult.captionKo,
-          captionEn: parsed.captionEn || defaultResult.captionEn,
+          scene: sceneLines,
+          prompt: generatedPrompt,
+          captionKo: definitionKo || word,
+          captionEn: captionEn,
         };
       }
     }
+
+    logger.warn('[SmartCaption] generateConceptScene: invalid output, using default for', word);
     return defaultResult;
   } catch (error) {
     logger.error('[SmartCaption] generateConceptScene error:', error);
