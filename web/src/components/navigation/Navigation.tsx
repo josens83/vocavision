@@ -106,8 +106,6 @@ export const globalGuestNavigationItems: NavItem[] = [
     children: [
       { label: "TOEFL Core Vocabulary", labelEn: "TOEFL Core Vocabulary", href: "/packages/toefl-complete" },
       { label: "TOEIC Score Booster", labelEn: "TOEIC Score Booster", href: "/packages/toeic-complete" },
-      { label: "SAT Advanced Vocabulary", labelEn: "SAT Advanced Vocabulary", href: "/packages/sat-complete" },
-      { label: "GRE Verbal Mastery", labelEn: "GRE Verbal Mastery", href: "/packages/gre-complete" },
       { label: "IELTS Academic Mastery", labelEn: "IELTS Academic Mastery", href: "/packages/ielts-complete" },
     ],
   },
