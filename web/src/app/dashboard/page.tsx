@@ -11,6 +11,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 import { useDashboardSummary, usePackageAccessBulk, usePrefetchDashboard } from '@/hooks/useQueries';
 import { EXAM_MAP, VALID_EXAM_KEYS, getValidLevelForExam, getValidLevelsForExam, getLevelLabel, getLevelShortLabel, SAT_THEMES, getSatTheme } from '@/constants/exams';
+import { useLocale } from '@/hooks/useLocale';
 
 // ============================================
 // DashboardItem 컴포넌트 (미니멀 스타일)
@@ -39,7 +40,7 @@ function DashboardItem({ value, label, color, loading }: { value: string | numbe
 // examInfo / getValidLevelForExam → @/constants/exams 에서 import
 
 // Level info - exam-specific
-const getLevelInfo = (exam: string, level: string) => {
+const getLevelInfo = (exam: string, level: string, isEn = false) => {
   if (exam === 'CSAT_2026') {
     const csat2026Levels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
       LISTENING: { name: '듣기', description: '듣기 영역 1~17번', target: '듣기 만점', wordCount: 132 },
@@ -77,24 +78,24 @@ const getLevelInfo = (exam: string, level: string) => {
       };
     }
     const satLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: 'SAT Starter', description: 'SAT 기초 핵심 어휘', target: '기초 학습', wordCount: 1786 },
-      L2: { name: 'SAT Advanced', description: 'SAT 고급 실전 어휘', target: '고급 정복', wordCount: 149 },
+      L1: { name: 'SAT Starter', description: isEn ? 'SAT core vocabulary' : 'SAT 기초 핵심 어휘', target: isEn ? 'Foundation' : '기초 학습', wordCount: 1786 },
+      L2: { name: 'SAT Advanced', description: isEn ? 'SAT advanced vocabulary' : 'SAT 고급 실전 어휘', target: isEn ? 'Advanced' : '고급 정복', wordCount: 149 },
     };
     return satLevels[level] || satLevels.L1;
   }
 
   if (exam === 'GRE') {
     const greLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: 'Verbal 핵심', description: 'GRE Verbal 빈출 핵심 어휘', target: '기본 점수 목표', wordCount: 1858 },
-      L2: { name: 'Verbal 고급', description: 'GRE Verbal 고난도 어휘', target: '고득점 목표', wordCount: 2488 },
+      L1: { name: 'Verbal Core', description: isEn ? 'GRE Verbal high-frequency words' : 'GRE Verbal 빈출 핵심 어휘', target: isEn ? 'Score target' : '기본 점수 목표', wordCount: 1858 },
+      L2: { name: 'Verbal Advanced', description: isEn ? 'GRE Verbal advanced vocabulary' : 'GRE Verbal 고난도 어휘', target: isEn ? 'High score' : '고득점 목표', wordCount: 2488 },
     };
     return greLevels[level] || greLevels.L1;
   }
 
   if (exam === 'IELTS') {
     const ieltsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: 'Foundation', description: 'IELTS Band 5~6.5 기초 필수 어휘', target: 'Band 6.5 목표', wordCount: 330 },
-      L2: { name: 'Academic', description: 'IELTS Band 7~8 학술 핵심 어휘', target: 'Band 8.0 목표', wordCount: 258 },
+      L1: { name: 'Foundation', description: isEn ? 'IELTS Band 5~6.5 essential words' : 'IELTS Band 5~6.5 기초 필수 어휘', target: isEn ? 'Band 6.5' : 'Band 6.5 목표', wordCount: 330 },
+      L2: { name: 'Academic', description: isEn ? 'IELTS Band 7~8 academic words' : 'IELTS Band 7~8 학술 핵심 어휘', target: isEn ? 'Band 8.0' : 'Band 8.0 목표', wordCount: 258 },
     };
     return ieltsLevels[level] || ieltsLevels.L1;
   }
@@ -147,6 +148,8 @@ interface LearningSessionData {
 function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const activeExam = useExamCourseStore((state) => state.activeExam);
@@ -329,7 +332,7 @@ function DashboardContent() {
   const selectedLevel = activeLevel || 'L1';
   const examCfg = EXAM_MAP[selectedExam];
   const exam = { name: examCfg?.label || selectedExam, icon: examCfg?.icon || '📝', color: examCfg?.color || 'blue' };
-  const level = getLevelInfo(selectedExam, selectedLevel);
+  const level = getLevelInfo(selectedExam, selectedLevel, isEn);
 
   const totalWords = examLevelTotalWords || level.wordCount;
   // restart 세션: 세션 진도만 표시 (처음부터 다시 → 0→5)
@@ -387,48 +390,48 @@ function DashboardContent() {
       <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4">
         {/* 모바일 헤더 */}
         <div className="lg:hidden">
-          <h1 className="text-xl font-bold text-gray-900">대시보드</h1>
+          <h1 className="text-xl font-bold text-gray-900">{isEn ? 'Dashboard' : '대시보드'}</h1>
         </div>
 
         {/* 오늘의 학습 목표 Hero */}
         <section className="bg-white border border-gray-200 rounded-2xl p-6">
           <div className="relative">
             <span className={`text-sm font-semibold block mb-2 ${isCompleted ? 'text-emerald-600' : 'text-teal-600'}`}>
-              {isCompleted ? '🎉 학습 완료!' : '오늘의 학습 목표'}
+              {isCompleted ? '🎉 ' + (isEn ? 'Complete!' : '학습 완료!') : (isEn ? "Today's Goal" : '오늘의 학습 목표')}
             </span>
 
             {isCompleted ? (
               <>
                 <h2 className="text-2xl font-bold text-gray-900 leading-tight mb-2">
-                  {exam.name} {level.name} 마스터!<br />
-                  <span className="text-emerald-600">{totalWords}개</span> 단어 완료
+                  {isEn ? `${exam.name} ${level.name} Complete!` : `${exam.name} ${level.name} 마스터!`}<br />
+                  <span className="text-emerald-600">{totalWords}{isEn ? '' : '개'}</span> {isEn ? 'words completed!' : '단어 완료'}
                 </h2>
                 <p className="text-sm text-gray-500 mb-4">
-                  모든 단어를 학습했어요! 복습 퀴즈로 실력을 확인해보세요.
+                  {isEn ? "You've learned all words! Try a quiz to test your knowledge." : '모든 단어를 학습했어요! 복습 퀴즈로 실력을 확인해보세요.'}
                 </p>
                 <div className="space-y-2">
                   <Link
                     href={`/learn?exam=${selectedExam}&level=${selectedLevel}&restart=true`}
                     className="block w-full bg-emerald-50 hover:bg-emerald-100 rounded-xl py-4 text-emerald-600 font-semibold text-center transition-colors"
                   >
-                    처음부터 다시 학습
+                    {isEn ? 'Start Over' : '처음부터 다시 학습'}
                   </Link>
                 </div>
               </>
             ) : (
               <>
                 <h2 className="text-2xl font-bold text-gray-900 leading-tight mb-2">
-                  다음 학습할 단어<br />
-                  <span className="text-teal-600">{todayRemaining}개</span>
+                  {isEn ? 'Words to learn next' : '다음 학습할 단어'}<br />
+                  <span className="text-teal-600">{todayRemaining}{isEn ? '' : '개'}</span>
                 </h2>
                 <p className="text-sm text-gray-500 mb-4">
-                  지금 시작하면 <span className="font-semibold text-gray-900">{estimatedMinutes}분</span>이면 끝나요
+                  {isEn ? <>Takes about <span className="font-semibold text-gray-900">{estimatedMinutes} min</span></> : <>지금 시작하면 <span className="font-semibold text-gray-900">{estimatedMinutes}분</span>이면 끝나요</>}
                 </p>
                 <Link
                   href={`/learn?exam=${selectedExam}&level=${selectedLevel}`}
                   className="block w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl py-4 text-center transition-colors"
                 >
-                  {learnedWords === 0 ? '학습 시작' : '이어서 학습'}
+                  {learnedWords === 0 ? (isEn ? 'Start Learning' : '학습 시작') : (isEn ? 'Continue' : '이어서 학습')}
                 </Link>
               </>
             )}
@@ -443,7 +446,7 @@ function DashboardContent() {
 
         {/* 시험 선택 섹션 */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">시험 선택</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">{isEn ? 'Select Exam' : '시험 선택'}</h3>
 
           <div className="grid grid-cols-3 gap-2">
             {availableExams.map(({ exam: key, locked }) => {
@@ -487,7 +490,7 @@ function DashboardContent() {
         {/* 레벨/유형 선택 섹션 */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : (selectedExam === 'TOEFL' || selectedExam === 'TOEIC' || selectedExam === 'SAT' || selectedExam === 'GRE' || selectedExam === 'IELTS') ? '난이도 선택' : '레벨 선택'}
+            {isEn ? 'Select Level' : (selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : (selectedExam === 'TOEFL' || selectedExam === 'TOEIC' || selectedExam === 'SAT' || selectedExam === 'GRE' || selectedExam === 'IELTS') ? '난이도 선택' : '레벨 선택'}
           </h3>
 
           <div className="flex gap-3">
@@ -545,7 +548,7 @@ function DashboardContent() {
         {/* SAT 테마별 학습 섹션 */}
         {selectedExam === 'SAT' && (
           <section className="bg-white border border-gray-200 rounded-2xl p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">테마별 학습</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">{isEn ? 'Theme Learning' : '테마별 학습'}</h3>
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
               {SAT_THEMES.map((theme) => (
                 <button
@@ -573,9 +576,9 @@ function DashboardContent() {
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900">바로 학습 이어가기</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Continue Learning' : '바로 학습 이어가기'}</h3>
             <span className="text-sm text-teal-600 font-medium flex items-center gap-1">
-              🔥 {stats?.currentStreak || 0}일 연속
+              🔥 {stats?.currentStreak || 0}{isEn ? ' day streak' : '일 연속'}
             </span>
           </div>
 
@@ -624,11 +627,11 @@ function DashboardContent() {
 
           {/* 통계 3분할 */}
           <div className="flex justify-between items-center py-4 border-y border-gray-100 mb-4">
-            <DashboardItem value={learnedWords} label="학습 완료" color="blue" loading={examLevelLoading} />
+            <DashboardItem value={learnedWords} label={isEn ? 'Learned' : '학습 완료'} color="blue" loading={examLevelLoading} />
             <div className="w-px h-10 bg-gray-100" />
-            <DashboardItem value={remainingWords} label="남은 단어" color="amber" loading={examLevelLoading} />
+            <DashboardItem value={remainingWords} label={isEn ? 'Remaining' : '남은 단어'} color="amber" loading={examLevelLoading} />
             <div className="w-px h-10 bg-gray-100" />
-            <DashboardItem value={`${progressPercent}%`} label="진행률" color="emerald" loading={examLevelLoading} />
+            <DashboardItem value={`${progressPercent}%`} label={isEn ? 'Progress' : '진행률'} color="emerald" loading={examLevelLoading} />
           </div>
 
           {/* 프로그레스 바 */}
@@ -641,8 +644,8 @@ function DashboardContent() {
 
           {/* 부가 정보 */}
           <div className="flex justify-between text-sm text-gray-500 mb-4">
-            <span>마지막 학습: {stats?.lastActiveDate ? new Date(stats.lastActiveDate).toLocaleDateString('ko-KR') : '오늘'}</span>
-            <span>오늘 목표: {dailyGoal}개</span>
+            <span>{isEn ? 'Last study: ' : '마지막 학습: '}{stats?.lastActiveDate ? new Date(stats.lastActiveDate).toLocaleDateString(isEn ? 'en-US' : 'ko-KR') : (isEn ? 'Today' : '오늘')}</span>
+            <span>{isEn ? `Daily goal: ${dailyGoal}` : `오늘 목표: ${dailyGoal}개`}</span>
           </div>
 
           {/* 버튼 */}
@@ -650,13 +653,13 @@ function DashboardContent() {
             <div className="space-y-3">
               <div className="flex items-center justify-center gap-2 py-3 bg-emerald-50 rounded-xl">
                 <span className="text-xl">✅</span>
-                <span className="font-semibold text-emerald-600">학습 완료!</span>
+                <span className="font-semibold text-emerald-600">{isEn ? 'Complete!' : '학습 완료!'}</span>
               </div>
               <Link
                 href={`/learn?exam=${selectedExam}&level=${selectedLevel}&restart=true`}
                 className="block w-full py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 font-semibold text-center transition-colors"
               >
-                처음부터 다시 학습
+                {isEn ? 'Start Over' : '처음부터 다시 학습'}
               </Link>
             </div>
           ) : (
@@ -664,7 +667,7 @@ function DashboardContent() {
               href={`/learn?exam=${selectedExam}&level=${selectedLevel}`}
               className="block w-full py-4 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
             >
-              {learnedWords === 0 ? '학습 시작' : '이어서 학습'}
+              {learnedWords === 0 ? (isEn ? 'Start Learning' : '학습 시작') : (isEn ? 'Continue' : '이어서 학습')}
             </Link>
           )}
         </section>
@@ -672,7 +675,7 @@ function DashboardContent() {
         {/* 연속 학습일 + 캘린더 */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900">연속 학습일</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Learning Streak' : '연속 학습일'}</h3>
             <span className="text-sm text-gray-500">{currentYear}년 {currentMonth + 1}월</span>
           </div>
 
@@ -680,21 +683,21 @@ function DashboardContent() {
           <div className="flex gap-4 mb-4">
             <div className="flex-1 bg-teal-50 rounded-xl p-4 text-center">
               <span className="text-2xl mb-1 block">🔥</span>
-              <p className="text-2xl font-bold text-teal-600">{stats?.currentStreak || 0}일</p>
-              <p className="text-xs text-gray-500">현재 연속</p>
+              <p className="text-2xl font-bold text-teal-600">{stats?.currentStreak || 0}{isEn ? 'd' : '일'}</p>
+              <p className="text-xs text-gray-500">{isEn ? 'Current' : '현재 연속'}</p>
             </div>
             <div className="flex-1 bg-amber-50 rounded-xl p-4 text-center">
               <span className="text-2xl mb-1 block">🏆</span>
-              <p className="text-2xl font-bold text-amber-600">{stats?.longestStreak || 0}일</p>
-              <p className="text-xs text-gray-500">최장 기록</p>
+              <p className="text-2xl font-bold text-amber-600">{stats?.longestStreak || 0}{isEn ? 'd' : '일'}</p>
+              <p className="text-xs text-gray-500">{isEn ? 'Best' : '최장 기록'}</p>
             </div>
           </div>
 
           {/* 캘린더 그리드 */}
           <div className="grid grid-cols-7 gap-1 text-center">
             {/* 요일 헤더 */}
-            {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
-              <div key={day} className="text-xs text-gray-400 py-1">{day}</div>
+            {(isEn ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : ['일', '월', '화', '수', '목', '금', '토']).map((day, i) => (
+              <div key={`${day}-${i}`} className="text-xs text-gray-400 py-1">{day}</div>
             ))}
             {/* 빈 셀 */}
             {Array.from({ length: firstDayOfMonth }).map((_, i) => (
