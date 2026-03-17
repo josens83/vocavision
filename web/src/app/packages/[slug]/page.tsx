@@ -85,11 +85,11 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
     id: 'static-ielts',
     name: 'IELTS 완전정복',
     slug: 'ielts-complete',
-    description: 'IELTS Foundation~Academic 어휘 588개를 단기간에 완성. Band 5~8 전 구간을 AI 이미지·어원·라임 8단계 학습으로 완전 정복.',
+    description: 'IELTS Foundation~Academic 어휘 795개를 단기간에 완성. Band 5~8 전 구간을 AI 이미지·어원·라임 8단계 학습으로 완전 정복.',
     price: 9900,
     durationDays: 180,
     badge: 'NEW',
-    wordCount: 588,
+    wordCount: 795,
   },
 };
 
@@ -101,7 +101,7 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'toeic-complete': 2491,
   'sat-complete': 1935,
   'gre-complete': 4346,
-  'ielts-complete': 588,
+  'ielts-complete': 795,
 };
 
 export default function PackageDetailPage() {
@@ -218,7 +218,7 @@ export default function PackageDetailPage() {
 
             <p className="text-xl text-white/90 mb-8 max-w-2xl">
               {slug === 'ielts-complete' ? (
-                <>IELTS Band 5~8 필수 어휘 588개.<br />Foundation(L1) 330개와 Academic(L2) 258개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
+                <>IELTS Band 5~8 필수 어휘 795개.<br />Foundation(L1) 401개와 Academic(L2) 394개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
               ) : slug === 'gre-complete' ? (
                 <>GRE Verbal 핵심~고급 어휘 4,346개.<br />Verbal 핵심(L1) 1,858개와 고급(L2) 2,488개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
               ) : slug === 'sat-complete' ? (
@@ -459,15 +459,15 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>588개</strong> IELTS Foundation~Academic 어휘</span>
+                        <span><strong>795개</strong> IELTS Foundation~Academic 어휘</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <span className="flex-shrink-0 mt-0.5">🔵</span>
-                        <span><strong>L1 Foundation</strong> — 330개 (Band 5~6.5 기초 필수)</span>
+                        <span><strong>L1 Foundation</strong> — 401개 (Band 5~6.5 기초 필수)</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <span className="flex-shrink-0 mt-0.5">🔴</span>
-                        <span><strong>L2 Academic</strong> — 258개 (Band 7~8 학술 핵심)</span>
+                        <span><strong>L2 Academic</strong> — 394개 (Band 7~8 학술 핵심)</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />

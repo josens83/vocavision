@@ -101,7 +101,7 @@ function getStaticPackages(): ProductPackage[] {
       durationDays: 180,
       badge: "NEW",
       isComingSoon: false,
-      wordCount: 588,
+      wordCount: 795,
     },
   ];
 }
@@ -117,7 +117,7 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'toeic-complete': 2491,
   'sat-complete': 1935,
   'gre-complete': 4346,
-  'ielts-complete': 588,
+  'ielts-complete': 795,
 };
 
 // 뱃지 스타일 결정
