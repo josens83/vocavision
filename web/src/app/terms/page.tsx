@@ -25,7 +25,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-bold text-gray-900 mb-4">제1조 (목적)</h2>
             <p className="text-gray-700 leading-relaxed">
-              이 약관은 유니패스(이하 &quot;회사&quot;)가 제공하는 VocaVision AI 서비스(이하 &quot;서비스&quot;)의 이용조건 및 절차,
+              이 약관은 유니패스 (이하 &quot;VocaVision AI&quot; 또는 &quot;회사&quot;)가 제공하는 VocaVision AI 서비스(이하 &quot;서비스&quot;)의 이용조건 및 절차,
               회사와 이용자의 권리, 의무 및 책임사항 등을 규정함을 목적으로 합니다.
             </p>
           </section>
@@ -77,33 +77,18 @@ export default function TermsPage() {
             <h2 className="text-xl font-bold text-blue-900 mb-4">제6조 (환불 정책)</h2>
             <div className="space-y-4 text-gray-700">
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">1. 전액 환불</h3>
-                <p>결제 후 7일 이내에 서비스를 전혀 이용하지 않은 경우, 전액 환불이 가능합니다.</p>
+                <h3 className="font-semibold text-gray-900 mb-2">1. 14일 무조건 전액 환불</h3>
+                <p>유니패스(VocaVision AI)는 구매일로부터 14일 이내에 이유를 불문하고 전액 환불을 보장합니다.</p>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">2. 부분 환불</h3>
-                <p>서비스 이용 시작 후에는 잔여 이용 기간에 대해 일할 계산하여 환불합니다.</p>
-                <ul className="list-disc list-inside ml-4 mt-2 space-y-1 text-sm">
-                  <li>월간 결제: (잔여일수 / 30) × 결제금액</li>
-                  <li>연간 결제: (잔여일수 / 365) × 결제금액</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">3. 환불 신청 방법</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">2. 환불 신청 방법</h3>
                 <ul className="list-disc list-inside ml-4 space-y-1">
-                  <li>이메일: support@vocavision.kr</li>
+                  <li>이메일: support@vocavision.app</li>
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">4. 환불 처리 기간</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">3. 환불 처리 기간</h3>
                 <p>환불 신청 접수 후 영업일 기준 3~5일 이내에 처리됩니다.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">5. 환불 불가 사유</h3>
-                <ul className="list-disc list-inside ml-4 space-y-1">
-                  <li>서비스 이용 후 7일이 경과한 경우 (단, 부분 환불은 가능)</li>
-                  <li>이용약관 위반으로 인한 서비스 이용 정지의 경우</li>
-                </ul>
               </div>
             </div>
           </section>

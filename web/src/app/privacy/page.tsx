@@ -25,7 +25,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-bold text-gray-900 mb-4">제1조 (개인정보의 수집 및 이용 목적)</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              유니패스(이하 &quot;회사&quot;)는 VocaVision AI 서비스 제공을 위해 다음과 같은 목적으로 개인정보를 수집·이용합니다.
+              유니패스 (VocaVision AI, 이하 &quot;회사&quot;)는 VocaVision AI 서비스 제공을 위해 다음과 같은 목적으로 개인정보를 수집·이용합니다.
             </p>
             <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
               <li>회원 가입 및 관리</li>
