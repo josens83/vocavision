@@ -743,25 +743,38 @@ export default function Hero() {
               </div>
 
               <h1 className="font-display leading-snug">
-                <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-2">
-                  단어를 <span className="text-cyan-500 font-black">보면,</span>
-                </span>
-                <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
-                  기억됩니다.
-                </span>
-                <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
-                  AI 이미지 · 라임 · 어원으로 수능 · TEPS · TOEFL · TOEIC · SAT 단어를 오래 기억하세요.
-                </span>
+                {locale === 'en' ? (
+                  <>
+                    <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-2">
+                      See a word, <span className="text-cyan-500 font-black">remember it.</span>
+                    </span>
+                    <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
+                      Master SAT · GRE · TOEFL · IELTS vocabulary with AI images, rhymes, and etymology.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-2">
+                      단어를 <span className="text-cyan-500 font-black">보면,</span>
+                    </span>
+                    <span className="block text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
+                      기억됩니다.
+                    </span>
+                    <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
+                      AI 이미지 · 라임 · 어원으로 수능 · TEPS · TOEFL · TOEIC · SAT 단어를 오래 기억하세요.
+                    </span>
+                  </>
+                )}
               </h1>
 
               <div className="flex flex-wrap gap-4 pt-4">
                 <Link href="/auth/login" className="btn bg-emerald-500 hover:bg-emerald-600 text-white focus:ring-emerald-500 group">
                   <Icons.Sparkles />
-                  <span>무료로 시작하기</span>
+                  <span>{locale === 'en' ? 'Start for Free' : '무료로 시작하기'}</span>
                 </Link>
-                <Link href="/learn?exam=CSAT&level=L1&demo=true" className="btn btn-outline text-brand-primary border-brand-primary hover:bg-brand-primary/5">
+                <Link href={locale === 'en' ? '/learn?exam=SAT&level=L1&demo=true' : '/learn?exam=CSAT&level=L1&demo=true'} className="btn btn-outline text-brand-primary border-brand-primary hover:bg-brand-primary/5">
                   <Icons.Play />
-                  <span>60초 체험</span>
+                  <span>{locale === 'en' ? '60s Demo' : '60초 체험'}</span>
                 </Link>
               </div>
 
@@ -779,7 +792,9 @@ export default function Hero() {
 
             {/* 오른쪽 열: 체험 카드들 */}
             <div className={`flex flex-col gap-4 w-full max-w-full sm:max-w-md mx-auto lg:mx-0 lg:max-w-lg overflow-hidden ${isVisible ? "animate-slide-in-right" : "opacity-0"}`}>
-              <p className="text-sm text-slate-500 text-center mb-2">클릭하여 기능을 체험해보세요 →</p>
+              <p className="text-sm text-slate-500 text-center mb-2">
+                {locale === 'en' ? 'Click to try each feature →' : '클릭하여 기능을 체험해보세요 →'}
+              </p>
 
               {features.map((feature, index) => (
                 <Link key={feature.title} href={feature.demoHref} className="block">
@@ -797,7 +812,7 @@ export default function Hero() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-base sm:text-lg font-semibold text-slate-900 whitespace-nowrap">{feature.title}</h3>
                         <span className="text-xs font-medium text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full whitespace-nowrap">
-                          체험하기
+                          {locale === 'en' ? 'Try it' : '체험하기'}
                         </span>
                       </div>
                       <p className="text-sm sm:text-base text-slate-600 whitespace-nowrap">{feature.description}</p>
@@ -814,17 +829,21 @@ export default function Hero() {
               {/* 체험 유도 카드 */}
               <div className="relative overflow-hidden card p-6 bg-gradient-to-br from-brand-primary to-brand-secondary text-white">
                 <div className="relative z-10">
-                  <h4 className="text-lg font-semibold mb-2">60초 안에 체험해보세요!</h4>
-                  <p className="text-white/80 mb-4">회원가입 없이 샘플 단어로 빠르게 체험</p>
+                  <h4 className="text-lg font-semibold mb-2">
+                    {locale === 'en' ? 'Try it in 60 seconds!' : '60초 안에 체험해보세요!'}
+                  </h4>
+                  <p className="text-white/80 mb-4">
+                    {locale === 'en' ? 'Quick demo with sample words — no sign-up required' : '회원가입 없이 샘플 단어로 빠르게 체험'}
+                  </p>
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <Link href="/learn?exam=CSAT&level=L1&demo=true" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
-                      <span>맛보기 시작</span>
+                    <Link href={locale === 'en' ? '/learn?exam=SAT&level=L1&demo=true' : '/learn?exam=CSAT&level=L1&demo=true'} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
+                      <span>{locale === 'en' ? 'Start Demo' : '맛보기 시작'}</span>
                       <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
                     </Link>
                     <Link href="/auth/login" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white/20 text-white hover:bg-white/30 border border-white/30 rounded-lg font-medium transition-colors">
-                      <span>무료로 시작하기</span>
+                      <span>{locale === 'en' ? 'Start for Free' : '무료로 시작하기'}</span>
                     </Link>
                   </div>
                 </div>

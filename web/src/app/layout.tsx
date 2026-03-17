@@ -32,6 +32,14 @@ export const metadata: Metadata = {
     'AI 영어 학습',
     'VocaVision AI',
     '보카비전 AI',
+    'SAT vocabulary',
+    'GRE vocabulary',
+    'TOEFL vocabulary',
+    'IELTS vocabulary',
+    'English vocabulary app',
+    'AI vocabulary learning',
+    'spaced repetition English',
+    'vocabulary flashcards',
   ],
 
   // 저자 정보
