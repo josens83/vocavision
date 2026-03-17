@@ -94,8 +94,8 @@ const getLevelInfo = (exam: string, level: string, isEn = false) => {
 
   if (exam === 'IELTS') {
     const ieltsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: 'Foundation', description: isEn ? 'IELTS Band 5~6.5 essential words' : 'IELTS Band 5~6.5 기초 필수 어휘', target: isEn ? 'Band 6.5' : 'Band 6.5 목표', wordCount: 330 },
-      L2: { name: 'Academic', description: isEn ? 'IELTS Band 7~8 academic words' : 'IELTS Band 7~8 학술 핵심 어휘', target: isEn ? 'Band 8.0' : 'Band 8.0 목표', wordCount: 258 },
+      L1: { name: 'Foundation', description: isEn ? 'IELTS Band 5~6.5 essential words' : 'IELTS Band 5~6.5 기초 필수 어휘', target: isEn ? 'Band 6.5' : 'Band 6.5 목표', wordCount: 401 },
+      L2: { name: 'Academic', description: isEn ? 'IELTS Band 7~8 academic words' : 'IELTS Band 7~8 학술 핵심 어휘', target: isEn ? 'Band 8.0' : 'Band 8.0 목표', wordCount: 394 },
     };
     return ieltsLevels[level] || ieltsLevels.L1;
   }

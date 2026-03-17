@@ -590,7 +590,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'IELTS Academic Mastery' : 'IELTS 완전정복'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '588 words' : '588개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '795 words' : '795개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
