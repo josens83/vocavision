@@ -8,9 +8,11 @@ import { useAuthStore } from "@/lib/store";
 import { getPlanDisplay, isPremiumPlan, canAccessExam, canAccessLevel, isLevelLocked, canAccessContentWithPurchase, canAccessExamWithPurchase } from "@/lib/subscription";
 import { useAuthRequired } from "@/components/ui/AuthRequiredModal";
 import { useClearAllCache } from "@/hooks/useQueries";
+import { useLocale } from "@/hooks/useLocale";
 
 export interface NavItem {
   label: string;
+  labelEn?: string;
   href?: string;
   color?: string;
   icon?: ReactNode;
@@ -21,10 +23,12 @@ export interface NavItem {
 
 export interface NavSubItem {
   label: string;
+  labelEn?: string;
   href: string;
   count?: number;
   badge?: string;
   description?: string;
+  descriptionEn?: string;
   icon?: string;
   isDivider?: boolean;
   disabled?: boolean;
@@ -67,6 +71,7 @@ export const guestNavigationItems: NavItem[] = [
   },
   {
     label: "요금제",
+    labelEn: "Pricing",
     href: "/pricing",
     color: "text-purple-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
@@ -111,19 +116,21 @@ export const authNavigationItems: NavItem[] = [
   },
   {
     label: "내 학습",
+    labelEn: "My Learning",
     color: "text-purple-600",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
     children: [
-      { label: "대시보드", href: "/dashboard", description: "오늘의 학습 현황" },
-      { label: "복습 노트", href: "/review", description: "틀린 단어 모아보기" },
-      { label: "단어 찾기", href: "/words", description: "단어 검색·탐색" },
-      { label: "학습 통계", href: "/statistics", description: "상세 학습 분석" },
+      { label: "대시보드", labelEn: "Dashboard", href: "/dashboard", description: "오늘의 학습 현황", descriptionEn: "Today's learning overview" },
+      { label: "복습 노트", labelEn: "Review", href: "/review", description: "틀린 단어 모아보기", descriptionEn: "Words to review" },
+      { label: "단어 찾기", labelEn: "Words", href: "/words", description: "단어 검색·탐색", descriptionEn: "Search vocabulary" },
+      { label: "학습 통계", labelEn: "Statistics", href: "/statistics", description: "상세 학습 분석", descriptionEn: "Learning analytics" },
       { label: "divider", href: "#", isDivider: true },
-      { label: "MY", href: "/my", description: "계정 설정", icon: "👤" },
+      { label: "MY", href: "/my", description: "계정 설정", descriptionEn: "Account settings", icon: "👤" },
     ],
   },
   {
     label: "요금제",
+    labelEn: "Pricing",
     href: "/pricing",
     color: "text-orange-500",
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
@@ -202,9 +209,10 @@ interface NavDropdownProps {
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   user?: any;
+  locale?: 'ko' | 'en';
 }
 
-function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave, user }: NavDropdownProps) {
+function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave, user, locale = 'ko' }: NavDropdownProps) {
   const router = useRouter();
 
   const handleItemClick = (e: React.MouseEvent, child: NavSubItem) => {
@@ -217,7 +225,7 @@ function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave, user }: NavDrop
     <div className="relative nav-item" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <button className={`nav-link flex items-center gap-2 whitespace-nowrap ${item.color || ""}`}>
         {item.icon}
-        <span>{item.label}</span>
+        <span>{(locale === 'en' && item.labelEn) || item.label}</span>
         <svg className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -238,7 +246,7 @@ function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave, user }: NavDrop
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   {child.icon && <span>{child.icon}</span>}
-                  <span className="font-medium">{child.label}</span>
+                  <span className="font-medium">{(locale === 'en' && child.labelEn) || child.label}</span>
                   {child.badge && <span className="px-1.5 py-0.5 text-xs font-bold bg-study-flashcard text-slate-900 rounded">{child.badge}</span>}
                   {locked && (
                     <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,7 +254,7 @@ function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave, user }: NavDrop
                     </svg>
                   )}
                 </div>
-                {child.description && <p className="text-xs text-slate-400 mt-0.5">{child.description}</p>}
+                {child.description && <p className="text-xs text-slate-400 mt-0.5">{(locale === 'en' && child.descriptionEn) || child.description}</p>}
               </div>
               {child.count !== undefined && <span className="text-sm text-slate-400 group-hover:text-slate-600">{child.count}</span>}
             </button>
@@ -261,9 +269,10 @@ interface NavLinkProps {
   item: NavItem;
   isAuthenticated: boolean;
   onAuthRequired?: (label: string) => void;
+  locale?: 'ko' | 'en';
 }
 
-function NavLink({ item, isAuthenticated, onAuthRequired }: NavLinkProps) {
+function NavLink({ item, isAuthenticated, onAuthRequired, locale = 'ko' }: NavLinkProps) {
   const showLock = item.requiresAuth && !isAuthenticated;
 
   // Guest가 로그인 필요 항목 클릭 시
@@ -285,7 +294,7 @@ function NavLink({ item, isAuthenticated, onAuthRequired }: NavLinkProps) {
   return (
     <Link href={item.href || "#"} className={`nav-link flex items-center gap-2 whitespace-nowrap ${item.color || ""}`}>
       {item.icon}
-      <span>{item.label}</span>
+      <span>{(locale === 'en' && item.labelEn) || item.label}</span>
     </Link>
   );
 }
@@ -605,6 +614,7 @@ export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const locale = useLocale();
 
   const { user, logout, _hasHydrated } = useAuthStore();
   const { showAuthRequired } = useAuthRequired();
@@ -671,7 +681,7 @@ export default function Navigation() {
           <nav className="hidden lg:flex items-center gap-4">
             {(isAuthenticated ? authNavigationItems : guestNavigationItems).map((item) => (
               item.children ? (
-                <NavDropdown key={item.label} item={item} isOpen={openDropdown === item.label} onMouseEnter={() => setOpenDropdown(item.label)} onMouseLeave={() => setOpenDropdown(null)} user={user} />
+                <NavDropdown key={item.label} item={item} isOpen={openDropdown === item.label} onMouseEnter={() => setOpenDropdown(item.label)} onMouseLeave={() => setOpenDropdown(null)} user={user} locale={locale} />
               ) : item.href === "#" ? (
                 // "준비중" 항목 (TEPS, TOEFL 등)
                 <button
@@ -688,6 +698,7 @@ export default function Navigation() {
                   item={item}
                   isAuthenticated={isAuthenticated}
                   onAuthRequired={handleAuthRequired}
+                  locale={locale}
                 />
               )
             ))}

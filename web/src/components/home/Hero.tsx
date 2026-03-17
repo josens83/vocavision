@@ -8,6 +8,7 @@ import { PLATFORM_STATS } from "@/constants/stats";
 import { useAuthStore, useUserSettingsStore, useExamCourseStore } from "@/lib/store";
 import { userAPI } from "@/lib/api";
 import { useDashboardSummary, usePrefetchDashboard, usePrefetchReviews } from "@/hooks/useQueries";
+import { useLocale } from "@/hooks/useLocale";
 
 const Icons = {
   Play: () => (
@@ -44,7 +45,7 @@ const Icons = {
 };
 
 // Hero 섹션 통계 (실제 데이터 기반)
-const heroStats = [
+const heroStatsKo = [
   { label: "영어 단어", value: PLATFORM_STATS.totalWords.toLocaleString() + "+" },
   { label: "시험 대비", value: "8" },
   { label: "예문 데이터", value: "40,000+" },
@@ -52,10 +53,24 @@ const heroStats = [
   { label: "학습 방식", value: "8" },
 ];
 
-const features = [
+const heroStatsEn = [
+  { label: "Vocabulary Words", value: PLATFORM_STATS.totalWords.toLocaleString() + "+" },
+  { label: "Exams Covered", value: "7" },
+  { label: "Example Sentences", value: "40,000+" },
+  { label: "AI Images", value: "10,000+" },
+  { label: "Learning Methods", value: "8" },
+];
+
+const featuresKo = [
   { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn", demoHref: "/learn?exam=CSAT&level=L1&demo=true" },
   { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템", href: "/review", demoHref: "/review/quiz?demo=true" },
   { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공", href: "/statistics", demoHref: "/statistics?demo=true" },
+];
+
+const featuresEn = [
+  { icon: Icons.BookOpen, title: "Smart Flashcards", description: "Scientifically proven spaced repetition", href: "/learn", demoHref: "/learn?exam=SAT&level=L1&demo=true" },
+  { icon: Icons.Brain, title: "Adaptive Quiz", description: "Difficulty adjusts based on your answers", href: "/review", demoHref: "/review/quiz?demo=true" },
+  { icon: Icons.ChartBar, title: "Learning Analytics", description: "Detailed progress tracking and statistics", href: "/statistics", demoHref: "/statistics?demo=true" },
 ];
 
 // ============================================
@@ -695,6 +710,9 @@ export default function Hero() {
   const [isVisible, setIsVisible] = useState(false);
   const { user, _hasHydrated } = useAuthStore();
   const isLoggedIn = !!user;
+  const locale = useLocale();
+  const heroStats = locale === 'en' ? heroStatsEn : heroStatsKo;
+  const features = locale === 'en' ? featuresEn : featuresKo;
 
   useEffect(() => {
     setIsVisible(true);
