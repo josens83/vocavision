@@ -78,6 +78,48 @@ export const guestNavigationItems: NavItem[] = [
   },
 ];
 
+// 글로벌(영어) Guest용 네비게이션
+export const globalGuestNavigationItems: NavItem[] = [
+  {
+    label: "SAT",
+    labelEn: "SAT",
+    color: "text-orange-600",
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
+    children: [
+      { label: "Starter", labelEn: "Starter", href: "/learn?exam=SAT&level=L1" },
+      { label: "Advanced", labelEn: "Advanced", href: "/learn?exam=SAT&level=L2" },
+    ],
+  },
+  {
+    label: "GRE",
+    labelEn: "GRE",
+    color: "text-indigo-600",
+    children: [
+      { label: "Verbal Core", labelEn: "Verbal Core", href: "/auth/register?from=gre-l1" },
+      { label: "Verbal Advanced", labelEn: "Verbal Advanced", href: "/auth/register?from=gre-l2" },
+    ],
+  },
+  {
+    label: "Vocab Packs",
+    labelEn: "Vocab Packs",
+    color: "text-green-600",
+    children: [
+      { label: "TOEFL Core Vocabulary", labelEn: "TOEFL Core Vocabulary", href: "/packages/toefl-complete" },
+      { label: "TOEIC Score Booster", labelEn: "TOEIC Score Booster", href: "/packages/toeic-complete" },
+      { label: "SAT Advanced Vocabulary", labelEn: "SAT Advanced Vocabulary", href: "/packages/sat-complete" },
+      { label: "GRE Verbal Mastery", labelEn: "GRE Verbal Mastery", href: "/packages/gre-complete" },
+      { label: "IELTS Academic Mastery", labelEn: "IELTS Academic Mastery", href: "/packages/ielts-complete" },
+    ],
+  },
+  {
+    label: "Pricing",
+    labelEn: "Pricing",
+    href: "/pricing",
+    color: "text-purple-600",
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+  },
+];
+
 // 로그인 사용자용 네비게이션 (콘텐츠 중심 - 시험별 접근)
 // "사용자는 'TOEIC 단어 공부하러 왔다'지, '플래시카드 하러 왔다'가 아님"
 export const authNavigationItems: NavItem[] = [
@@ -130,6 +172,69 @@ export const authNavigationItems: NavItem[] = [
   },
   {
     label: "요금제",
+    labelEn: "Pricing",
+    href: "/pricing",
+    color: "text-orange-500",
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+  },
+];
+
+// 글로벌(영어) 로그인 사용자용 네비게이션
+export const globalAuthNavigationItems: NavItem[] = [
+  {
+    label: "SAT",
+    labelEn: "SAT",
+    color: "text-orange-600",
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>,
+    children: [
+      { label: "Starter", labelEn: "Starter", href: "/dashboard?exam=SAT&level=L1" },
+      { label: "Advanced", labelEn: "Advanced", href: "/dashboard?exam=SAT&level=L2" },
+    ],
+  },
+  {
+    label: "GRE",
+    labelEn: "GRE",
+    color: "text-indigo-600",
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>,
+    children: [
+      { label: "Verbal Core", labelEn: "Verbal Core", href: "/dashboard?exam=GRE&level=L1" },
+      { label: "Verbal Advanced", labelEn: "Verbal Advanced", href: "/dashboard?exam=GRE&level=L2" },
+    ],
+  },
+  {
+    label: "TOEFL",
+    labelEn: "TOEFL",
+    color: "text-blue-600",
+    children: [
+      { label: "Core", labelEn: "Core", href: "/dashboard?exam=TOEFL&level=L1" },
+      { label: "Advanced", labelEn: "Advanced", href: "/dashboard?exam=TOEFL&level=L2" },
+    ],
+  },
+  {
+    label: "IELTS",
+    labelEn: "IELTS",
+    color: "text-sky-600",
+    children: [
+      { label: "Foundation", labelEn: "Foundation", href: "/dashboard?exam=IELTS&level=L1" },
+      { label: "Academic", labelEn: "Academic", href: "/dashboard?exam=IELTS&level=L2" },
+    ],
+  },
+  {
+    label: "My Learning",
+    labelEn: "My Learning",
+    color: "text-purple-600",
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
+    children: [
+      { label: "Dashboard", labelEn: "Dashboard", href: "/dashboard", description: "Today's learning overview" },
+      { label: "Review", labelEn: "Review", href: "/review", description: "Words to review" },
+      { label: "Words", labelEn: "Words", href: "/words", description: "Search vocabulary" },
+      { label: "Statistics", labelEn: "Statistics", href: "/statistics", description: "Learning analytics" },
+      { label: "divider", href: "#", isDivider: true },
+      { label: "MY", labelEn: "MY", href: "/my", description: "Account settings", icon: "👤" },
+    ],
+  },
+  {
+    label: "Pricing",
     labelEn: "Pricing",
     href: "/pricing",
     color: "text-orange-500",
@@ -621,6 +726,10 @@ export default function Navigation() {
   const clearAllCache = useClearAllCache();
   const isAuthenticated = !!user;
 
+  // locale 기반 메뉴 선택
+  const currentGuestItems = locale === 'en' ? globalGuestNavigationItems : guestNavigationItems;
+  const currentAuthItems = locale === 'en' ? globalAuthNavigationItems : authNavigationItems;
+
   // Mock streak - 실제로는 user 객체에서 가져와야 함
   const userStreak = (user as any)?.streak || 0;
 
@@ -679,7 +788,7 @@ export default function Navigation() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-4">
-            {(isAuthenticated ? authNavigationItems : guestNavigationItems).map((item) => (
+            {(isAuthenticated ? currentAuthItems : currentGuestItems).map((item) => (
               item.children ? (
                 <NavDropdown key={item.label} item={item} isOpen={openDropdown === item.label} onMouseEnter={() => setOpenDropdown(item.label)} onMouseLeave={() => setOpenDropdown(null)} user={user} locale={locale} />
               ) : item.href === "#" ? (
@@ -849,7 +958,7 @@ export default function Navigation() {
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
-        items={isAuthenticated ? authNavigationItems : guestNavigationItems}
+        items={isAuthenticated ? currentAuthItems : currentGuestItems}
         isAuthenticated={isAuthenticated}
         onAuthRequired={handleAuthRequired}
         user={user}
