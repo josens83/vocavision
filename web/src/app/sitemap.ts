@@ -3,25 +3,30 @@ import { MetadataRoute } from 'next';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const BASE_URL = 'https://vocavision.kr';
+const BASE_URL_KO = 'https://vocavision.kr';
+const BASE_URL_EN = 'https://vocavision.app';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 // 정적 페이지 목록
 const staticPages: MetadataRoute.Sitemap = [
-  { url: BASE_URL, changeFrequency: 'weekly', priority: 1.0 },
-  { url: `${BASE_URL}/pricing`, changeFrequency: 'monthly', priority: 0.9 },
-  { url: `${BASE_URL}/packages`, changeFrequency: 'weekly', priority: 0.8 },
-  { url: `${BASE_URL}/packages/2026-csat-analysis`, changeFrequency: 'weekly', priority: 0.9 },
-  { url: `${BASE_URL}/packages/ebs-vocab`, changeFrequency: 'weekly', priority: 0.9 },
-  { url: `${BASE_URL}/packages/toefl-complete`, changeFrequency: 'weekly', priority: 0.9 },
-  { url: `${BASE_URL}/exam/csat`, changeFrequency: 'weekly', priority: 0.8 },
-  { url: `${BASE_URL}/exam/teps`, changeFrequency: 'weekly', priority: 0.8 },
-  { url: `${BASE_URL}/exam/toefl`, changeFrequency: 'weekly', priority: 0.8 },
-  { url: `${BASE_URL}/help`, changeFrequency: 'monthly', priority: 0.5 },
-  { url: `${BASE_URL}/contact`, changeFrequency: 'monthly', priority: 0.4 },
-  { url: `${BASE_URL}/faq`, changeFrequency: 'monthly', priority: 0.5 },
-  { url: `${BASE_URL}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
-  { url: `${BASE_URL}/terms`, changeFrequency: 'yearly', priority: 0.3 },
+  { url: BASE_URL_KO, changeFrequency: 'weekly', priority: 1.0 },
+  { url: `${BASE_URL_KO}/pricing`, changeFrequency: 'monthly', priority: 0.9 },
+  { url: `${BASE_URL_KO}/packages`, changeFrequency: 'weekly', priority: 0.8 },
+  { url: `${BASE_URL_KO}/packages/2026-csat-analysis`, changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL_KO}/packages/ebs-vocab`, changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL_KO}/packages/toefl-complete`, changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL_KO}/exam/csat`, changeFrequency: 'weekly', priority: 0.8 },
+  { url: `${BASE_URL_KO}/exam/teps`, changeFrequency: 'weekly', priority: 0.8 },
+  { url: `${BASE_URL_KO}/exam/toefl`, changeFrequency: 'weekly', priority: 0.8 },
+  { url: `${BASE_URL_KO}/help`, changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${BASE_URL_KO}/contact`, changeFrequency: 'monthly', priority: 0.4 },
+  { url: `${BASE_URL_KO}/faq`, changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${BASE_URL_KO}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
+  { url: `${BASE_URL_KO}/terms`, changeFrequency: 'yearly', priority: 0.3 },
+  // English pages
+  { url: BASE_URL_EN, changeFrequency: 'weekly', priority: 1.0 },
+  { url: `${BASE_URL_EN}/pricing`, changeFrequency: 'monthly', priority: 0.9 },
+  { url: `${BASE_URL_EN}/packages`, changeFrequency: 'weekly', priority: 0.8 },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -38,12 +43,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const data = await response.json();
       const words: Array<{ id: string; updatedAt: string }> = data.words || [];
 
-      wordEntries = words.map((word) => ({
-        url: `${BASE_URL}/words/${word.id}`,
-        lastModified: new Date(word.updatedAt),
-        changeFrequency: 'monthly' as const,
-        priority: 0.6,
-      }));
+      wordEntries = words.flatMap((word) => [
+        {
+          url: `${BASE_URL_KO}/words/${word.id}`,
+          lastModified: new Date(word.updatedAt),
+          changeFrequency: 'monthly' as const,
+          priority: 0.6,
+        },
+        {
+          url: `${BASE_URL_EN}/words/${word.id}`,
+          lastModified: new Date(word.updatedAt),
+          changeFrequency: 'monthly' as const,
+          priority: 0.7,
+        },
+      ]);
     } else {
       console.error('[Sitemap] API responded with status:', response.status);
     }
