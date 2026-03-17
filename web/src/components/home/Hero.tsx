@@ -736,7 +736,7 @@ export default function Hero() {
         {!isLoggedIn && (
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start justify-items-center lg:justify-items-start">
             {/* 왼쪽 열: Hero 텍스트 */}
-            <div className={`space-y-8 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
+            <div className={`space-y-8 min-w-0 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
                 <Icons.Sparkles />
                 <span className="text-sm font-medium text-slate-600">One Word. Eight Ways to Remember.</span>
@@ -778,13 +778,13 @@ export default function Hero() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-3 sm:grid-cols-5 md:flex md:gap-8 gap-4 pt-8 border-t border-slate-200">
+              <div className="flex flex-wrap gap-x-6 gap-y-4 pt-8 border-t border-slate-200">
                 {heroStats.map((stat, index) => (
-                  <div key={stat.label} className={`${isVisible ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: `${0.3 + index * 0.1}s` }}>
-                    <div className="text-2xl md:text-3xl font-display font-bold text-slate-900">
+                  <div key={stat.label} className={`min-w-0 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`} style={{ animationDelay: `${0.3 + index * 0.1}s` }}>
+                    <div className="text-xl md:text-2xl font-display font-bold text-slate-900 tabular-nums">
                       {stat.value}
                     </div>
-                    <div className="text-xs md:text-sm text-slate-500">{stat.label}</div>
+                    <div className="text-xs text-slate-500 whitespace-nowrap">{stat.label}</div>
                   </div>
                 ))}
               </div>
@@ -810,12 +810,12 @@ export default function Hero() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-base sm:text-lg font-semibold text-slate-900 whitespace-nowrap">{feature.title}</h3>
+                        <h3 className="text-base sm:text-lg font-semibold text-slate-900 truncate">{feature.title}</h3>
                         <span className="text-xs font-medium text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full whitespace-nowrap">
                           {locale === 'en' ? 'Try it' : '체험하기'}
                         </span>
                       </div>
-                      <p className="text-sm sm:text-base text-slate-600 whitespace-nowrap">{feature.description}</p>
+                      <p className="text-sm sm:text-base text-slate-600 line-clamp-2">{feature.description}</p>
                     </div>
                     <div className="self-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
