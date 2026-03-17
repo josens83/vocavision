@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
 import { wordsAPI, bookmarkAPI, pronunciationAPI } from '@/lib/api';
+import { useLocale } from '@/hooks/useLocale';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 // Types
@@ -165,6 +166,7 @@ export default function WordDetailClient({ id, initialWord }: WordDetailClientPr
 function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const locale = useLocale();
   const [word, setWord] = useState<Word | null>(initialWord || null);
   const [loading, setLoading] = useState(!initialWord);
   const [bookmarked, setBookmarked] = useState(false);
@@ -281,7 +283,9 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                   : 'bg-teal-500 hover:bg-teal-600 text-white'
               }`}
             >
-              <span>{bookmarked ? '북마크 해제' : '북마크 추가'}</span>
+              <span>{bookmarked
+                ? (locale === 'en' ? 'Remove Bookmark' : '북마크 해제')
+                : (locale === 'en' ? 'Add Bookmark' : '북마크 추가')}</span>
             </button>
           </div>
         </div>
@@ -408,7 +412,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 3: 발음 (공개) */}
         <SectionCard>
-          <SectionHeader icon="🎤" title="발음" />
+          <SectionHeader icon="🎤" title={locale === 'en' ? "Pronunciation" : "발음"} />
           <div className="flex flex-wrap items-center gap-6">
             {word.ipaUs && (
               <div className="flex items-center gap-3">
@@ -432,7 +436,9 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
               }`}
             >
               <Icons.Speaker />
-              <span>{playingAudio ? '재생 중...' : '발음 듣기'}</span>
+              <span>{playingAudio
+                ? (locale === 'en' ? 'Playing...' : '재생 중...')
+                : (locale === 'en' ? 'Listen' : '발음 듣기')}</span>
             </button>
           </div>
         </SectionCard>
@@ -441,7 +447,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
         {(word.etymology || word.prefix || word.root || word.suffix) && (
           <PremiumBlur user={user}>
             <SectionCard>
-              <SectionHeader icon="🌳" title="어원 분석" />
+              <SectionHeader icon="🌳" title={locale === 'en' ? "Etymology" : "어원 분석"} />
 
               {(word.prefix || word.root || word.suffix) && (
                 <div className="mb-4">
@@ -503,7 +509,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
         {(word.mnemonic || word.mnemonicKorean || (word.mnemonics && word.mnemonics.length > 0)) && (
           <PremiumBlur user={user}>
             <SectionCard>
-              <SectionHeader icon="💡" title="창의적 암기법" />
+              <SectionHeader icon="💡" title={locale === 'en' ? "Memory Trick" : "창의적 암기법"} />
 
               <div className="space-y-4">
                 {(word.mnemonic || word.mnemonicKorean) && (
@@ -545,7 +551,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
         {((word.rhymingWords && word.rhymingWords.length > 0) || (word.rhymes && word.rhymes.length > 0)) && (
           <PremiumBlur user={user}>
             <SectionCard>
-              <SectionHeader icon="🎵" title="라이밍 (Rhyme)" />
+              <SectionHeader icon="🎵" title={locale === 'en' ? "Rhyme" : "라이밍 (Rhyme)"} />
 
               {word.rhymingWords && word.rhymingWords.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -577,7 +583,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
         {word.collocations && word.collocations.length > 0 && (
           <PremiumBlur user={user}>
             <SectionCard>
-              <SectionHeader icon="🔗" title="연어 (Collocation)" />
+              <SectionHeader icon="🔗" title={locale === 'en' ? "Collocations" : "연어 (Collocation)"} />
 
               <div className="grid sm:grid-cols-2 gap-3">
                 {word.collocations.map((col, i) => (
@@ -600,7 +606,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
         {word.examples && word.examples.length > 0 && (
           <PremiumBlur user={user}>
             <SectionCard>
-              <SectionHeader icon="📝" title="예문" />
+              <SectionHeader icon="📝" title={locale === 'en' ? "Examples" : "예문"} />
 
               <div className="space-y-4">
                 {word.examples.map((example, i) => (
@@ -626,7 +632,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
           (word.antonymList && word.antonymList.length > 0) ||
           (word.relatedWords && word.relatedWords.length > 0)) && (
           <SectionCard>
-            <SectionHeader icon="📚" title="관련 단어" />
+            <SectionHeader icon="📚" title={locale === 'en' ? "Related Words" : "관련 단어"} />
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {word.synonymList && word.synonymList.length > 0 && (
