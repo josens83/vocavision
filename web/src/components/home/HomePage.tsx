@@ -6,10 +6,12 @@ import ProductPackageSection from "./ProductPackageSection";
 import PopularWordsSection from "./PopularWordsSection";
 import { LazySection } from "@/components/ui/LazySection";
 import { useAuthStore } from "@/lib/store";
+import { useLocale } from "@/hooks/useLocale";
 
 export default function HomePage() {
   const { user } = useAuthStore();
   const isLoggedIn = !!user;
+  const locale = useLocale();
 
   return (
     <div className="min-h-screen bg-white">
@@ -30,13 +32,21 @@ export default function HomePage() {
       {!isLoggedIn && (
         <section className="py-20 px-6 bg-gradient-to-br from-brand-primary to-brand-primary/80">
           <div className="max-w-4xl mx-auto text-center text-white">
-            <h2 className="text-display-md font-display font-bold mb-6">지금 바로 시작하세요</h2>
+            <h2 className="text-display-md font-display font-bold mb-6">
+              {locale === 'en' ? 'Start Learning Today' : '지금 바로 시작하세요'}
+            </h2>
             <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-              수능 기초 어휘 885개 — 완전 무료, 기간 제한 없음.
+              {locale === 'en'
+                ? '885 CSAT basic words — completely free, no time limit.'
+                : '수능 기초 어휘 885개 — 완전 무료, 기간 제한 없음.'}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <a href="/auth/login" className="btn bg-white text-brand-primary hover:bg-white/90 hover:shadow-lg">무료로 시작하기</a>
-              <a href="/pricing" className="btn border-2 border-white/30 text-white hover:bg-white/10">요금제 보기</a>
+              <a href="/auth/login" className="btn bg-white text-brand-primary hover:bg-white/90 hover:shadow-lg">
+                {locale === 'en' ? 'Start for Free' : '무료로 시작하기'}
+              </a>
+              <a href="/pricing" className="btn border-2 border-white/30 text-white hover:bg-white/10">
+                {locale === 'en' ? 'View Plans' : '요금제 보기'}
+              </a>
             </div>
           </div>
         </section>
