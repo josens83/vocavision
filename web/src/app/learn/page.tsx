@@ -13,6 +13,7 @@ import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState'
 import { event as gaEvent } from '@/lib/monitoring/analytics';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { SAT_THEMES } from '@/constants/exams';
+import { useLocale } from '@/hooks/useLocale';
 
 interface WordVisual {
   type: 'CONCEPT' | 'MNEMONIC' | 'RHYME';
@@ -47,15 +48,15 @@ interface Review {
 }
 
 // Exam name mapping
-const examNames: Record<string, string> = {
-  CSAT: '수능',
-  CSAT_2026: '2026 수능 기출',
-  SAT: 'SAT',
-  TOEFL: 'TOEFL',
-  TOEIC: 'TOEIC',
-  TEPS: 'TEPS',
-  EBS: 'EBS 연계',
-  GRE: 'GRE',
+const examNamesKo: Record<string, string> = {
+  CSAT: '수능', CSAT_2026: '2026 수능 기출', SAT: 'SAT',
+  TOEFL: 'TOEFL', TOEIC: 'TOEIC', TEPS: 'TEPS',
+  EBS: 'EBS 연계', GRE: 'GRE',
+};
+const examNamesEn: Record<string, string> = {
+  CSAT: 'CSAT', CSAT_2026: '2026 CSAT', SAT: 'SAT',
+  TOEFL: 'TOEFL', TOEIC: 'TOEIC', TEPS: 'TEPS',
+  EBS: 'EBS', GRE: 'GRE',
 };
 
 // Level name mapping - exam-specific
@@ -182,6 +183,9 @@ export default function LearnPage() {
 function LearnPageContent() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const locale = useLocale();
+  const isEn = locale === 'en';
+  const examNames = isEn ? examNamesEn : examNamesKo;
   const searchParams = useSearchParams();
   const examParam = searchParams.get('exam')?.toUpperCase();
   const levelParam = searchParams.get('level');
@@ -1183,7 +1187,7 @@ function LearnPageContent() {
               onClick={() => router.push(exitPath)}
               className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
-              대시보드로 돌아가기
+              {isEn ? 'Back to Dashboard' : '대시보드로 돌아가기'}
             </button>
           </div>
         </div>
@@ -1201,23 +1205,25 @@ function LearnPageContent() {
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">프리미엄 콘텐츠</h2>
+          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">{isEn ? 'Premium Content' : '프리미엄 콘텐츠'}</h2>
           <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
-            <strong>{examName} {levelName}</strong> 콘텐츠는<br />
-            {examParam === 'TEPS' ? '프리미엄' : '베이직'} 플랜부터 이용 가능합니다.
+            <strong>{examName} {levelName}</strong><br />
+            {isEn
+              ? `Available from ${examParam === 'TEPS' ? 'Premium' : 'Basic'} plan.`
+              : `${examParam === 'TEPS' ? '프리미엄' : '베이직'} 플랜부터 이용 가능합니다.`}
           </p>
           <div className="space-y-3">
             <a
               href="/pricing"
               className="block w-full py-3.5 px-4 bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white font-bold text-[14px] rounded-xl hover:opacity-90 transition shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
             >
-              플랜 업그레이드
+              {isEn ? 'Upgrade Plan' : '플랜 업그레이드'}
             </a>
             <button
               onClick={() => router.push(exitPath)}
               className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
-              대시보드로 돌아가기
+              {isEn ? 'Back to Dashboard' : '대시보드로 돌아가기'}
             </button>
           </div>
         </div>
@@ -1527,7 +1533,7 @@ function LearnPageContent() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="font-medium text-[13px]">나가기</span>
+              <span className="font-medium text-[13px]">{isEn ? 'Exit' : '나가기'}</span>
             </button>
 
             {/* Center - Course Info + Set Info */}

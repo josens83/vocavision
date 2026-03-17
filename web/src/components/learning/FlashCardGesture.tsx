@@ -15,6 +15,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from '
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import WordVisualPanel from './WordVisualPanel';
 import PronunciationButton from './PronunciationButton';
+import { useLocale } from '@/hooks/useLocale';
 
 /**
  * StressedPronunciation - 강세 표시된 발음 렌더링
@@ -93,6 +94,8 @@ export default function FlashCardGesture({
   hasExistingProgress = false,
   isReviewMode = false,
 }: FlashCardGestureProps) {
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const [showAnswer, setShowAnswer] = useState(false);
   const [showSwipeHint, setShowSwipeHint] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
@@ -325,14 +328,14 @@ export default function FlashCardGesture({
                   className="bg-rose-50 hover:bg-rose-100 text-rose-600 py-5 rounded-xl font-medium transition-colors"
                 >
                   <span className="block text-2xl mb-1">😕</span>
-                  <span className="text-sm font-semibold">모름</span>
+                  <span className="text-sm font-semibold">{isEn ? "Don't Know" : '모름'}</span>
                 </button>
                 <button
                   onClick={() => handleRating(5)}
                   className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 py-5 rounded-xl font-medium transition-colors"
                 >
                   <span className="block text-2xl mb-1">😊</span>
-                  <span className="text-sm font-semibold">알았음</span>
+                  <span className="text-sm font-semibold">{isEn ? 'Got It' : '알았음'}</span>
                 </button>
               </div>
             </div>
