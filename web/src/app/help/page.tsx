@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import TabLayout from '@/components/layout/TabLayout';
+import { useLocale } from '@/hooks/useLocale';
 
 // ============================================
 // Icons
@@ -29,274 +30,296 @@ const Icons = {
 // ============================================
 // 8 Section Features Data
 // ============================================
-const features = [
-  {
-    icon: '📝',
-    title: '단어',
-    description: '학습할 영어 단어',
-    color: 'from-blue-500 to-blue-600',
-    bgColor: 'bg-blue-50',
-  },
-  {
-    icon: '🎨',
-    title: 'AI 이미지',
-    description: 'Concept · Mnemonic · Rhyme',
-    color: 'from-purple-500 to-cyan-600',
-    bgColor: 'bg-purple-50',
-    badge: 'AI',
-  },
-  {
-    icon: '🎤',
-    title: '발음',
-    description: 'IPA · 한국어 · 강세',
-    color: 'from-green-500 to-green-600',
-    bgColor: 'bg-green-50',
-  },
-  {
-    icon: '🌳',
-    title: '어원 분석',
-    description: '접두사/어근/접미사',
-    color: 'from-amber-500 to-amber-600',
-    bgColor: 'bg-amber-50',
-    badge: 'AI',
-  },
-  {
-    icon: '💡',
-    title: '창의적 암기법',
-    description: '한글 기반 연상법',
-    color: 'from-pink-500 to-pink-600',
-    bgColor: 'bg-teal-50',
-    badge: 'AI',
-  },
-  {
-    icon: '🎵',
-    title: 'Rhyme',
-    description: '운율로 암기',
-    color: 'from-indigo-500 to-indigo-600',
-    bgColor: 'bg-indigo-50',
-    badge: 'AI',
-  },
-  {
-    icon: '🔗',
-    title: 'Collocation',
-    description: '연어 표현 3~5개',
-    color: 'from-teal-500 to-teal-600',
-    bgColor: 'bg-teal-50',
-    badge: 'AI',
-  },
-  {
-    icon: '📖',
-    title: '예문',
-    description: '재미있는 예문 3개',
-    color: 'from-orange-500 to-orange-600',
-    bgColor: 'bg-orange-50',
-    badge: 'AI',
-  },
-];
+function getFeatures(isEn: boolean) {
+  return [
+    {
+      icon: '📝',
+      title: isEn ? 'Word' : '단어',
+      description: isEn ? 'Target vocabulary word' : '학습할 영어 단어',
+      color: 'from-blue-500 to-blue-600',
+      bgColor: 'bg-blue-50',
+    },
+    {
+      icon: '🎨',
+      title: 'AI 이미지',
+      description: 'Concept · Mnemonic · Rhyme',
+      color: 'from-purple-500 to-cyan-600',
+      bgColor: 'bg-purple-50',
+      badge: 'AI',
+    },
+    {
+      icon: '🎤',
+      title: isEn ? 'Pronunciation' : '발음',
+      description: isEn ? 'IPA + stress marks' : 'IPA · 한국어 · 강세',
+      color: 'from-green-500 to-green-600',
+      bgColor: 'bg-green-50',
+    },
+    {
+      icon: '🌳',
+      title: isEn ? 'Etymology' : '어원 분석',
+      description: isEn ? 'Prefix / Root / Suffix' : '접두사/어근/접미사',
+      color: 'from-amber-500 to-amber-600',
+      bgColor: 'bg-amber-50',
+      badge: 'AI',
+    },
+    {
+      icon: '💡',
+      title: isEn ? 'Memory Trick' : '창의적 암기법',
+      description: isEn ? 'Visual mnemonic' : '한글 기반 연상법',
+      color: 'from-pink-500 to-pink-600',
+      bgColor: 'bg-teal-50',
+      badge: 'AI',
+    },
+    {
+      icon: '🎵',
+      title: 'Rhyme',
+      description: isEn ? 'Remember through rhyme' : '운율로 암기',
+      color: 'from-indigo-500 to-indigo-600',
+      bgColor: 'bg-indigo-50',
+      badge: 'AI',
+    },
+    {
+      icon: '🔗',
+      title: 'Collocation',
+      description: isEn ? '3-5 common phrases' : '연어 표현 3~5개',
+      color: 'from-teal-500 to-teal-600',
+      bgColor: 'bg-teal-50',
+      badge: 'AI',
+    },
+    {
+      icon: '📖',
+      title: isEn ? 'Examples' : '예문',
+      description: isEn ? '3 memorable sentences' : '재미있는 예문 3개',
+      color: 'from-orange-500 to-orange-600',
+      bgColor: 'bg-orange-50',
+      badge: 'AI',
+    },
+  ];
+}
 
 // ============================================
 // Feature Detail Cards Data
 // ============================================
-const featureDetails = [
-  {
-    id: 'images',
-    icon: '🎨',
-    title: 'AI 생성 이미지 (3가지)',
-    subtitle: '시각적 학습으로 기억력 향상',
-    content: (
-      <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-3 text-center">
-            <div className="text-2xl mb-1">🎨</div>
-            <h4 className="font-semibold text-purple-800 text-sm">Concept</h4>
-            <p className="text-xs text-purple-600">핵심 개념 시각화</p>
-          </div>
-          <div className="bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl p-3 text-center">
-            <div className="text-2xl mb-1">💡</div>
-            <h4 className="font-semibold text-teal-800 text-sm">Mnemonic</h4>
-            <p className="text-xs text-teal-600">암기법 시각화</p>
-          </div>
-          <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-3 text-center">
-            <div className="text-2xl mb-1">🎵</div>
-            <h4 className="font-semibold text-indigo-800 text-sm">Rhyme</h4>
-            <p className="text-xs text-indigo-600">라임 표현 이미지</p>
-          </div>
-        </div>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• AI가 단어마다 3가지 이미지 자동 생성</li>
-          <li>• 시각적 기억으로 장기 암기 효과</li>
-          <li>• 추상적 단어도 쉽게 이해</li>
-        </ul>
-      </div>
-    ),
-  },
-  {
-    id: 'pronunciation',
-    icon: '🎤',
-    title: '발음 가이드',
-    subtitle: '정확한 발음을 한눈에',
-    content: (
-      <div className="space-y-4">
-        <div className="bg-gray-100 rounded-xl p-4 text-center">
-          <p className="text-2xl font-mono text-gray-800">/kənˈdʒek.tʃər/</p>
-          <p className="text-xl text-blue-600 mt-2">컨-<span className="font-bold text-teal-600">젝</span>-쳐</p>
-          <p className="text-sm text-gray-500 mt-1">강세: <span className="font-semibold">젝</span></p>
-        </div>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• IPA 발음기호로 정확한 발음</li>
-          <li>• 한국어 발음으로 쉽게 읽기</li>
-          <li>• 강세 위치 명확히 표시</li>
-        </ul>
-      </div>
-    ),
-  },
-  {
-    id: 'etymology',
-    icon: '🌳',
-    title: '어원 분석',
-    subtitle: '뿌리를 알면 단어가 보인다',
-    content: (
-      <div className="space-y-4">
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4">
-          <p className="text-center text-gray-700">
-            Latin <span className="font-bold text-amber-700">"conicere"</span>
-          </p>
-          <div className="flex items-center justify-center gap-2 mt-3">
-            <span className="bg-amber-200 text-amber-800 px-3 py-1 rounded-full text-sm font-medium">con- (함께)</span>
-            <span className="text-gray-400">+</span>
-            <span className="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">jacere (던지다)</span>
-          </div>
-          <p className="text-center text-gray-600 mt-3 text-sm">
-            → "정보를 함께 던져 맞춰본다" → <span className="font-semibold">추측, 가설</span>
-          </p>
-        </div>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• 어근을 알면 비슷한 단어도 쉽게!</li>
-          <li>• project, inject, reject 등 연결 학습</li>
-        </ul>
-      </div>
-    ),
-  },
-  {
-    id: 'mnemonic',
-    icon: '💡',
-    title: '창의적 암기법',
-    subtitle: 'AI가 만든 한글 기반 언어유희',
-    content: (
-      <div className="space-y-4">
-        <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 text-center">
-          <p className="text-lg text-gray-700">
-            "<span className="font-bold text-teal-600">컨젝쳐</span> = 근데 저? 추측이에요."
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            발음이 "근데 저"와 비슷 → 추측한다는 의미 연결
-          </p>
-        </div>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• 한국어 발음과 연결한 재미있는 연상</li>
-          <li>• 기억에 오래 남는 이미지화</li>
-          <li>• AI가 단어마다 맞춤 제작</li>
-        </ul>
-      </div>
-    ),
-  },
-  {
-    id: 'rhyme',
-    icon: '🎵',
-    title: 'Rhyme (라임)',
-    subtitle: '운율로 자연스럽게 암기',
-    content: (
-      <div className="space-y-4">
-        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4">
-          <p className="text-center italic text-gray-700">
-            "A <span className="font-bold text-indigo-600">conjecture</span> without structure<br />
-            leads to rupture."
-          </p>
-          <p className="text-center text-sm text-gray-500 mt-2">
-            → 구조 없는 추측은 결국 망한다.
-          </p>
-        </div>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• 운율로 단어를 자연스럽게 암기</li>
-          <li>• 영어 문장 + 한국어 해석 제공</li>
-          <li>• 말하면서 외워지는 효과</li>
-        </ul>
-      </div>
-    ),
-  },
-  {
-    id: 'collocation',
-    icon: '🔗',
-    title: 'Collocation (연어)',
-    subtitle: '자주 함께 쓰이는 단어 조합',
-    content: (
-      <div className="space-y-4">
-        <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="bg-teal-200 text-teal-800 px-2 py-0.5 rounded text-sm">pure</span>
-              <span className="text-gray-600">conjecture</span>
-              <span className="text-gray-400 text-sm">— 순수한 추측</span>
+function getFeatureDetails(isEn: boolean) {
+  return [
+    {
+      id: 'images',
+      icon: '🎨',
+      title: isEn ? 'AI Images (3 types)' : 'AI 생성 이미지 (3가지)',
+      subtitle: isEn ? 'Visual learning for better memory' : '시각적 학습으로 기억력 향상',
+      content: (
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-3 text-center">
+              <div className="text-2xl mb-1">🎨</div>
+              <h4 className="font-semibold text-purple-800 text-sm">Concept</h4>
+              <p className="text-xs text-purple-600">{isEn ? 'Core concept' : '핵심 개념 시각화'}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="bg-teal-200 text-teal-800 px-2 py-0.5 rounded text-sm">wild</span>
-              <span className="text-gray-600">conjecture</span>
-              <span className="text-gray-400 text-sm">— 과감한 추측</span>
+            <div className="bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl p-3 text-center">
+              <div className="text-2xl mb-1">💡</div>
+              <h4 className="font-semibold text-teal-800 text-sm">Mnemonic</h4>
+              <p className="text-xs text-teal-600">{isEn ? 'Memory aid' : '암기법 시각화'}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="bg-teal-200 text-teal-800 px-2 py-0.5 rounded text-sm">based on</span>
-              <span className="text-gray-600">conjecture</span>
-              <span className="text-gray-400 text-sm">— 추측에 근거한</span>
+            <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-3 text-center">
+              <div className="text-2xl mb-1">🎵</div>
+              <h4 className="font-semibold text-indigo-800 text-sm">Rhyme</h4>
+              <p className="text-xs text-indigo-600">{isEn ? 'Rhyme visual' : '라임 표현 이미지'}</p>
             </div>
           </div>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>{isEn ? '• AI generates 3 unique images per word' : '• AI가 단어마다 3가지 이미지 자동 생성'}</li>
+            <li>{isEn ? '• Visual memory for long-term retention' : '• 시각적 기억으로 장기 암기 효과'}</li>
+            <li>{isEn ? '• Makes abstract words easy to grasp' : '• 추상적 단어도 쉽게 이해'}</li>
+          </ul>
         </div>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• 실제 영어에서 자연스럽게 사용</li>
-          <li>• 시험에 자주 출제되는 조합</li>
-        </ul>
-      </div>
-    ),
-  },
-  {
-    id: 'examples',
-    icon: '😄',
-    title: '재미있는 예문',
-    subtitle: '기억에 남는 유머러스한 문장',
-    content: (
-      <div className="space-y-4">
-        <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-4">
-          <p className="text-gray-700 italic">
-            "My <span className="font-bold text-orange-600">conjecture</span> about the missing cookies pointed to my cat—and I was right."
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            → 사라진 쿠키에 대한 내 추측은 고양이를 가리켰고, 역시 맞았다.
-          </p>
+      ),
+    },
+    {
+      id: 'pronunciation',
+      icon: '🎤',
+      title: isEn ? 'Pronunciation Guide' : '발음 가이드',
+      subtitle: isEn ? 'Clear pronunciation at a glance' : '정확한 발음을 한눈에',
+      content: (
+        <div className="space-y-4">
+          <div className="bg-gray-100 rounded-xl p-4 text-center">
+            <p className="text-2xl font-mono text-gray-800">/kənˈdʒek.tʃər/</p>
+            {!isEn && <p className="text-xl text-blue-600 mt-2">컨-<span className="font-bold text-teal-600">젝</span>-쳐</p>}
+            <p className="text-sm text-gray-500 mt-1">{isEn ? 'Stress: ' : '강세: '}<span className="font-semibold">{isEn ? 'JEC' : '젝'}</span></p>
+          </div>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>{isEn ? '• IPA for precise pronunciation' : '• IPA 발음기호로 정확한 발음'}</li>
+            {!isEn && <li>• 한국어 발음으로 쉽게 읽기</li>}
+            <li>{isEn ? '• Clear stress position marking' : '• 강세 위치 명확히 표시'}</li>
+          </ul>
         </div>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• 유머러스한 예문으로 기억에 오래 남음</li>
-          <li>• 실생활에서 사용 가능한 문장</li>
-          <li>• 문맥 속 단어 의미 이해</li>
-        </ul>
-      </div>
-    ),
-  },
-];
+      ),
+    },
+    {
+      id: 'etymology',
+      icon: '🌳',
+      title: isEn ? 'Etymology' : '어원 분석',
+      subtitle: isEn ? 'Know the root, know the word' : '뿌리를 알면 단어가 보인다',
+      content: (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4">
+            <p className="text-center text-gray-700">
+              Latin <span className="font-bold text-amber-700">"conicere"</span>
+            </p>
+            <div className="flex items-center justify-center gap-2 mt-3">
+              <span className="bg-amber-200 text-amber-800 px-3 py-1 rounded-full text-sm font-medium">con- ({isEn ? 'together' : '함께'})</span>
+              <span className="text-gray-400">+</span>
+              <span className="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">jacere ({isEn ? 'to throw' : '던지다'})</span>
+            </div>
+            <p className="text-center text-gray-600 mt-3 text-sm">
+              {isEn
+                ? <>→ "throwing information together" → <span className="font-semibold">guess, conjecture</span></>
+                : <>→ "정보를 함께 던져 맞춰본다" → <span className="font-semibold">추측, 가설</span></>
+              }
+            </p>
+          </div>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>{isEn ? '• Know the root, learn similar words easily!' : '• 어근을 알면 비슷한 단어도 쉽게!'}</li>
+            <li>{isEn ? '• Connect: project, inject, reject, etc.' : '• project, inject, reject 등 연결 학습'}</li>
+          </ul>
+        </div>
+      ),
+    },
+    {
+      id: 'mnemonic',
+      icon: '💡',
+      title: isEn ? 'Memory Trick' : '창의적 암기법',
+      subtitle: isEn ? 'AI-generated visual mnemonics' : 'AI가 만든 한글 기반 언어유희',
+      content: (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 text-center">
+            {isEn ? (
+              <>
+                <p className="text-lg text-gray-700">
+                  "<span className="font-bold text-teal-600">conjecture</span> → con-JEC-ture"
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Break words into syllables to create vivid English associations.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg text-gray-700">
+                  "<span className="font-bold text-teal-600">컨젝쳐</span> = 근데 저? 추측이에요."
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  발음이 "근데 저"와 비슷 → 추측한다는 의미 연결
+                </p>
+              </>
+            )}
+          </div>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>{isEn ? '• Creative associations for each word' : '• 한국어 발음과 연결한 재미있는 연상'}</li>
+            <li>{isEn ? '• Memorable visual imagery' : '• 기억에 오래 남는 이미지화'}</li>
+            <li>{isEn ? '• AI-crafted custom mnemonics' : '• AI가 단어마다 맞춤 제작'}</li>
+          </ul>
+        </div>
+      ),
+    },
+    {
+      id: 'rhyme',
+      icon: '🎵',
+      title: isEn ? 'Rhyme' : 'Rhyme (라임)',
+      subtitle: isEn ? 'Remember naturally through rhyme' : '운율로 자연스럽게 암기',
+      content: (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4">
+            <p className="text-center italic text-gray-700">
+              "A <span className="font-bold text-indigo-600">conjecture</span> without structure<br />
+              leads to rupture."
+            </p>
+            <p className="text-center text-sm text-gray-500 mt-2">
+              {isEn ? '→ A guess without structure leads to failure.' : '→ 구조 없는 추측은 결국 망한다.'}
+            </p>
+          </div>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>{isEn ? '• Memorize words naturally through rhyme' : '• 운율로 단어를 자연스럽게 암기'}</li>
+            <li>{isEn ? '• English rhyme with translation' : '• 영어 문장 + 한국어 해석 제공'}</li>
+            <li>{isEn ? '• Learn by speaking out loud' : '• 말하면서 외워지는 효과'}</li>
+          </ul>
+        </div>
+      ),
+    },
+    {
+      id: 'collocation',
+      icon: '🔗',
+      title: isEn ? 'Collocation' : 'Collocation (연어)',
+      subtitle: isEn ? 'Common word combinations' : '자주 함께 쓰이는 단어 조합',
+      content: (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="bg-teal-200 text-teal-800 px-2 py-0.5 rounded text-sm">pure</span>
+                <span className="text-gray-600">conjecture</span>
+                <span className="text-gray-400 text-sm">— {isEn ? 'pure guess' : '순수한 추측'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="bg-teal-200 text-teal-800 px-2 py-0.5 rounded text-sm">wild</span>
+                <span className="text-gray-600">conjecture</span>
+                <span className="text-gray-400 text-sm">— {isEn ? 'wild guess' : '과감한 추측'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="bg-teal-200 text-teal-800 px-2 py-0.5 rounded text-sm">based on</span>
+                <span className="text-gray-600">conjecture</span>
+                <span className="text-gray-400 text-sm">— {isEn ? 'based on guesswork' : '추측에 근거한'}</span>
+              </div>
+            </div>
+          </div>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>{isEn ? '• Natural usage in real English' : '• 실제 영어에서 자연스럽게 사용'}</li>
+            <li>{isEn ? '• Frequently tested combinations' : '• 시험에 자주 출제되는 조합'}</li>
+          </ul>
+        </div>
+      ),
+    },
+    {
+      id: 'examples',
+      icon: '😄',
+      title: isEn ? 'Example Sentences' : '재미있는 예문',
+      subtitle: isEn ? 'Memorable, engaging sentences' : '기억에 남는 유머러스한 문장',
+      content: (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-4">
+            <p className="text-gray-700 italic">
+              "My <span className="font-bold text-orange-600">conjecture</span> about the missing cookies pointed to my cat—and I was right."
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              {isEn ? '→ My guess about the missing cookies pointed to my cat—and I was right.' : '→ 사라진 쿠키에 대한 내 추측은 고양이를 가리켰고, 역시 맞았다.'}
+            </p>
+          </div>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>{isEn ? '• Humorous examples that stick' : '• 유머러스한 예문으로 기억에 오래 남음'}</li>
+            <li>{isEn ? '• Real-life applicable sentences' : '• 실생활에서 사용 가능한 문장'}</li>
+            <li>{isEn ? '• Understand meaning through context' : '• 문맥 속 단어 의미 이해'}</li>
+          </ul>
+        </div>
+      ),
+    },
+  ];
+}
 
 // ============================================
 // Spaced Repetition Timeline Data
 // ============================================
-const reviewTimeline = [
-  { day: 'Day 0', label: '첫 학습', active: true },
-  { day: 'Day 1', label: '복습 ①', active: false },
-  { day: 'Day 3', label: '복습 ②', active: false },
-  { day: 'Day 4', label: '복습 ③', active: false },
-  { day: '완료', label: '2회 정답', active: false },
-];
+function getReviewTimeline(isEn: boolean) {
+  return [
+    { day: 'Day 0', label: isEn ? 'First Study' : '첫 학습', active: true },
+    { day: 'Day 1', label: isEn ? 'Review ①' : '복습 ①', active: false },
+    { day: 'Day 3', label: isEn ? 'Review ②' : '복습 ②', active: false },
+    { day: 'Day 4', label: isEn ? 'Review ③' : '복습 ③', active: false },
+    { day: isEn ? 'Done' : '완료', label: isEn ? '2x Correct' : '2회 정답', active: false },
+  ];
+}
 
 // ============================================
 // Flashcard Demo Component
 // ============================================
-function FlashcardDemo() {
+function FlashcardDemo({ isEn }: { isEn: boolean }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [autoFlip, setAutoFlip] = useState(true);
 
@@ -331,7 +354,7 @@ function FlashcardDemo() {
             className="absolute inset-0 bg-white rounded-2xl shadow-xl p-6 flex flex-col items-center justify-center border-2 border-gray-100"
             style={{ backfaceVisibility: 'hidden' }}
           >
-            <p className="text-sm text-gray-400 mb-2">영어 단어</p>
+            <p className="text-sm text-gray-400 mb-2">{isEn ? 'English Word' : '영어 단어'}</p>
             <h2 className="text-3xl font-bold text-gray-800">conjecture</h2>
             <p className="text-sm text-gray-400 mt-4">/kənˈdʒek.tʃər/</p>
           </div>
@@ -344,11 +367,11 @@ function FlashcardDemo() {
               transform: 'rotateY(180deg)',
             }}
           >
-            <p className="text-sm text-blue-500 mb-2">뜻</p>
-            <h2 className="text-2xl font-bold text-gray-800">추측, 가설</h2>
-            <p className="text-sm text-gray-500 mt-3">컨-젝-쳐</p>
+            <p className="text-sm text-blue-500 mb-2">{isEn ? 'Meaning' : '뜻'}</p>
+            <h2 className="text-2xl font-bold text-gray-800">{isEn ? 'guess, hypothesis' : '추측, 가설'}</h2>
+            {!isEn && <p className="text-sm text-gray-500 mt-3">컨-젝-쳐</p>}
             <p className="text-xs text-gray-400 mt-4 text-center">
-              💡 "근데 저? 추측이에요"
+              {isEn ? '💡 con-JEC-ture → guess' : '💡 "근데 저? 추측이에요"'}
             </p>
           </div>
         </div>
@@ -357,7 +380,7 @@ function FlashcardDemo() {
       {/* Swipe hint */}
       <div className="flex items-center justify-center gap-4 mt-4 text-gray-400 text-sm">
         <span>←</span>
-        <span>스와이프하여 넘기기</span>
+        <span>{isEn ? 'Swipe to navigate' : '스와이프하여 넘기기'}</span>
         <span>→</span>
       </div>
     </div>
@@ -402,6 +425,11 @@ function AnimatedSection({ children, className = '' }: { children: React.ReactNo
 // Main Help Page Component
 // ============================================
 export default function HelpPage() {
+  const locale = useLocale();
+  const isEn = locale === 'en';
+  const features = getFeatures(isEn);
+  const featureDetails = getFeatureDetails(isEn);
+  const reviewTimeline = getReviewTimeline(isEn);
   const [expandedDetail, setExpandedDetail] = useState<string | null>(null);
 
   const scrollToSection = (id: string) => {
@@ -427,19 +455,22 @@ export default function HelpPage() {
           <div className="relative max-w-lg mx-auto text-center">
             <div className="text-5xl mb-4">📚</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              VocaVision AI 학습 가이드
+              {isEn ? 'VocaVision AI Study Guide' : 'VocaVision AI 학습 가이드'}
             </h1>
             <p className="text-lg text-gray-600 mb-2">
-              AI가 생성한 이미지, 어원 분석, 창의적 암기법으로
+              {isEn ? 'AI-generated images, etymology, creative mnemonics' : 'AI가 생성한 이미지, 어원 분석, 창의적 암기법으로'}
             </p>
             <p className="text-lg text-gray-600 mb-8">
-              <span className="text-blue-600 font-semibold">8섹션 학습법</span>을 경험하세요
+              {isEn
+                ? <>Experience our <span className="text-blue-600 font-semibold">8-section learning method</span></>
+                : <><span className="text-blue-600 font-semibold">8섹션 학습법</span>을 경험하세요</>
+              }
             </p>
             <Link
               href="/dashboard"
               className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
             >
-              학습 시작하기
+              {isEn ? 'Start Learning' : '학습 시작하기'}
               <Icons.ChevronRight />
             </Link>
           </div>
@@ -453,10 +484,10 @@ export default function HelpPage() {
             <div className="max-w-2xl mx-auto">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  🎯 VocaVision AI의 8섹션 학습법
+                  {isEn ? '🎯 8-Section Learning Method' : '🎯 VocaVision AI의 8섹션 학습법'}
                 </h2>
                 <p className="text-gray-500">
-                  단어 하나를 8가지 방법으로 완벽하게 암기
+                  {isEn ? 'Master each word through 8 different approaches' : '단어 하나를 8가지 방법으로 완벽하게 암기'}
                 </p>
               </div>
 
@@ -497,10 +528,10 @@ export default function HelpPage() {
             <div className="max-w-lg mx-auto">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  📖 각 섹션 상세 설명
+                  {isEn ? '📖 Section Details' : '📖 각 섹션 상세 설명'}
                 </h2>
                 <p className="text-gray-500">
-                  카드를 탭하여 자세히 알아보세요
+                  {isEn ? 'Tap a card to learn more' : '카드를 탭하여 자세히 알아보세요'}
                 </p>
               </div>
 
@@ -544,34 +575,34 @@ export default function HelpPage() {
             <div className="max-w-lg mx-auto">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  📱 학습 방법
+                  {isEn ? '📱 How to Study' : '📱 학습 방법'}
                 </h2>
                 <p className="text-gray-500">
-                  스와이프로 간편하게 학습
+                  {isEn ? 'Learn easily with swipe gestures' : '스와이프로 간편하게 학습'}
                 </p>
               </div>
 
-              <FlashcardDemo />
+              <FlashcardDemo isEn={isEn} />
 
               <div className="mt-8 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                <h3 className="font-semibold text-gray-800 mb-3 text-center">조작 방법</h3>
+                <h3 className="font-semibold text-gray-800 mb-3 text-center">{isEn ? 'Controls' : '조작 방법'}</h3>
                 <div className="grid grid-cols-2 gap-2 text-center text-sm">
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="text-xl mb-1">👆</div>
-                    <p className="text-gray-600">정답 보기<br/>버튼 클릭</p>
+                    <p className="text-gray-600">{isEn ? 'Tap to reveal' : '정답 보기'}<br/>{isEn ? 'answer' : '버튼 클릭'}</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="text-xl mb-1">👈👉</div>
-                    <p className="text-gray-600">스와이프로<br/>넘기기</p>
+                    <p className="text-gray-600">{isEn ? 'Swipe to' : '스와이프로'}<br/>{isEn ? 'navigate' : '넘기기'}</p>
                   </div>
                 </div>
 
                 <div className="mt-4 bg-blue-50 rounded-lg p-3 text-center">
                   <p className="text-blue-700 text-sm font-medium">
-                    📦 1세트 = 20개 단어
+                    {isEn ? '📦 1 set = 20 words' : '📦 1세트 = 20개 단어'}
                   </p>
                   <p className="text-blue-600 text-xs mt-1">
-                    한 세트씩 완료하며 학습하세요
+                    {isEn ? 'Complete one set at a time' : '한 세트씩 완료하며 학습하세요'}
                   </p>
                 </div>
               </div>
@@ -587,10 +618,10 @@ export default function HelpPage() {
             <div className="max-w-lg mx-auto">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  🧠 과학적 간격 반복 학습
+                  {isEn ? '🧠 Spaced Repetition' : '🧠 과학적 간격 반복 학습'}
                 </h2>
                 <p className="text-gray-500">
-                  에빙하우스 망각곡선 기반 복습 시스템
+                  {isEn ? 'Review system based on the Ebbinghaus forgetting curve' : '에빙하우스 망각곡선 기반 복습 시스템'}
                 </p>
               </div>
 
@@ -623,15 +654,15 @@ export default function HelpPage() {
                 <div className="mt-6 space-y-2 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-500" />
-                    <span>2일 학습 / 1일 휴식 패턴</span>
+                    <span>{isEn ? '2 days study / 1 day rest pattern' : '2일 학습 / 1일 휴식 패턴'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-500" />
-                    <span>2회 정답 시 완전 암기 처리</span>
+                    <span>{isEn ? 'Mastered after 2 correct answers' : '2회 정답 시 완전 암기 처리'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-purple-500" />
-                    <span>쉬운 단어는 D+3에만 복습</span>
+                    <span>{isEn ? 'Easy words reviewed only on D+3' : '쉬운 단어는 D+3에만 복습'}</span>
                   </div>
                 </div>
               </div>
@@ -647,22 +678,22 @@ export default function HelpPage() {
             <div className="max-w-lg mx-auto text-center">
               <div className="text-5xl mb-4">🚀</div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                지금 바로 시작하세요!
+                {isEn ? 'Get Started Now!' : '지금 바로 시작하세요!'}
               </h2>
               <p className="text-gray-500 mb-8">
-                VocaVision AI와 함께 영어 단어를 정복하세요
+                {isEn ? 'Master English vocabulary with VocaVision AI' : 'VocaVision AI와 함께 영어 단어를 정복하세요'}
               </p>
 
               <Link
                 href="/auth/register"
                 className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500 to-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:opacity-90 transition-opacity shadow-lg"
               >
-                무료로 시작하기
+                {isEn ? 'Start for Free' : '무료로 시작하기'}
                 <Icons.ChevronRight />
               </Link>
 
               <p className="mt-4 text-sm text-gray-400">
-                회원가입 후 수능 L1 무료 체험 가능
+                {isEn ? '800+ SAT Starter words free after sign-up' : '회원가입 후 수능 L1 무료 체험 가능'}
               </p>
             </div>
           </section>
