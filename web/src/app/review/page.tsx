@@ -11,6 +11,7 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { useDueReviews, useDashboardSummary, usePrefetchReviews, usePackageAccessBulk } from '@/hooks/useQueries';
 import { EXAM_LIST, EXAM_MAP, getValidLevelsForExam, getValidLevelForExam } from '@/constants/exams';
+import { useLocale } from '@/hooks/useLocale';
 
 // ============================================
 // DashboardItem 컴포넌트 (은행 앱 스타일)
@@ -99,6 +100,8 @@ function ReviewPageContent() {
   const isDemo = searchParams.get('demo') === 'true';
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
+  const locale = useLocale();
+  const isEn = locale === 'en';
 
   const [wordListPage, setWordListPage] = useState(1);
   const WORDS_PER_PAGE = 10;
@@ -287,14 +290,14 @@ function ReviewPageContent() {
           <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-xl p-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-[#F59E0B] text-white rounded font-bold text-xs">체험</span>
-                <span className="text-[#92400E] text-sm">샘플 데이터로 복습 기능을 미리 체험해보세요</span>
+                <span className="px-2 py-0.5 bg-[#F59E0B] text-white rounded font-bold text-xs">{isEn ? 'Demo' : '체험'}</span>
+                <span className="text-[#92400E] text-sm">{isEn ? 'Try the review feature with sample data' : '샘플 데이터로 복습 기능을 미리 체험해보세요'}</span>
               </div>
               <Link
                 href="/auth/register"
                 className="bg-[#F59E0B] text-white px-4 py-2 rounded-[10px] text-sm font-bold hover:bg-[#D97706] transition whitespace-nowrap"
               >
-                무료 회원가입
+                {isEn ? 'Sign Up Free' : '무료 회원가입'}
               </Link>
             </div>
           </div>
@@ -304,50 +307,52 @@ function ReviewPageContent() {
         <section className="relative w-full bg-[#F3E8FF] rounded-2xl overflow-hidden p-6 shadow-sm">
           <div className="relative z-10">
             <span className="text-purple-500 text-[13px] font-semibold block mb-2">
-              복습 대기
+              {isEn ? 'Due for Review' : '복습 대기'}
             </span>
 
             {stats.dueToday > 0 ? (
               <>
                 <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
-                  <span className="text-purple-500">{stats.dueToday}개</span> 단어가<br />
-                  복습을 기다려요
+                  <span className="text-purple-500">{stats.dueToday}</span>{' '}
+                  {isEn ? 'words due for review' : <>개 단어가<br />복습을 기다려요</>}
                 </h2>
                 <p className="text-[14px] text-gray-500 mb-4">
-                  지금 시작하면 <span className="font-semibold text-[#1c1c1e]">{estimatedMinutes}분</span>이면 끝나요
+                  {isEn
+                    ? <>Takes about <span className="font-semibold text-[#1c1c1e]">{estimatedMinutes} min</span></>
+                    : <>지금 시작하면 <span className="font-semibold text-[#1c1c1e]">{estimatedMinutes}분</span>이면 끝나요</>}
                 </p>
                 <Link
                   href={`/review/quiz?exam=${selectedExam}&level=${selectedLevel}`}
                   className="block w-full bg-white rounded-xl py-4 text-purple-500 font-bold text-[15px] text-center shadow-sm hover:shadow-md transition-shadow"
                 >
-                  복습 시작
+                  {isEn ? 'Start Review' : '복습 시작'}
                 </Link>
               </>
             ) : (stats.todayCorrect || 0) > 0 ? (
               <>
                 <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
-                  오늘 복습 완료! 🎉
+                  {isEn ? 'All Done! 🎉' : '오늘 복습 완료! 🎉'}
                 </h2>
                 <p className="text-[14px] text-gray-500 mb-4">
-                  오늘 {stats.todayCorrect}개 복습을 완료했어요! 잘 하셨습니다.
+                  {isEn ? `Great job! You reviewed ${stats.todayCorrect} words today.` : `오늘 ${stats.todayCorrect}개 복습을 완료했어요! 잘 하셨습니다.`}
                 </p>
               </>
             ) : stats.totalReviewed === 0 ? (
               <>
                 <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
-                  아직 복습할 단어가 없어요 📚
+                  {isEn ? 'No words to review yet 📚' : '아직 복습할 단어가 없어요 📚'}
                 </h2>
                 <p className="text-[14px] text-gray-500 mb-4">
-                  학습한 단어는 간격 반복 알고리즘에 따라 복습 일정에 추가됩니다
+                  {isEn ? 'Words you learn will be scheduled for review using spaced repetition.' : '학습한 단어는 간격 반복 알고리즘에 따라 복습 일정에 추가됩니다'}
                 </p>
               </>
             ) : (
               <>
                 <h2 className="text-[22px] font-bold text-[#1c1c1e] leading-[1.35] mb-2">
-                  오늘은 복습 쉬는 날! ✅
+                  {isEn ? 'Rest day! ✅' : '오늘은 복습 쉬는 날! ✅'}
                 </h2>
                 <p className="text-[14px] text-gray-500 mb-4">
-                  내일 복습할 단어가 준비될 때까지 쉬세요
+                  {isEn ? 'Come back tomorrow for your next review session.' : '내일 복습할 단어가 준비될 때까지 쉬세요'}
                 </p>
               </>
             )}
@@ -364,7 +369,7 @@ function ReviewPageContent() {
 
         {/* 시험 선택 (은행 앱 스타일) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">시험 선택</h3>
+          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">{isEn ? 'Select Exam' : '시험 선택'}</h3>
 
           <div className="grid grid-cols-4 gap-2">
             {EXAM_LIST
@@ -438,7 +443,9 @@ function ReviewPageContent() {
         {/* 레벨/유형 선택 (은행 앱 스타일) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">
-            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : '레벨 선택'}
+            {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS')
+              ? (isEn ? 'Select Type' : '유형 선택')
+              : (isEn ? 'Select Level' : '레벨 선택')}
           </h3>
 
           <div className="flex gap-3">
@@ -497,25 +504,25 @@ function ReviewPageContent() {
         {/* 복습 현황 카드 (은행 앱 스타일) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[15px] font-bold text-[#1c1c1e]">복습 현황</h3>
+            <h3 className="text-[15px] font-bold text-[#1c1c1e]">{isEn ? 'Review Stats' : '복습 현황'}</h3>
             <span className="text-[13px] text-[#14B8A6] font-semibold flex items-center gap-1">
-              🔥 {currentStreak}일 연속
+              🔥 {isEn ? `${currentStreak} day streak` : `${currentStreak}일 연속`}
             </span>
           </div>
 
           <div className="flex justify-between items-center">
-            <DashboardItem value={stats.dueToday} label="복습 대기" color="#A855F7" />
+            <DashboardItem value={stats.dueToday} label={isEn ? 'Due' : '복습 대기'} color="#A855F7" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-            <DashboardItem value={stats.todayCorrect || 0} label="오늘 복습" color="#F59E0B" />
+            <DashboardItem value={stats.todayCorrect || 0} label={isEn ? 'Reviewed' : '오늘 복습'} color="#F59E0B" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-            <DashboardItem value={`${stats.accuracy || 0}%`} label="복습 정답률" color="#10B981" />
+            <DashboardItem value={`${stats.accuracy || 0}%`} label={isEn ? 'Accuracy' : '복습 정답률'} color="#10B981" />
           </div>
         </section>
 
         {/* 바로 복습 이어가기 카드 (은행 앱 스타일) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[15px] font-bold text-[#1c1c1e]">바로 복습 이어가기</h3>
+            <h3 className="text-[15px] font-bold text-[#1c1c1e]">{isEn ? 'Start Reviewing' : '바로 복습 이어가기'}</h3>
           </div>
 
           <div className="flex items-center gap-4 mb-4">
@@ -526,12 +533,12 @@ function ReviewPageContent() {
               <p className="text-[16px] font-bold text-[#1c1c1e]">
                 {EXAM_MAP[selectedExam]?.label || selectedExam} {selectedLevel}
               </p>
-              <p className="text-[13px] text-gray-500">복습 대기 단어 • 기억 강화</p>
+              <p className="text-[13px] text-gray-500">{isEn ? 'Due words • Memory boost' : '복습 대기 단어 • 기억 강화'}</p>
             </div>
           </div>
 
           <p className="text-[13px] text-gray-500 mb-4">
-            마지막 복습: {stats.lastReviewDate ? new Date(stats.lastReviewDate).toLocaleDateString('ko-KR') : '기록 없음'}
+            {isEn ? 'Last reviewed: ' : '마지막 복습: '}{stats.lastReviewDate ? new Date(stats.lastReviewDate).toLocaleDateString(isEn ? 'en-US' : 'ko-KR') : (isEn ? 'Never' : '기록 없음')}
           </p>
 
           <div className="flex gap-2">
@@ -540,21 +547,21 @@ function ReviewPageContent() {
               className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#A855F7] to-[#EC4899] text-white py-3 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-shadow"
             >
               <span>🎯</span>
-              <span>퀴즈</span>
+              <span>{isEn ? 'Quiz' : '퀴즈'}</span>
             </Link>
             <Link
               href={`/learn?mode=review&exam=${selectedExam}&level=${selectedLevel}`}
               className="flex-1 flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold text-sm transition-colors"
             >
               <span>📚</span>
-              <span>플래시카드</span>
+              <span>{isEn ? 'Flashcards' : '플래시카드'}</span>
             </Link>
             <Link
               href="/learn?mode=bookmarks"
               className="flex-1 flex items-center justify-center gap-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 py-3 rounded-xl font-semibold text-sm transition-colors"
             >
               <span>⭐</span>
-              <span>북마크</span>
+              <span>{isEn ? 'Bookmarks' : '북마크'}</span>
             </Link>
           </div>
         </section>
@@ -563,8 +570,8 @@ function ReviewPageContent() {
         {stats.dueToday === 0 && (stats.todayCorrect || 0) > 0 && (
           <section className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-2xl p-6 text-center">
             <div className="text-5xl mb-3">🎉</div>
-            <h3 className="text-xl font-bold text-[#047857] mb-2">오늘 복습 완료!</h3>
-            <p className="text-[#059669]">모든 복습을 마쳤습니다. 잘하셨어요!</p>
+            <h3 className="text-xl font-bold text-[#047857] mb-2">{isEn ? 'All Reviewed!' : '오늘 복습 완료!'}</h3>
+            <p className="text-[#059669]">{isEn ? 'You completed all reviews. Great work!' : '모든 복습을 마쳤습니다. 잘하셨어요!'}</p>
           </section>
         )}
 
@@ -572,7 +579,7 @@ function ReviewPageContent() {
         {dueWords.length > 0 && (
           <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-5 border-b border-[#f0f0f0]">
-              <h3 className="text-[15px] font-bold text-[#1c1c1e]">복습 대기 중</h3>
+              <h3 className="text-[15px] font-bold text-[#1c1c1e]">{isEn ? 'Due for Review' : '복습 대기 중'}</h3>
             </div>
             <div className="divide-y divide-[#f0f0f0]">
               {dueWords
@@ -599,8 +606,9 @@ function ReviewPageContent() {
             {dueWords.length > WORDS_PER_PAGE && (
               <div className="p-4 border-t border-[#f0f0f0] flex items-center justify-between">
                 <p className="text-sm text-gray-500">
-                  전체 {dueWords.length}개 중 {(wordListPage - 1) * WORDS_PER_PAGE + 1}-
-                  {Math.min(wordListPage * WORDS_PER_PAGE, dueWords.length)}
+                  {isEn
+                    ? `${(wordListPage - 1) * WORDS_PER_PAGE + 1}-${Math.min(wordListPage * WORDS_PER_PAGE, dueWords.length)} of ${dueWords.length}`
+                    : `전체 ${dueWords.length}개 중 ${(wordListPage - 1) * WORDS_PER_PAGE + 1}-${Math.min(wordListPage * WORDS_PER_PAGE, dueWords.length)}`}
                 </p>
                 <div className="flex items-center gap-1">
                   <button
@@ -654,7 +662,7 @@ function ReviewPageContent() {
 
         {/* 복습 일정 (은행 앱 스타일) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">복습 일정</h3>
+          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">{isEn ? 'Review Schedule' : '복습 일정'}</h3>
 
           <div className="space-y-3">
             {/* 오늘 */}
@@ -662,11 +670,11 @@ function ReviewPageContent() {
               <div className="flex items-center gap-3">
                 <span className="text-xl">📅</span>
                 <div>
-                  <p className="text-[14px] font-semibold text-[#1c1c1e]">오늘</p>
-                  <p className="text-[12px] text-gray-500">{new Date().toLocaleDateString('ko-KR')}</p>
+                  <p className="text-[14px] font-semibold text-[#1c1c1e]">{isEn ? 'Today' : '오늘'}</p>
+                  <p className="text-[12px] text-gray-500">{new Date().toLocaleDateString(isEn ? 'en-US' : 'ko-KR')}</p>
                 </div>
               </div>
-              <span className="text-purple-500 font-bold">{stats.dueToday}개</span>
+              <span className="text-purple-500 font-bold">{stats.dueToday}{isEn ? '' : '개'}</span>
             </div>
 
             {/* 내일 */}
@@ -674,12 +682,12 @@ function ReviewPageContent() {
               <div className="flex items-center gap-3">
                 <span className="text-xl">📆</span>
                 <div>
-                  <p className="text-[14px] font-semibold text-[#1c1c1e]">내일</p>
-                  <p className="text-[12px] text-gray-500">내일 복습 예정</p>
+                  <p className="text-[14px] font-semibold text-[#1c1c1e]">{isEn ? 'Tomorrow' : '내일'}</p>
+                  <p className="text-[12px] text-gray-500">{isEn ? 'Scheduled for tomorrow' : '내일 복습 예정'}</p>
                 </div>
               </div>
               <span className={`font-bold ${(stats.tomorrowDue || 0) > 0 ? 'text-blue-500' : 'text-gray-400'}`}>
-                {stats.tomorrowDue || 0}개
+                {stats.tomorrowDue || 0}{isEn ? '' : '개'}
               </span>
             </div>
 
@@ -688,12 +696,12 @@ function ReviewPageContent() {
               <div className="flex items-center gap-3">
                 <span className="text-xl">🗓️</span>
                 <div>
-                  <p className="text-[14px] font-semibold text-[#1c1c1e]">이번 주</p>
-                  <p className="text-[12px] text-gray-500">2~7일 이내</p>
+                  <p className="text-[14px] font-semibold text-[#1c1c1e]">{isEn ? 'This Week' : '이번 주'}</p>
+                  <p className="text-[12px] text-gray-500">{isEn ? 'Within 2-7 days' : '2~7일 이내'}</p>
                 </div>
               </div>
               <span className={`font-bold ${(stats.thisWeekDue || 0) > 0 ? 'text-teal-500' : 'text-gray-400'}`}>
-                {stats.thisWeekDue || 0}개
+                {stats.thisWeekDue || 0}{isEn ? '' : '개'}
               </span>
             </div>
           </div>
@@ -701,10 +709,11 @@ function ReviewPageContent() {
 
         {/* 간격 반복 학습 안내 (은행 앱 스타일) */}
         <section className="bg-[#EFF6FF] rounded-2xl p-5 border border-[#BFDBFE]">
-          <h4 className="text-[15px] font-bold text-[#1E40AF] mb-2">💡 간격 반복 학습이란?</h4>
+          <h4 className="text-[15px] font-bold text-[#1E40AF] mb-2">{isEn ? '💡 What is Spaced Repetition?' : '💡 간격 반복 학습이란?'}</h4>
           <p className="text-[14px] text-[#1E3A8A]">
-            기억이 사라지기 직전에 복습하면 장기 기억으로 전환됩니다.
-            VocaVision AI는 학습 데이터를 기반으로 최적의 복습 시점을 계산합니다.
+            {isEn
+              ? 'Reviewing right before you forget converts short-term memory into long-term memory. VocaVision AI calculates the optimal review timing based on your learning data.'
+              : '기억이 사라지기 직전에 복습하면 장기 기억으로 전환됩니다. VocaVision AI는 학습 데이터를 기반으로 최적의 복습 시점을 계산합니다.'}
           </p>
         </section>
       </div>
