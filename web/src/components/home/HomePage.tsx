@@ -37,7 +37,7 @@ export default function HomePage() {
             </h2>
             <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
               {locale === 'en'
-                ? '885 CSAT basic words — completely free, no time limit.'
+                ? 'SAT Starter vocabulary — completely free, no time limit.'
                 : '수능 기초 어휘 885개 — 완전 무료, 기간 제한 없음.'}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
