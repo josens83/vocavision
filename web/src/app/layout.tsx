@@ -7,6 +7,7 @@ import { Footer } from '@/components/Footer';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import BottomTabBar from '@/components/navigation/BottomTabBar';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import BackButtonHandler from '@/components/native/BackButtonHandler';
 
 const siteUrl = 'https://vocavision.kr';
 const siteName = 'VocaVision AI';
@@ -147,6 +148,7 @@ export default function RootLayout({
           </div>
           <BottomTabBar />
           <ScrollToTop />
+          <BackButtonHandler />
         </Providers>
       </body>
     </html>
