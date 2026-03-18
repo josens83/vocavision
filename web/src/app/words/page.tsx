@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, Search } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
+import { useLocale } from '@/hooks/useLocale';
 import { EmptySearchResults } from '@/components/ui/EmptyState';
 import { SkeletonWordCard } from '@/components/ui/Skeleton';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -55,6 +56,8 @@ function WordsPageLoading() {
 function WordsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
@@ -68,24 +71,27 @@ function WordsPageContent() {
               <Lock className="w-10 h-10 text-[#14B8A6]" />
             </div>
             <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-3">
-              로그인이 필요합니다
+              {isEn ? 'Sign in required' : '로그인이 필요합니다'}
             </h2>
             <p className="text-[14px] text-gray-500 mb-6">
-              단어 탐색 기능은 회원만 이용할 수 있습니다.<br />
-              무료 회원가입 후 수능 L1 단어를 학습해보세요!
+              {isEn ? (
+                <>Word search is available for members only.<br />Sign up free and start learning!</>
+              ) : (
+                <>단어 탐색 기능은 회원만 이용할 수 있습니다.<br />무료 회원가입 후 수능 L1 단어를 학습해보세요!</>
+              )}
             </p>
             <div className="flex gap-3 justify-center">
               <Link
                 href="/auth/login"
                 className="px-6 py-3 bg-[#14B8A6] text-white font-bold rounded-xl hover:bg-[#e85a8a] transition"
               >
-                로그인
+                {isEn ? 'Sign In' : '로그인'}
               </Link>
               <Link
                 href="/auth/register"
                 className="px-6 py-3 bg-gray-100 text-gray-500 font-medium rounded-xl hover:bg-gray-200 transition"
               >
-                무료 회원가입
+                {isEn ? 'Sign Up Free' : '무료 회원가입'}
               </Link>
             </div>
           </div>
@@ -183,7 +189,7 @@ function WordsPageContent() {
       <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4">
         {/* 페이지 헤더 */}
         <header className="mb-2">
-          <h1 className="text-[22px] font-bold text-[#1c1c1e] mb-4">단어 찾기</h1>
+          <h1 className="text-[22px] font-bold text-[#1c1c1e] mb-4">{isEn ? 'Search Words' : '단어 찾기'}</h1>
 
           {/* 검색바 */}
           <form onSubmit={handleSearch}>
@@ -191,7 +197,7 @@ function WordsPageContent() {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#999999]" />
               <input
                 type="text"
-                placeholder="단어 검색..."
+                placeholder={isEn ? 'Search words...' : '단어 검색...'}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-gray-100 border-none rounded-xl py-4 pl-12 pr-4 text-[15px] text-[#1c1c1e] placeholder-[#999999] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
@@ -204,7 +210,7 @@ function WordsPageContent() {
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           {/* 시험 필터 */}
           <div className="mb-4">
-            <h4 className="text-[13px] text-gray-500 font-medium mb-2">시험</h4>
+            <h4 className="text-[13px] text-gray-500 font-medium mb-2">{isEn ? 'Exam' : '시험'}</h4>
             <div className="flex gap-2 flex-wrap">
               <button
                 onMouseEnter={() => prefetchWords({ examCategory: '' })}
@@ -220,7 +226,7 @@ function WordsPageContent() {
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
-                전체
+                {isEn ? 'All' : '전체'}
               </button>
               <button
                 onMouseEnter={() => prefetchWords({ examCategory: 'CSAT' })}
@@ -314,7 +320,7 @@ function WordsPageContent() {
           {/* 레벨 필터 */}
           <div>
             <h4 className="text-[13px] text-gray-500 font-medium mb-2">
-              {(examCategory === 'CSAT_2026' || examCategory === 'EBS') ? '유형 선택' : '레벨'}
+              {isEn ? 'Level' : ((examCategory === 'CSAT_2026' || examCategory === 'EBS') ? '유형 선택' : '레벨')}
             </h4>
             <div className="flex gap-2 flex-wrap">
               {/* 시험 "전체" 선택 시 레벨도 "전체"만 표시 */}
@@ -322,7 +328,7 @@ function WordsPageContent() {
                 <button
                   className="px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all bg-[#1c1c1e] text-white"
                 >
-                  전체
+                  {isEn ? 'All' : '전체'}
                 </button>
               ) : examCategory === 'CSAT_2026' ? (
                 <>
@@ -341,9 +347,9 @@ function WordsPageContent() {
                           : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                       }`}
                     >
-                      {lvl === '' ? '전체' :
-                       lvl === 'LISTENING' ? '듣기영역' :
-                       lvl === 'READING_2' ? '독해영역 2점' : '독해영역 3점'}
+                      {lvl === '' ? (isEn ? 'All' : '전체') :
+                       lvl === 'LISTENING' ? (isEn ? 'Listening' : '듣기영역') :
+                       lvl === 'READING_2' ? (isEn ? 'Reading 2pt' : '독해영역 2점') : (isEn ? 'Reading 3pt' : '독해영역 3점')}
                     </button>
                   ))}
                 </>
@@ -364,9 +370,9 @@ function WordsPageContent() {
                           : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                       }`}
                     >
-                      {lvl === '' ? '전체' :
-                       lvl === 'LISTENING' ? '듣기영역' :
-                       lvl === 'READING_BASIC' ? '독해기본' : '독해실력'}
+                      {lvl === '' ? (isEn ? 'All' : '전체') :
+                       lvl === 'LISTENING' ? (isEn ? 'Listening' : '듣기영역') :
+                       lvl === 'READING_BASIC' ? (isEn ? 'Reading Basic' : '독해기본') : (isEn ? 'Reading Adv' : '독해실력')}
                     </button>
                   ))}
                 </>
@@ -399,7 +405,7 @@ function WordsPageContent() {
                           }`}
                         >
                           {locked && <Lock className="w-3 h-3" />}
-                          {lvl === '' ? '전체' :
+                          {lvl === '' ? (isEn ? 'All' : '전체') :
                            examCategory === 'TEPS' ?
                              (lvl === 'L1' ? 'L1(기본)' : 'L2(필수)') :
                              (lvl === 'L1' ? 'L1(기초)' : lvl === 'L2' ? 'L2(중급)' : 'L3(고급)')}
@@ -415,7 +421,7 @@ function WordsPageContent() {
         {/* 결과 카운트 */}
         <div className="flex items-center justify-between">
           <p className="text-[14px] text-gray-500">
-            총 <span className="font-semibold text-[#1c1c1e]">{totalCount}</span>개 단어
+            {isEn ? '' : '총 '}<span className="font-semibold text-[#1c1c1e]">{totalCount}</span>{isEn ? ' words' : '개 단어'}
           </p>
         </div>
 
@@ -448,6 +454,7 @@ function WordsPageContent() {
                   examLevelLabels={examLevelLabels}
                   examFilter={examCategory}
                   levelFilter={level}
+                  isEn={isEn}
                 />
               ))}
             </div>
@@ -460,7 +467,7 @@ function WordsPageContent() {
                   disabled={page === 1}
                   className="px-4 py-2.5 bg-gray-100 text-gray-500 font-semibold rounded-[10px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition"
                 >
-                  이전
+                  {isEn ? 'Prev' : '이전'}
                 </button>
                 <div className="px-4 py-2.5 text-[14px] text-[#1c1c1e] font-medium">
                   {page} / {totalPages}
@@ -470,7 +477,7 @@ function WordsPageContent() {
                   disabled={page === totalPages}
                   className="px-4 py-2.5 bg-gray-100 text-gray-500 font-semibold rounded-[10px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition"
                 >
-                  다음
+                  {isEn ? 'Next' : '다음'}
                 </button>
               </div>
             )}
@@ -497,11 +504,13 @@ function WordCard({
   examLevelLabels,
   examFilter,
   levelFilter,
+  isEn,
 }: {
   word: Word;
   examLevelLabels: Record<string, Record<string, string>>;
   examFilter: string;
   levelFilter: string;
+  isEn: boolean;
 }) {
   // examLevels 기반 배지 (여러 시험에 속할 수 있음)
   const badges: Array<{ label: string; colorClass: string }> = [];
@@ -558,7 +567,7 @@ function WordCard({
       {/* 품사 */}
       <div className="flex items-center justify-between mt-3">
         <span className="text-[12px] text-[#999999]">{word.partOfSpeech}</span>
-        <span className="text-[13px] text-[#14B8A6] font-medium">자세히 보기 →</span>
+        <span className="text-[13px] text-[#14B8A6] font-medium">{isEn ? 'Details →' : '자세히 보기 →'}</span>
       </div>
     </Link>
   );

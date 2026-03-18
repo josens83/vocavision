@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { SectionHeader } from "@/components/ui";
 import { BookOpen, Clock, ArrowRight } from "lucide-react";
+import { useLocale } from '@/hooks/useLocale';
 
 // 패키지 타입 정의
 interface ProductPackage {
@@ -24,13 +25,15 @@ interface ProductPackage {
 }
 
 // 정적 패키지 데이터 (API 실패 또는 데이터 부족 시 사용)
-function getStaticPackages(): ProductPackage[] {
+function getStaticPackages(isEn: boolean): ProductPackage[] {
   return [
     {
       id: "static-1",
       name: "2026 수능기출 완전분석",
       slug: "2026-csat-analysis",
-      shortDesc: "실제 수능 출제 단어 521개. 듣기·2점·3점 독해 영역별 분류로 시험에 나온 단어만 집중 학습.",
+      shortDesc: isEn
+        ? "521 words from the 2026 CSAT exam. Organized by listening, reading 2-point and 3-point sections."
+        : "실제 수능 출제 단어 521개. 듣기·2점·3점 독해 영역별 분류로 시험에 나온 단어만 집중 학습.",
       price: 3900,
       durationDays: 180,
       badge: "BEST",
@@ -41,7 +44,9 @@ function getStaticPackages(): ProductPackage[] {
       id: "static-2",
       name: "EBS 연계어휘",
       slug: "ebs-vocab",
-      shortDesc: "수능 연계율 70% 완벽 대비. EBS 3개 교재 핵심 어휘 3,837개 — EBS에서 나오면 수능에 나온다.",
+      shortDesc: isEn
+        ? "3,837 words from 3 EBS textbooks. 70% of CSAT exam content comes from EBS — essential coverage."
+        : "수능 연계율 70% 완벽 대비. EBS 3개 교재 핵심 어휘 3,837개 — EBS에서 나오면 수능에 나온다.",
       price: 6900,
       durationDays: 180,
       badges: ["NEW", "대용량"],
@@ -50,9 +55,11 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-3",
-      name: "TOEFL 완전정복",
+      name: "TOEFL Core Vocabulary",
       slug: "toefl-complete",
-      shortDesc: "세계 6,000개 이상 대학이 요구하는 TOEFL. Core~Advanced 3,651개, Greek·Latin 어원으로 한 번 외우면 잊히지 않는다.",
+      shortDesc: isEn
+        ? "3,651 TOEFL words from Core to Advanced. Greek·Latin etymology makes them unforgettable."
+        : "세계 6,000개 이상 대학이 요구하는 TOEFL. Core~Advanced 3,651개, Greek·Latin 어원으로 한 번 외우면 잊히지 않는다.",
       price: 9900,
       durationDays: 180,
       badge: "NEW",
@@ -61,9 +68,11 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-toeic",
-      name: "TOEIC 점수폭발",
+      name: "TOEIC Score Booster",
       slug: "toeic-complete",
-      shortDesc: "취업·승진을 결정짓는 TOEIC. Starter~Booster 2,491개 핵심 어휘, AI 이미지로 외우면 시험장에서 잊히지 않는다.",
+      shortDesc: isEn
+        ? "2,491 essential TOEIC words from Starter to Booster. AI visual mnemonics for exam-day recall."
+        : "취업·승진을 결정짓는 TOEIC. Starter~Booster 2,491개 핵심 어휘, AI 이미지로 외우면 시험장에서 잊히지 않는다.",
       price: 9900,
       durationDays: 180,
       badge: "NEW",
@@ -72,9 +81,11 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-sat",
-      name: "SAT 핵심 어휘",
+      name: "SAT Advanced Vocabulary",
       slug: "sat-complete",
-      shortDesc: "미국 대학 입시의 관문 SAT. Greek·Latin 어근 기반 1,935개를 테마별(L1)·혼동어휘(L2)로 체계적으로 정복.",
+      shortDesc: isEn
+        ? "1,935 SAT words organized by Greek·Latin roots. Theme-based (L1) + confusing words (L2)."
+        : "미국 대학 입시의 관문 SAT. Greek·Latin 어근 기반 1,935개를 테마별(L1)·혼동어휘(L2)로 체계적으로 정복.",
       price: 9900,
       durationDays: 180,
       badge: "NEW",
@@ -83,9 +94,11 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-gre",
-      name: "GRE 완전정복",
+      name: "GRE Verbal Mastery",
       slug: "gre-complete",
-      shortDesc: "대학원 유학의 관문 GRE Verbal. Greek·Latin 어근 기반 핵심(L1) 1,858개 + 고급(L2) 2,488개를 AI 이미지·어원·라임으로 단기 완성.",
+      shortDesc: isEn
+        ? "4,346 GRE Verbal words. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery."
+        : "대학원 유학의 관문 GRE Verbal. Greek·Latin 어근 기반 핵심(L1) 1,858개 + 고급(L2) 2,488개를 AI 이미지·어원·라임으로 단기 완성.",
       price: 9900,
       durationDays: 180,
       badge: "NEW",
@@ -94,9 +107,11 @@ function getStaticPackages(): ProductPackage[] {
     },
     {
       id: "static-ielts",
-      name: "IELTS 완전정복",
+      name: "IELTS Academic Mastery",
       slug: "ielts-complete",
-      shortDesc: "영국 유학·이민의 관문 IELTS. Foundation(L1) 330개 + Academic(L2) 258개를 AI 이미지·어원·라임으로 단기 완성.",
+      shortDesc: isEn
+        ? "795 IELTS words. Foundation (L1) 401 + Academic (L2) 394. Band 5~8 complete coverage."
+        : "영국 유학·이민의 관문 IELTS. Foundation(L1) 330개 + Academic(L2) 258개를 AI 이미지·어원·라임으로 단기 완성.",
       price: 9900,
       durationDays: 180,
       badge: "NEW",
@@ -136,13 +151,26 @@ function getBadgeStyle(badge: string) {
   }
 }
 
+// USD 가격 매핑 (글로벌 유저용)
+const usdPrices: Record<string, string> = {
+  '2026-csat-analysis': '$3.99',
+  'ebs-vocab': '$6.99',
+  'toefl-complete': '$9.99',
+  'toeic-complete': '$9.99',
+  'sat-complete': '$9.99',
+  'gre-complete': '$9.99',
+  'ielts-complete': '$9.99',
+};
+
 // 패키지 카드 컴포넌트 - 플랫 화이트 스타일
-function PackageCard({ pkg }: { pkg: ProductPackage }) {
+function PackageCard({ pkg, isEn }: { pkg: ProductPackage; isEn: boolean }) {
   const hasDiscount = pkg.originalPrice && pkg.originalPrice > pkg.price;
   const discountPercent = hasDiscount
     ? Math.round((1 - pkg.price / pkg.originalPrice!) * 100)
     : 0;
-  const durationText = pkg.durationDays >= 365 ? "1년" : pkg.durationDays >= 30 ? `${Math.floor(pkg.durationDays / 30)}개월` : `${pkg.durationDays}일`;
+  const durationText = isEn
+    ? (pkg.durationDays >= 365 ? "1 year" : pkg.durationDays >= 30 ? `${Math.floor(pkg.durationDays / 30)} months` : `${pkg.durationDays} days`)
+    : (pkg.durationDays >= 365 ? "1년" : pkg.durationDays >= 30 ? `${Math.floor(pkg.durationDays / 30)}개월` : `${pkg.durationDays}일`);
 
   return (
     <Link
@@ -181,7 +209,7 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
         <div className="flex gap-2 mt-4">
           <div className="flex items-center gap-1.5 bg-gray-100 text-gray-600 rounded-full px-3 py-1 text-sm">
             <BookOpen className="w-4 h-4" />
-            <span>{pkg.wordCount}개</span>
+            <span>{pkg.wordCount}{isEn ? ' words' : '개'}</span>
           </div>
           <div className="flex items-center gap-1.5 bg-gray-100 text-gray-600 rounded-full px-3 py-1 text-sm">
             <Clock className="w-4 h-4" />
@@ -198,7 +226,7 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
               </span>
             )}
             <span className="text-2xl font-bold text-gray-900">
-              {pkg.isComingSoon ? "준비 중" : `₩${pkg.price.toLocaleString()}`}
+              {pkg.isComingSoon ? (isEn ? "Coming Soon" : "준비 중") : isEn ? (usdPrices[pkg.slug] || `$${(pkg.price / 1300).toFixed(2)}`) : `₩${pkg.price.toLocaleString()}`}
             </span>
             {hasDiscount && (
               <span className="text-sm text-gray-400 line-through">
@@ -208,7 +236,7 @@ function PackageCard({ pkg }: { pkg: ProductPackage }) {
           </div>
           {!pkg.isComingSoon && (
             <div className="flex items-center gap-1 text-teal-600 text-sm font-medium group-hover:text-teal-700">
-              <span>자세히 보기</span>
+              <span>{isEn ? 'Learn More' : '자세히 보기'}</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </div>
           )}
@@ -238,12 +266,25 @@ function PackageCardSkeleton() {
 
 // 메인 섹션 컴포넌트
 export default function ProductPackageSection() {
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const [packages, setPackages] = useState<ProductPackage[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchPackages();
   }, []);
+
+  // 영어 shortDesc 오버라이드 (API 패키지용)
+  const englishShortDescs: Record<string, string> = {
+    '2026-csat-analysis': '521 words from the 2026 CSAT exam. Organized by listening, reading 2-point and 3-point sections.',
+    'ebs-vocab': '3,837 words from 3 EBS textbooks. 70% of CSAT exam content comes from EBS — essential coverage.',
+    'toefl-complete': '3,651 TOEFL words from Core to Advanced. Greek·Latin etymology makes them unforgettable.',
+    'toeic-complete': '2,491 essential TOEIC words from Starter to Booster. AI visual mnemonics for exam-day recall.',
+    'sat-complete': '1,935 SAT words organized by Greek·Latin roots. Theme-based (L1) + confusing words (L2).',
+    'gre-complete': '4,346 GRE Verbal words. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery.',
+    'ielts-complete': '795 IELTS words. Foundation (L1) 401 + Academic (L2) 394. Band 5~8 complete coverage.',
+  };
 
   const fetchPackages = async () => {
     try {
@@ -260,18 +301,19 @@ export default function ProductPackageSection() {
         .map((pkg) => ({
           ...pkg,
           wordCount: DISPLAY_WORD_COUNTS[pkg.slug] || pkg.wordCount,
+          ...(isEn && englishShortDescs[pkg.slug] ? { shortDesc: englishShortDescs[pkg.slug] } : {}),
         }));
 
       // 필터 후 부족하면 정적 데이터 사용
       if (filtered.length < 1) {
-        setPackages(getStaticPackages());
+        setPackages(getStaticPackages(isEn));
       } else {
         setPackages(filtered);
       }
     } catch (err) {
       console.error("Failed to fetch packages:", err);
       // 에러 시 정적 데이터 사용
-      setPackages(getStaticPackages());
+      setPackages(getStaticPackages(isEn));
     } finally {
       setLoading(false);
     }
@@ -286,8 +328,8 @@ export default function ProductPackageSection() {
     <section className="py-12 px-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">당신의 시험에 맞는 AI 단어 패키지</h2>
-          <p className="text-gray-500 mt-2">목표 시험에 맞는 핵심 어휘만 AI 분석 기반으로 학습하세요.</p>
+          <h2 className="text-2xl font-bold text-gray-900">{isEn ? 'AI Vocabulary Packs for Your Exam' : '당신의 시험에 맞는 AI 단어 패키지'}</h2>
+          <p className="text-gray-500 mt-2">{isEn ? 'Study only the vocabulary that matters for your target exam.' : '목표 시험에 맞는 핵심 어휘만 AI 분석 기반으로 학습하세요.'}</p>
         </div>
 
         {loading ? (
@@ -298,7 +340,9 @@ export default function ProductPackageSection() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-            {packages.map((pkg, index) => (
+            {packages
+              .filter((pkg) => !(isEn && (pkg.slug === '2026-csat-analysis' || pkg.slug === 'ebs-vocab')))
+              .map((pkg, index) => (
               <div
                 key={pkg.id}
                 className="opacity-0 animate-fade-in-up h-full"
@@ -307,7 +351,7 @@ export default function ProductPackageSection() {
                   animationFillMode: "forwards",
                 }}
               >
-                <PackageCard pkg={pkg} />
+                <PackageCard pkg={pkg} isEn={isEn} />
               </div>
             ))}
           </div>
