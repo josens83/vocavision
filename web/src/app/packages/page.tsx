@@ -158,6 +158,14 @@ const packages: Package[] = [
   },
 ];
 
+const descriptionEn: Record<string, string> = {
+  'toefl-complete': '3,651 TOEFL words from Core to Advanced. Greek·Latin etymology makes them unforgettable.',
+  'toeic-complete': '2,491 essential TOEIC words from Starter to Booster. AI visual mnemonics for exam-day recall.',
+  'sat-complete': '1,935 SAT words by Greek·Latin roots. Theme-based (L1) + confusing words (L2).',
+  'gre-complete': '4,346 GRE Verbal words. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery.',
+  'ielts-complete': '795 IELTS words. Foundation (L1) 401 + Academic (L2) 394. Band 5~8 complete coverage.',
+};
+
 export default function PackagesPage() {
   const locale = useLocale();
   const isEn = locale === 'en';
@@ -194,7 +202,7 @@ export default function PackagesPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-600 text-sm mb-3">{pkg.description}</p>
+                      <p className="text-gray-600 text-sm mb-3">{isEn ? (descriptionEn[pkg.slug] || pkg.description) : pkg.description}</p>
                       <div className="flex flex-wrap gap-2">
                         <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
                           {pkg.wordCount}{isEn ? ' words' : '개 단어'}
