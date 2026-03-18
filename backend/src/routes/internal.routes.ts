@@ -7,7 +7,7 @@ import {
   COST_PER_WORD,
 } from '../utils/wordDeduplication';
 import { CSAT_L1_WORDS, CSAT_L2_WORDS, CSAT_L3_WORDS } from '../data/csat-words';
-import { processGenerationJob, generateWordContent, saveGeneratedContent } from '../services/contentGenerator.service';
+import { processGenerationJob, generateWordContent, saveGeneratedContent, generateEnglishMnemonic } from '../services/contentGenerator.service';
 import Anthropic from '@anthropic-ai/sdk';
 import { randomUUID } from 'crypto';
 import logger from '../utils/logger';
@@ -5108,6 +5108,94 @@ router.post('/toefl-mapping', async (req: Request, res: Response) => {
     console.error('[Internal/ToeflMapping] Error:', error);
     if (!res.headersSent) {
       res.status(500).json({ error: 'TOEFL mapping failed' });
+    }
+  }
+});
+
+// ============================================
+// English Mnemonic Generation (Global Content Pipeline)
+// ============================================
+
+/**
+ * GET /internal/generate-global-content?key=YOUR_SECRET&batchSize=20
+ *
+ * Generates englishHint for SAT/GRE/TOEFL/IELTS words that have
+ * a Korean mnemonic (koreanHint) but no englishHint yet.
+ */
+router.get('/generate-global-content', async (req: Request, res: Response) => {
+  try {
+    const { key, batchSize: batchSizeStr } = req.query;
+
+    if (key !== process.env.INTERNAL_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const batchSize = Math.min(parseInt(batchSizeStr as string) || 20, 100);
+
+    // Find mnemonics with koreanHint but no englishHint, for global exam categories
+    const targetMnemonics = await prisma.mnemonic.findMany({
+      where: {
+        koreanHint: { not: null },
+        englishHint: null,
+        word: {
+          examCategory: { in: ['SAT', 'GRE', 'TOEFL', 'IELTS'] },
+        },
+      },
+      include: {
+        word: { select: { id: true, word: true, examCategory: true } },
+      },
+      take: batchSize,
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (targetMnemonics.length === 0) {
+      return res.json({
+        message: 'No mnemonics need englishHint generation',
+        processed: 0,
+      });
+    }
+
+    // Stream-style: respond immediately, process in background
+    res.json({
+      message: `Processing ${targetMnemonics.length} mnemonics for englishHint generation`,
+      targetCount: targetMnemonics.length,
+      words: targetMnemonics.map(m => m.word.word),
+    });
+
+    // Background processing
+    (async () => {
+      let success = 0;
+      let failed = 0;
+
+      for (let i = 0; i < targetMnemonics.length; i++) {
+        const mnemonic = targetMnemonics[i];
+        try {
+          const englishHint = await generateEnglishMnemonic(mnemonic.word.word);
+
+          await prisma.mnemonic.update({
+            where: { id: mnemonic.id },
+            data: { englishHint },
+          });
+
+          success++;
+          logger.info(`[GlobalContent] ${i + 1}/${targetMnemonics.length} englishHint generated: ${mnemonic.word.word} → ${englishHint}`);
+        } catch (error) {
+          failed++;
+          logger.error(`[GlobalContent] Failed: ${mnemonic.word.word}`, error);
+        }
+
+        // Rate limiting — 1.5s between API calls
+        if (i < targetMnemonics.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+      }
+
+      logger.info(`[GlobalContent] Batch complete. Success: ${success}, Failed: ${failed}`);
+    })();
+  } catch (error) {
+    logger.error('[GlobalContent] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Global content generation failed' });
     }
   }
 });

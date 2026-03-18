@@ -405,6 +405,7 @@ model Mnemonic {
   title       String
   content     String
   koreanHint  String?  // 한국어 연상 힌트 (경선식 스타일)
+  englishHint String?  // 영어 연상 힌트 (음절 분해 스타일)
   imageUrl    String?  // 연상 이미지 URL
   source      MnemonicSource @default(AI_GENERATED)
   rating      Float    @default(0)

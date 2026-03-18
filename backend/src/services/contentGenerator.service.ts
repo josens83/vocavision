@@ -132,6 +132,44 @@ const CONTENT_GENERATION_PROMPT = `당신은 한국인 영어 학습자를 위�
 - 모든 필드 필수. null인 경우 해당 필드 생략 가능 (prefix/root/suffix 등)
 `;
 
+// ---------------------------------------------
+// English Mnemonic Prompt (Global users - syllable decomposition)
+// ---------------------------------------------
+
+const CONTENT_GENERATION_PROMPT_EN = `You are a vocabulary mnemonics expert for English-speaking learners preparing for SAT, GRE, TOEFL, and IELTS.
+
+## Input
+Word: {{WORD}}
+
+## Task
+Create ONE powerful English mnemonic using multi-syllable decomposition.
+
+## Method — Syllable Decomposition
+Break the word into syllables, then map each syllable to a common English word that sounds similar. Chain those words into a vivid, memorable mini-story that connects to the meaning.
+
+### Examples
+- "ephemeral" → e-PHEM-er-al → "Even a FEW errors ALL fade" → lasting only a short time
+- "ubiquitous" → u-BIQ-ui-tous → "You BIG witty TOSS everywhere" → present everywhere
+- "loquacious" → lo-QUA-cious → "LOW QUACK sounds — she never stops talking" → very talkative
+- "sycophant" → SY-co-phant → "SICK OF fancy PANTS flattery" → a person who flatters
+- "pernicious" → per-NI-cious → "Per KNEE she is VICIOUS" → having a harmful effect
+
+## Output Format
+Return ONLY a JSON object:
+\`\`\`json
+{
+  "englishHint": "syllable breakdown → mnemonic phrase → meaning connection"
+}
+\`\`\`
+
+## Rules
+1. The syllable breakdown must match actual pronunciation
+2. Keep the mnemonic under 12 words
+3. The story must logically connect to the word's primary meaning
+4. Use vivid, concrete imagery — no abstract explanations
+5. Capitalise the syllable-mapped words for emphasis
+`;
+
 // 기존 상세 프롬프트 (고품질 생성용 - Claude Max 편집 시 사용)
 const CONTENT_GENERATION_PROMPT_DETAILED = `
 당신은 영어 어휘 학습 콘텐츠 전문가입니다. 한국인 영어 학습자를 위한 고품질 단어 학습 자료를 생성합니다.
@@ -937,6 +975,40 @@ export async function processFillMissingJob(
   }
 }
 
+// ---------------------------------------------
+// English Mnemonic Generation (Global users)
+// → Generates englishHint for words that have koreanHint but no englishHint
+// ---------------------------------------------
+
+export async function generateEnglishMnemonic(
+  word: string
+): Promise<string> {
+  const prompt = CONTENT_GENERATION_PROMPT_EN.replace(/\{\{WORD\}\}/g, word);
+
+  const client = getAnthropicClient();
+  const response = await client.messages.create({
+    model: 'claude-opus-4-6',
+    max_tokens: 512,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  const content = response.content[0];
+  if (content.type !== 'text') {
+    throw new Error('Unexpected response type');
+  }
+
+  // Parse JSON from response
+  const jsonMatch = content.text.match(/```json\n([\s\S]*?)\n```/);
+  if (!jsonMatch) {
+    // Try parsing the entire text as JSON
+    const parsed = JSON.parse(content.text);
+    return parsed.englishHint;
+  }
+
+  const parsed = JSON.parse(jsonMatch[1]);
+  return parsed.englishHint;
+}
+
 export default {
   generateWordContent,
   saveGeneratedContent,
@@ -945,4 +1017,5 @@ export default {
   generateWhiskPrompt,
   processGenerationJob,
   processFillMissingJob,
+  generateEnglishMnemonic,
 };
