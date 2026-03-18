@@ -328,7 +328,7 @@ function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave, user, locale = 
     <div className="relative nav-item" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <button className={`nav-link flex items-center gap-2 whitespace-nowrap ${item.color || ""}`}>
         {item.icon}
-        <span>{(locale === 'en' && item.labelEn) || item.label}</span>
+        <span>{item.labelEn || item.label}</span>
         <svg className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -349,7 +349,7 @@ function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave, user, locale = 
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   {child.icon && <span>{child.icon}</span>}
-                  <span className="font-medium">{(locale === 'en' && child.labelEn) || child.label}</span>
+                  <span className="font-medium">{child.labelEn || child.label}</span>
                   {child.badge && <span className="px-1.5 py-0.5 text-xs font-bold bg-study-flashcard text-slate-900 rounded">{child.badge}</span>}
                   {locked && (
                     <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -357,7 +357,7 @@ function NavDropdown({ item, isOpen, onMouseEnter, onMouseLeave, user, locale = 
                     </svg>
                   )}
                 </div>
-                {child.description && <p className="text-xs text-slate-400 mt-0.5">{(locale === 'en' && child.descriptionEn) || child.description}</p>}
+                {child.description && <p className="text-xs text-slate-400 mt-0.5">{child.descriptionEn || child.description}</p>}
               </div>
               {child.count !== undefined && <span className="text-sm text-slate-400 group-hover:text-slate-600">{child.count}</span>}
             </button>
@@ -397,7 +397,7 @@ function NavLink({ item, isAuthenticated, onAuthRequired, locale = 'ko' }: NavLi
   return (
     <Link href={item.href || "#"} className={`nav-link flex items-center gap-2 whitespace-nowrap ${item.color || ""}`}>
       {item.icon}
-      <span>{(locale === 'en' && item.labelEn) || item.label}</span>
+      <span>{item.labelEn || item.label}</span>
     </Link>
   );
 }
