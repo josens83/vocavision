@@ -50,8 +50,6 @@ export default function DDayBanner() {
   const { user } = useAuthStore();
   const isLoggedIn = !!user;
 
-  if (locale === 'en') return null;
-
   useEffect(() => {
     setMounted(true);
     setTimeLeft(calculateTimeLeft());
@@ -62,6 +60,8 @@ export default function DDayBanner() {
 
     return () => clearInterval(timer);
   }, []);
+
+  if (locale === 'en') return null;
 
   if (!mounted) {
     return (
