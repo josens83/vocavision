@@ -2,9 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLocale } from '@/hooks/useLocale';
 
 export function Footer() {
   const pathname = usePathname();
+  const locale = useLocale();
+  const isEn = locale === 'en';
 
   // 앱 영역 라우트 - Footer 숨김
   const appRoutes = [
@@ -52,30 +55,40 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
-              수능 · TEPS · TOEFL · TOEIC · 공무원 · 편입 · SAT<br />
-              모든 영어 시험을 위한 AI 어휘 학습 플랫폼.<br />
-              과학적으로 검증된 간격 반복 학습과 AI 이미지 연상법으로<br />
-              효율적인 어휘력 향상을 경험하세요.
+              {isEn ? (
+                <>
+                  SAT · GRE · TOEFL · IELTS · TOEIC<br />
+                  AI-powered vocabulary learning for every English exam.<br />
+                  Spaced repetition and visual mnemonics for lasting memory.
+                </>
+              ) : (
+                <>
+                  수능 · TEPS · TOEFL · TOEIC · 공무원 · 편입 · SAT<br />
+                  모든 영어 시험을 위한 AI 어휘 학습 플랫폼.<br />
+                  과학적으로 검증된 간격 반복 학습과 AI 이미지 연상법으로<br />
+                  효율적인 어휘력 향상을 경험하세요.
+                </>
+              )}
             </p>
           </div>
 
           {/* 서비스 */}
           <div>
-            <h3 className="text-white font-semibold mb-4">서비스</h3>
+            <h3 className="text-white font-semibold mb-4">{isEn ? 'Product' : '서비스'}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/learn" className="hover:text-white transition-colors">
-                  학습하기
+                  {isEn ? 'Learn' : '학습하기'}
                 </Link>
               </li>
               <li>
                 <Link href="/quiz" className="hover:text-white transition-colors">
-                  퀴즈
+                  {isEn ? 'Quiz' : '퀴즈'}
                 </Link>
               </li>
               <li>
                 <Link href="/pricing" className="hover:text-white transition-colors">
-                  요금제
+                  {isEn ? 'Pricing' : '요금제'}
                 </Link>
               </li>
             </ul>
@@ -83,26 +96,26 @@ export function Footer() {
 
           {/* 고객지원 */}
           <div>
-            <h3 className="text-white font-semibold mb-4">고객지원</h3>
+            <h3 className="text-white font-semibold mb-4">{isEn ? 'Support' : '고객지원'}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/faq" className="hover:text-white transition-colors">
-                  자주 묻는 질문
+                  {isEn ? 'FAQ' : '자주 묻는 질문'}
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="hover:text-white transition-colors">
-                  문의하기
+                  {isEn ? 'Contact' : '문의하기'}
                 </Link>
               </li>
               <li>
                 <Link href="/terms" className="hover:text-white transition-colors">
-                  이용약관
+                  {isEn ? 'Terms' : '이용약관'}
                 </Link>
               </li>
               <li>
                 <Link href="/privacy" className="hover:text-white transition-colors">
-                  개인정보처리방침
+                  {isEn ? 'Privacy' : '개인정보처리방침'}
                 </Link>
               </li>
             </ul>
@@ -115,30 +128,34 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
             <div className="text-center md:text-left">
-              <p>&copy; 2026 유니패스. All rights reserved.</p>
+              <p>&copy; 2026 {isEn ? 'VocaVision AI' : '유니패스'}. All rights reserved.</p>
+              {!isEn && (
+                <>
+                  <p className="mt-1">
+                    상호명: 유니패스 | 대표자명: 김도헌
+                  </p>
+                  <p className="mt-1">
+                    사업자등록번호: 719-02-03518
+                  </p>
+                  <p className="mt-1">
+                    통신판매업신고: 제 2025-화성동탄-5651 호
+                  </p>
+                  <p className="mt-1">
+                    주소: 경기도 화성시 동탄대로시범길 19
+                  </p>
+                </>
+              )}
               <p className="mt-1">
-                상호명: 유니패스 | 대표자명: 김도헌
-              </p>
-              <p className="mt-1">
-                사업자등록번호: 719-02-03518
-              </p>
-              <p className="mt-1">
-                통신판매업신고: 제 2025-화성동탄-5651 호
-              </p>
-              <p className="mt-1">
-                주소: 경기도 화성시 동탄대로시범길 19
-              </p>
-              <p className="mt-1">
-                이메일: support@vocavision.kr
+                {isEn ? 'Email: ' : '이메일: '}{isEn ? 'support@vocavision.app' : 'support@vocavision.kr'}
               </p>
             </div>
             <div className="flex gap-4">
               <Link href="/terms" className="hover:text-gray-300 transition-colors">
-                이용약관
+                {isEn ? 'Terms' : '이용약관'}
               </Link>
               <span>|</span>
               <Link href="/privacy" className="hover:text-gray-300 transition-colors">
-                개인정보처리방침
+                {isEn ? 'Privacy' : '개인정보처리방침'}
               </Link>
             </div>
           </div>

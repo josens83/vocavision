@@ -943,7 +943,7 @@ export default function Navigation() {
                 )}
               </div>
             ) : (
-              <Link href="/auth/login" className="btn btn-primary py-2 hidden sm:flex">시작하기</Link>
+              <Link href="/auth/login" className="btn btn-primary py-2 hidden sm:flex">{locale === 'en' ? 'Get Started' : '시작하기'}</Link>
             )}
 
             <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors lg:hidden">

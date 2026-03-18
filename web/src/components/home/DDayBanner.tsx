@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
+import { useLocale } from '@/hooks/useLocale';
 
 // 2027학년도 수능일: 2026년 11월 19일 (목)
 const CSAT_DATE = new Date("2026-11-19T00:00:00");
@@ -43,10 +44,13 @@ function CounterBox({ value, label }: { value: string | number; label: string })
 }
 
 export default function DDayBanner() {
+  const locale = useLocale();
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [mounted, setMounted] = useState(false);
   const { user } = useAuthStore();
   const isLoggedIn = !!user;
+
+  if (locale === 'en') return null;
 
   useEffect(() => {
     setMounted(true);
