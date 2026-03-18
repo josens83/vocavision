@@ -7,6 +7,7 @@ import { useAuthStore } from "@/lib/store";
 import Navigation from "@/components/navigation/Navigation";
 import { Check, Shield, ArrowLeft, CreditCard, Loader2, Package } from "lucide-react";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
+import { useLocale } from '@/hooks/useLocale';
 
 type PlanType = "basic" | "premium";
 type BillingCycle = "monthly" | "yearly";
@@ -38,39 +39,62 @@ interface PackageInfo {
   }>;
 }
 
-const plans: Record<PlanType, PlanInfo> = {
-  basic: {
-    name: "베이직",
-    description: "수능 영어 완벽 대비를 원하는 분께 추천",
-    features: [
-      "수능 L1(기초)/L2(중급)/L3(고급) 전체",
-      "TEPS 기초/중급 어휘 (388개)",
-      "AI 생성 이미지 전체",
-      "전체 퀴즈 모드",
-      "상세 학습 통계",
-    ],
-    prices: {
-      monthly: 4900,
-      yearly: 47000,
+function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
+  return {
+    basic: {
+      name: isEn ? "Basic" : "베이직",
+      description: isEn
+        ? "Perfect for CSAT English preparation"
+        : "수능 영어 완벽 대비를 원하는 분께 추천",
+      features: isEn
+        ? [
+            "CSAT L1 (Basic) / L2 (Intermediate) / L3 (Advanced)",
+            "TEPS Basic/Intermediate vocabulary (388 words)",
+            "All AI-generated images",
+            "All quiz modes",
+            "Detailed learning statistics",
+          ]
+        : [
+            "수능 L1(기초)/L2(중급)/L3(고급) 전체",
+            "TEPS 기초/중급 어휘 (388개)",
+            "AI 생성 이미지 전체",
+            "전체 퀴즈 모드",
+            "상세 학습 통계",
+          ],
+      prices: {
+        monthly: isEn ? 499 : 4900,
+        yearly: isEn ? 4788 : 47000,
+      },
     },
-  },
-  premium: {
-    name: "프리미엄",
-    description: "수능 + TEPS 완벽 대비를 원하는 분께 추천",
-    features: [
-      "✨ 모든 단어장(단품) 무료 이용",
-      "수능 L1(기초)/L2(중급)/L3(고급) 전체",
-      "TEPS L1(기본)/L2(필수) 전체",
-      "AI 생성 이미지 전체",
-      "전체 퀴즈 모드",
-      "상세 학습 통계",
-    ],
-    prices: {
-      monthly: 9900,
-      yearly: 95000,
+    premium: {
+      name: isEn ? "Premium" : "프리미엄",
+      description: isEn
+        ? "Complete access to all vocabulary packs"
+        : "수능 + TEPS 완벽 대비를 원하는 분께 추천",
+      features: isEn
+        ? [
+            "✨ All vocabulary packs included free",
+            "CSAT L1 (Basic) / L2 (Intermediate) / L3 (Advanced)",
+            "TEPS L1 (Core) / L2 (Essential) — full access",
+            "All AI-generated images",
+            "All quiz modes",
+            "Detailed learning statistics",
+          ]
+        : [
+            "✨ 모든 단어장(단품) 무료 이용",
+            "수능 L1(기초)/L2(중급)/L3(고급) 전체",
+            "TEPS L1(기본)/L2(필수) 전체",
+            "AI 생성 이미지 전체",
+            "전체 퀴즈 모드",
+            "상세 학습 통계",
+          ],
+      prices: {
+        monthly: isEn ? 799 : 9900,
+        yearly: isEn ? 7668 : 95000,
+      },
     },
-  },
-};
+  };
+}
 
 // 표시용 단어 수 fallback (DB에 매핑 미완료 시 0으로 내려오는 경우 대비)
 const DISPLAY_WORD_COUNTS: Record<string, number> = {
@@ -82,10 +106,23 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'gre-complete': 4346,
 };
 
+// USD 가격 매핑 (글로벌 유저용)
+const usdPackagePrices: Record<string, string> = {
+  '2026-csat-analysis': '$3.99',
+  'ebs-vocab': '$6.99',
+  'toefl-complete': '$9.99',
+  'toeic-complete': '$9.99',
+  'sat-complete': '$9.99',
+  'gre-complete': '$9.99',
+  'ielts-complete': '$9.99',
+};
+
 // 단품 패키지 결제 컴포넌트
 function PackageCheckout({ packageSlug }: { packageSlug: string }) {
   const router = useRouter();
   const { user, _hasHydrated } = useAuthStore();
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const [packageInfo, setPackageInfo] = useState<PackageInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -109,7 +146,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/packages/${packageSlug}`
       );
-      if (!response.ok) throw new Error("패키지를 찾을 수 없습니다.");
+      if (!response.ok) throw new Error(isEn ? "Package not found." : "패키지를 찾을 수 없습니다.");
       const data = await response.json();
       const pkg = data.package;
       if (pkg.wordCount === 0 && DISPLAY_WORD_COUNTS[packageSlug]) {
@@ -125,7 +162,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
 
   const handlePayment = async () => {
     if (!agreedToTerms || !packageInfo || !user) {
-      if (!agreedToTerms) alert("이용약관 및 개인정보처리방침에 동의해주세요.");
+      if (!agreedToTerms) alert(isEn ? "Please agree to the Terms of Service and Privacy Policy." : "이용약관 및 개인정보처리방침에 동의해주세요.");
       return;
     }
 
@@ -142,8 +179,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
         orderName: packageInfo.name,
         amount: packageInfo.price,
         customerEmail: user.email || undefined,
-        customerName: user.name || "고객",
-        // 패키지 구매 정보 추가
+        customerName: user.name || (isEn ? "Customer" : "고객"),
         packageSlug: packageSlug,
         packageId: packageInfo.id,
         userId: user.id,
@@ -151,7 +187,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
       });
     } catch (error) {
       console.error("결제 오류:", error);
-      alert("결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+      alert(isEn ? "An error occurred during payment. Please try again." : "결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsProcessing(false);
     }
@@ -173,11 +209,11 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
         <div className="max-w-4xl mx-auto px-4 py-8 text-center">
           <div className="text-6xl mb-4">📦</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            패키지를 찾을 수 없습니다
+            {isEn ? 'Package Not Found' : '패키지를 찾을 수 없습니다'}
           </h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <Link href="/" className="btn bg-brand-primary text-white">
-            홈으로 돌아가기
+            {isEn ? 'Back to Home' : '홈으로 돌아가기'}
           </Link>
         </div>
       </main>
@@ -189,8 +225,9 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
   const discountPercent = hasDiscount
     ? Math.round((1 - packageInfo.price / packageInfo.originalPrice!) * 100)
     : 0;
-  const durationText =
-    packageInfo.durationDays >= 365 ? "1년" : `${packageInfo.durationDays}일`;
+  const durationText = isEn
+    ? (packageInfo.durationDays >= 365 ? "1 year" : `${packageInfo.durationDays} days`)
+    : (packageInfo.durationDays >= 365 ? "1년" : `${packageInfo.durationDays}일`);
 
   return (
     <main className="min-h-screen bg-gray-50 pt-20">
@@ -200,10 +237,10 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
           className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          홈으로 돌아가기
+          {isEn ? 'Back to Home' : '홈으로 돌아가기'}
         </Link>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">단품 구매</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">{isEn ? 'Purchase Package' : '단품 구매'}</h1>
 
         <div className="grid md:grid-cols-3 gap-8">
           {/* 왼쪽: 상품 정보 */}
@@ -229,8 +266,8 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
                     {packageInfo.description || packageInfo.shortDesc}
                   </p>
                   <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span>📚 {packageInfo.wordCount}개 단어</span>
-                    <span>⏱️ {durationText} 이용</span>
+                    <span>📚 {packageInfo.wordCount}{isEn ? ' words' : '개 단어'}</span>
+                    <span>⏱️ {durationText}{isEn ? ' access' : ' 이용'}</span>
                   </div>
                 </div>
               </div>
@@ -239,24 +276,24 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
             {/* 이용 안내 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                이용 안내
+                {isEn ? 'What You Get' : '이용 안내'}
               </h3>
               <ul className="space-y-3">
                 <li className="flex items-center gap-3 text-gray-700">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  구매 즉시 모든 단어 학습 가능
+                  {isEn ? 'Instant access to all words' : '구매 즉시 모든 단어 학습 가능'}
                 </li>
                 <li className="flex items-center gap-3 text-gray-700">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  플래시카드, 퀴즈 모드 이용 가능
+                  {isEn ? 'Flashcards & quiz modes included' : '플래시카드, 퀴즈 모드 이용 가능'}
                 </li>
                 <li className="flex items-center gap-3 text-gray-700">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  구매일로부터 {durationText}간 이용
+                  {isEn ? `${durationText} access from purchase date` : `구매일로부터 ${durationText}간 이용`}
                 </li>
                 <li className="flex items-center gap-3 text-gray-700">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  일회성 결제 (자동 갱신 없음)
+                  {isEn ? 'One-time payment (no auto-renewal)' : '일회성 결제 (자동 갱신 없음)'}
                 </li>
               </ul>
             </div>
@@ -277,17 +314,17 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
                       className="text-brand-primary font-semibold hover:underline"
                       target="_blank"
                     >
-                      이용약관
+                      {isEn ? 'Terms of Service' : '이용약관'}
                     </Link>
-                    {" "}및{" "}
+                    {isEn ? " and " : " 및 "}
                     <Link
                       href="/privacy"
                       className="text-brand-primary font-semibold hover:underline"
                       target="_blank"
                     >
-                      개인정보처리방침
+                      {isEn ? 'Privacy Policy' : '개인정보처리방침'}
                     </Link>
-                    에 동의합니다.
+                    {isEn ? '.' : '에 동의합니다.'}
                   </span>
                 </div>
               </label>
@@ -298,33 +335,33 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
           <div className="md:col-span-1">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-24">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                결제 요약
+                {isEn ? 'Order Summary' : '결제 요약'}
               </h2>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-gray-600">
-                  <span>상품명</span>
+                  <span>{isEn ? 'Product' : '상품명'}</span>
                   <span className="font-medium">{packageInfo.name}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>이용 기간</span>
+                  <span>{isEn ? 'Duration' : '이용 기간'}</span>
                   <span>{durationText}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>단어 수</span>
-                  <span>{packageInfo.wordCount}개</span>
+                  <span>{isEn ? 'Words' : '단어 수'}</span>
+                  <span>{packageInfo.wordCount}{isEn ? '' : '개'}</span>
                 </div>
 
                 {hasDiscount && (
                   <>
                     <div className="flex justify-between text-gray-600">
-                      <span>정상가</span>
+                      <span>{isEn ? 'Original Price' : '정상가'}</span>
                       <span className="line-through">
-                        ₩{packageInfo.originalPrice!.toLocaleString()}
+                        {isEn ? `$${(packageInfo.originalPrice! / 1300).toFixed(2)}` : `₩${packageInfo.originalPrice!.toLocaleString()}`}
                       </span>
                     </div>
                     <div className="flex justify-between text-red-500">
-                      <span>할인</span>
+                      <span>{isEn ? 'Discount' : '할인'}</span>
                       <span>-{discountPercent}%</span>
                     </div>
                   </>
@@ -332,9 +369,9 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
 
                 <div className="border-t border-gray-200 pt-3 mt-3">
                   <div className="flex justify-between font-semibold text-lg">
-                    <span>총 결제 금액</span>
+                    <span>{isEn ? 'Total' : '총 결제 금액'}</span>
                     <span className="text-brand-primary">
-                      ₩{packageInfo.price.toLocaleString()}
+                      {isEn ? (usdPackagePrices[packageSlug] || `$${(packageInfo.price / 1300).toFixed(2)}`) : `₩${packageInfo.price.toLocaleString()}`}
                     </span>
                   </div>
                 </div>
@@ -352,23 +389,23 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
                 {isProcessing ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    처리 중...
+                    {isEn ? 'Processing...' : '처리 중...'}
                   </>
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5" />
-                    ₩{packageInfo.price.toLocaleString()} 결제하기
+                    {isEn ? `Pay ${usdPackagePrices[packageSlug] || `$${(packageInfo.price / 1300).toFixed(2)}`}` : `₩${packageInfo.price.toLocaleString()} 결제하기`}
                   </>
                 )}
               </button>
 
               <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
                 <Shield className="w-4 h-4" />
-                토스페이먼츠 안전결제
+                {isEn ? 'Secure payment by TossPayments' : '토스페이먼츠 안전결제'}
               </div>
 
               <p className="mt-4 text-xs text-gray-500 text-center">
-                결제 후 7일 이내 미이용 시 전액 환불 가능
+                {isEn ? 'Full refund available within 7 days if unused' : '결제 후 7일 이내 미이용 시 전액 환불 가능'}
               </p>
             </div>
           </div>
@@ -383,6 +420,9 @@ function SubscriptionCheckout() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, _hasHydrated } = useAuthStore();
+  const locale = useLocale();
+  const isEn = locale === 'en';
+  const plans = getPlanInfo(isEn);
 
   const planParam = searchParams.get("plan") as PlanType | null;
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("basic");
@@ -423,7 +463,7 @@ function SubscriptionCheckout() {
 
   const handlePayment = async () => {
     if (!agreedToTerms) {
-      alert("이용약관 및 개인정보처리방침에 동의해주세요.");
+      alert(isEn ? "Please agree to the Terms of Service and Privacy Policy." : "이용약관 및 개인정보처리방침에 동의해주세요.");
       return;
     }
 
@@ -437,17 +477,17 @@ function SubscriptionCheckout() {
 
       await requestPaymentWithParams({
         orderId,
-        orderName: `VocaVision AI ${plan.name} (${billingCycle === "monthly" ? "월간" : "연간"})`,
+        orderName: `VocaVision AI ${plan.name} (${billingCycle === "monthly" ? (isEn ? "Monthly" : "월간") : (isEn ? "Yearly" : "연간")})`,
         amount: price,
         customerEmail: user.email || undefined,
-        customerName: user.name || "고객",
+        customerName: user.name || (isEn ? "Customer" : "고객"),
         plan: selectedPlan,
         billingCycle,
         userId: user.id,
       });
     } catch (error) {
       console.error("결제 오류:", error);
-      alert("결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+      alert(isEn ? "An error occurred during payment. Please try again." : "결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsProcessing(false);
     }
@@ -461,17 +501,17 @@ function SubscriptionCheckout() {
           className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          요금제 페이지로 돌아가기
+          {isEn ? 'Back to Pricing' : '요금제 페이지로 돌아가기'}
         </Link>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">결제하기</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">{isEn ? 'Checkout' : '결제하기'}</h1>
 
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-6">
             {/* 플랜 선택 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                플랜 선택
+                {isEn ? 'Select Plan' : '플랜 선택'}
               </h2>
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -482,9 +522,9 @@ function SubscriptionCheckout() {
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <div className="font-semibold text-gray-900">베이직</div>
+                  <div className="font-semibold text-gray-900">{plans.basic.name}</div>
                   <div className="text-sm text-gray-600 mt-1">
-                    수능 영어 완벽 대비
+                    {plans.basic.description}
                   </div>
                 </button>
                 <button
@@ -495,9 +535,9 @@ function SubscriptionCheckout() {
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <div className="font-semibold text-gray-900">프리미엄</div>
+                  <div className="font-semibold text-gray-900">{plans.premium.name}</div>
                   <div className="text-sm text-gray-600 mt-1">
-                    수능 + TEPS 완벽 대비
+                    {plans.premium.description}
                   </div>
                 </button>
               </div>
@@ -506,7 +546,7 @@ function SubscriptionCheckout() {
             {/* 결제 주기 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                결제 주기
+                {isEn ? 'Billing Cycle' : '결제 주기'}
               </h2>
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -517,11 +557,11 @@ function SubscriptionCheckout() {
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <div className="font-semibold text-gray-900">월간 결제</div>
+                  <div className="font-semibold text-gray-900">{isEn ? 'Monthly' : '월간 결제'}</div>
                   <div className="text-lg font-bold text-gray-900 mt-2">
-                    ₩{plan.prices.monthly.toLocaleString()}
+                    {isEn ? `$${(plan.prices.monthly / 100).toFixed(2)}` : `₩${plan.prices.monthly.toLocaleString()}`}
                     <span className="text-sm font-normal text-gray-500">
-                      /월
+                      {isEn ? '/mo' : '/월'}
                     </span>
                   </div>
                 </button>
@@ -535,18 +575,18 @@ function SubscriptionCheckout() {
                 >
                   <div className="absolute -top-3 right-4">
                     <span className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                      20% 할인
+                      {isEn ? '20% OFF' : '20% 할인'}
                     </span>
                   </div>
-                  <div className="font-semibold text-gray-900">연간 결제</div>
+                  <div className="font-semibold text-gray-900">{isEn ? 'Yearly' : '연간 결제'}</div>
                   <div className="text-lg font-bold text-gray-900 mt-2">
-                    ₩{plan.prices.yearly.toLocaleString()}
+                    {isEn ? `$${(plan.prices.yearly / 100).toFixed(2)}` : `₩${plan.prices.yearly.toLocaleString()}`}
                     <span className="text-sm font-normal text-gray-500">
-                      /년
+                      {isEn ? '/yr' : '/년'}
                     </span>
                   </div>
                   <div className="text-sm text-green-600 mt-1">
-                    월 ₩{Math.round(plan.prices.yearly / 12).toLocaleString()}
+                    {isEn ? `$${(plan.prices.yearly / 12 / 100).toFixed(2)}/mo` : `월 ₩${Math.round(plan.prices.yearly / 12).toLocaleString()}`}
                   </div>
                 </button>
               </div>
@@ -555,7 +595,7 @@ function SubscriptionCheckout() {
             {/* 포함된 기능 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                {plan.name} 플랜에 포함된 기능
+                {isEn ? `Features included in ${plan.name}` : `${plan.name} 플랜에 포함된 기능`}
               </h2>
               <ul className="space-y-3">
                 {plan.features.map((feature, index) => (
@@ -579,16 +619,16 @@ function SubscriptionCheckout() {
                 <div className="text-sm leading-relaxed">
                   <span className="text-gray-800 font-medium">
                     <Link href="/terms" className="text-indigo-600 font-semibold hover:underline" target="_blank">
-                      이용약관
+                      {isEn ? 'Terms of Service' : '이용약관'}
                     </Link>
-                    {" "}및{" "}
+                    {isEn ? " and " : " 및 "}
                     <Link href="/privacy" className="text-indigo-600 font-semibold hover:underline" target="_blank">
-                      개인정보처리방침
+                      {isEn ? 'Privacy Policy' : '개인정보처리방침'}
                     </Link>
-                    에 동의합니다.
+                    {isEn ? '.' : '에 동의합니다.'}
                   </span>
                   <p className="text-gray-600 mt-1.5">
-                    정기 결제에 동의하며, 언제든지 해지할 수 있습니다.
+                    {isEn ? 'You agree to recurring billing. Cancel anytime.' : '정기 결제에 동의하며, 언제든지 해지할 수 있습니다.'}
                   </p>
                 </div>
               </label>
@@ -599,40 +639,40 @@ function SubscriptionCheckout() {
           <div className="md:col-span-1">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-24">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                결제 요약
+                {isEn ? 'Order Summary' : '결제 요약'}
               </h2>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-gray-600">
-                  <span>{plan.name} 플랜</span>
-                  <span>{billingCycle === "monthly" ? "월간" : "연간"}</span>
+                  <span>{plan.name} {isEn ? 'Plan' : '플랜'}</span>
+                  <span>{billingCycle === "monthly" ? (isEn ? "Monthly" : "월간") : (isEn ? "Yearly" : "연간")}</span>
                 </div>
 
                 {billingCycle === "yearly" && (
                   <>
                     <div className="flex justify-between text-gray-600">
-                      <span>정상가</span>
+                      <span>{isEn ? 'Original Price' : '정상가'}</span>
                       <span className="line-through">
-                        ₩{(plan.prices.monthly * 12).toLocaleString()}
+                        {isEn ? `$${(plan.prices.monthly * 12 / 100).toFixed(2)}` : `₩${(plan.prices.monthly * 12).toLocaleString()}`}
                       </span>
                     </div>
                     <div className="flex justify-between text-green-600">
-                      <span>연간 할인</span>
-                      <span>-₩{savings.toLocaleString()}</span>
+                      <span>{isEn ? 'Annual Discount' : '연간 할인'}</span>
+                      <span>{isEn ? `-$${(savings / 100).toFixed(2)}` : `-₩${savings.toLocaleString()}`}</span>
                     </div>
                   </>
                 )}
 
                 <div className="border-t border-gray-200 pt-3 mt-3">
                   <div className="flex justify-between font-semibold text-lg">
-                    <span>총 결제 금액</span>
+                    <span>{isEn ? 'Total' : '총 결제 금액'}</span>
                     <span className="text-indigo-600">
-                      ₩{price.toLocaleString()}
+                      {isEn ? `$${(price / 100).toFixed(2)}` : `₩${price.toLocaleString()}`}
                     </span>
                   </div>
                   {billingCycle === "yearly" && (
                     <div className="text-right text-sm text-gray-500 mt-1">
-                      (월 ₩{monthlyPrice.toLocaleString()})
+                      {isEn ? `($${(monthlyPrice / 100).toFixed(2)}/mo)` : `(월 ₩${monthlyPrice.toLocaleString()})`}
                     </div>
                   )}
                 </div>
@@ -650,23 +690,23 @@ function SubscriptionCheckout() {
                 {isProcessing ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    처리 중...
+                    {isEn ? 'Processing...' : '처리 중...'}
                   </>
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5" />
-                    결제하기
+                    {isEn ? 'Subscribe' : '결제하기'}
                   </>
                 )}
               </button>
 
               <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
                 <Shield className="w-4 h-4" />
-                토스페이먼츠 안전결제
+                {isEn ? 'Secure payment by TossPayments' : '토스페이먼츠 안전결제'}
               </div>
 
               <p className="mt-4 text-xs text-gray-500 text-center">
-                결제 후 7일 이내 미이용 시 전액 환불 가능
+                {isEn ? 'Full refund available within 7 days if unused' : '결제 후 7일 이내 미이용 시 전액 환불 가능'}
               </p>
             </div>
           </div>
