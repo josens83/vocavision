@@ -9,12 +9,15 @@ import { validateEmail, validatePassword, validateForm } from '@/lib/validation'
 import { FormInput, FormError, SubmitButton } from '@/components/ui/FormInput';
 import { getKakaoLoginUrl } from '@/lib/auth/kakao';
 import { getGoogleLoginUrl } from '@/lib/auth/google';
+import { useLocale } from '@/hooks/useLocale';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, _hasHydrated } = useAuthStore();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const locale = useLocale();
+  const isEn = locale === 'en';
 
   // next, returnTo, redirect 파라미터 모두 지원 (하위 호환성)
   // 기본값은 /dashboard (로그인 후 첫 화면)
@@ -138,15 +141,16 @@ function LoginContent() {
 
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
           <h1 className="text-2xl font-bold text-slate-900 mb-2 text-center">
-            로그인
+            {isEn ? 'Sign In' : '로그인'}
           </h1>
           <p className="text-slate-500 mb-6 text-center">
-            VocaVision AI에 오신 것을 환영합니다
+            {isEn ? 'Welcome to VocaVision AI' : 'VocaVision AI에 오신 것을 환영합니다'}
           </p>
 
           {/* 소셜 로그인 버튼 */}
           <div className="space-y-3 mb-6">
             {/* 카카오 로그인 버튼 */}
+            {!isEn && (
             <button
               onClick={handleKakaoLogin}
               disabled={kakaoLoading || googleLoading || loading}
@@ -166,6 +170,7 @@ function LoginContent() {
               )}
               {kakaoLoading ? '로그인 중...' : '카카오로 시작하기'}
             </button>
+            )}
 
             {/* 구글 로그인 버튼 */}
             <button
@@ -183,7 +188,7 @@ function LoginContent() {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
               )}
-              {googleLoading ? '로그인 중...' : 'Google로 계속하기'}
+              {googleLoading ? (isEn ? 'Signing in...' : '로그인 중...') : (isEn ? 'Continue with Google' : 'Google로 계속하기')}
             </button>
           </div>
 
@@ -193,7 +198,7 @@ function LoginContent() {
               <div className="w-full border-t border-slate-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-slate-400">또는 이메일로 로그인</span>
+              <span className="px-4 bg-white text-slate-400">{isEn ? 'or sign in with email' : '또는 이메일로 로그인'}</span>
             </div>
           </div>
 
@@ -205,27 +210,27 @@ function LoginContent() {
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <FormInput
-              label="이메일"
+              label={isEn ? 'Email' : '이메일'}
               type="email"
               required
               value={formData.email}
               onChange={(e) => handleChange('email', e.target.value)}
               onBlur={() => handleBlur('email')}
               error={touched.email ? errors.email : undefined}
-              placeholder="your@email.com"
+              placeholder={isEn ? 'Enter your email' : 'your@email.com'}
               autoComplete="email"
             />
 
             <div>
               <FormInput
-                label="비밀번호"
+                label={isEn ? 'Password' : '비밀번호'}
                 type="password"
                 required
                 value={formData.password}
                 onChange={(e) => handleChange('password', e.target.value)}
                 onBlur={() => handleBlur('password')}
                 error={touched.password ? errors.password : undefined}
-                placeholder="비밀번호를 입력하세요"
+                placeholder={isEn ? 'Enter your password' : '비밀번호를 입력하세요'}
                 autoComplete="current-password"
               />
               <div className="mt-1.5 text-right">
@@ -233,20 +238,20 @@ function LoginContent() {
                   href="/auth/forgot-password"
                   className="text-sm text-brand-primary hover:underline"
                 >
-                  비밀번호를 잊으셨나요?
+                  {isEn ? 'Forgot password?' : '비밀번호를 잊으셨나요?'}
                 </Link>
               </div>
             </div>
 
-            <SubmitButton loading={loading} loadingText="로그인 중...">
-              이메일로 로그인
+            <SubmitButton loading={loading} loadingText={isEn ? 'Signing in...' : '로그인 중...'}>
+              {isEn ? 'Sign In' : '이메일로 로그인'}
             </SubmitButton>
           </form>
 
           <p className="mt-6 text-center text-slate-600">
-            계정이 없으신가요?{' '}
+            {isEn ? "Don't have an account?" : '계정이 없으신가요?'}{' '}
             <Link href="/auth/register" className="text-brand-primary hover:underline font-medium">
-              회원가입
+              {isEn ? 'Sign Up' : '회원가입'}
             </Link>
           </p>
         </div>

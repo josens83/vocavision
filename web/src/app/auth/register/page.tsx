@@ -10,12 +10,15 @@ import { FormInput, FormError, SubmitButton } from '@/components/ui/FormInput';
 import { getKakaoLoginUrl } from '@/lib/auth/kakao';
 import { getGoogleLoginUrl } from '@/lib/auth/google';
 import { event as gaEvent } from '@/lib/monitoring/analytics';
+import { useLocale } from '@/hooks/useLocale';
 
 function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, _hasHydrated } = useAuthStore();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const locale = useLocale();
+  const isEn = locale === 'en';
 
   const nextUrl = searchParams.get('next') || '/dashboard';
 
@@ -157,15 +160,16 @@ function RegisterContent() {
 
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
           <h1 className="text-2xl font-bold text-slate-900 mb-2 text-center">
-            회원가입
+            {isEn ? 'Create Account' : '회원가입'}
           </h1>
           <p className="text-slate-500 mb-6 text-center">
-            무료로 시작하세요
+            {isEn ? 'Start learning for free' : '무료로 시작하세요'}
           </p>
 
           {/* 소셜 로그인 버튼 */}
           <div className="space-y-3 mb-6">
             {/* 카카오 로그인 버튼 */}
+            {!isEn && (
             <button
               onClick={handleKakaoLogin}
               disabled={kakaoLoading || googleLoading || loading}
@@ -185,6 +189,7 @@ function RegisterContent() {
               )}
               {kakaoLoading ? '가입 중...' : '카카오로 시작하기'}
             </button>
+            )}
 
             {/* 구글 로그인 버튼 */}
             <button
@@ -202,7 +207,7 @@ function RegisterContent() {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
               )}
-              {googleLoading ? '가입 중...' : 'Google로 시작하기'}
+              {googleLoading ? (isEn ? 'Signing up...' : '가입 중...') : (isEn ? 'Continue with Google' : 'Google로 시작하기')}
             </button>
           </div>
 
@@ -212,7 +217,7 @@ function RegisterContent() {
               <div className="w-full border-t border-slate-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-slate-400">또는 이메일로 가입</span>
+              <span className="px-4 bg-white text-slate-400">{isEn ? 'or sign up with email' : '또는 이메일로 가입'}</span>
             </div>
           </div>
 
@@ -224,80 +229,96 @@ function RegisterContent() {
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <FormInput
-              label="이름"
+              label={isEn ? 'Name' : '이름'}
               type="text"
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
               onBlur={() => handleBlur('name')}
               error={touched.name ? errors.name : undefined}
-              placeholder="홍길동"
+              placeholder={isEn ? 'Enter your name' : '홍길동'}
               autoComplete="name"
-              hint="선택 사항입니다"
+              hint={isEn ? 'Optional' : '선택 사항입니다'}
             />
 
             <FormInput
-              label="이메일"
+              label={isEn ? 'Email' : '이메일'}
               type="email"
               required
               value={formData.email}
               onChange={(e) => handleChange('email', e.target.value)}
               onBlur={() => handleBlur('email')}
               error={touched.email ? errors.email : undefined}
-              placeholder="your@email.com"
+              placeholder={isEn ? 'Enter your email' : 'your@email.com'}
               autoComplete="email"
             />
 
             <FormInput
-              label="비밀번호"
+              label={isEn ? 'Password' : '비밀번호'}
               type="password"
               required
               value={formData.password}
               onChange={(e) => handleChange('password', e.target.value)}
               onBlur={() => handleBlur('password')}
               error={touched.password ? errors.password : undefined}
-              placeholder="8자 이상 입력하세요"
+              placeholder={isEn ? '8+ characters' : '8자 이상 입력하세요'}
               autoComplete="new-password"
               showPasswordStrength
             />
 
             <FormInput
-              label="비밀번호 확인"
+              label={isEn ? 'Confirm Password' : '비밀번호 확인'}
               type="password"
               required
               value={formData.passwordConfirm}
               onChange={(e) => handleChange('passwordConfirm', e.target.value)}
               onBlur={() => handleBlur('passwordConfirm')}
               error={touched.passwordConfirm ? errors.passwordConfirm : undefined}
-              placeholder="비밀번호를 다시 입력하세요"
+              placeholder={isEn ? 'Enter your password again' : '비밀번호를 다시 입력하세요'}
               autoComplete="new-password"
             />
 
             <SubmitButton
               loading={loading}
-              loadingText="가입 중..."
+              loadingText={isEn ? 'Creating account...' : '가입 중...'}
               disabled={formData.passwordConfirm.length > 0 && formData.password !== formData.passwordConfirm}
             >
-              가입하기
+              {isEn ? 'Create Account' : '가입하기'}
             </SubmitButton>
           </form>
 
           <p className="mt-6 text-center text-slate-600">
-            이미 계정이 있으신가요?{' '}
+            {isEn ? 'Already have an account?' : '이미 계정이 있으신가요?'}{' '}
             <Link href="/auth/login" className="text-brand-primary hover:underline font-medium">
-              로그인
+              {isEn ? 'Sign In' : '로그인'}
             </Link>
           </p>
 
           <p className="mt-4 text-center text-xs text-slate-400">
-            가입 시{' '}
-            <Link href="/terms" className="text-brand-primary hover:underline">
-              이용약관
-            </Link>
-            {' '}및{' '}
-            <Link href="/privacy" className="text-brand-primary hover:underline">
-              개인정보처리방침
-            </Link>
-            에 동의하는 것으로 간주됩니다.
+            {isEn ? (
+              <>
+                By signing up, you agree to our{' '}
+                <Link href="/terms" className="text-brand-primary hover:underline">
+                  Terms of Service
+                </Link>
+                {' '}and{' '}
+                <Link href="/privacy" className="text-brand-primary hover:underline">
+                  Privacy Policy
+                </Link>
+                .
+              </>
+            ) : (
+              <>
+                가입 시{' '}
+                <Link href="/terms" className="text-brand-primary hover:underline">
+                  이용약관
+                </Link>
+                {' '}및{' '}
+                <Link href="/privacy" className="text-brand-primary hover:underline">
+                  개인정보처리방침
+                </Link>
+                에 동의하는 것으로 간주됩니다.
+              </>
+            )}
           </p>
         </div>
 
