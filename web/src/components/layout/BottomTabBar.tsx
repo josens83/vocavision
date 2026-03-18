@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLocale } from '@/hooks/useLocale';
 
 interface Tab {
   id: string;
@@ -11,39 +12,41 @@ interface Tab {
   href: string;
 }
 
-const tabs: Tab[] = [
-  {
-    id: 'home',
-    label: '홈',
-    icon: '🏠',
-    activeIcon: '🏠',
-    href: '/dashboard',
-  },
-  {
-    id: 'learn',
-    label: '학습',
-    icon: '📚',
-    activeIcon: '📚',
-    href: '/courses',
-  },
-  {
-    id: 'review',
-    label: '복습',
-    icon: '🔄',
-    activeIcon: '🔄',
-    href: '/review',
-  },
-  {
-    id: 'my',
-    label: 'MY',
-    icon: '👤',
-    activeIcon: '👤',
-    href: '/my',
-  },
-];
-
 export default function BottomTabBar() {
   const pathname = usePathname();
+  const locale = useLocale();
+  const isEn = locale === 'en';
+
+  const tabs: Tab[] = [
+    {
+      id: 'home',
+      label: isEn ? 'Home' : '홈',
+      icon: '🏠',
+      activeIcon: '🏠',
+      href: '/dashboard',
+    },
+    {
+      id: 'learn',
+      label: isEn ? 'Learn' : '학습',
+      icon: '📚',
+      activeIcon: '📚',
+      href: '/courses',
+    },
+    {
+      id: 'review',
+      label: isEn ? 'Review' : '복습',
+      icon: '🔄',
+      activeIcon: '🔄',
+      href: '/review',
+    },
+    {
+      id: 'my',
+      label: 'MY',
+      icon: '👤',
+      activeIcon: '👤',
+      href: '/my',
+    },
+  ];
 
   const isActive = (tab: Tab) => {
     if (tab.id === 'home') {
