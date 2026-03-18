@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { useLocale } from '@/hooks/useLocale';
 
 interface FAQItem {
   question: string;
@@ -15,71 +16,136 @@ interface FAQCategory {
   items: FAQItem[];
 }
 
-const faqCategories: FAQCategory[] = [
-  {
-    title: '서비스 이용',
-    icon: '📚',
-    items: [
+function getFaqCategories(isEn: boolean): FAQCategory[] {
+  if (isEn) {
+    return [
       {
-        question: 'VocaVision AI는 어떤 서비스인가요?',
-        answer:
-          'VocaVision AI는 AI 기반 영어 단어 학습 플랫폼입니다. 수능, TEPS, TOEFL 등 다양한 시험 대비 단어를 AI 이미지 연상법, 어원 분석, 라임 등을 통해 효과적으로 학습할 수 있습니다.',
+        title: 'Using the Service',
+        icon: '📚',
+        items: [
+          {
+            question: 'Is it free to use?',
+            answer:
+              'Yes! You can study 800+ SAT Starter words for free. Full access to SAT Advanced, GRE, TOEFL, IELTS, and more requires a subscription.',
+          },
+          {
+            question: 'Which exams can I prepare for?',
+            answer:
+              'SAT, GRE, TOEFL, TOEIC, IELTS, and CSAT (Korean). Each exam has curated vocabulary with AI-generated visual mnemonics.',
+          },
+        ],
       },
       {
-        question: '무료로 이용할 수 있나요?',
-        answer:
-          '네, 수능 L1 필수 단어 800개 이상을 무료로 학습할 수 있습니다. 전체 1,700개+ 단어(수능 + TEPS)와 추가 기능은 프리미엄 구독을 통해 이용 가능합니다.',
+        title: 'Billing & Subscription',
+        icon: '💳',
+        items: [
+          {
+            question: 'What payment methods are accepted?',
+            answer:
+              'We accept major credit cards (Visa, Mastercard, Amex) via our secure payment processor.',
+          },
+          {
+            question: 'What happens when I cancel my subscription?',
+            answer:
+              'Your subscription remains active until the end of the current billing period. No further charges after cancellation.',
+          },
+          {
+            question: 'How do I get a refund?',
+            answer:
+              'We offer a full refund within 14 days of purchase, no questions asked. Contact support@vocavision.app to request a refund.',
+          },
+        ],
       },
       {
-        question: '어떤 시험을 준비할 수 있나요?',
-        answer:
-          '현재 수능(CSAT)과 TEPS 어휘를 제공하며, TOEFL, TOEIC 어휘는 추가 예정입니다.',
+        title: 'Account & Learning',
+        icon: '📱',
+        items: [
+          {
+            question: 'Can I use it on multiple devices?',
+            answer:
+              'Yes! Your progress syncs automatically across PC, tablet, and mobile with the same account.',
+          },
+          {
+            question: 'Is my learning data saved?',
+            answer:
+              'Yes, all your learned words, accuracy rates, and review schedules are automatically saved.',
+          },
+          {
+            question: 'I forgot my password.',
+            answer:
+              'Click "Forgot password?" on the login page, or sign in with Google.',
+          },
+        ],
       },
-    ],
-  },
-  {
-    title: '결제 및 구독',
-    icon: '💳',
-    items: [
-      {
-        question: '결제 수단은 무엇이 있나요?',
-        answer:
-          '신용카드, 체크카드로 결제할 수 있습니다. 토스페이먼츠를 통해 안전하게 처리됩니다.',
-      },
-      {
-        question: '구독을 취소하면 어떻게 되나요?',
-        answer:
-          '구독 취소 시 다음 결제일부터 결제가 중단되며, 남은 기간 동안은 계속 이용 가능합니다.',
-      },
-      {
-        question: '환불은 어떻게 받나요?',
-        answer:
-          '결제 후 7일 이내 미이용 시 전액 환불, 이용 후에는 잔여 기간 일할 계산하여 환불됩니다. support@vocavision.kr로 문의해주세요.',
-      },
-    ],
-  },
-  {
-    title: '계정 및 학습',
-    icon: '📱',
-    items: [
-      {
-        question: '여러 기기에서 이용할 수 있나요?',
-        answer:
-          '네, 동일한 계정으로 PC, 태블릿, 모바일에서 학습할 수 있으며 진행 상황이 자동 동기화됩니다.',
-      },
-      {
-        question: '학습 기록은 저장되나요?',
-        answer:
-          '네, 학습한 단어, 정답률, 복습 주기 등 모든 학습 데이터가 자동으로 저장됩니다.',
-      },
-      {
-        question: '비밀번호를 잊어버렸어요.',
-        answer:
-          '로그인 페이지에서 "비밀번호 찾기"를 클릭하시거나, 소셜 로그인(카카오/구글)을 이용해주세요.',
-      },
-    ],
-  },
-];
+    ];
+  }
+
+  return [
+    {
+      title: '서비스 이용',
+      icon: '📚',
+      items: [
+        {
+          question: 'VocaVision AI는 어떤 서비스인가요?',
+          answer:
+            'VocaVision AI는 AI 기반 영어 단어 학습 플랫폼입니다. 수능, TEPS, TOEFL 등 다양한 시험 대비 단어를 AI 이미지 연상법, 어원 분석, 라임 등을 통해 효과적으로 학습할 수 있습니다.',
+        },
+        {
+          question: '무료로 이용할 수 있나요?',
+          answer:
+            '네, 수능 L1 필수 단어 800개 이상을 무료로 학습할 수 있습니다. 전체 1,700개+ 단어(수능 + TEPS)와 추가 기능은 프리미엄 구독을 통해 이용 가능합니다.',
+        },
+        {
+          question: '어떤 시험을 준비할 수 있나요?',
+          answer:
+            '현재 수능(CSAT)과 TEPS 어휘를 제공하며, TOEFL, TOEIC 어휘는 추가 예정입니다.',
+        },
+      ],
+    },
+    {
+      title: '결제 및 구독',
+      icon: '💳',
+      items: [
+        {
+          question: '결제 수단은 무엇이 있나요?',
+          answer:
+            '신용카드, 체크카드로 결제할 수 있습니다. 토스페이먼츠를 통해 안전하게 처리됩니다.',
+        },
+        {
+          question: '구독을 취소하면 어떻게 되나요?',
+          answer:
+            '구독 취소 시 다음 결제일부터 결제가 중단되며, 남은 기간 동안은 계속 이용 가능합니다.',
+        },
+        {
+          question: '환불은 어떻게 받나요?',
+          answer:
+            '결제 후 14일 이내 전액 환불이 가능합니다. support@vocavision.app으로 문의해주세요.',
+        },
+      ],
+    },
+    {
+      title: '계정 및 학습',
+      icon: '📱',
+      items: [
+        {
+          question: '여러 기기에서 이용할 수 있나요?',
+          answer:
+            '네, 동일한 계정으로 PC, 태블릿, 모바일에서 학습할 수 있으며 진행 상황이 자동 동기화됩니다.',
+        },
+        {
+          question: '학습 기록은 저장되나요?',
+          answer:
+            '네, 학습한 단어, 정답률, 복습 주기 등 모든 학습 데이터가 자동으로 저장됩니다.',
+        },
+        {
+          question: '비밀번호를 잊어버렸어요.',
+          answer:
+            '로그인 페이지에서 "비밀번호 찾기"를 클릭하시거나, 소셜 로그인(카카오/구글)을 이용해주세요.',
+        },
+      ],
+    },
+  ];
+}
 
 function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boolean; onToggle: () => void }) {
   return (
@@ -123,6 +189,9 @@ function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boole
 }
 
 export default function FAQContent() {
+  const locale = useLocale();
+  const isEn = locale === 'en';
+  const faqCategories = getFaqCategories(isEn);
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
   const toggleItem = (categoryIndex: number, itemIndex: number) => {
@@ -144,10 +213,10 @@ export default function FAQContent() {
         {/* 헤더 */}
         <div className="mb-8">
           <Link href="/" className="text-brand-primary hover:underline mb-4 inline-block">
-            &larr; 홈으로 돌아가기
+            &larr; {isEn ? 'Back to Home' : '홈으로 돌아가기'}
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">자주 묻는 질문</h1>
-          <p className="text-gray-500 mt-2">VocaVision AI에 대해 궁금한 점을 확인해 보세요.</p>
+          <h1 className="text-3xl font-bold text-gray-900">{isEn ? 'Frequently Asked Questions' : '자주 묻는 질문'}</h1>
+          <p className="text-gray-500 mt-2">{isEn ? 'Find answers to common questions about VocaVision AI.' : 'VocaVision AI에 대해 궁금한 점을 확인해 보세요.'}</p>
         </div>
 
         {/* FAQ 카테고리 */}
@@ -179,16 +248,16 @@ export default function FAQContent() {
         <div className="mt-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl shadow-sm p-8 text-white">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold mb-2">원하는 답변을 찾지 못하셨나요?</h2>
+              <h2 className="text-xl font-bold mb-2">{isEn ? "Didn't find what you're looking for?" : '원하는 답변을 찾지 못하셨나요?'}</h2>
               <p className="text-white/80">
-                문의하기를 통해 직접 질문해 주시면 빠르게 답변 드리겠습니다.
+                {isEn ? "Contact us and we'll get back to you promptly." : '문의하기를 통해 직접 질문해 주시면 빠르게 답변 드리겠습니다.'}
               </p>
             </div>
             <Link
               href="/contact"
               className="inline-flex items-center gap-2 bg-white text-indigo-600 px-6 py-3 rounded-xl font-semibold hover:bg-indigo-50 transition-colors whitespace-nowrap"
             >
-              문의하기
+              {isEn ? 'Contact Us' : '문의하기'}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -197,9 +266,9 @@ export default function FAQContent() {
         {/* 하단 정보 */}
         <div className="mt-8 text-center text-gray-500 text-sm">
           <p>
-            이메일:{' '}
-            <a href="mailto:support@vocavision.kr" className="text-brand-primary hover:underline">
-              support@vocavision.kr
+            {isEn ? 'Email: ' : '이메일: '}
+            <a href={isEn ? "mailto:support@vocavision.app" : "mailto:support@vocavision.kr"} className="text-brand-primary hover:underline">
+              {isEn ? 'support@vocavision.app' : 'support@vocavision.kr'}
             </a>
           </p>
         </div>
