@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
+import { useLocale } from '@/hooks/useLocale';
 import { getPlanDisplay, isPremiumPlan } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useClearAllCache } from '@/hooks/useQueries';
@@ -29,6 +30,8 @@ function ChevronRight({ className }: { className?: string }) {
 
 export default function MyPage() {
   const router = useRouter();
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const { user, _hasHydrated, logout } = useAuthStore();
   const clearAllCache = useClearAllCache();
 
@@ -75,7 +78,7 @@ export default function MyPage() {
               {user.avatar ? (
                 <img
                   src={user.avatar}
-                  alt={user.name || '사용자'}
+                  alt={user.name || (isEn ? 'User' : '사용자')}
                   className="w-[72px] h-[72px] rounded-full object-cover border-4 border-gray-200"
                 />
               ) : (
@@ -88,7 +91,7 @@ export default function MyPage() {
 
               {/* 유저 정보 */}
               <div className="flex-1">
-                <h2 className="text-[20px] font-bold text-[#1c1c1e]">{user.name || '사용자'}</h2>
+                <h2 className="text-[20px] font-bold text-[#1c1c1e]">{user.name || (isEn ? 'User' : '사용자')}</h2>
                 <p className="text-[14px] text-gray-500">{user.email}</p>
 
                 <div className="flex items-center gap-2 mt-2">
@@ -99,9 +102,9 @@ export default function MyPage() {
 
                   {user.provider && (
                     <span className="text-[12px] text-[#999999]">
-                      {user.provider === 'kakao' && '카카오 로그인'}
-                      {user.provider === 'google' && 'Google 로그인'}
-                      {user.provider === 'credentials' && '이메일 로그인'}
+                      {user.provider === 'kakao' && (isEn ? 'Kakao Login' : '카카오 로그인')}
+                      {user.provider === 'google' && 'Google'}
+                      {user.provider === 'credentials' && (isEn ? 'Email Login' : '이메일 로그인')}
                     </span>
                   )}
                 </div>
@@ -113,7 +116,7 @@ export default function MyPage() {
           {activePurchases.length > 0 && (
             <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-200">
-                <h3 className="text-[13px] font-semibold text-gray-500">내 구매 상품</h3>
+                <h3 className="text-[13px] font-semibold text-gray-500">{isEn ? 'My Purchases' : '내 구매 상품'}</h3>
               </div>
               {activePurchases.map((purchase: any) => {
                 const startDate = new Date(purchase.createdAt || purchase.expiresAt);
@@ -131,14 +134,14 @@ export default function MyPage() {
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[15px] font-medium text-[#1c1c1e]">{purchase.package.name}</span>
                       {isExpired ? (
-                        <span className="text-[12px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500">만료됨</span>
+                        <span className="text-[12px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500">{isEn ? 'Expired' : '만료됨'}</span>
                       ) : (
-                        <span className="text-[12px] font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">이용중</span>
+                        <span className="text-[12px] font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">{isEn ? 'Active' : '이용중'}</span>
                       )}
                     </div>
                     <div className="text-[13px] text-gray-500 space-y-0.5">
-                      <p>유효기간: {displayStart ? `${displayStart} ~ ` : ''}{displayEnd}</p>
-                      {wordCount && <p>단어 수: {wordCount.toLocaleString()}개</p>}
+                      <p>{isEn ? 'Valid: ' : '유효기간: '}{displayStart ? `${displayStart} ~ ` : ''}{displayEnd}</p>
+                      {wordCount && <p>{isEn ? 'Words: ' : '단어 수: '}{wordCount.toLocaleString()}{isEn ? '' : '개'}</p>}
                     </div>
                   </div>
                 );
@@ -149,14 +152,14 @@ export default function MyPage() {
           {/* 계정 설정 메뉴 (은행 앱 스타일) */}
           <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-200">
-              <h3 className="text-[13px] font-semibold text-gray-500">계정 설정</h3>
+              <h3 className="text-[13px] font-semibold text-gray-500">{isEn ? 'Account' : '계정 설정'}</h3>
             </div>
 
             <Link href="/settings?tab=profile">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">👤</span>
-                  <span className="text-[15px] font-medium text-[#1c1c1e]">프로필 설정</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">{isEn ? 'Profile' : '프로필 설정'}</span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
               </div>
@@ -166,7 +169,7 @@ export default function MyPage() {
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">🔒</span>
-                  <span className="text-[15px] font-medium text-[#1c1c1e]">비밀번호 변경</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">{isEn ? 'Change Password' : '비밀번호 변경'}</span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
               </div>
@@ -176,7 +179,7 @@ export default function MyPage() {
               <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">💳</span>
-                  <span className="text-[15px] font-medium text-[#1c1c1e]">구독 관리</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">{isEn ? 'Subscription' : '구독 관리'}</span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
               </div>
@@ -186,7 +189,7 @@ export default function MyPage() {
           {/* 기타 메뉴 (은행 앱 스타일) */}
           <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-200">
-              <h3 className="text-[13px] font-semibold text-gray-500">기타</h3>
+              <h3 className="text-[13px] font-semibold text-gray-500">{isEn ? 'More' : '기타'}</h3>
             </div>
 
             {!isPremiumPlan(user) && (
@@ -195,7 +198,9 @@ export default function MyPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-xl">✨</span>
                     <span className="text-[15px] font-medium text-[#14B8A6]">
-                      {(user as any).subscriptionPlan === 'MONTHLY' ? '프리미엄으로 업그레이드' : '플랜 업그레이드'}
+                      {(user as any).subscriptionPlan === 'MONTHLY'
+                        ? (isEn ? 'Upgrade to Premium' : '프리미엄으로 업그레이드')
+                        : (isEn ? 'Upgrade Plan' : '플랜 업그레이드')}
                     </span>
                   </div>
                   <ChevronRight className="w-5 h-5 text-[#14B8A6]" />
@@ -207,7 +212,7 @@ export default function MyPage() {
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">📦</span>
-                  <span className="text-[15px] font-medium text-[#1c1c1e]">단품 구매</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">{isEn ? 'Vocab Packs' : '단품 구매'}</span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
               </div>
@@ -217,7 +222,7 @@ export default function MyPage() {
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">📊</span>
-                  <span className="text-[15px] font-medium text-[#1c1c1e]">상세 통계</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">{isEn ? 'Statistics' : '상세 통계'}</span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
               </div>
@@ -227,7 +232,7 @@ export default function MyPage() {
               <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">❓</span>
-                  <span className="text-[15px] font-medium text-[#1c1c1e]">도움말</span>
+                  <span className="text-[15px] font-medium text-[#1c1c1e]">{isEn ? 'Help' : '도움말'}</span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-[#C8C8C8]" />
               </div>
@@ -239,7 +244,7 @@ export default function MyPage() {
             onClick={handleLogout}
             className="w-full py-4 text-[#EF4444] font-semibold text-[15px] bg-white rounded-xl shadow-sm border border-gray-200 hover:bg-[#FEF2F2] transition-colors"
           >
-            로그아웃
+            {isEn ? 'Sign Out' : '로그아웃'}
           </button>
 
           {/* 앱 정보 */}
