@@ -8,6 +8,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
+import { useLocale } from '@/hooks/useLocale';
 
 interface EmptyStateProps {
   icon?: string;
@@ -109,41 +110,45 @@ export function EmptySearchResults({ query, onClear }: { query?: string; onClear
 export function EmptyFirstTime({
   type,
   actionHref,
-  actionLabel = '시작하기'
+  actionLabel,
 }: {
   type: 'words' | 'decks' | 'bookmarks' | 'history' | 'reviews';
   actionHref?: string;
   actionLabel?: string;
 }) {
+  const locale = useLocale();
+  const isEn = locale === 'en';
+  const defaultLabel = actionLabel || (isEn ? 'Start' : '시작하기');
+
   const configs = {
     words: {
       icon: '📚',
-      title: '아직 학습한 단어가 없어요',
-      description: '지금 바로 첫 단어를 학습해보세요!',
+      title: isEn ? 'No words to learn yet' : '아직 학습한 단어가 없어요',
+      description: isEn ? 'Start learning your first word now!' : '지금 바로 첫 단어를 학습해보세요!',
       defaultHref: '/learn',
     },
     decks: {
       icon: '📂',
-      title: '아직 생성한 덱이 없어요',
-      description: '나만의 단어장을 만들어보세요!',
+      title: isEn ? 'No decks created yet' : '아직 생성한 덱이 없어요',
+      description: isEn ? 'Create your own word list!' : '나만의 단어장을 만들어보세요!',
       defaultHref: '/decks/create',
     },
     bookmarks: {
       icon: '⭐',
-      title: '아직 북마크한 단어가 없어요',
-      description: '학습하고 싶은 단어를 북마크해보세요!',
+      title: isEn ? 'No bookmarked words yet' : '아직 북마크한 단어가 없어요',
+      description: isEn ? 'Bookmark words you want to study!' : '학습하고 싶은 단어를 북마크해보세요!',
       defaultHref: '/words',
     },
     history: {
       icon: '📊',
-      title: '아직 학습 기록이 없어요',
-      description: '학습을 시작하면 기록이 여기에 표시됩니다.',
+      title: isEn ? 'No study history yet' : '아직 학습 기록이 없어요',
+      description: isEn ? 'Your history will appear here once you start learning.' : '학습을 시작하면 기록이 여기에 표시됩니다.',
       defaultHref: '/learn',
     },
     reviews: {
       icon: '✅',
-      title: '복습할 단어가 없어요',
-      description: '잘하고 있어요! 새로운 단어를 학습해보세요.',
+      title: isEn ? 'No words to review' : '복습할 단어가 없어요',
+      description: isEn ? 'Great job! Try learning new words.' : '잘하고 있어요! 새로운 단어를 학습해보세요.',
       defaultHref: '/learn',
     },
   };
@@ -156,7 +161,7 @@ export function EmptyFirstTime({
       title={config.title}
       description={config.description}
       action={{
-        label: actionLabel,
+        label: defaultLabel,
         href: actionHref || config.defaultHref,
       }}
     />

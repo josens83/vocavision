@@ -1237,30 +1237,32 @@ function LearnPageContent() {
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">체험이 완료되었습니다!</h2>
+          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">{isEn ? 'Demo Complete!' : '체험이 완료되었습니다!'}</h2>
           <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
-            10회 무료 체험을 모두 사용하셨습니다.<br />
-            VocaVision AI의 모든 기능을 이용하려면<br />
-            무료 회원가입을 해주세요.
+            {isEn ? (
+              <>You&apos;ve used all 10 free demos.<br />Sign up for free to access all features.</>
+            ) : (
+              <>10회 무료 체험을 모두 사용하셨습니다.<br />VocaVision AI의 모든 기능을 이용하려면<br />무료 회원가입을 해주세요.</>
+            )}
           </p>
           <div className="space-y-3">
             <a
               href="/auth/register"
               className="block w-full py-3.5 px-4 bg-[#14B8A6] text-white font-bold text-[14px] rounded-xl hover:bg-[#0D9488] transition shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
             >
-              무료 회원가입
+              {isEn ? 'Sign Up Free' : '무료 회원가입'}
             </a>
             <a
               href="/auth/login"
               className="block w-full py-3.5 px-4 border-2 border-[#E8E8E8] text-gray-500 font-semibold text-[14px] rounded-xl hover:bg-gray-100 transition"
             >
-              이미 계정이 있으신가요? 로그인
+              {isEn ? 'Already have an account? Log in' : '이미 계정이 있으신가요? 로그인'}
             </a>
             <button
               onClick={() => router.push('/')}
               className="block w-full py-2 text-[#999999] text-[13px] hover:text-gray-500 transition"
             >
-              메인으로 돌아가기
+              {isEn ? 'Back to Home' : '메인으로 돌아가기'}
             </button>
           </div>
         </div>
@@ -1275,8 +1277,8 @@ function LearnPageContent() {
         <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
           <div className="bg-white rounded-2xl p-8 text-center border border-gray-200 max-w-md mx-auto">
             <div className="text-6xl mb-4">⚠️</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">단어를 불러오지 못했어요</h3>
-            <p className="text-gray-500 mb-6 text-sm">네트워크 상태를 확인하고 다시 시도해주세요.</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{isEn ? 'Failed to load words' : '단어를 불러오지 못했어요'}</h3>
+            <p className="text-gray-500 mb-6 text-sm">{isEn ? 'Please check your connection and try again.' : '네트워크 상태를 확인하고 다시 시도해주세요.'}</p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => {
@@ -1285,13 +1287,13 @@ function LearnPageContent() {
                 }}
                 className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white px-6 py-3 rounded-xl font-bold"
               >
-                다시 시도
+                {isEn ? 'Retry' : '다시 시도'}
               </button>
               <button
                 onClick={() => router.push(exitPath)}
                 className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium"
               >
-                돌아가기
+                {isEn ? 'Go Back' : '돌아가기'}
               </button>
             </div>
           </div>
@@ -1409,8 +1411,8 @@ function LearnPageContent() {
                 className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] hover:opacity-90 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-[#14B8A6]/25"
               >
                 {serverSession
-                  ? `Set ${completedSet + 1} 시작하기 →`
-                  : `다음 ${Math.min(20, totalWordsInLevel - totalLearnedInLevel - wordsStudied)}개 학습 →`
+                  ? (isEn ? `Start Set ${completedSet + 1} →` : `Set ${completedSet + 1} 시작하기 →`)
+                  : (isEn ? `Learn next ${Math.min(20, totalWordsInLevel - totalLearnedInLevel - wordsStudied)} →` : `다음 ${Math.min(20, totalWordsInLevel - totalLearnedInLevel - wordsStudied)}개 학습 →`)
                 }
               </button>
             ) : (

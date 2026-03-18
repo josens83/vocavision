@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocale } from '@/hooks/useLocale';
 
 interface Word {
   id: string;
@@ -28,36 +29,46 @@ interface Word {
 type TabType = "best" | "new";
 
 // 레벨별 스타일 (NEW 탭용)
-const levelStyles: Record<string, { bg: string; text: string; label: string }> = {
-  L1: { bg: "bg-green-100", text: "text-green-700", label: "기초" },
-  L2: { bg: "bg-blue-100", text: "text-blue-700", label: "중급" },
-  L3: { bg: "bg-purple-100", text: "text-purple-700", label: "고급" },
-};
+function getLevelStyles(isEn: boolean): Record<string, { bg: string; text: string; label: string }> {
+  return {
+    L1: { bg: "bg-green-100", text: "text-green-700", label: isEn ? "Basic" : "기초" },
+    L2: { bg: "bg-blue-100", text: "text-blue-700", label: isEn ? "Inter" : "중급" },
+    L3: { bg: "bg-purple-100", text: "text-purple-700", label: isEn ? "Adv" : "고급" },
+  };
+}
 
 // BEST 탭 단어별 난이도 매핑
-const bestWordDifficulty: Record<string, string> = {
-  'sycophant': '고급',
-  'ephemeral': '고급',
-  'ubiquitous': '중급',
-  'scrutinize': '중급',
-  'eloquent': '중급',
-  'synthesis': '중급',
-  'paradigm': '중급',
-  'anthropology': '중급',
-  'methodology': '중급',
-  'subsidiary': '중급',
-};
+function getBestWordDifficulty(isEn: boolean): Record<string, string> {
+  const adv = isEn ? 'Adv' : '고급';
+  const inter = isEn ? 'Inter' : '중급';
+  return {
+    'sycophant': adv,
+    'ephemeral': adv,
+    'ubiquitous': inter,
+    'scrutinize': inter,
+    'eloquent': inter,
+    'synthesis': inter,
+    'paradigm': inter,
+    'anthropology': inter,
+    'methodology': inter,
+    'subsidiary': inter,
+  };
+}
 
 // 난이도별 스타일 (BEST 탭용)
-const difficultyStyles: Record<string, { bg: string; text: string }> = {
-  '기초': { bg: "bg-green-100", text: "text-green-700" },
-  '중급': { bg: "bg-orange-100", text: "text-orange-700" },
-  '고급': { bg: "bg-purple-100", text: "text-purple-700" },
-};
+function getDifficultyStyles(isEn: boolean): Record<string, { bg: string; text: string }> {
+  return {
+    [isEn ? 'Basic' : '기초']: { bg: "bg-green-100", text: "text-green-700" },
+    [isEn ? 'Inter' : '중급']: { bg: "bg-orange-100", text: "text-orange-700" },
+    [isEn ? 'Adv' : '고급']: { bg: "bg-purple-100", text: "text-purple-700" },
+  };
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 export default function PopularWordsSection() {
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const [activeTab, setActiveTab] = useState<TabType>("best");
   const [bestWords, setBestWords] = useState<Word[]>([]);
   const [newWords, setNewWords] = useState<Word[]>([]);
@@ -119,18 +130,18 @@ export default function PopularWordsSection() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-display-sm font-display font-bold text-slate-900">
-                오늘의 <span className="text-gradient">추천 단어</span>
+                {isEn ? <>Today&apos;s <span className="text-gradient">Featured Words</span></> : <>오늘의 <span className="text-gradient">추천 단어</span></>}
               </h2>
               {isSampleData && (
                 <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
-                  예시
+                  {isEn ? 'Sample' : '예시'}
                 </span>
               )}
             </div>
             <p className="text-slate-600">
               {isSampleData
-                ? "로그인하면 나만의 추천 단어를 확인할 수 있어요!"
-                : "학습자들이 많이 찾는 단어와 새로 추가된 단어를 확인해보세요."}
+                ? (isEn ? "Sign in to see your personalized word recommendations!" : "로그인하면 나만의 추천 단어를 확인할 수 있어요!")
+                : (isEn ? "Check out popular and newly added words." : "학습자들이 많이 찾는 단어와 새로 추가된 단어를 확인해보세요.")}
             </p>
           </div>
 
@@ -175,6 +186,7 @@ export default function PopularWordsSection() {
                     rank={activeTab === "best" ? index + 1 : undefined}
                     isNew={activeTab === "new"}
                     delay={index * 0.05}
+                    isEn={isEn}
                   />
                 ))}
               </div>
@@ -195,7 +207,7 @@ export default function PopularWordsSection() {
             href="/words"
             className="inline-flex items-center gap-2 text-brand-primary font-medium hover:underline"
           >
-            전체 단어 보기
+            {isEn ? 'View All Words' : '전체 단어 보기'}
             <svg
               className="w-4 h-4"
               fill="none"
@@ -248,13 +260,19 @@ function WordCard({
   rank,
   isNew,
   delay,
+  isEn,
 }: {
   word: Word;
   rank?: number;
   isNew?: boolean;
   delay: number;
+  isEn: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+
+  const levelStyles = getLevelStyles(isEn);
+  const bestWordDifficulty = getBestWordDifficulty(isEn);
+  const difficultyStyles = getDifficultyStyles(isEn);
 
   // BEST 탭(rank가 있을 때)은 하드코딩된 난이도 사용, NEW 탭은 기존 레벨 스타일 사용
   const isBest = rank !== undefined;
