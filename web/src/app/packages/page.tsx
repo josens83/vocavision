@@ -91,7 +91,7 @@ const packages: Package[] = [
     slug: 'toeic-complete',
     name: 'TOEIC 점수폭발',
     description: '취업·승진을 결정짓는 TOEIC. Starter 기초부터 Booster 고득점까지 2,491개 핵심 어휘만 골라담았다. AI 이미지로 외우면 시험장에서 잊히지 않는다.',
-    price: 9900,
+    price: 7900,
     duration: '6개월',
     wordCount: 2491,
     features: [
@@ -125,7 +125,7 @@ const packages: Package[] = [
     slug: 'gre-complete',
     name: 'GRE 완전정복',
     description: '대학원 유학의 관문 GRE Verbal 핵심~고급 어휘 4,346개. Greek·Latin 어근 기반으로 핵심(L1) 1,858개 + 고급(L2) 2,488개를 AI 이미지·어원·라임으로 단기 완성.',
-    price: 9900,
+    price: 12900,
     duration: '6개월',
     wordCount: 4346,
     features: [
@@ -143,7 +143,7 @@ const packages: Package[] = [
     slug: 'ielts-complete',
     name: 'IELTS 완전정복',
     description: 'IELTS Foundation~Academic 어휘 795개 완성. Band 5~8을 AI 이미지·어원·라임 8단계 학습으로 단기 정복.',
-    price: 9900,
+    price: 6900,
     duration: '6개월',
     wordCount: 795,
     features: [
@@ -157,6 +157,16 @@ const packages: Package[] = [
     badge: 'NEW',
   },
 ];
+
+const usdPrices: Record<string, string> = {
+  '2026-csat-analysis': '$3.99',
+  'ebs-vocab': '$6.99',
+  'toefl-complete': '$9.99',
+  'toeic-complete': '$7.99',
+  'sat-complete': '$9.99',
+  'gre-complete': '$12.99',
+  'ielts-complete': '$6.99',
+};
 
 const descriptionEn: Record<string, string> = {
   'toefl-complete': '3,651 TOEFL words from Core to Advanced. Greek·Latin etymology makes them unforgettable.',
@@ -225,7 +235,7 @@ export default function PackagesPage() {
                           </p>
                         )}
                         <p className="text-2xl font-bold text-[#14B8A6]">
-                          {isEn ? '$9.99' : `${pkg.price.toLocaleString()}원`}
+                          {isEn ? (usdPrices[pkg.slug] || '$9.99') : `${pkg.price.toLocaleString()}원`}
                         </p>
                       </div>
                       <Link

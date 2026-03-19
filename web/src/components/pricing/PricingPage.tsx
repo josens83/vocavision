@@ -500,7 +500,7 @@ export default function PricingPage() {
                   : '취업·승진 필수! TOEIC 핵심 어휘를 AI 이미지로 한 번에 정복. Starter(기초) + Booster(실전) 2단계 구성.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$9.99' : '₩9,900'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$7.99' : '₩7,900'}</span>
                 <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
               </div>
               <button
@@ -566,7 +566,7 @@ export default function PricingPage() {
                   : 'GRE Verbal 핵심(L1) 1,858개 + 고급(L2) 2,488개. Greek·Latin 어원 기반 단기 완성.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$9.99' : '₩9,900'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$12.99' : '₩12,900'}</span>
                 <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
               </div>
               <button
@@ -599,7 +599,7 @@ export default function PricingPage() {
                   : 'IELTS Foundation(L1) 330개 + Academic(L2) 258개. Band 5~8 전 구간 단기 완성.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$9.99' : '₩9,900'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$6.99' : '₩6,900'}</span>
                 <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
               </div>
               <button

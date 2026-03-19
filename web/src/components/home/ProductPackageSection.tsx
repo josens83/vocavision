@@ -73,7 +73,7 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       shortDesc: isEn
         ? "2,491 essential TOEIC words from Starter to Booster. AI visual mnemonics for exam-day recall."
         : "취업·승진을 결정짓는 TOEIC. Starter~Booster 2,491개 핵심 어휘, AI 이미지로 외우면 시험장에서 잊히지 않는다.",
-      price: 9900,
+      price: 7900,
       durationDays: 180,
       badge: "NEW",
       isComingSoon: false,
@@ -99,7 +99,7 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       shortDesc: isEn
         ? "4,346 GRE Verbal words. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery."
         : "대학원 유학의 관문 GRE Verbal. Greek·Latin 어근 기반 핵심(L1) 1,858개 + 고급(L2) 2,488개를 AI 이미지·어원·라임으로 단기 완성.",
-      price: 9900,
+      price: 12900,
       durationDays: 180,
       badge: "NEW",
       isComingSoon: false,
@@ -112,7 +112,7 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       shortDesc: isEn
         ? "795 IELTS words. Foundation (L1) 401 + Academic (L2) 394. Band 5~8 complete coverage."
         : "영국 유학·이민의 관문 IELTS. Foundation(L1) 330개 + Academic(L2) 258개를 AI 이미지·어원·라임으로 단기 완성.",
-      price: 9900,
+      price: 6900,
       durationDays: 180,
       badge: "NEW",
       isComingSoon: false,
@@ -156,10 +156,10 @@ const usdPrices: Record<string, string> = {
   '2026-csat-analysis': '$3.99',
   'ebs-vocab': '$6.99',
   'toefl-complete': '$9.99',
-  'toeic-complete': '$9.99',
+  'toeic-complete': '$7.99',
   'sat-complete': '$9.99',
-  'gre-complete': '$9.99',
-  'ielts-complete': '$9.99',
+  'gre-complete': '$12.99',
+  'ielts-complete': '$6.99',
 };
 
 // 패키지 카드 컴포넌트 - 플랫 화이트 스타일
