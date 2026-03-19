@@ -8,6 +8,7 @@ import { ArrowLeft, Volume2 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { progressAPI, learningAPI, wordsAPI } from '@/lib/api';
 import { useInvalidateReviews } from '@/hooks/useQueries';
+import { useLocale } from '@/hooks/useLocale';
 
 interface QuizOption {
   text: string;
@@ -42,30 +43,31 @@ interface QuizQuestion {
   incorrectCount: number;
 }
 
-// 품사 한글 매핑
-const POS_LABELS: Record<string, string> = {
-  NOUN: '명사',
-  VERB: '동사',
-  ADJECTIVE: '형용사',
-  ADVERB: '부사',
-  PRONOUN: '대명사',
-  PREPOSITION: '전치사',
-  CONJUNCTION: '접속사',
-  INTERJECTION: '감탄사',
+// 품사 매핑 (locale별)
+const POS_LABELS_KO: Record<string, string> = {
+  NOUN: '명사', VERB: '동사', ADJECTIVE: '형용사', ADVERB: '부사',
+  PRONOUN: '대명사', PREPOSITION: '전치사', CONJUNCTION: '접속사', INTERJECTION: '감탄사',
+};
+const POS_LABELS_EN: Record<string, string> = {
+  NOUN: 'NOUN', VERB: 'VERB', ADJECTIVE: 'ADJ', ADVERB: 'ADV',
+  PRONOUN: 'PRON', PREPOSITION: 'PREP', CONJUNCTION: 'CONJ', INTERJECTION: 'INTERJ',
 };
 
-// 시험 카테고리 한글 매핑
-const EXAM_LABELS: Record<string, string> = {
-  CSAT: '수능',
-  TEPS: 'TEPS',
-  TOEFL: 'TOEFL',
-  TOEIC: 'TOEIC',
-  SAT: 'SAT',
+// 시험 카테고리 매핑 (locale별)
+const EXAM_LABELS_KO: Record<string, string> = {
+  CSAT: '수능', TEPS: 'TEPS', TOEFL: 'TOEFL', TOEIC: 'TOEIC', SAT: 'SAT',
+};
+const EXAM_LABELS_EN: Record<string, string> = {
+  CSAT: 'CSAT', TEPS: 'TEPS', TOEFL: 'TOEFL', TOEIC: 'TOEIC', SAT: 'SAT',
 };
 
 function QuizPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = useLocale();
+  const isEn = locale === 'en';
+  const POS_LABELS = isEn ? POS_LABELS_EN : POS_LABELS_KO;
+  const EXAM_LABELS = isEn ? EXAM_LABELS_EN : EXAM_LABELS_KO;
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
@@ -170,7 +172,7 @@ function QuizPageContent() {
     try {
       // API에서 샘플 단어 15개 로드 (10문제 + 오답 선택지용)
       const data = await wordsAPI.getWords({
-        examCategory: 'CSAT',
+        examCategory: isEn ? 'SAT' : 'CSAT',
         limit: 15,
       });
 
@@ -185,8 +187,12 @@ function QuizPageContent() {
         const otherWords = words.filter((w: any) => w.id !== word.id);
         const shuffledOthers = otherWords.sort(() => Math.random() - 0.5).slice(0, 3);
 
-        const correctAnswer = word.definitionKo || word.definition || '뜻 없음';
-        const wrongAnswers = shuffledOthers.map((w: any) => w.definitionKo || w.definition || '뜻 없음');
+        const correctAnswer = isEn
+          ? (word.definition || word.definitionKo || 'No definition')
+          : (word.definitionKo || word.definition || '뜻 없음');
+        const wrongAnswers = shuffledOthers.map((w: any) =>
+          isEn ? (w.definition || w.definitionKo || 'No definition') : (w.definitionKo || w.definition || '뜻 없음')
+        );
 
         // 선택지 섞기
         const allOptions: QuizOption[] = [
@@ -213,7 +219,7 @@ function QuizPageContent() {
             audioUrlUs: word.audioUrlUs,
             audioUrlUk: word.audioUrlUk,
             pronunciationKo: word.pronunciationKo,
-            examCategory: 'CSAT',
+            examCategory: isEn ? 'SAT' : 'CSAT',
             level: 'L1',
           },
           visuals,
@@ -577,7 +583,7 @@ function QuizPageContent() {
               onClick={handleNext}
               className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold rounded-xl transition shadow-lg shadow-pink-500/25"
             >
-              {currentIndex < questions.length - 1 ? '다음 단어 →' : '완료 🎉'}
+              {currentIndex < questions.length - 1 ? (isEn ? 'Next →' : '다음 단어 →') : (isEn ? 'Done 🎉' : '완료 🎉')}
             </button>
           )}
         </div>
