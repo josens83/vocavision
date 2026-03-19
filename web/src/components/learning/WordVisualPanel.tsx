@@ -17,6 +17,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
+import { useLocale } from '@/hooks/useLocale';
 
 // Visual type from backend
 export type VisualType = 'CONCEPT' | 'MNEMONIC' | 'RHYME';
@@ -93,6 +94,8 @@ export default function WordVisualPanel({
   word,
   showEnglishCaption = false,
 }: WordVisualPanelProps) {
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const [activeTab, setActiveTab] = useState<VisualType>('CONCEPT');
   const [imageError, setImageError] = useState<Record<string, boolean>>({});
 
@@ -118,7 +121,9 @@ export default function WordVisualPanel({
   }
 
   const currentVisual = normalizedVisuals.find((v) => v.type === activeTab);
-  const tabOrder: VisualType[] = ['CONCEPT', 'MNEMONIC', 'RHYME'];
+  const tabOrder: VisualType[] = isEn
+    ? ['CONCEPT', 'RHYME']
+    : ['CONCEPT', 'MNEMONIC', 'RHYME'];
 
   const handleSwipe = (direction: 'left' | 'right') => {
     const validTabs = tabOrder.filter(
@@ -157,12 +162,16 @@ export default function WordVisualPanel({
 
   // Get label for tab (prefer custom labelKo from visual, fallback to config)
   const getTabLabel = (type: VisualType): string => {
+    if (isEn) return TAB_CONFIG[type].label;
     const visual = normalizedVisuals.find((v) => v.type === type);
     return visual?.labelKo || TAB_CONFIG[type].labelKo;
   };
 
   // Get caption (prefer Korean, optionally show English)
   const getCaption = (visual: WordVisual): string | null => {
+    if (isEn) {
+      return visual.captionEn || null;
+    }
     if (showEnglishCaption && visual.captionEn) {
       return visual.captionKo
         ? `${visual.captionKo}\n${visual.captionEn}`
