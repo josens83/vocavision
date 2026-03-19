@@ -56,7 +56,8 @@ export default function PricingPage() {
   const features: PlanFeature[] = isEn ? [
     { name: "SAT Starter (L1) — 934 words", free: true, basic: true, premium: true },
     { name: "SAT Advanced (L2) — 1,000 words", free: false, basic: true, premium: true },
-    { name: "GRE / TOEFL / IELTS / TOEIC Packs", free: false, basic: false, premium: true },
+    { name: "IELTS Academic Mastery (795 words)", free: false, basic: true, premium: true },
+    { name: "GRE / TOEFL / TOEIC Packs", free: false, basic: false, premium: true },
     { name: "AI Visual Images", free: "some", basic: true, premium: true },
     { name: "Flashcards", free: true, basic: true, premium: true },
     { name: "Quiz Mode", free: "all", basic: "all", premium: "all" },
@@ -339,6 +340,12 @@ export default function PricingPage() {
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
                 <span className="font-semibold">{isEn ? 'SAT Full (Starter L1 + Advanced L2) — 1,934 words' : '수능 전체 (L1/L2/L3) — 1,787개 단어'}</span>
               </li>
+              {isEn && (
+                <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
+                  <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
+                  <span className="font-semibold">IELTS Academic Mastery — 795 words</span>
+                </li>
+              )}
               {!isEn && (
                 <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                   <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -359,7 +366,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
-                <span>{isEn ? 'GRE / TOEFL / IELTS / TOEIC Packs' : '단어장 (TOEFL/TOEIC/GRE/IELTS/EBS/기출)'}</span>
+                <span>{isEn ? 'GRE / TOEFL / TOEIC Packs' : '단어장 (TOEFL/TOEIC/GRE/IELTS/EBS/기출)'}</span>
               </li>
             </ul>
           </div>
@@ -573,8 +580,8 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* IELTS 완전정복 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
+            {/* IELTS 완전정복 - 글로벌은 Basic에 포함 */}
+            {!isEn && <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
                   NEW
@@ -604,7 +611,7 @@ export default function PricingPage() {
               >
                 {isEn ? 'Buy Now' : '구매하기'}
               </button>
-            </div>
+            </div>}
           </div>
         </div>
 

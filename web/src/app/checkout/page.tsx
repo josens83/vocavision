@@ -48,8 +48,8 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
         : "수능 영어 완벽 대비를 원하는 분께 추천",
       features: isEn
         ? [
-            "CSAT L1 (Basic) / L2 (Intermediate) / L3 (Advanced)",
-            "TEPS Basic/Intermediate vocabulary (388 words)",
+            "SAT Full (Starter L1 + Advanced L2) — 1,934 words",
+            "IELTS Academic Mastery — 795 words",
             "All AI-generated images",
             "All quiz modes",
             "Detailed learning statistics",
@@ -169,25 +169,48 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
     setIsProcessing(true);
 
     try {
-      const { requestPaymentWithParams } = await import("@/lib/payments/toss");
+      if (isEn) {
+        // Paddle (글로벌)
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://vocavisionbackend-production.up.railway.app'}/api/paddle/create-package-checkout`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ packageSlug }),
+          }
+        );
+        const data = await res.json();
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+        } else {
+          throw new Error('No checkout URL');
+        }
+      } else {
+        // TossPayments (한국)
+        const { requestPaymentWithParams } = await import("@/lib/payments/toss");
 
-      const safeUserId = user.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 16);
-      const orderId = `vv-pkg-${safeUserId}-${packageSlug}-${Date.now()}`;
+        const safeUserId = user.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 16);
+        const orderId = `vv-pkg-${safeUserId}-${packageSlug}-${Date.now()}`;
 
-      await requestPaymentWithParams({
-        orderId,
-        orderName: packageInfo.name,
-        amount: packageInfo.price,
-        customerEmail: user.email || undefined,
-        customerName: user.name || (isEn ? "Customer" : "고객"),
-        packageSlug: packageSlug,
-        packageId: packageInfo.id,
-        userId: user.id,
-        isPackagePurchase: true,
-      });
+        await requestPaymentWithParams({
+          orderId,
+          orderName: packageInfo.name,
+          amount: packageInfo.price,
+          customerEmail: user.email || undefined,
+          customerName: user.name || (isEn ? "Customer" : "고객"),
+          packageSlug: packageSlug,
+          packageId: packageInfo.id,
+          userId: user.id,
+          isPackagePurchase: true,
+        });
+      }
     } catch (error) {
       console.error("결제 오류:", error);
-      alert(isEn ? "An error occurred during payment. Please try again." : "결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+      alert(isEn ? "Payment error. Please try again." : "결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsProcessing(false);
     }
