@@ -96,6 +96,9 @@ export default function FlashCardGesture({
 }: FlashCardGestureProps) {
   const locale = useLocale();
   const isEn = locale === 'en';
+  const POS_MAP: Record<string, string> = isEn
+    ? { NOUN: 'NOUN', VERB: 'VERB', ADJECTIVE: 'ADJ', ADVERB: 'ADV', PRONOUN: 'PRON', PREPOSITION: 'PREP', CONJUNCTION: 'CONJ', INTERJECTION: 'INTERJ' }
+    : { NOUN: '명사', VERB: '동사', ADJECTIVE: '형용사', ADVERB: '부사', PRONOUN: '대명사', PREPOSITION: '전치사', CONJUNCTION: '접속사', INTERJECTION: '감탄사' };
   const [showAnswer, setShowAnswer] = useState(false);
   const [showSwipeHint, setShowSwipeHint] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
@@ -286,7 +289,7 @@ export default function FlashCardGesture({
             {/* Part of Speech Badge */}
             {word.partOfSpeech && (
               <span className="inline-block bg-gray-100 text-gray-600 text-xs font-medium px-3 py-1 rounded-full mb-4">
-                {word.partOfSpeech}
+                {POS_MAP[word.partOfSpeech] || word.partOfSpeech}
               </span>
             )}
 
@@ -320,7 +323,7 @@ export default function FlashCardGesture({
           {!isReviewMode && (
             <div className="p-6 border-b border-gray-100">
               <p className="text-center text-gray-500 text-xs md:text-sm mb-3">
-                이 단어를 알고 있었나요?
+                {isEn ? 'Did you know this word?' : '이 단어를 알고 있었나요?'}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <button

@@ -455,7 +455,8 @@ function LearnPageContent() {
       } else if (isDemo && examParam) {
         gaEvent('demo_start', { category: 'engagement' });
         const data = await wordsAPI.getWords({
-          examCategory: examParam,
+          examCategory: isEn ? 'SAT' : (examParam || 'CSAT'),
+          level: 'L1',
           limit: 20,
         });
         const words = data.words || data.data || [];
@@ -1355,7 +1356,7 @@ function LearnPageContent() {
               Set {completedSet} 완료!
             </h3>
             <p className="text-gray-600 mb-4">
-              {wordsStudied}단어 학습 · 정확도 {percentage}%
+              {isEn ? `${wordsStudied} words · Accuracy ${percentage}%` : `${wordsStudied}단어 학습 · 정확도 ${percentage}%`}
             </p>
           </motion.div>
 
@@ -1513,10 +1514,10 @@ function LearnPageContent() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[13px]">
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 bg-[#F59E0B] text-white rounded-full font-bold text-[11px] shrink-0">체험</span>
-                <span className="text-[#92400E] whitespace-nowrap">학습 기록이 저장되지 않습니다.</span>
+                <span className="text-[#92400E] whitespace-nowrap">{isEn ? 'Learning data will not be saved.' : '학습 기록이 저장되지 않습니다.'}</span>
               </div>
               <a href="/auth/login" className="text-[#78350F] font-semibold underline hover:text-[#92400E] whitespace-nowrap">
-                로그인하고 기록 저장하기
+                {isEn ? 'Sign in to save progress' : '로그인하고 기록 저장하기'}
               </a>
             </div>
           </div>
@@ -1565,7 +1566,7 @@ function LearnPageContent() {
 
             {/* Right - Stats (compact on mobile) */}
             <div className="flex items-center gap-1.5 shrink-0 bg-[#ECFDF5] px-3 py-1.5 rounded-full">
-              <span className="text-[11px] text-[#059669] hidden sm:inline">정확도</span>
+              <span className="text-[11px] text-[#059669] hidden sm:inline">{isEn ? 'Accuracy' : '정확도'}</span>
               <span className="text-[13px] font-bold text-[#10B981]">{accuracyPercent}%</span>
             </div>
           </div>
@@ -1586,7 +1587,7 @@ function LearnPageContent() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="hidden sm:inline">이전</span>
+                <span className="hidden sm:inline">{isEn ? 'Prev' : '이전'}</span>
               </button>
 
               {/* Progress Bar */}
@@ -1604,7 +1605,7 @@ function LearnPageContent() {
                 onClick={handleNext}
                 className="flex items-center gap-1 px-2 py-1.5 rounded-[10px] text-[13px] font-medium transition shrink-0 text-gray-500 hover:text-[#1c1c1e] hover:bg-gray-100"
               >
-                <span className="hidden sm:inline">다음</span>
+                <span className="hidden sm:inline">{isEn ? 'Next' : '다음'}</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
@@ -1639,7 +1640,7 @@ function LearnPageContent() {
         {/* Swipe Hint */}
         <div className="flex items-center justify-center gap-2 text-[#C8C8C8] text-[12px] mt-4">
           <span>←</span>
-          <span>스와이프하여 넘기기</span>
+          <span>{isEn ? 'Swipe to navigate' : '스와이프하여 넘기기'}</span>
           <span>→</span>
         </div>
       </div>

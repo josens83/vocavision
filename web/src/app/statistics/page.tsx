@@ -9,6 +9,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import LearningHeatmap from '@/components/statistics/LearningHeatmap';
 import { useStatistics, useActivityHeatmap, useMasteryDistribution, usePrefetchMasteryDistribution } from '@/hooks/useQueries';
 import { EXAM_LIST, EXAM_MAP, getValidLevelsForExam, getLevelLabel, getLevelShortLabel, LEVEL_COLORS } from '@/constants/exams';
+import { useLocale } from '@/hooks/useLocale';
 
 // Benchmarking: Advanced statistics dashboard
 // Phase 2-2: 고급 통계 및 예측 분석 대시보드
@@ -131,6 +132,8 @@ const DEMO_HEATMAP_DATA = generateDemoHeatmapData();
 function StatisticsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const isDemo = searchParams.get('demo') === 'true';
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
@@ -360,13 +363,13 @@ function StatisticsPageContent() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 bg-[#F59E0B] text-white rounded font-bold text-xs">체험</span>
-                <span className="text-[#92400E] text-sm">샘플 데이터로 학습 분석 기능을 미리 체험해보세요</span>
+                <span className="text-[#92400E] text-sm">{isEn ? 'Try learning analytics with sample data' : '샘플 데이터로 학습 분석 기능을 미리 체험해보세요'}</span>
               </div>
               <Link
                 href="/auth/register"
                 className="bg-[#F59E0B] text-white px-4 py-2 rounded-[10px] text-sm font-bold hover:bg-[#D97706] transition whitespace-nowrap"
               >
-                무료 회원가입
+                {isEn ? 'Sign Up Free' : '무료 회원가입'}
               </Link>
             </div>
           </div>
@@ -374,8 +377,8 @@ function StatisticsPageContent() {
 
         {/* 페이지 헤더 */}
         <header className="mb-2">
-          <h1 className="text-[22px] font-bold text-[#1c1c1e]">상세 통계</h1>
-          <p className="text-[14px] text-gray-500 mt-1">학습 진행 상황과 패턴을 분석합니다</p>
+          <h1 className="text-[22px] font-bold text-[#1c1c1e]">{isEn ? 'Learning Statistics' : '상세 통계'}</h1>
+          <p className="text-[14px] text-gray-500 mt-1">{isEn ? 'Analyze your learning progress and patterns' : '학습 진행 상황과 패턴을 분석합니다'}</p>
         </header>
 
         {/* 요약 통계 카드들 (은행 앱 스타일) */}
@@ -384,7 +387,7 @@ function StatisticsPageContent() {
           <div className="bg-[#EFF6FF] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">📚</span>
-              <span className="text-[12px] text-[#3B82F6] font-medium">학습한 단어</span>
+              <span className="text-[12px] text-[#3B82F6] font-medium">{isEn ? 'Words Learned' : '학습한 단어'}</span>
             </div>
             <p className="text-[28px] font-bold text-[#3B82F6]">{stats?.totalWordsLearned || 0}</p>
           </div>
@@ -393,7 +396,7 @@ function StatisticsPageContent() {
           <div className="bg-[#FFF7ED] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">🏆</span>
-              <span className="text-[12px] text-[#F59E0B] font-medium">최장 연속</span>
+              <span className="text-[12px] text-[#F59E0B] font-medium">{isEn ? 'Best Streak' : '최장 연속'}</span>
             </div>
             <p className="text-[28px] font-bold text-[#F59E0B]">{stats?.longestStreak || 0}일</p>
           </div>
@@ -405,7 +408,7 @@ function StatisticsPageContent() {
           <div className="bg-[#ECFDF5] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">🔥</span>
-              <span className="text-[12px] text-[#14B8A6] font-medium">현재 연속</span>
+              <span className="text-[12px] text-[#14B8A6] font-medium">{isEn ? 'Current Streak' : '현재 연속'}</span>
             </div>
             <p className="text-[28px] font-bold text-[#14B8A6]">{stats?.currentStreak || 0}일</p>
           </div>
@@ -414,7 +417,7 @@ function StatisticsPageContent() {
           <div className="bg-[#ECFDF5] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">✅</span>
-              <span className="text-[12px] text-[#10B981] font-medium">정확도</span>
+              <span className="text-[12px] text-[#10B981] font-medium">{isEn ? 'Accuracy' : '정확도'}</span>
             </div>
             <p className="text-[28px] font-bold text-[#10B981]">{totalAccuracy.percent}%</p>
             <p className="text-[11px] text-gray-500 mt-1">
@@ -426,7 +429,7 @@ function StatisticsPageContent() {
         {/* 숙련도 분포 카드 (새 로직) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 overflow-hidden">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-            <h3 className="text-[15px] font-bold text-[#1c1c1e]">숙련도 분포</h3>
+            <h3 className="text-[15px] font-bold text-[#1c1c1e]">{isEn ? 'Mastery Distribution' : '숙련도 분포'}</h3>
 
             {/* 필터 */}
             <div className="flex gap-2 flex-shrink-0">
@@ -486,7 +489,7 @@ function StatisticsPageContent() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="text-xl">📝</span>
-                <span className="text-[14px] font-medium text-[#1c1c1e]">복습 대상 단어</span>
+                <span className="text-[14px] font-medium text-[#1c1c1e]">{isEn ? 'Due for Review' : '복습 대상 단어'}</span>
               </div>
               <span className="text-[18px] font-bold text-[#1c1c1e]">{masteryData.reviewTarget}개</span>
             </div>
@@ -538,7 +541,7 @@ function StatisticsPageContent() {
                 <div className="w-full min-w-0">
                   <div className="flex justify-between items-center mb-1.5 gap-2">
                     <span className="text-[13px] text-gray-500 truncate min-w-0">
-                      복습 중
+                      {isEn ? 'Reviewing' : '복습 중'}
                     </span>
                     <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
                       {reviewingCount}개 ({reviewingPct}%)
@@ -556,7 +559,7 @@ function StatisticsPageContent() {
                 <div className="w-full min-w-0">
                   <div className="flex justify-between items-center mb-1.5 gap-2">
                     <span className="text-[13px] text-gray-500 truncate min-w-0">
-                      암기 완료
+                      {isEn ? 'Mastered' : '암기 완료'}
                     </span>
                     <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
                       {memorizedCount}개 ({memorizedPct}%)
@@ -586,7 +589,7 @@ function StatisticsPageContent() {
         {/* 레벨별 학습 현황 카드 (은행 앱 스타일) */}
         <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[15px] font-bold text-[#1c1c1e]">레벨별 학습 현황</h3>
+            <h3 className="text-[15px] font-bold text-[#1c1c1e]">{isEn ? 'Progress by Level' : '레벨별 학습 현황'}</h3>
 
             <select
               value={levelProgressExam}
