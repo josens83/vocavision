@@ -54,11 +54,9 @@ export default function PricingPage() {
   const isYearly = billingCycle === "yearly";
 
   const features: PlanFeature[] = isEn ? [
-    { name: "SAT Starter (L1)", free: false, basic: false, premium: true },
-    { name: "SAT Advanced (L2)", free: false, basic: false, premium: true },
-    { name: "GRE Verbal Core", free: false, basic: false, premium: true },
-    { name: "GRE Verbal Advanced", free: false, basic: false, premium: true },
-    { name: "TOEFL / TOEIC / IELTS Packs", free: false, basic: false, premium: true },
+    { name: "SAT Starter (L1) — 934 words", free: true, basic: true, premium: true },
+    { name: "SAT Advanced (L2) — 1,000 words", free: false, basic: true, premium: true },
+    { name: "GRE / TOEFL / IELTS / TOEIC Packs", free: false, basic: false, premium: true },
     { name: "AI Visual Images", free: "some", basic: true, premium: true },
     { name: "Flashcards", free: true, basic: true, premium: true },
     { name: "Quiz Mode", free: "all", basic: "all", premium: "all" },
@@ -147,7 +145,7 @@ export default function PricingPage() {
                 <>
                   <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                    <span>SAT Starter vocabulary (800+ words)</span>
+                    <span>SAT Starter vocabulary (934 words)</span>
                   </li>
                   <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -236,7 +234,7 @@ export default function PricingPage() {
             </div>
 
             <p className="text-white/70 text-[13px] mb-6">
-              {isEn ? 'Best for serious SAT, GRE, TOEFL, IELTS learners' : '수능 + TEPS 완벽 대비를 원하는 분께 추천'}
+              {isEn ? 'Best for SAT, GRE, TOEFL, IELTS learners' : '수능 + TEPS 완벽 대비를 원하는 분께 추천'}
             </p>
 
             <button
@@ -251,7 +249,7 @@ export default function PricingPage() {
                 <>
                   <li className="flex items-center gap-3 text-[13px]">
                     <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
-                    <span className="font-semibold">All Vocab Packs included</span>
+                    <span className="font-semibold">✨ All Vocab Packs included (GRE/TOEFL/IELTS/TOEIC)</span>
                   </li>
                   <li className="flex items-center gap-3 text-[13px]">
                     <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
@@ -259,11 +257,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-center gap-3 text-[13px]">
                     <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
-                    <span>GRE Verbal Core + Advanced</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-[13px]">
-                    <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
-                    <span>AI Visual Images — All</span>
+                    <span>All AI-generated images</span>
                   </li>
                   <li className="flex items-center gap-3 text-[13px]">
                     <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
@@ -330,7 +324,7 @@ export default function PricingPage() {
             </div>
 
             <p className="text-gray-500 text-[13px] mb-6">
-              {isEn ? 'Great for CSAT and TEPS learners' : '수능 + TEPS 대비를 원하는 분께 추천'}
+              {isEn ? 'Perfect for SAT test-takers' : '수능 + TEPS 대비를 원하는 분께 추천'}
             </p>
 
             <button
@@ -343,15 +337,17 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>{isEn ? 'CSAT Full (L1/L2/L3) — 1,787 words' : '수능 전체 (L1/L2/L3) — 1,787개 단어'}</span>
+                <span className="font-semibold">{isEn ? 'SAT Full (Starter L1 + Advanced L2) — 1,934 words' : '수능 전체 (L1/L2/L3) — 1,787개 단어'}</span>
               </li>
+              {!isEn && (
+                <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
+                  <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
+                  <span className="font-semibold">TEPS 전체 (L1/L2) — 388개 단어</span>
+                </li>
+              )}
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span className="font-semibold">{isEn ? 'TEPS Full (L1/L2) — 388 words' : 'TEPS 전체 (L1/L2) — 388개 단어'}</span>
-              </li>
-              <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
-                <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>{isEn ? 'AI Visual Images — All' : 'AI 생성 이미지 전체'}</span>
+                <span>{isEn ? 'All AI-generated images' : 'AI 생성 이미지 전체'}</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -363,7 +359,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                 <X className="w-5 h-5 flex-shrink-0" />
-                <span>{isEn ? 'Vocab Packs (TOEFL/TOEIC/GRE/IELTS)' : '단어장 (TOEFL/TOEIC/GRE/IELTS/EBS/기출)'}</span>
+                <span>{isEn ? 'GRE / TOEFL / IELTS / TOEIC Packs' : '단어장 (TOEFL/TOEIC/GRE/IELTS/EBS/기출)'}</span>
               </li>
             </ul>
           </div>

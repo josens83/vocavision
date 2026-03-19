@@ -164,7 +164,8 @@ function DashboardContent() {
   const setDailyGoal = useUserSettingsStore((state) => state.setDailyGoal);
 
   // React Query: 대시보드 데이터 캐싱
-  const examCategory = useMemo(() => activeExam || 'CSAT', [activeExam]);
+  const defaultExam = isEn ? 'SAT' : 'CSAT';
+  const examCategory = useMemo(() => activeExam || defaultExam, [activeExam, defaultExam]);
   const validLevel = useMemo(() => getValidLevelForExam(examCategory, activeLevel || 'L1'), [examCategory, activeLevel]);
 
   // 4개 패키지 접근 권한을 1번의 API 호출로 체크
@@ -196,7 +197,7 @@ function DashboardContent() {
     isLoading: summaryLoading,
     isFetching: summaryFetching
   } = useDashboardSummary(
-    stableQuery?.exam || 'CSAT',
+    stableQuery?.exam || defaultExam,
     stableQuery?.level || 'L1',
     !!stableQuery && !!user && hasHydrated && examHasHydrated
   );
@@ -251,9 +252,9 @@ function DashboardContent() {
 
   // 구독 + 단품 구매 상태에 따른 접근 권한 체크
   // useCallback으로 안정된 참조 유지 → fallback effect의 불필요한 재실행 방지
-  const canAccessExam = useCallback((exam: string) => canAccessExamWithPurchase(user, exam), [user]);
-  const canAccessLevel = (exam: string, level: string) => canAccessContentWithPurchase(user, exam, level);
-  const availableExams = getAvailableExams(user);
+  const canAccessExam = useCallback((exam: string) => canAccessExamWithPurchase(user, exam, isEn), [user, isEn]);
+  const canAccessLevel = (exam: string, level: string) => canAccessContentWithPurchase(user, exam, level, isEn);
+  const availableExams = getAvailableExams(user, isEn);
   const isPremium = getSubscriptionTier(user) === 'PREMIUM';
 
   // Calendar data
@@ -305,15 +306,15 @@ function DashboardContent() {
     const needsFallback = !examEntry || examEntry.locked;
 
     if (needsFallback) {
-      setActiveExamWithLevel('CSAT' as ExamType, 'L1');
+      setActiveExamWithLevel((isEn ? 'SAT' : 'CSAT') as ExamType, 'L1');
       return;
     }
 
     // 모든 fallback 체크 통과 → exam/level 확정 → query 시작 허용 (1회만)
     stableQueryInitRef.current = true;
     setStableQuery({
-      exam: activeExam || 'CSAT',
-      level: getValidLevelForExam(activeExam || 'CSAT', activeLevel || 'L1'),
+      exam: activeExam || defaultExam,
+      level: getValidLevelForExam(activeExam || defaultExam, activeLevel || 'L1'),
     });
   }, [hasHydrated, activeExam, activeLevel, availableExams, setActiveExamWithLevel, bulkAccessData]);
 
@@ -328,7 +329,7 @@ function DashboardContent() {
     }
   }, [hasHydrated, examHasHydrated, activeExam, activeLevel, setActiveLevel]);
 
-  const selectedExam = activeExam || 'CSAT';
+  const selectedExam = activeExam || defaultExam;
   const selectedLevel = activeLevel || 'L1';
   const examCfg = EXAM_MAP[selectedExam];
   const exam = { name: examCfg?.label || selectedExam, icon: examCfg?.icon || '📝', color: examCfg?.color || 'blue' };
