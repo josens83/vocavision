@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
+    "@paddle/paddle-node-sdk": "^1.7.0",
     "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.89.0",
     "bcryptjs": "^3.0.3",

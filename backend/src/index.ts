@@ -34,6 +34,7 @@ import contentGenerationRoutes from './routes/contentGeneration.routes';
 import adminRoutes from './routes/admin.routes';
 import paymentsRoutes from './routes/payments.routes';
 import packageRoutes from './routes/package.routes';
+import paddleRoutes from './routes/paddle.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error.middleware';
@@ -72,6 +73,8 @@ const allowedOrigins = [
   'https://vocavision-web.vercel.app',
   'https://vocavision.kr',
   'https://www.vocavision.kr',
+  'https://vocavision.app',
+  'https://www.vocavision.app',
   process.env.CORS_ORIGIN,
 ].filter(Boolean) as string[];
 
@@ -178,6 +181,7 @@ app.use('/api/content', contentGenerationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/packages', packageRoutes);
+app.use('/api/paddle', paddleRoutes);
 
 // Internal routes (for admin operations via browser URL)
 app.use('/internal', internalRoutes);
