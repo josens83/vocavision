@@ -111,10 +111,10 @@ const usdPackagePrices: Record<string, string> = {
   '2026-csat-analysis': '$3.99',
   'ebs-vocab': '$6.99',
   'toefl-complete': '$9.99',
-  'toeic-complete': '$9.99',
+  'toeic-complete': '$7.99',
   'sat-complete': '$9.99',
-  'gre-complete': '$9.99',
-  'ielts-complete': '$9.99',
+  'gre-complete': '$12.99',
+  'ielts-complete': '$6.99',
 };
 
 // 단품 패키지 결제 컴포넌트
