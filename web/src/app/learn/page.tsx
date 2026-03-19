@@ -1513,7 +1513,7 @@ function LearnPageContent() {
           <div className="container mx-auto px-4 py-2">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[13px]">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 bg-[#F59E0B] text-white rounded-full font-bold text-[11px] shrink-0">체험</span>
+                <span className="px-2.5 py-0.5 bg-[#F59E0B] text-white rounded-full font-bold text-[11px] shrink-0">{isEn ? 'Demo' : '체험'}</span>
                 <span className="text-[#92400E] whitespace-nowrap">{isEn ? 'Learning data will not be saved.' : '학습 기록이 저장되지 않습니다.'}</span>
               </div>
               <a href="/auth/login" className="text-[#78350F] font-semibold underline hover:text-[#92400E] whitespace-nowrap">

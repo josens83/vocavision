@@ -231,7 +231,9 @@ export default function FlashCardGesture({
 
   const displayPronunciation = word.ipaUs || word.ipaUk || '';
   const koreanPronunciation = word.pronunciation || '';
-  const definition = word.definitionKo || word.definition || '정의 없음';
+  const definition = isEn
+    ? (word.definition || word.definitionKo || 'No definition')
+    : (word.definitionKo || word.definition || '정의 없음');
   const englishDefinition = word.definition || '';
   const mnemonic = word.mnemonics?.[0];
   const examples = word.examples || [];
@@ -243,8 +245,8 @@ export default function FlashCardGesture({
       {/* Swipe Hint - 왼쪽 스와이프=다음, 오른쪽 스와이프=이전 */}
       {showSwipeHint && (
         <div className="text-center text-sm text-gray-400 flex justify-center gap-6 md:hidden mb-2">
-          {hasPrevious && <span className="inline-flex items-center gap-1">이전 <ArrowRight className="w-3.5 h-3.5" /></span>}
-          <span className="inline-flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" /> 다음</span>
+          {hasPrevious && <span className="inline-flex items-center gap-1">{isEn ? 'Prev' : '이전'} <ArrowRight className="w-3.5 h-3.5" /></span>}
+          <span className="inline-flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" /> {isEn ? 'Next' : '다음'}</span>
         </div>
       )}
 
@@ -266,7 +268,7 @@ export default function FlashCardGesture({
           className="absolute inset-0 bg-teal-50 rounded-2xl flex items-center justify-center pointer-events-none z-10 border-2 border-teal-300"
         >
           <div className="bg-teal-500 text-white rounded-full px-6 py-3">
-            <span className="text-xl font-bold inline-flex items-center gap-1">다음 <ArrowRight className="w-5 h-5" /></span>
+            <span className="text-xl font-bold inline-flex items-center gap-1">{isEn ? 'Next' : '다음'} <ArrowRight className="w-5 h-5" /></span>
           </div>
         </motion.div>
 
@@ -277,7 +279,7 @@ export default function FlashCardGesture({
             className="absolute inset-0 bg-gray-50 rounded-2xl flex items-center justify-center pointer-events-none z-10 border-2 border-gray-300"
           >
             <div className="bg-gray-500 text-white rounded-full px-6 py-3">
-              <span className="text-xl font-bold inline-flex items-center gap-1"><ArrowLeft className="w-5 h-5" /> 이전</span>
+              <span className="text-xl font-bold inline-flex items-center gap-1"><ArrowLeft className="w-5 h-5" /> {isEn ? 'Prev' : '이전'}</span>
             </div>
           </motion.div>
         )}
@@ -309,7 +311,7 @@ export default function FlashCardGesture({
             )}
 
             {/* Korean Pronunciation with stress marking */}
-            {koreanPronunciation && (
+            {!isEn && koreanPronunciation && (
               <span className="text-teal-600 font-medium">
                 <StressedPronunciation text={koreanPronunciation} />
               </span>
@@ -348,7 +350,7 @@ export default function FlashCardGesture({
           {isReviewMode && (
             <div className="p-6 border-b border-gray-100">
               <p className="text-center text-gray-500 text-xs md:text-sm mb-3">
-                복습 모드 - 빠르게 훑어보기
+                {isEn ? 'Review Mode — Quick scan' : '복습 모드 - 빠르게 훑어보기'}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -357,14 +359,14 @@ export default function FlashCardGesture({
                   className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-4 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <ArrowLeft className="w-5 h-5" />
-                  <span className="text-sm font-semibold">이전</span>
+                  <span className="text-sm font-semibold">{isEn ? 'Prev' : '이전'}</span>
                 </button>
                 <button
                   onClick={onNext}
                   disabled={!hasNext}
                   className="bg-teal-500 hover:bg-teal-600 text-white py-4 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <span className="text-sm font-semibold">다음</span>
+                  <span className="text-sm font-semibold">{isEn ? 'Next' : '다음'}</span>
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
@@ -385,7 +387,7 @@ export default function FlashCardGesture({
                   onClick={() => setShowAnswer(true)}
                   className="w-full bg-teal-500 hover:bg-teal-600 text-white py-4 rounded-xl text-lg font-semibold transition-colors"
                 >
-                  정답 보기
+                  {isEn ? 'Show Answer' : '정답 보기'}
                 </button>
               </motion.div>
             ) : (
@@ -399,11 +401,11 @@ export default function FlashCardGesture({
               >
                 {/* Definition */}
                 <div className="bg-gray-50 rounded-xl p-5">
-                  <p className="text-sm font-medium text-gray-400 mb-2">뜻</p>
+                  <p className="text-sm font-medium text-gray-400 mb-2">{isEn ? 'Definition' : '뜻'}</p>
                   <p className="text-xl font-bold text-gray-900">
                     {definition}
                   </p>
-                  {englishDefinition && definition !== englishDefinition && (
+                  {!isEn && englishDefinition && definition !== englishDefinition && (
                     <p className="text-gray-500 mt-2 text-sm">
                       {englishDefinition}
                     </p>
@@ -422,14 +424,14 @@ export default function FlashCardGesture({
                 {/* 1. Examples (예문) */}
                 {examples.length > 0 && (
                   <div className="bg-blue-50 rounded-xl p-5">
-                    <p className="text-sm font-medium text-blue-600 mb-3">✍️ 예문</p>
+                    <p className="text-sm font-medium text-blue-600 mb-3">{isEn ? '✍️ Examples' : '✍️ 예문'}</p>
                     <div className="space-y-3">
                       {examples.map((ex, index) => (
                         <div key={ex.id || index} className={index > 0 ? "pt-3 border-t border-blue-100" : ""}>
                           <p className="text-gray-800 italic">
                             "{ex.sentence}"
                           </p>
-                          {ex.translation && (
+                          {!isEn && ex.translation && (
                             <p className="text-gray-500 text-sm mt-1">
                               → {ex.translation}
                             </p>
@@ -443,14 +445,14 @@ export default function FlashCardGesture({
                 {/* 2. Collocations (콜로케이션) */}
                 {word.collocations && word.collocations.length > 0 && (
                   <div className="bg-green-50 rounded-xl p-5">
-                    <p className="text-sm font-medium text-green-600 mb-3">🔗 콜로케이션</p>
+                    <p className="text-sm font-medium text-green-600 mb-3">{isEn ? '🔗 Collocations' : '🔗 콜로케이션'}</p>
                     <div className="space-y-2">
                       {word.collocations.slice(0, 5).map((col: any, i: number) => (
                         <div key={i} className="flex items-center gap-2">
                           <span className="bg-green-100 text-green-800 px-3 py-1.5 rounded-lg text-sm font-medium">
                             {col.phrase}
                           </span>
-                          {col.meaning && (
+                          {!isEn && col.meaning && (
                             <span className="text-gray-500 text-sm">— {col.meaning}</span>
                           )}
                         </div>
@@ -460,13 +462,25 @@ export default function FlashCardGesture({
                 )}
 
                 {/* 3. Etymology (어원) */}
-                {word.etymology && word.etymology.origin && (
+                {word.etymology && (isEn ? word.etymology.originEn : word.etymology.origin) && (
                   <div className="bg-purple-50 rounded-xl p-5">
-                    <p className="text-sm font-medium text-purple-600 mb-2">📚 어원</p>
-                    <p className="text-gray-800">{word.etymology.origin}</p>
-                    {word.etymology.relatedWords && word.etymology.relatedWords.length > 0 && (
+                    <p className="text-sm font-medium text-purple-600 mb-2">
+                      {isEn ? '📚 Etymology' : '📚 어원'}
+                    </p>
+                    <p className="text-gray-800">
+                      {isEn ? word.etymology.originEn : word.etymology.origin}
+                    </p>
+                    {!isEn && word.etymology.relatedWords && word.etymology.relatedWords.length > 0 && (
                       <div className="mt-3">
                         <span className="text-gray-500 text-sm">관련 단어: </span>
+                        <span className="text-purple-700 text-sm">
+                          {word.etymology.relatedWords.slice(0, 5).join(', ')}
+                        </span>
+                      </div>
+                    )}
+                    {isEn && word.etymology.relatedWords && word.etymology.relatedWords.length > 0 && (
+                      <div className="mt-3">
+                        <span className="text-gray-500 text-sm">Related: </span>
                         <span className="text-purple-700 text-sm">
                           {word.etymology.relatedWords.slice(0, 5).join(', ')}
                         </span>
@@ -476,17 +490,21 @@ export default function FlashCardGesture({
                 )}
 
                 {/* 4. 형태 분석 */}
-                {word.etymology?.breakdown && (
+                {(isEn ? word.etymology?.breakdownEn : word.etymology?.breakdown) && (
                   <div className="bg-indigo-50 rounded-xl p-5">
-                    <p className="text-sm font-medium text-indigo-600 mb-2">🧩 형태 분석</p>
-                    <p className="text-gray-800">{word.etymology.breakdown}</p>
+                    <p className="text-sm font-medium text-indigo-600 mb-2">
+                      {isEn ? '🧩 Morphology' : '🧩 형태 분석'}
+                    </p>
+                    <p className="text-gray-800">
+                      {isEn ? word.etymology?.breakdownEn : word.etymology?.breakdown}
+                    </p>
                   </div>
                 )}
 
                 {/* 5. Rhyming (라이밍) */}
                 {word.rhymingWords && word.rhymingWords.length > 0 && (
                   <div className="bg-pink-50 rounded-xl p-5">
-                    <p className="text-sm font-medium text-pink-600 mb-2">🎵 라이밍</p>
+                    <p className="text-sm font-medium text-pink-600 mb-2">{isEn ? '🎵 Rhyme' : '🎵 라이밍'}</p>
                     <div className="flex flex-wrap gap-2">
                       {word.rhymingWords.slice(0, 6).map((rhyme: string, i: number) => (
                         <span
@@ -505,7 +523,7 @@ export default function FlashCardGesture({
                   onClick={() => setShowAnswer(false)}
                   className="w-full text-gray-400 py-2 text-sm hover:text-gray-600 transition-colors"
                 >
-                  정답 숨기기
+                  {isEn ? 'Hide Answer' : '정답 숨기기'}
                 </button>
               </motion.div>
             )}
