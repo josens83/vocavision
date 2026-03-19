@@ -44,9 +44,10 @@ export const createPaddleCheckout = async (req: AuthRequest, res: Response) => {
 
     const transaction = await paddle.transactions.create({
       items: [{ priceId, quantity: 1 }],
-      customerEmail: user.email || undefined,
       customData: { userId: user.id, plan: planKey, billingCycle: cycleKey },
-      successUrl: `${process.env.NEXT_PUBLIC_GLOBAL_URL}/checkout/success?transaction_id={transaction.id}`,
+      checkout: {
+        url: `${process.env.NEXT_PUBLIC_GLOBAL_URL}/checkout/success?transaction_id={transaction.id}`,
+      },
     });
 
     res.json({ checkoutUrl: transaction.checkout?.url });
@@ -65,6 +66,9 @@ export const handlePaddleWebhook = async (req: Request, res: Response) => {
     // Webhook 서명 검증
     const webhookSecret = process.env.PADDLE_WEBHOOK_SECRET!;
     const event = await paddle.webhooks.unmarshal(rawBody, webhookSecret, signature);
+    if (!event) {
+      return res.status(400).json({ error: 'Invalid webhook signature' });
+    }
 
     console.log('[Paddle Webhook] Event type:', event.eventType);
 
@@ -82,10 +86,9 @@ export const handlePaddleWebhook = async (req: Request, res: Response) => {
         await prisma.user.update({
           where: { id: userId },
           data: {
-            subscriptionPlan,
+            subscriptionPlan: subscriptionPlan as any,
             subscriptionEnd,
             subscriptionId: sub.id,
-            isSubscribed: true,
           },
         });
         console.log(`[Paddle] Subscription activated for user ${userId}: ${subscriptionPlan}`);
@@ -102,9 +105,8 @@ export const handlePaddleWebhook = async (req: Request, res: Response) => {
         await prisma.user.update({
           where: { id: userId },
           data: {
-            subscriptionPlan: null,
+            subscriptionPlan: undefined,
             subscriptionEnd,
-            isSubscribed: false,
           },
         });
         console.log(`[Paddle] Subscription cancelled for user ${userId}`);
