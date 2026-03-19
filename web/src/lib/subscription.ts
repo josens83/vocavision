@@ -221,12 +221,14 @@ export function hasPurchasedExam(user: User | null, examCategory: string): boole
 
 /**
  * 프리미엄 또는 단품 구매로 시험에 접근 가능한지 확인
- * - CSAT: 모든 사용자
- * - TEPS: 베이직 이상
- * - CSAT_2026: 프리미엄 또는 단품 구매자
+ * - KR: CSAT 무료, TEPS 베이직+, 나머지 구매/프리미엄
+ * - EN: SAT 무료(L1)/베이직+(L2), 나머지 구매/프리미엄
  */
-export function canAccessExamWithPurchase(user: User | null, exam: string): boolean {
-  // CSAT는 모든 사용자 접근 가능
+export function canAccessExamWithPurchase(user: User | null, exam: string, isEn: boolean = false): boolean {
+  // 글로벌: SAT는 모든 사용자 접근 가능 (L1은 무료, L2는 BASIC+)
+  if (isEn && exam === 'SAT') return true;
+
+  // 한국: CSAT는 모든 사용자 접근 가능
   if (exam === 'CSAT') return true;
 
   // 프리미엄 회원은 모든 것에 접근 가능
@@ -243,17 +245,25 @@ export function canAccessExamWithPurchase(user: User | null, exam: string): bool
 
 /**
  * 프리미엄 또는 단품 구매로 콘텐츠에 접근 가능한지 확인
- * - 프리미엄: 모든 콘텐츠 접근 가능 (CSAT, TEPS, 단품 포함)
- * - 베이직: CSAT 전체 레벨 + TEPS L1/L2
- * - 무료: CSAT L1만
+ * - 프리미엄: 모든 콘텐츠 접근 가능
+ * - KR 베이직: CSAT 전체 + TEPS L1/L2
+ * - KR 무료: CSAT L1만
+ * - EN 베이직: SAT L1+L2
+ * - EN 무료: SAT L1만
  * - 단품 구매: 해당 시험 전체 레벨
  */
-export function canAccessContentWithPurchase(user: User | null, exam: string, level: string): boolean {
+export function canAccessContentWithPurchase(user: User | null, exam: string, level: string, isEn: boolean = false): boolean {
   // 프리미엄 회원은 모든 것에 접근 가능
   if (getSubscriptionTier(user) === 'PREMIUM') return true;
 
   // 단품 구매한 시험은 전체 레벨 접근 가능
   if (hasPurchasedExam(user, exam)) return true;
+
+  // 글로벌: SAT L1 무료, L2 베이직+
+  if (isEn && exam === 'SAT') {
+    if (level === 'L1') return true;
+    return getSubscriptionTier(user) === 'BASIC';
+  }
 
   // 기존 구독 기반 접근 권한 체크
   return canAccessExam(user, exam) && canAccessLevel(user, level);
@@ -261,12 +271,22 @@ export function canAccessContentWithPurchase(user: User | null, exam: string, le
 
 /**
  * 대시보드에서 표시할 모든 시험 목록 (자물쇠 포함)
+ * isEn: 글로벌(vocavision.app) → SAT 기반, 한국(vocavision.kr) → CSAT 기반
  */
-export function getAvailableExams(user: User | null): { exam: string; locked: boolean; reason?: string }[] {
+export function getAvailableExams(user: User | null, isEn: boolean = false): { exam: string; locked: boolean; reason?: string }[] {
   const tier = getSubscriptionTier(user);
 
-  // 프리미엄: 전체 7개 노출, 잠금 없음
+  // 프리미엄: 전체 노출, 잠금 없음
   if (tier === 'PREMIUM') {
+    if (isEn) {
+      return [
+        { exam: 'SAT',       locked: false },
+        { exam: 'GRE',       locked: false },
+        { exam: 'TOEFL',     locked: false },
+        { exam: 'TOEIC',     locked: false },
+        { exam: 'IELTS',     locked: false },
+      ];
+    }
     return [
       { exam: 'CSAT',      locked: false },
       { exam: 'TEPS',      locked: false },
@@ -280,7 +300,31 @@ export function getAvailableExams(user: User | null): { exam: string; locked: bo
     ];
   }
 
-  // 베이직: 수능 + TEPS 잠금 없음 + 구매한 단품 추가
+  // 글로벌: SAT 기반
+  if (isEn) {
+    if (tier === 'BASIC') {
+      // 베이직: SAT(열림) + 구매한 단품
+      const exams: { exam: string; locked: boolean; reason?: string }[] = [
+        { exam: 'SAT', locked: false },
+      ];
+      if (hasPurchasedExam(user, 'GRE'))       exams.push({ exam: 'GRE',       locked: false });
+      if (hasPurchasedExam(user, 'TOEFL'))     exams.push({ exam: 'TOEFL',     locked: false });
+      if (hasPurchasedExam(user, 'TOEIC'))     exams.push({ exam: 'TOEIC',     locked: false });
+      if (hasPurchasedExam(user, 'IELTS'))     exams.push({ exam: 'IELTS',     locked: false });
+      return exams;
+    }
+    // 무료: SAT(열림) + 구매한 단품
+    const exams: { exam: string; locked: boolean; reason?: string }[] = [
+      { exam: 'SAT', locked: false },
+    ];
+    if (hasPurchasedExam(user, 'GRE'))       exams.push({ exam: 'GRE',       locked: false });
+    if (hasPurchasedExam(user, 'TOEFL'))     exams.push({ exam: 'TOEFL',     locked: false });
+    if (hasPurchasedExam(user, 'TOEIC'))     exams.push({ exam: 'TOEIC',     locked: false });
+    if (hasPurchasedExam(user, 'IELTS'))     exams.push({ exam: 'IELTS',     locked: false });
+    return exams;
+  }
+
+  // 한국: CSAT 기반
   if (tier === 'BASIC') {
     const exams: { exam: string; locked: boolean; reason?: string }[] = [
       { exam: 'CSAT', locked: false },
@@ -296,7 +340,7 @@ export function getAvailableExams(user: User | null): { exam: string; locked: bo
     return exams;
   }
 
-  // 무료: 수능(열림) + TEPS(잠김)만 노출 + 단품 구매한 게 있으면 추가
+  // 무료: 수능(열림) + TEPS(잠김) + 구매한 단품
   const exams: { exam: string; locked: boolean; reason?: string }[] = [
     { exam: 'CSAT', locked: false },
     { exam: 'TEPS', locked: true, reason: '베이직 이상 전용' },
