@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createPaddleCheckout, handlePaddleWebhook } from '../controllers/paddle.controller';
+import { createPaddleCheckout, createPaddlePackageCheckout, handlePaddleWebhook } from '../controllers/paddle.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 import express from 'express';
 
@@ -7,6 +7,9 @@ const router = Router();
 
 // Checkout URL 생성 (인증 필요)
 router.post('/create-checkout', authenticateToken, createPaddleCheckout);
+
+// 단품 Checkout URL 생성 (인증 필요)
+router.post('/create-package-checkout', authenticateToken, createPaddlePackageCheckout);
 
 // Webhook (인증 불필요, Paddle에서 직접 호출)
 router.post('/webhook',

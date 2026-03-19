@@ -341,7 +341,7 @@ export default function ProductPackageSection() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             {packages
-              .filter((pkg) => !(isEn && (pkg.slug === '2026-csat-analysis' || pkg.slug === 'ebs-vocab')))
+              .filter((pkg) => !(isEn && ['2026-csat-analysis', 'ebs-vocab', 'ielts-complete', 'sat-complete'].includes(pkg.slug)))
               .map((pkg, index) => (
               <div
                 key={pkg.id}

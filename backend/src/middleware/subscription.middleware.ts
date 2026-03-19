@@ -49,6 +49,10 @@ function canAccessContent(tier: SubscriptionTier, exam: string, level: string, i
       if (level === 'L2') return tier === 'BASIC' || tier === 'PREMIUM';
       return false;
     }
+    // 글로벌: IELTS L1+L2 = BASIC+ (Basic 플랜에 포함)
+    if (exam === 'IELTS') {
+      return tier === 'BASIC' || tier === 'PREMIUM';
+    }
     // 글로벌: CSAT/TEPS 등은 구독 기반 (한국 로직과 동일)
   }
 
@@ -91,14 +95,16 @@ export async function verifyContentAccess(
     return null;
   }
 
-  // 글로벌 유저: SAT는 구독 기반 접근 (단품 구매 불필요)
-  if (isGlobal && examCategory === 'SAT') {
+  // 글로벌 유저: SAT/IELTS는 구독 기반 접근 (단품 구매 불필요)
+  if (isGlobal && (examCategory === 'SAT' || examCategory === 'IELTS')) {
     if (canAccessContent(tier, examCategory, level, true)) {
       return null;
     }
     return {
       error: 'SUBSCRIPTION_REQUIRED',
-      message: 'SAT Advanced requires a Basic plan or higher.',
+      message: examCategory === 'IELTS'
+        ? 'IELTS content requires a Basic plan or higher.'
+        : 'SAT Advanced requires a Basic plan or higher.',
       requiredPlan: 'BASIC',
     };
   }

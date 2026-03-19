@@ -27,6 +27,12 @@ const PLAN_MAP: Record<string, string> = {
   [process.env.PADDLE_PRICE_ID_PREMIUM_YEARLY!]: 'PREMIUM_YEARLY',
 };
 
+const PADDLE_PACKAGE_PRICE_IDS: Record<string, string> = {
+  'toefl-complete': process.env.PADDLE_PRICE_ID_TOEFL!,
+  'toeic-complete': process.env.PADDLE_PRICE_ID_TOEIC!,
+  'gre-complete': process.env.PADDLE_PRICE_ID_GRE!,
+};
+
 // Paddle Checkout URL 생성
 export const createPaddleCheckout = async (req: AuthRequest, res: Response) => {
   try {
@@ -54,6 +60,33 @@ export const createPaddleCheckout = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('[Paddle] createCheckout error:', error);
     res.status(500).json({ error: 'Failed to create checkout' });
+  }
+};
+
+// Paddle 단품 Checkout URL 생성
+export const createPaddlePackageCheckout = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { packageSlug } = req.body;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const priceId = PADDLE_PACKAGE_PRICE_IDS[packageSlug];
+    if (!priceId) return res.status(400).json({ error: 'Invalid package slug' });
+
+    const transaction = await paddle.transactions.create({
+      items: [{ priceId, quantity: 1 }],
+      customData: { userId: user.id, packageSlug, isPackagePurchase: true },
+      checkout: {
+        url: `${process.env.NEXT_PUBLIC_GLOBAL_URL}/checkout/success?transaction_id={transaction.id}&package=${packageSlug}`,
+      },
+    });
+
+    res.json({ checkoutUrl: transaction.checkout?.url });
+  } catch (error) {
+    console.error('[Paddle] createPackageCheckout error:', error);
+    res.status(500).json({ error: 'Failed to create package checkout' });
   }
 };
 
@@ -116,8 +149,27 @@ export const handlePaddleWebhook = async (req: Request, res: Response) => {
       case 'transaction.completed': {
         const tx = event.data as any;
         const userId = tx.customData?.userId;
+        const packageSlug = tx.customData?.packageSlug;
+        const isPackagePurchase = tx.customData?.isPackagePurchase;
+
         if (!userId) break;
-        console.log(`[Paddle] Transaction completed for user ${userId}`);
+
+        if (isPackagePurchase && packageSlug) {
+          // 단품 구매 처리 - UserPackage 테이블에 저장
+          const pkg = await prisma.productPackage.findUnique({
+            where: { slug: packageSlug }
+          });
+          if (pkg) {
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + pkg.durationDays);
+            await prisma.userPackage.upsert({
+              where: { userId_packageId: { userId, packageId: pkg.id } },
+              update: { expiresAt, isActive: true },
+              create: { userId, packageId: pkg.id, expiresAt, isActive: true },
+            });
+            console.log(`[Paddle] Package ${packageSlug} activated for user ${userId}`);
+          }
+        }
         break;
       }
     }
