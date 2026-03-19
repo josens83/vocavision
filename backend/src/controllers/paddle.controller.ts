@@ -161,11 +161,16 @@ export const handlePaddleWebhook = async (req: Request, res: Response) => {
           });
           if (pkg) {
             const expiresAt = new Date();
-            expiresAt.setDate(expiresAt.getDate() + pkg.durationDays);
-            await prisma.userPackage.upsert({
-              where: { userId_packageId: { userId, packageId: pkg.id } },
-              update: { expiresAt, isActive: true },
-              create: { userId, packageId: pkg.id, expiresAt, isActive: true },
+            expiresAt.setDate(expiresAt.getDate() + (pkg.durationDays || 180));
+
+            await prisma.userPurchase.create({
+              data: {
+                userId,
+                packageId: pkg.id,
+                amount: 0, // Paddle에서 실제 금액은 별도 처리
+                expiresAt,
+                status: 'ACTIVE',
+              },
             });
             console.log(`[Paddle] Package ${packageSlug} activated for user ${userId}`);
           }
