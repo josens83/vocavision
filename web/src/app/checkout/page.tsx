@@ -173,7 +173,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
         // Paddle (글로벌)
         const token = localStorage.getItem('authToken');
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'https://vocavisionbackend-production.up.railway.app'}/api/paddle/create-package-checkout`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://vocavisionbackend-production.up.railway.app/api'}/paddle/create-package-checkout`,
           {
             method: 'POST',
             headers: {
@@ -499,7 +499,7 @@ function SubscriptionCheckout() {
         // Paddle checkout (글로벌)
         const token = localStorage.getItem('authToken');
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'https://vocavisionbackend-production.up.railway.app'}/api/paddle/create-checkout`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://vocavisionbackend-production.up.railway.app/api'}/paddle/create-checkout`,
           {
             method: 'POST',
             headers: {
