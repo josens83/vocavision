@@ -12,7 +12,8 @@ const KAKAO_REDIRECT_URI = process.env.KAKAO_REDIRECT_URI;
 // Google OAuth 설정
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+const GOOGLE_REDIRECT_URI_KO = process.env.GOOGLE_REDIRECT_URI || 'https://vocavision.kr/auth/callback/google';
+const GOOGLE_REDIRECT_URI_EN = process.env.GOOGLE_REDIRECT_URI_EN || 'https://vocavision.app/auth/callback/google';
 
 // 카카오 API 응답 타입 정의
 interface KakaoTokenResponse {
@@ -376,14 +377,21 @@ export const googleLogin = async (
       throw new AppError('인가 코드가 필요합니다', 400);
     }
 
-    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REDIRECT_URI) {
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
       console.error('[GoogleLogin] Missing environment variables:', {
         hasClientId: !!GOOGLE_CLIENT_ID,
         hasClientSecret: !!GOOGLE_CLIENT_SECRET,
-        hasRedirectUri: !!GOOGLE_REDIRECT_URI,
       });
       throw new AppError('구글 로그인 설정이 완료되지 않았습니다', 500);
     }
+
+    // 도메인 기반 redirect_uri 동적 선택
+    const requestOrigin = req.headers.origin || req.headers.referer || '';
+    const stateParam = req.body.state || '';
+    const isGlobal = requestOrigin.includes('vocavision.app') || stateParam === 'global';
+    const redirectUri = isGlobal ? GOOGLE_REDIRECT_URI_EN : GOOGLE_REDIRECT_URI_KO;
+
+    console.log('[GoogleLogin] Domain detection:', { requestOrigin, stateParam, isGlobal, redirectUri });
 
     // 1. Google 토큰 발급
     console.log('[GoogleLogin] Requesting token from Google...');
@@ -396,7 +404,7 @@ export const googleLogin = async (
         grant_type: 'authorization_code',
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: GOOGLE_REDIRECT_URI,
+        redirect_uri: redirectUri,
         code,
       }),
     });

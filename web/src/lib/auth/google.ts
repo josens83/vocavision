@@ -17,6 +17,10 @@ export function getGoogleLoginUrl(): string {
     ? `${window.location.origin}/auth/callback/google`
     : GOOGLE_REDIRECT_URI;
 
+  // vocavision.app이면 state=global로 마킹
+  const isGlobal = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app');
+  const state = isGlobal ? 'global' : 'ko';
+
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: redirectUri,
@@ -24,6 +28,7 @@ export function getGoogleLoginUrl(): string {
     scope: 'email profile',
     access_type: 'offline',
     prompt: 'consent',
+    state,
   });
 
   return `${GOOGLE_AUTH_URL}?${params.toString()}`;
@@ -32,7 +37,7 @@ export function getGoogleLoginUrl(): string {
 /**
  * 구글 로그인 처리 (백엔드 연동)
  */
-export async function loginWithGoogle(code: string): Promise<{
+export async function loginWithGoogle(code: string, state?: string): Promise<{
   success: boolean;
   token: string;
   user: {
@@ -50,7 +55,7 @@ export async function loginWithGoogle(code: string): Promise<{
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ code }),
+    body: JSON.stringify({ code, state }),
   });
 
   const data = await response.json();

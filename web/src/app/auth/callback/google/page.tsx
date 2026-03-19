@@ -32,7 +32,9 @@ function GoogleCallbackContent() {
       return;
     }
 
-    loginWithGoogle(code)
+    const state = searchParams.get('state') || undefined;
+
+    loginWithGoogle(code, state)
       .then((data) => {
         setAuth(data.user, data.token);
         // 로그인 전 저장된 redirect URL 확인, 없으면 대시보드로
