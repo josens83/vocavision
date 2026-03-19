@@ -33,10 +33,24 @@ function SuccessContent() {
   const packageSlug = searchParams.get("packageSlug");
   const packageId = searchParams.get("packageId");
 
+  const transactionId = searchParams.get("transaction_id");
   const isPackagePurchase = type === "package";
 
   useEffect(() => {
     async function processPayment() {
+      // Paddle 결제 성공 → 구독은 webhook으로 자동 처리됨
+      if (transactionId) {
+        setStatus("success");
+        try {
+          const { refreshUser } = useAuthStore.getState();
+          await refreshUser();
+        } catch (e) {
+          console.error('Failed to refresh user:', e);
+        }
+        queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+        return;
+      }
+
       if (!paymentKey || !orderId || !amount) {
         setStatus("error");
         setErrorMessage(isEn ? "Invalid payment information." : "결제 정보가 올바르지 않습니다.");
@@ -88,7 +102,7 @@ function SuccessContent() {
     }
 
     processPayment();
-  }, [paymentKey, orderId, amount, plan, billingCycle, userId, type, packageSlug, packageId]);
+  }, [paymentKey, orderId, amount, plan, billingCycle, userId, type, packageSlug, packageId, transactionId]);
 
   return (
     <div className="max-w-md w-full mx-auto px-4">

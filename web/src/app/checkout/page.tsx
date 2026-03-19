@@ -462,32 +462,60 @@ function SubscriptionCheckout() {
     : 0;
 
   const handlePayment = async () => {
-    if (!agreedToTerms) {
-      alert(isEn ? "Please agree to the Terms of Service and Privacy Policy." : "이용약관 및 개인정보처리방침에 동의해주세요.");
+    if (!agreedToTerms || !user) {
+      if (!agreedToTerms) alert(isEn
+        ? "Please agree to the Terms of Service and Privacy Policy."
+        : "이용약관 및 개인정보처리방침에 동의해주세요.");
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      const { requestPaymentWithParams } = await import("@/lib/payments/toss");
-
-      const safeUserId = user.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
-      const orderId = `vv-${safeUserId}-${selectedPlan}-${billingCycle}-${Date.now()}`;
-
-      await requestPaymentWithParams({
-        orderId,
-        orderName: `VocaVision AI ${plan.name} (${billingCycle === "monthly" ? (isEn ? "Monthly" : "월간") : (isEn ? "Yearly" : "연간")})`,
-        amount: price,
-        customerEmail: user.email || undefined,
-        customerName: user.name || (isEn ? "Customer" : "고객"),
-        plan: selectedPlan,
-        billingCycle,
-        userId: user.id,
-      });
+      if (isEn) {
+        // Paddle checkout (글로벌)
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://vocavisionbackend-production.up.railway.app'}/api/paddle/create-checkout`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              plan: selectedPlan,
+              billingCycle,
+            }),
+          }
+        );
+        const data = await res.json();
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+        } else {
+          throw new Error('No checkout URL returned');
+        }
+      } else {
+        // TossPayments (한국)
+        const { requestPaymentWithParams } = await import("@/lib/payments/toss");
+        const safeUserId = user.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 16);
+        const orderId = `vv-sub-${safeUserId}-${selectedPlan}-${billingCycle}-${Date.now()}`;
+        await requestPaymentWithParams({
+          orderId,
+          orderName: isEn
+            ? `VocaVision AI ${getPlanInfo(isEn)[selectedPlan].name} (${billingCycle === "monthly" ? "Monthly" : "Yearly"})`
+            : `VocaVision AI ${getPlanInfo(isEn)[selectedPlan].name} (${billingCycle === "monthly" ? "월간" : "연간"})`,
+          amount: getPlanInfo(isEn)[selectedPlan].prices[billingCycle] as number,
+          customerEmail: user.email || undefined,
+          customerName: user.name || (isEn ? "Customer" : "고객"),
+          plan: selectedPlan,
+          billingCycle,
+          userId: user.id,
+        });
+      }
     } catch (error) {
       console.error("결제 오류:", error);
-      alert(isEn ? "An error occurred during payment. Please try again." : "결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+      alert(isEn ? "Payment error. Please try again." : "결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsProcessing(false);
     }
