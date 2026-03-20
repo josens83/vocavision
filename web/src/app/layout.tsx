@@ -8,6 +8,7 @@ import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import BottomTabBar from '@/components/navigation/BottomTabBar';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import BackButtonHandler from '@/components/native/BackButtonHandler';
+import AppIntro from '@/components/native/AppIntro';
 
 const siteUrl = 'https://vocavision.kr';
 const siteName = 'VocaVision AI';
@@ -137,6 +138,7 @@ export default function RootLayout({
         )}
       </head>
       <body className="font-sans antialiased">
+        <AppIntro />
         <Providers>
           <GoogleAnalytics />
           <OfflineBannerWrapper />
