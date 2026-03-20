@@ -1,5 +1,7 @@
 'use client';
 
+let introShown = false;
+
 import { useEffect, useState } from 'react';
 
 export default function AppIntro() {
@@ -15,10 +17,8 @@ export default function AppIntro() {
 
     if (!isCapacitor) return;
 
-    const shown = sessionStorage.getItem('intro_shown');
-    if (shown) return;
-
-    sessionStorage.setItem('intro_shown', '1');
+    if (introShown) return;
+    introShown = true;
     setVisible(true);
 
     // 1.8s 후 페이드아웃 시작
