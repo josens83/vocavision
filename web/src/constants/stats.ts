@@ -6,8 +6,8 @@
  * 플랫폼 전체 통계
  */
 export const PLATFORM_STATS = {
-  // 전체 단어 수 (수능1,787+TEPS388+2026기출521+EBS3,837+TOEFL3,651+TOEIC2,491+SAT1,934+GRE4,346(net-new1,268)+IELTS795)
-  totalWords: 16672,
+  // 전체 단어 수 (수능1,787+TEPS388+2026기출521+EBS3,837+TOEFL3,651+TOEIC2,491+SAT1,934+GRE4,346+IELTS795)
+  totalWords: 16465,
 
   // 수능 단어 수 (기본 무료 제공)
   csatWords: 1787,
