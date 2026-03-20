@@ -545,7 +545,6 @@ function SubscriptionCheckout() {
             successUrl: `${window.location.origin}/checkout/success`,
           },
         });
-        }
       } else {
         // TossPayments (한국)
         const { requestPaymentWithParams } = await import("@/lib/payments/toss");
