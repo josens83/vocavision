@@ -1,9 +1,16 @@
-'use client';
+import { Metadata } from 'next';
+import Link from 'next/link';
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
 
-import Link from 'next/link';
+// noindex — placeholder page, not yet launched
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 /**
  * Interactive Word Learning Page
