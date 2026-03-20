@@ -256,6 +256,7 @@ enum ExamCategory {
   SAT           // SAT (미국 대입)
   GRE           // GRE (미국 대학원 입학)
   IELTS         // IELTS (영국 유학·이민)
+  ACT           // ACT (미국 대입)
   GENERAL       // 콘텐츠/일반 (시험 무관 일반 어휘)
 }
 
