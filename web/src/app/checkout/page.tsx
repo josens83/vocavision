@@ -447,11 +447,11 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
 
               <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
                 <Shield className="w-4 h-4" />
-                {isEn ? 'Secure payment by TossPayments' : '토스페이먼츠 안전결제'}
+                {isEn ? 'Secure payment by Paddle' : '토스페이먼츠 안전결제'}
               </div>
 
               <p className="mt-4 text-xs text-gray-500 text-center">
-                {isEn ? 'Full refund available within 7 days if unused' : '결제 후 7일 이내 미이용 시 전액 환불 가능'}
+                {isEn ? 'Full refund available within 14 days' : '결제 후 7일 이내 미이용 시 전액 환불 가능'}
               </p>
             </div>
           </div>
@@ -781,11 +781,11 @@ function SubscriptionCheckout() {
 
               <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
                 <Shield className="w-4 h-4" />
-                {isEn ? 'Secure payment by TossPayments' : '토스페이먼츠 안전결제'}
+                {isEn ? 'Secure payment by Paddle' : '토스페이먼츠 안전결제'}
               </div>
 
               <p className="mt-4 text-xs text-gray-500 text-center">
-                {isEn ? 'Full refund available within 7 days if unused' : '결제 후 7일 이내 미이용 시 전액 환불 가능'}
+                {isEn ? 'Full refund available within 14 days' : '결제 후 7일 이내 미이용 시 전액 환불 가능'}
               </p>
             </div>
           </div>
