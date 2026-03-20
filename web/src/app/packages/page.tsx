@@ -168,6 +168,14 @@ const usdPrices: Record<string, string> = {
   'ielts-complete': '$6.99',
 };
 
+const nameEn: Record<string, string> = {
+  'toefl-complete': 'TOEFL Mastery',
+  'toeic-complete': 'TOEIC Score Booster',
+  'sat-complete': 'SAT Vocabulary',
+  'gre-complete': 'GRE Verbal Mastery',
+  'ielts-complete': 'IELTS Complete',
+};
+
 const descriptionEn: Record<string, string> = {
   'toefl-complete': '3,651 TOEFL words from Core to Advanced. Greek·Latin etymology makes them unforgettable.',
   'toeic-complete': '2,491 essential TOEIC words from Starter to Booster. AI visual mnemonics for exam-day recall.',
@@ -179,7 +187,10 @@ const descriptionEn: Record<string, string> = {
 export default function PackagesPage() {
   const locale = useLocale();
   const isEn = locale === 'en';
-  const activePackages = packages.filter(pkg => pkg.isActive);
+  const koreanOnlySlugs = ['2026-csat-analysis', 'ebs-vocab'];
+  const activePackages = packages.filter(pkg =>
+    pkg.isActive && (isEn ? !koreanOnlySlugs.includes(pkg.slug) : true)
+  );
 
   return (
     <DashboardLayout>
@@ -205,7 +216,7 @@ export default function PackagesPage() {
                     {/* 정보 */}
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h2 className="text-lg font-bold text-gray-900">{pkg.name}</h2>
+                        <h2 className="text-lg font-bold text-gray-900">{isEn ? (nameEn[pkg.slug] || pkg.name) : pkg.name}</h2>
                         {pkg.badge && (
                           <span className="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
                             {pkg.badge}
