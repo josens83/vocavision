@@ -52,11 +52,12 @@ export const createPaddleCheckout = async (req: AuthRequest, res: Response) => {
       items: [{ priceId, quantity: 1 }],
       customData: { userId: user.id, plan: planKey, billingCycle: cycleKey },
       checkout: {
-        url: `${process.env.NEXT_PUBLIC_GLOBAL_URL}/checkout/success?transaction_id={transaction.id}`,
+        url: `${process.env.NEXT_PUBLIC_GLOBAL_URL}/checkout/success`,
       },
     });
 
-    res.json({ checkoutUrl: transaction.checkout?.url });
+    const checkoutUrl = `https://buy.paddle.com/checkout/${transaction.id}`;
+    res.json({ checkoutUrl });
   } catch (error) {
     console.error('[Paddle] createCheckout error:', error);
     res.status(500).json({ error: 'Failed to create checkout' });
@@ -79,11 +80,12 @@ export const createPaddlePackageCheckout = async (req: AuthRequest, res: Respons
       items: [{ priceId, quantity: 1 }],
       customData: { userId: user.id, packageSlug, isPackagePurchase: true },
       checkout: {
-        url: `${process.env.NEXT_PUBLIC_GLOBAL_URL}/checkout/success?transaction_id={transaction.id}&package=${packageSlug}`,
+        url: `${process.env.NEXT_PUBLIC_GLOBAL_URL}/checkout/success`,
       },
     });
 
-    res.json({ checkoutUrl: transaction.checkout?.url });
+    const checkoutUrl = `https://buy.paddle.com/checkout/${transaction.id}`;
+    res.json({ checkoutUrl });
   } catch (error) {
     console.error('[Paddle] createPackageCheckout error:', error);
     res.status(500).json({ error: 'Failed to create package checkout' });
