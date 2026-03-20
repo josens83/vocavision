@@ -35,10 +35,24 @@ function SuccessContent() {
 
   // Paddle은 _ptxn으로 transaction ID를 반환함
   const transactionId = searchParams.get("transaction_id") || searchParams.get("_ptxn");
+  const isPaddleSuccess = searchParams.get("source") === "paddle";
   const isPackagePurchase = type === "package";
 
   useEffect(() => {
     async function processPayment() {
+      // Paddle overlay 결제 성공 (source=paddle)
+      if (isPaddleSuccess) {
+        setStatus("success");
+        try {
+          const { refreshUser } = useAuthStore.getState();
+          await refreshUser();
+        } catch (e) {
+          console.error('Failed to refresh user:', e);
+        }
+        queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+        return;
+      }
+
       // Paddle 결제 성공 → 구독은 webhook으로 자동 처리됨
       if (transactionId) {
         setStatus("success");
@@ -103,7 +117,7 @@ function SuccessContent() {
     }
 
     processPayment();
-  }, [paymentKey, orderId, amount, plan, billingCycle, userId, type, packageSlug, packageId, transactionId]);
+  }, [paymentKey, orderId, amount, plan, billingCycle, userId, type, packageSlug, packageId, transactionId, isPaddleSuccess]);
 
   return (
     <div className="max-w-md w-full mx-auto px-4">

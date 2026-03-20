@@ -209,7 +209,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
         paddleInstance.Checkout.open({
           transactionId: data.transactionId,
           settings: {
-            successUrl: `${window.location.origin}/checkout/success`,
+            successUrl: `${window.location.origin}/checkout/success?source=paddle`,
           },
         });
       } else {
@@ -543,7 +543,7 @@ function SubscriptionCheckout() {
         paddleInstance.Checkout.open({
           transactionId: data.transactionId,
           settings: {
-            successUrl: `${window.location.origin}/checkout/success`,
+            successUrl: `${window.location.origin}/checkout/success?source=paddle`,
           },
         });
       } else {
