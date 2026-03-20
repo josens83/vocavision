@@ -157,7 +157,7 @@ function SuccessContent() {
                   }
                   queryClient.invalidateQueries({ queryKey: ['packageAccess'] });
                   queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
-                  router.push(isPackagePurchase ? "/dashboard" : "/my");
+                  router.push("/dashboard");
                 }}
                 disabled={navigating}
                 className="block w-full py-3 px-6 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors text-center disabled:opacity-70"
