@@ -62,7 +62,7 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
     basic: {
       name: isEn ? "Basic" : "베이직",
       description: isEn
-        ? "Perfect for CSAT English preparation"
+        ? "Perfect for SAT & IELTS preparation"
         : "수능 영어 완벽 대비를 원하는 분께 추천",
       features: isEn
         ? [
@@ -92,8 +92,8 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
       features: isEn
         ? [
             "✨ All vocabulary packs included free",
-            "CSAT L1 (Basic) / L2 (Intermediate) / L3 (Advanced)",
-            "TEPS L1 (Core) / L2 (Essential) — full access",
+            "SAT Full (Starter + Advanced) — 1,934 words",
+            "IELTS Full (Foundation + Academic) — 795 words",
             "All AI-generated images",
             "All quiz modes",
             "Detailed learning statistics",
