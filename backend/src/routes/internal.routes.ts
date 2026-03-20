@@ -7,7 +7,7 @@ import {
   COST_PER_WORD,
 } from '../utils/wordDeduplication';
 import { CSAT_L1_WORDS, CSAT_L2_WORDS, CSAT_L3_WORDS } from '../data/csat-words';
-import { processGenerationJob, generateWordContent, saveGeneratedContent, generateEnglishMnemonic } from '../services/contentGenerator.service';
+import { processGenerationJob, generateWordContent, saveGeneratedContent, generateEnglishMnemonic, generateEtymologyEn } from '../services/contentGenerator.service';
 import Anthropic from '@anthropic-ai/sdk';
 import { randomUUID } from 'crypto';
 import logger from '../utils/logger';
@@ -5108,6 +5108,101 @@ router.post('/toefl-mapping', async (req: Request, res: Response) => {
     console.error('[Internal/ToeflMapping] Error:', error);
     if (!res.headersSent) {
       res.status(500).json({ error: 'TOEFL mapping failed' });
+    }
+  }
+});
+
+// ============================================
+// Etymology EN Generation Pipeline
+// ============================================
+
+/**
+ * GET /internal/generate-etymology-en?key=...&batchSize=50&maxBatches=10
+ *
+ * Generates originEn and breakdownEn for SAT/GRE/TOEFL/IELTS Etymology records
+ * that have Korean origin but no English translation yet.
+ */
+router.get('/generate-etymology-en', async (req: Request, res: Response) => {
+  try {
+    const { key, batchSize: batchSizeStr, maxBatches: maxBatchesStr } = req.query;
+
+    if (key !== process.env.INTERNAL_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const batchSize = Math.min(parseInt(batchSizeStr as string) || 50, 100);
+    const maxBatches = Math.min(parseInt(maxBatchesStr as string) || 5, 20);
+
+    // Find Etymology records with Korean origin but no English yet
+    const targetEtymologies = await prisma.etymology.findMany({
+      where: {
+        origin: { not: null },
+        originEn: null,
+        word: {
+          examCategory: { in: ['SAT', 'GRE', 'TOEFL', 'IELTS'] },
+          status: 'PUBLISHED',
+        },
+      },
+      include: {
+        word: { select: { id: true, word: true, examCategory: true } },
+      },
+      take: batchSize * maxBatches,
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (targetEtymologies.length === 0) {
+      return res.json({
+        message: 'All etymologies already have English translation',
+        processed: 0,
+      });
+    }
+
+    const actualBatch = targetEtymologies.slice(0, batchSize);
+
+    res.json({
+      message: `Processing ${actualBatch.length} etymologies for EN generation (${targetEtymologies.length} total remaining)`,
+      targetCount: actualBatch.length,
+      totalRemaining: targetEtymologies.length,
+      words: actualBatch.map(e => e.word.word),
+    });
+
+    // Background processing
+    (async () => {
+      let success = 0;
+      let failed = 0;
+
+      for (let i = 0; i < actualBatch.length; i++) {
+        const etym = actualBatch[i];
+        try {
+          const { originEn, breakdownEn } = await generateEtymologyEn(
+            etym.word.word,
+            etym.origin!
+          );
+
+          await prisma.etymology.update({
+            where: { id: etym.id },
+            data: { originEn, breakdownEn },
+          });
+
+          success++;
+          logger.info(`[EtymologyEn] ${i + 1}/${actualBatch.length}: ${etym.word.word} ✓`);
+        } catch (error) {
+          failed++;
+          logger.error(`[EtymologyEn] Failed: ${etym.word.word}`, error);
+        }
+
+        // Rate limiting
+        if (i < actualBatch.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1200));
+        }
+      }
+
+      logger.info(`[EtymologyEn] Batch complete. Success: ${success}, Failed: ${failed}`);
+    })();
+  } catch (error) {
+    logger.error('[EtymologyEn] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Etymology EN generation failed' });
     }
   }
 });
