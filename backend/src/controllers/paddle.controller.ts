@@ -56,7 +56,11 @@ export const createPaddleCheckout = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    const checkoutUrl = `https://buy.paddle.com/checkout/${transaction.id}`;
+    const checkoutUrl = transaction.checkout?.url;
+    if (!checkoutUrl) {
+      console.error('[Paddle] No checkout URL in response:', JSON.stringify(transaction));
+      return res.status(500).json({ error: 'No checkout URL returned from Paddle' });
+    }
     res.json({ checkoutUrl });
   } catch (error) {
     console.error('[Paddle] createCheckout error:', error);
@@ -84,7 +88,11 @@ export const createPaddlePackageCheckout = async (req: AuthRequest, res: Respons
       },
     });
 
-    const checkoutUrl = `https://buy.paddle.com/checkout/${transaction.id}`;
+    const checkoutUrl = transaction.checkout?.url;
+    if (!checkoutUrl) {
+      console.error('[Paddle] No checkout URL in response:', JSON.stringify(transaction));
+      return res.status(500).json({ error: 'No checkout URL returned from Paddle' });
+    }
     res.json({ checkoutUrl });
   } catch (error) {
     console.error('[Paddle] createPackageCheckout error:', error);
