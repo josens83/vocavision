@@ -116,6 +116,7 @@ export const handlePaddleWebhook = async (req: Request, res: Response) => {
           where: { id: userId },
           data: {
             subscriptionPlan: subscriptionPlan as any,
+            subscriptionStatus: 'ACTIVE',
             subscriptionEnd,
             subscriptionId: sub.id,
           },
