@@ -33,7 +33,8 @@ function SuccessContent() {
   const packageSlug = searchParams.get("packageSlug");
   const packageId = searchParams.get("packageId");
 
-  const transactionId = searchParams.get("transaction_id");
+  // Paddle은 _ptxn으로 transaction ID를 반환함
+  const transactionId = searchParams.get("transaction_id") || searchParams.get("_ptxn");
   const isPackagePurchase = type === "package";
 
   useEffect(() => {
