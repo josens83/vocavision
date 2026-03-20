@@ -39,6 +39,24 @@ interface PackageInfo {
   }>;
 }
 
+function loadPaddle(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    if ((window as any).Paddle) {
+      resolve((window as any).Paddle);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js';
+    script.onload = () => {
+      const paddle = (window as any).Paddle;
+      paddle.Initialize({ token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN });
+      resolve(paddle);
+    };
+    script.onerror = () => reject(new Error('Failed to load Paddle.js'));
+    document.head.appendChild(script);
+  });
+}
+
 function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
   return {
     basic: {
@@ -130,19 +148,6 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isEn && typeof window !== 'undefined' && !(window as any).Paddle) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js';
-      script.onload = () => {
-        (window as any).Paddle.Initialize({
-          token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
-        });
-      };
-      document.head.appendChild(script);
-    }
-  }, [isEn]);
-
-  useEffect(() => {
     fetchPackageInfo();
   }, [packageSlug]);
 
@@ -199,9 +204,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
         const data = await res.json();
         if (!data.transactionId) throw new Error('No transaction ID returned');
 
-        const paddleInstance = (window as any).Paddle;
-        if (!paddleInstance) throw new Error('Paddle.js not loaded');
-
+        const paddleInstance = await loadPaddle();
         setIsProcessing(false);
         paddleInstance.Checkout.open({
           transactionId: data.transactionId,
@@ -535,9 +538,7 @@ function SubscriptionCheckout() {
         const data = await res.json();
         if (!data.transactionId) throw new Error('No transaction ID returned');
 
-        const paddleInstance = (window as any).Paddle;
-        if (!paddleInstance) throw new Error('Paddle.js not loaded');
-
+        const paddleInstance = await loadPaddle();
         setIsProcessing(false);
         paddleInstance.Checkout.open({
           transactionId: data.transactionId,
