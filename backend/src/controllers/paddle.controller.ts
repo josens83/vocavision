@@ -51,17 +51,10 @@ export const createPaddleCheckout = async (req: AuthRequest, res: Response) => {
     const transaction = await paddle.transactions.create({
       items: [{ priceId, quantity: 1 }],
       customData: { userId: user.id, plan: planKey, billingCycle: cycleKey },
-      checkout: {
-        url: `${process.env.NEXT_PUBLIC_GLOBAL_URL}/checkout/success`,
-      },
     });
 
-    const checkoutUrl = transaction.checkout?.url;
-    if (!checkoutUrl) {
-      console.error('[Paddle] No checkout URL in response:', JSON.stringify(transaction));
-      return res.status(500).json({ error: 'No checkout URL returned from Paddle' });
-    }
-    res.json({ checkoutUrl });
+    console.log('[Paddle] Transaction created:', transaction.id);
+    res.json({ transactionId: transaction.id });
   } catch (error) {
     console.error('[Paddle] createCheckout error:', error);
     res.status(500).json({ error: 'Failed to create checkout' });
@@ -83,17 +76,10 @@ export const createPaddlePackageCheckout = async (req: AuthRequest, res: Respons
     const transaction = await paddle.transactions.create({
       items: [{ priceId, quantity: 1 }],
       customData: { userId: user.id, packageSlug, isPackagePurchase: true },
-      checkout: {
-        url: `${process.env.NEXT_PUBLIC_GLOBAL_URL}/checkout/success`,
-      },
     });
 
-    const checkoutUrl = transaction.checkout?.url;
-    if (!checkoutUrl) {
-      console.error('[Paddle] No checkout URL in response:', JSON.stringify(transaction));
-      return res.status(500).json({ error: 'No checkout URL returned from Paddle' });
-    }
-    res.json({ checkoutUrl });
+    console.log('[Paddle] Package transaction created:', transaction.id);
+    res.json({ transactionId: transaction.id });
   } catch (error) {
     console.error('[Paddle] createPackageCheckout error:', error);
     res.status(500).json({ error: 'Failed to create package checkout' });

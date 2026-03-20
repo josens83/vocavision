@@ -130,6 +130,19 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isEn && typeof window !== 'undefined' && !(window as any).Paddle) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js';
+      script.onload = () => {
+        (window as any).Paddle.Initialize({
+          token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN,
+        });
+      };
+      document.head.appendChild(script);
+    }
+  }, [isEn]);
+
+  useEffect(() => {
     fetchPackageInfo();
   }, [packageSlug]);
 
@@ -184,11 +197,18 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
           }
         );
         const data = await res.json();
-        if (data.checkoutUrl) {
-          window.location.href = data.checkoutUrl;
-        } else {
-          throw new Error('No checkout URL');
-        }
+        if (!data.transactionId) throw new Error('No transaction ID returned');
+
+        const paddleInstance = (window as any).Paddle;
+        if (!paddleInstance) throw new Error('Paddle.js not loaded');
+
+        setIsProcessing(false);
+        paddleInstance.Checkout.open({
+          transactionId: data.transactionId,
+          settings: {
+            successUrl: `${window.location.origin}/checkout/success`,
+          },
+        });
       } else {
         // TossPayments (한국)
         const { requestPaymentWithParams } = await import("@/lib/payments/toss");
@@ -513,10 +533,18 @@ function SubscriptionCheckout() {
           }
         );
         const data = await res.json();
-        if (data.checkoutUrl) {
-          window.location.href = data.checkoutUrl;
-        } else {
-          throw new Error('No checkout URL returned');
+        if (!data.transactionId) throw new Error('No transaction ID returned');
+
+        const paddleInstance = (window as any).Paddle;
+        if (!paddleInstance) throw new Error('Paddle.js not loaded');
+
+        setIsProcessing(false);
+        paddleInstance.Checkout.open({
+          transactionId: data.transactionId,
+          settings: {
+            successUrl: `${window.location.origin}/checkout/success`,
+          },
+        });
         }
       } else {
         // TossPayments (한국)
