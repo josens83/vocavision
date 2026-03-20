@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/navigation/Navigation";
 import { Check, ArrowLeft, Loader2, BookOpen, Clock, CreditCard } from "lucide-react";
+import { useLocale } from '@/hooks/useLocale';
 
 interface PackageInfo {
   id: string;
@@ -93,6 +94,29 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
   },
 };
 
+const STATIC_PACKAGES_EN: Record<string, Partial<PackageInfo>> = {
+  'toefl-complete': {
+    name: 'TOEFL Mastery',
+    description: 'Master 3,651 TOEFL words from Core essentials to Advanced high-difficulty. Greek·Latin etymology makes every word unforgettable. Covers all updated TOEFL question types.',
+  },
+  'toeic-complete': {
+    name: 'TOEIC Score Booster',
+    description: 'Master 2,491 essential TOEIC words from Starter to Booster. AI visual mnemonics ensure exam-day recall. Optimized for business and workplace English.',
+  },
+  'sat-complete': {
+    name: 'SAT Vocabulary',
+    description: 'Conquer 1,934 SAT words through Greek·Latin roots. Theme-based L1 + high-confusion L2 words. Perfect for SAT, PSAT, and ACT preparation.',
+  },
+  'gre-complete': {
+    name: 'GRE Verbal Mastery',
+    description: 'Complete 4,346 GRE Verbal words — Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based learning for grad school applications.',
+  },
+  'ielts-complete': {
+    name: 'IELTS Complete',
+    description: 'Master 795 IELTS words across all bands. Foundation (L1) 401 words for Band 5~6.5 + Academic (L2) 394 words for Band 7~8.',
+  },
+};
+
 // 표시용 단어 수 (교재 레벨 중복 포함)
 const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'ebs-vocab': 3837,
@@ -104,9 +128,19 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'ielts-complete': 795,
 };
 
+const USD_PRICES: Record<string, string> = {
+  'toefl-complete': '$9.99',
+  'toeic-complete': '$7.99',
+  'sat-complete': '$9.99',
+  'gre-complete': '$12.99',
+  'ielts-complete': '$6.99',
+};
+
 export default function PackageDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
+  const locale = useLocale();
+  const isEn = locale === 'en';
 
   const [packageInfo, setPackageInfo] = useState<PackageInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -163,14 +197,14 @@ export default function PackageDetailPage() {
           <div className="max-w-4xl mx-auto px-4 py-16 text-center">
             <div className="text-6xl mb-4">📦</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              패키지를 찾을 수 없습니다
+              {isEn ? 'Package not found' : '패키지를 찾을 수 없습니다'}
             </h1>
             <p className="text-gray-600 mb-6">{error}</p>
             <Link
               href="/"
               className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary text-white rounded-xl font-medium hover:bg-brand-primary/90 transition-colors"
             >
-              홈으로 돌아가기
+              {isEn ? 'Back to Home' : '홈으로 돌아가기'}
             </Link>
           </div>
         </main>
@@ -178,11 +212,17 @@ export default function PackageDetailPage() {
     );
   }
 
+  const displayName = isEn ? (STATIC_PACKAGES_EN[slug]?.name || packageInfo.name) : packageInfo.name;
+  const displayDescription = isEn ? (STATIC_PACKAGES_EN[slug]?.description || packageInfo.description) : (packageInfo.description || packageInfo.shortDesc);
+  const displayPrice = isEn ? (USD_PRICES[slug] || null) : null;
+
   const hasDiscount = packageInfo.originalPrice && packageInfo.originalPrice > packageInfo.price;
   const discountPercent = hasDiscount
     ? Math.round((1 - packageInfo.price / packageInfo.originalPrice!) * 100)
     : 0;
-  const durationText = packageInfo.durationDays >= 365 ? "1년" : packageInfo.durationDays >= 30 ? `${Math.floor(packageInfo.durationDays / 30)}개월` : `${packageInfo.durationDays}일`;
+  const durationText = isEn
+    ? (packageInfo.durationDays >= 365 ? "1 year" : packageInfo.durationDays >= 30 ? `${Math.floor(packageInfo.durationDays / 30)} months` : `${packageInfo.durationDays} days`)
+    : (packageInfo.durationDays >= 365 ? "1년" : packageInfo.durationDays >= 30 ? `${Math.floor(packageInfo.durationDays / 30)}개월` : `${packageInfo.durationDays}일`);
 
   return (
     <>
@@ -203,7 +243,7 @@ export default function PackageDetailPage() {
               className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-6 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              홈으로
+              {isEn ? 'Home' : '홈으로'}
             </Link>
 
             {packageInfo.badge && (
@@ -213,36 +253,38 @@ export default function PackageDetailPage() {
             )}
 
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              {packageInfo.name}
+              {displayName}
             </h1>
 
             <p className="text-xl text-white/90 mb-8 max-w-2xl">
-              {slug === 'ielts-complete' ? (
-                <>IELTS Band 5~8 필수 어휘 795개.<br />Foundation(L1) 401개와 Academic(L2) 394개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
-              ) : slug === 'gre-complete' ? (
-                <>GRE Verbal 핵심~고급 어휘 4,346개.<br />Verbal 핵심(L1) 1,858개와 고급(L2) 2,488개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
-              ) : slug === 'sat-complete' ? (
-                <>SAT/PSAT 고득점을 위한 필수 어휘 1,935개.<br />테마별 핵심어휘(L1) 1,784개와 혼동하기 쉬운 어휘(L2) 150개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
-              ) : (packageInfo.description || packageInfo.shortDesc ||
-                (slug === '2026-csat-analysis'
-                  ? '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
-                  : slug === 'ebs-vocab'
-                  ? '2026학년도 EBS 수능특강 영어영역 단어·숙어 완벽 대비. 3개 교재(영어, 영어독해연습, 영어듣기) 수록 어휘 3,837개.'
-                  : slug === 'toefl-complete'
-                  ? '2026 Updated TOEFL 완벽 대비. 적응형 시험·새 문제 유형에 필요한 3,651개 핵심 어휘를 Core와 Advanced로 나누어 체계적으로 학습합니다.'
-                  : '고득점을 위한 필수 단어장'))}
+              {isEn ? displayDescription : (
+                slug === 'ielts-complete' ? (
+                  <>IELTS Band 5~8 필수 어휘 795개.<br />Foundation(L1) 401개와 Academic(L2) 394개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
+                ) : slug === 'gre-complete' ? (
+                  <>GRE Verbal 핵심~고급 어휘 4,346개.<br />Verbal 핵심(L1) 1,858개와 고급(L2) 2,488개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
+                ) : slug === 'sat-complete' ? (
+                  <>SAT/PSAT 고득점을 위한 필수 어휘 1,935개.<br />테마별 핵심어휘(L1) 1,784개와 혼동하기 쉬운 어휘(L2) 150개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
+                ) : (packageInfo.description || packageInfo.shortDesc ||
+                  (slug === '2026-csat-analysis'
+                    ? '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
+                    : slug === 'ebs-vocab'
+                    ? '2026학년도 EBS 수능특강 영어영역 단어·숙어 완벽 대비. 3개 교재(영어, 영어독해연습, 영어듣기) 수록 어휘 3,837개.'
+                    : slug === 'toefl-complete'
+                    ? '2026 Updated TOEFL 완벽 대비. 적응형 시험·새 문제 유형에 필요한 3,651개 핵심 어휘를 Core와 Advanced로 나누어 체계적으로 학습합니다.'
+                    : '고득점을 위한 필수 단어장'))
+              )}
             </p>
 
             <div className="flex flex-wrap items-center gap-6 text-lg">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-6 h-6" />
-                <span className="font-semibold">{packageInfo.wordCount}개</span>
-                <span className="text-white/80">단어</span>
+                <span className="font-semibold">{packageInfo.wordCount}{isEn ? '' : '개'}</span>
+                <span className="text-white/80">{isEn ? 'words' : '단어'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-6 h-6" />
                 <span className="font-semibold">{durationText}</span>
-                <span className="text-white/80">이용</span>
+                <span className="text-white/80">{isEn ? 'access' : '이용'}</span>
               </div>
             </div>
           </div>
@@ -256,7 +298,7 @@ export default function PackageDetailPage() {
               {/* 이런 분께 추천 */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  이런 분께 추천해요
+                  {isEn ? 'Who is this for?' : '이런 분께 추천해요'}
                 </h2>
                 <ul className="space-y-3">
                   {slug === '2026-csat-analysis' ? (
@@ -379,7 +421,7 @@ export default function PackageDetailPage() {
               {/* 포함 내용 */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  포함된 학습 콘텐츠
+                  {isEn ? 'What\'s Included' : '포함된 학습 콘텐츠'}
                 </h2>
                 <ul className="space-y-3">
                   {slug === '2026-csat-analysis' ? (
@@ -554,13 +596,13 @@ export default function PackageDetailPage() {
               {/* 이용 안내 */}
               <div className="bg-gray-100 rounded-2xl p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                  이용 안내
+                  {isEn ? 'Usage Info' : '이용 안내'}
                 </h2>
                 <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• 결제 완료 즉시 이용 가능합니다.</li>
-                  <li>• 구매일로부터 {durationText}간 이용할 수 있습니다.</li>
-                  <li>• 일회성 결제로 자동 갱신되지 않습니다.</li>
-                  <li>• 결제 후 7일 이내 미이용 시 전액 환불 가능합니다.</li>
+                  <li>• {isEn ? 'Instant access after purchase.' : '결제 완료 즉시 이용 가능합니다.'}</li>
+                  <li>• {isEn ? `${durationText} access from purchase date.` : `구매일로부터 ${durationText}간 이용할 수 있습니다.`}</li>
+                  <li>• {isEn ? 'One-time payment. No auto-renewal.' : '일회성 결제로 자동 갱신되지 않습니다.'}</li>
+                  <li>• {isEn ? 'Full refund within 7 days if unused.' : '결제 후 7일 이내 미이용 시 전액 환불 가능합니다.'}</li>
                 </ul>
               </div>
             </div>
@@ -571,10 +613,10 @@ export default function PackageDetailPage() {
                 {hasDiscount && (
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-red-500 font-bold text-sm">
-                      {discountPercent}% 할인
+                      {discountPercent}% {isEn ? 'OFF' : '할인'}
                     </span>
                     <span className="text-gray-400 line-through text-sm">
-                      ₩{packageInfo.originalPrice!.toLocaleString()}
+                      {isEn && displayPrice ? '' : `₩${packageInfo.originalPrice!.toLocaleString()}`}
                     </span>
                   </div>
                 )}
@@ -582,11 +624,11 @@ export default function PackageDetailPage() {
                 <div className="mb-2">
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl font-bold text-gray-900">
-                      ₩{packageInfo.price.toLocaleString()}
+                      {isEn && displayPrice ? displayPrice : `₩${packageInfo.price.toLocaleString()}`}
                     </span>
                     <span className="text-gray-500">/ {durationText}</span>
                   </div>
-                  {packageInfo.durationDays >= 30 && (
+                  {!isEn && packageInfo.durationDays >= 30 && (
                     <span className="inline-block mt-1 px-2 py-0.5 bg-teal-100 text-teal-700 text-xs font-semibold rounded-full">
                       월 {Math.round(packageInfo.price / (packageInfo.durationDays / 30)).toLocaleString()}원
                     </span>
@@ -594,7 +636,7 @@ export default function PackageDetailPage() {
                 </div>
 
                 <p className="text-sm text-gray-500 mb-6">
-                  일회성 결제 · 자동 갱신 없음
+                  {isEn ? 'One-time payment · No auto-renewal' : '일회성 결제 · 자동 갱신 없음'}
                 </p>
 
                 <Link
@@ -602,25 +644,25 @@ export default function PackageDetailPage() {
                   className="flex items-center justify-center gap-2 w-full py-4 px-6 bg-brand-primary text-white font-semibold rounded-xl hover:bg-brand-primary/90 transition-colors"
                 >
                   <CreditCard className="w-5 h-5" />
-                  구매하기
+                  {isEn ? `Buy Now${displayPrice ? ` — ${displayPrice}` : ''}` : '구매하기'}
                 </Link>
 
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                    요약
+                    {isEn ? 'Summary' : '요약'}
                   </h3>
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li className="flex justify-between">
-                      <span>단어 수</span>
-                      <span className="font-medium">{packageInfo.wordCount}개</span>
+                      <span>{isEn ? 'Words' : '단어 수'}</span>
+                      <span className="font-medium">{packageInfo.wordCount}{isEn ? '' : '개'}</span>
                     </li>
                     <li className="flex justify-between">
-                      <span>이용 기간</span>
+                      <span>{isEn ? 'Duration' : '이용 기간'}</span>
                       <span className="font-medium">{durationText}</span>
                     </li>
                     <li className="flex justify-between">
-                      <span>결제 방식</span>
-                      <span className="font-medium">일회성</span>
+                      <span>{isEn ? 'Payment' : '결제 방식'}</span>
+                      <span className="font-medium">{isEn ? 'One-time' : '일회성'}</span>
                     </li>
                   </ul>
                 </div>
