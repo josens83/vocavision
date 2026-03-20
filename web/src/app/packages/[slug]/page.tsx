@@ -157,7 +157,7 @@ export default function PackageDetailPage() {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/packages/${slug}`
       );
-      if (!response.ok) throw new Error("패키지를 찾을 수 없습니다.");
+      if (!response.ok) throw new Error(isEn ? "Package not found." : "패키지를 찾을 수 없습니다.");
       const data = await response.json();
       const pkg = data.package;
       // API wordCount를 표시용 수치로 오버라이드 (레벨 중복 포함 수치)
@@ -602,7 +602,7 @@ export default function PackageDetailPage() {
                   <li>• {isEn ? 'Instant access after purchase.' : '결제 완료 즉시 이용 가능합니다.'}</li>
                   <li>• {isEn ? `${durationText} access from purchase date.` : `구매일로부터 ${durationText}간 이용할 수 있습니다.`}</li>
                   <li>• {isEn ? 'One-time payment. No auto-renewal.' : '일회성 결제로 자동 갱신되지 않습니다.'}</li>
-                  <li>• {isEn ? 'Full refund within 7 days if unused.' : '결제 후 7일 이내 미이용 시 전액 환불 가능합니다.'}</li>
+                  <li>• {isEn ? 'Full refund available within 14 days of purchase.' : '결제 후 7일 이내 미이용 시 전액 환불 가능합니다.'}</li>
                 </ul>
               </div>
             </div>
