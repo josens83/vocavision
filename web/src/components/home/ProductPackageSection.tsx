@@ -317,7 +317,10 @@ export default function ProductPackageSection() {
         .map((pkg) => ({
           ...pkg,
           wordCount: DISPLAY_WORD_COUNTS[pkg.slug] || pkg.wordCount,
-          ...(isEn && englishShortDescs[pkg.slug] ? { shortDesc: englishShortDescs[pkg.slug] } : {}),
+          ...(isEn && englishShortDescs[pkg.slug] ? {
+            shortDesc: englishShortDescs[pkg.slug],
+            description: englishShortDescs[pkg.slug],
+          } : {}),
         }));
 
       // 필터 후 부족하면 정적 데이터 사용
