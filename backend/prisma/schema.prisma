@@ -457,6 +457,8 @@ model Etymology {
   evolution   String   // 단어의 발전 과정
   relatedWords String[] // 같은 어원을 가진 단어들
   breakdown   String?  // 어원 분해 설명
+  originEn    String?
+  breakdownEn String?
 
   createdAt   DateTime @default(now())
 
