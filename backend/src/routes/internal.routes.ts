@@ -5295,4 +5295,112 @@ router.get('/generate-global-content', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /internal/generate-etymology-en?key=YOUR_SECRET&examCategory=SAT&batchSize=20
+ *
+ * Generates originEn + breakdownEn for SAT/GRE/TOEFL/IELTS words
+ * that have Korean etymology but no English etymology yet.
+ */
+router.get('/generate-etymology-en', async (req: Request, res: Response) => {
+  try {
+    const { key, examCategory, batchSize: batchSizeStr } = req.query;
+
+    if (key !== process.env.INTERNAL_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const batchSize = Math.min(parseInt(batchSizeStr as string) || 20, 100);
+    const targetExams = examCategory
+      ? [examCategory as string]
+      : ['SAT', 'GRE', 'TOEFL', 'IELTS'];
+
+    // originEn이 없는 단어 찾기
+    const targets = await prisma.etymology.findMany({
+      where: {
+        originEn: null,
+        word: {
+          wordExamLevels: {
+            some: { examCategory: { in: targetExams } },
+          },
+        },
+      },
+      include: {
+        word: { select: { id: true, word: true, definition: true } },
+      },
+      take: batchSize,
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (targets.length === 0) {
+      return res.json({
+        message: 'No etymologies need English generation',
+        processed: 0,
+      });
+    }
+
+    res.json({
+      message: `Processing ${targets.length} etymologies for English generation`,
+      targetCount: targets.length,
+      words: targets.map(e => e.word.word),
+    });
+
+    // Background processing
+    (async () => {
+      let success = 0;
+      let failed = 0;
+
+      for (let i = 0; i < targets.length; i++) {
+        const etym = targets[i];
+        try {
+          const prompt = `For the English word "${etym.word.word}" (meaning: ${etym.word.definition}):
+
+Return a JSON object with exactly these two fields:
+{
+  "originEn": "Brief English explanation of the word's origin and language source (1-2 sentences, e.g. 'From Latin X meaning Y, combined with prefix Z')",
+  "breakdownEn": "English morpheme breakdown (e.g. 'pre- (before) + dict (say) + -ion (noun) = prediction')"
+}
+
+Return ONLY the JSON object, no other text.`;
+
+          const anthropic = new Anthropic();
+          const response = await anthropic.messages.create({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 300,
+            messages: [{ role: 'user', content: prompt }],
+          });
+
+          const text = response.content[0].type === 'text' ? response.content[0].text : '';
+          const clean = text.replace(/```json|```/g, '').trim();
+          const parsed = JSON.parse(clean);
+
+          await prisma.etymology.update({
+            where: { id: etym.id },
+            data: {
+              originEn: parsed.originEn || null,
+              breakdownEn: parsed.breakdownEn || null,
+            },
+          });
+
+          success++;
+          logger.info(`[EtymologyEN] ${i + 1}/${targets.length}: ${etym.word.word} ✓`);
+        } catch (error) {
+          failed++;
+          logger.error(`[EtymologyEN] Failed: ${etym.word.word}`, error);
+        }
+
+        if (i < targets.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 800));
+        }
+      }
+
+      logger.info(`[EtymologyEN] Done. Success: ${success}, Failed: ${failed}`);
+    })();
+  } catch (error) {
+    logger.error('[EtymologyEN] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Etymology EN generation failed' });
+    }
+  }
+});
+
 export default router;
