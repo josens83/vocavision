@@ -7,7 +7,7 @@
  */
 export const PLATFORM_STATS = {
   // 전체 고유 단어 수 (PUBLISHED 기준, 2026-03-21 파이프라인 확정)
-  totalWords: 16000,
+  totalWords: 15414,
 
   // 수능 단어 수 (기본 무료 제공)
   csatWords: 1787,
@@ -26,7 +26,7 @@ export const PLATFORM_STATS = {
   exams: {
     CSAT: { name: '수능', words: 1787, active: true },
     TEPS: { name: 'TEPS', words: 388, active: true, premium: true },
-    TOEFL: { name: 'TOEFL', words: 3651, active: true },
+    TOEFL: { name: 'TOEFL', words: 3315, active: true },
     TOEIC: { name: 'TOEIC', words: 2491, active: true },
     EBS: { name: 'EBS', words: 3837, active: true },
     CSAT_2026: { name: '2026 기출', words: 521, active: true },
