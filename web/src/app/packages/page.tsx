@@ -156,6 +156,24 @@ const packages: Package[] = [
     isActive: true,
     badge: 'NEW',
   },
+  {
+    id: 'act-complete',
+    slug: 'act-complete',
+    name: 'ACT 완성 패키지',
+    description: 'ACT 핵심 어휘 245개 — Core, Tone, Transition, Academic, Confusable 5개 카테고리. AI 이미지·어원·라임으로 단기 완성.',
+    price: 6900,
+    duration: '6개월',
+    wordCount: 245,
+    features: [
+      'ACT 핵심 어휘 245개 (5개 카테고리)',
+      'L1 Core 필수 어휘',
+      'L2 Advanced 고급 어휘',
+      'AI 이미지·어원·라임 8단계 학습',
+      '6개월 이용권 (자동갱신 없음)',
+    ],
+    isActive: true,
+    badge: 'NEW',
+  },
 ];
 
 const usdPrices: Record<string, string> = {
@@ -166,6 +184,7 @@ const usdPrices: Record<string, string> = {
   'sat-complete': '$9.99',
   'gre-complete': '$12.99',
   'ielts-complete': '$6.99',
+  'act-complete': '$6.99',
 };
 
 const nameEn: Record<string, string> = {
@@ -174,6 +193,7 @@ const nameEn: Record<string, string> = {
   'sat-complete': 'SAT Vocabulary',
   'gre-complete': 'GRE Verbal Mastery',
   'ielts-complete': 'IELTS Complete',
+  'act-complete': 'ACT Complete Vocabulary',
 };
 
 const descriptionEn: Record<string, string> = {
@@ -182,6 +202,7 @@ const descriptionEn: Record<string, string> = {
   'sat-complete': '1,935 SAT words by Greek·Latin roots. Theme-based (L1) + confusing words (L2).',
   'gre-complete': '4,346 GRE Verbal words. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery.',
   'ielts-complete': '795 IELTS words. Foundation (L1) 401 + Academic (L2) 394. Band 5~8 complete coverage.',
+  'act-complete': 'Complete ACT vocabulary — 245 words across 5 categories. AI-powered visual mnemonics.',
 };
 
 export default function PackagesPage() {
