@@ -120,7 +120,7 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   '2026-csat-analysis': 521,
   'toefl-complete': 3651,
   'toeic-complete': 2491,
-  'sat-complete': 1935,
+  'sat-complete': 2023,
   'gre-complete': 4346,
 };
 

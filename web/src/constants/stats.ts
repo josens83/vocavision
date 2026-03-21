@@ -30,7 +30,7 @@ export const PLATFORM_STATS = {
     TOEIC: { name: 'TOEIC', words: 2491, active: true },
     EBS: { name: 'EBS', words: 3837, active: true },
     CSAT_2026: { name: '2026 기출', words: 521, active: true },
-    SAT: { name: 'SAT', words: 1934, active: true },
+    SAT: { name: 'SAT', words: 2023, active: true },
     GRE: { name: 'GRE', words: 4346, active: true },
     IELTS: { name: 'IELTS', words: 795, active: true },
   },
