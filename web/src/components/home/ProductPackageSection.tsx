@@ -300,6 +300,7 @@ export default function ProductPackageSection() {
     'gre-complete': 'Conquer GRE Verbal. 1,858 core + 2,488 advanced words with AI images, etymology & rhymes.',
     'ielts-complete': 'Band 5\u20138 IELTS vocabulary. 795 Foundation + Academic words with AI images & rhymes.',
     'act-complete': 'Score higher on ACT English & Reading. 422 words across Core Meaning, Tone & Attitude, Transitions, Science Reasoning, and Academic verbs \u2014 the exact skills ACT tests.',
+    'teps-top-100': 'Essential TEPS advanced vocabulary. 388 high-frequency words for top TEPS scores.',
   };
 
   const fetchPackages = async () => {
