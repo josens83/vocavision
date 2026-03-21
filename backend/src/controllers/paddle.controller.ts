@@ -31,6 +31,7 @@ const PADDLE_PACKAGE_PRICE_IDS: Record<string, string> = {
   'toefl-complete': process.env.PADDLE_PRICE_ID_TOEFL!,
   'toeic-complete': process.env.PADDLE_PRICE_ID_TOEIC!,
   'gre-complete': process.env.PADDLE_PRICE_ID_GRE!,
+  'act-complete': process.env.PADDLE_PRICE_ID_ACT!,
 };
 
 // Paddle Checkout URL 생성

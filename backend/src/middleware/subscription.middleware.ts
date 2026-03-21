@@ -11,6 +11,7 @@ const PACKAGE_EXAM_SLUGS: Record<string, string> = {
   'TOEFL': 'toefl-complete',
   'TOEIC': 'toeic-complete',
   'SAT': 'sat-complete',
+  'ACT': 'act-complete',
 };
 
 /**
