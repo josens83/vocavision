@@ -5319,7 +5319,7 @@ router.get('/generate-etymology-en', async (req: Request, res: Response) => {
       where: {
         originEn: null,
         word: {
-          wordExamLevels: {
+          examLevels: {
             some: { examCategory: { in: targetExams } },
           },
         },
@@ -5341,7 +5341,7 @@ router.get('/generate-etymology-en', async (req: Request, res: Response) => {
     res.json({
       message: `Processing ${targets.length} etymologies for English generation`,
       targetCount: targets.length,
-      words: targets.map(e => e.word.word),
+      words: targets.map(e => (e as any).word?.word),
     });
 
     // Background processing
@@ -5351,8 +5351,9 @@ router.get('/generate-etymology-en', async (req: Request, res: Response) => {
 
       for (let i = 0; i < targets.length; i++) {
         const etym = targets[i];
+        const wordData = (etym as any).word;
         try {
-          const prompt = `For the English word "${etym.word.word}" (meaning: ${etym.word.definition}):
+          const prompt = `For the English word "${wordData.word}" (meaning: ${wordData.definition}):
 
 Return a JSON object with exactly these two fields:
 {
@@ -5382,10 +5383,10 @@ Return ONLY the JSON object, no other text.`;
           });
 
           success++;
-          logger.info(`[EtymologyEN] ${i + 1}/${targets.length}: ${etym.word.word} ✓`);
+          logger.info(`[EtymologyEN] ${i + 1}/${targets.length}: ${wordData.word} ✓`);
         } catch (error) {
           failed++;
-          logger.error(`[EtymologyEN] Failed: ${etym.word.word}`, error);
+          logger.error(`[EtymologyEN] Failed: ${wordData?.word}`, error);
         }
 
         if (i < targets.length - 1) {
