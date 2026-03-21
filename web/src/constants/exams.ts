@@ -21,6 +21,7 @@ export interface ExamConfig {
   color: string;         // 색상 키 (blue, purple 등)
   levels: LevelConfig[];
   packageSlug?: string;  // 단품 패키지 slug (있는 경우)
+  globalHidden?: boolean;  // true = vocavision.app에서 숨김
 }
 
 // ---------------------------------------------
@@ -33,6 +34,7 @@ export const EXAM_LIST: ExamConfig[] = [
     label: '수능',
     icon: '📝',
     color: 'blue',
+    globalHidden: true,
     levels: [
       { key: 'L1', label: 'L1(기초)', shortLabel: '기초' },
       { key: 'L2', label: 'L2(중급)', shortLabel: '중급' },
@@ -44,6 +46,7 @@ export const EXAM_LIST: ExamConfig[] = [
     label: 'TEPS',
     icon: '🎓',
     color: 'purple',
+    globalHidden: true,
     levels: [
       { key: 'L1', label: 'L1(기본)', shortLabel: '기본' },
       { key: 'L2', label: 'L2(필수)', shortLabel: '필수' },
@@ -54,6 +57,7 @@ export const EXAM_LIST: ExamConfig[] = [
     label: '2026 수능 기출',
     icon: '📋',
     color: 'emerald',
+    globalHidden: true,
     packageSlug: '2026-csat-analysis',
     levels: [
       { key: 'LISTENING', label: '듣기영역', shortLabel: '듣기' },
@@ -66,6 +70,7 @@ export const EXAM_LIST: ExamConfig[] = [
     label: 'EBS 연계',
     icon: '📗',
     color: 'green',
+    globalHidden: true,
     packageSlug: 'ebs-vocab',
     levels: [
       { key: 'LISTENING', label: '듣기영역', shortLabel: '듣기' },
@@ -231,3 +236,9 @@ export const LEVEL_COLORS: Record<string, string> = {
   READING_BASIC: 'bg-[#3B82F6]',
   READING_ADV: 'bg-[#A855F7]',
 };
+
+/** 글로벌/한국 도메인에 따라 보여줄 시험 목록 반환 */
+export function getVisibleExams(isGlobal: boolean): ExamConfig[] {
+  if (!isGlobal) return EXAM_LIST;
+  return EXAM_LIST.filter((e) => !e.globalHidden);
+}

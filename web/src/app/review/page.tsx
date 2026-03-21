@@ -10,7 +10,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { useDueReviews, useDashboardSummary, usePrefetchReviews, usePackageAccessBulk } from '@/hooks/useQueries';
-import { EXAM_LIST, EXAM_MAP, getValidLevelsForExam, getValidLevelForExam } from '@/constants/exams';
+import { EXAM_LIST, EXAM_MAP, getValidLevelsForExam, getValidLevelForExam, getVisibleExams } from '@/constants/exams';
 import { useLocale } from '@/hooks/useLocale';
 
 // ============================================
@@ -102,6 +102,7 @@ function ReviewPageContent() {
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const locale = useLocale();
   const isEn = locale === 'en';
+  const visibleExams = getVisibleExams(isEn);
 
   const [wordListPage, setWordListPage] = useState(1);
   const WORDS_PER_PAGE = 10;
@@ -372,7 +373,7 @@ function ReviewPageContent() {
           <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">{isEn ? 'Select Exam' : '시험 선택'}</h3>
 
           <div className="grid grid-cols-4 gap-2">
-            {EXAM_LIST
+            {visibleExams
               .filter((e) => {
                 if (e.key === 'CSAT_2026') return hasCsat2026Access || isPremium;
                 if (e.key === 'EBS') return hasEbsAccess || isPremium;
