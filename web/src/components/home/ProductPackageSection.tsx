@@ -118,11 +118,24 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       isComingSoon: false,
       wordCount: 795,
     },
+    {
+      id: "static-act",
+      name: "ACT 완성 패키지",
+      slug: "act-complete",
+      shortDesc: isEn
+        ? "Complete ACT vocabulary — 245 words across 5 categories: Core, Tone, Transition, Academic, Confusable."
+        : "ACT 핵심 어휘 245개 — Core, Tone, Transition, Academic, Confusable 5개 카테고리를 AI 이미지·어원·라임으로 단기 완성.",
+      price: 6900,
+      durationDays: 180,
+      badge: "NEW",
+      isComingSoon: false,
+      wordCount: 245,
+    },
   ];
 }
 
 // 메인페이지에 표시할 패키지 slug 목록
-const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete'];
+const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete', 'act-complete'];
 
 // 표시용 단어 수 오버라이드 (교재별 레벨 중복 포함 수치)
 const DISPLAY_WORD_COUNTS: Record<string, number> = {
@@ -133,6 +146,7 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   'sat-complete': 1935,
   'gre-complete': 4346,
   'ielts-complete': 795,
+  'act-complete': 245,
 };
 
 // 뱃지 스타일 결정
@@ -160,6 +174,7 @@ const usdPrices: Record<string, string> = {
   'sat-complete': '$9.99',
   'gre-complete': '$12.99',
   'ielts-complete': '$6.99',
+  'act-complete': '$6.99',
 };
 
 // 패키지 카드 컴포넌트 - 플랫 화이트 스타일
@@ -284,6 +299,7 @@ export default function ProductPackageSection() {
     'sat-complete': '1,935 SAT words organized by Greek·Latin roots. Theme-based (L1) + confusing words (L2).',
     'gre-complete': '4,346 GRE Verbal words. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery.',
     'ielts-complete': '795 IELTS words. Foundation (L1) 401 + Academic (L2) 394. Band 5~8 complete coverage.',
+    'act-complete': 'Complete ACT vocabulary — 245 words across 5 categories. AI-powered visual mnemonics.',
   };
 
   const fetchPackages = async () => {
