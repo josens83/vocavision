@@ -5126,7 +5126,7 @@ router.get('/generate-etymology-en', async (req: Request, res: Response) => {
   try {
     const { key, batchSize: batchSizeStr, maxBatches: maxBatchesStr } = req.query;
 
-    if (key !== process.env.INTERNAL_API_KEY) {
+    if (key !== process.env.INTERNAL_SECRET_KEY) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -5221,7 +5221,7 @@ router.get('/generate-global-content', async (req: Request, res: Response) => {
   try {
     const { key, batchSize: batchSizeStr } = req.query;
 
-    if (key !== process.env.INTERNAL_API_KEY) {
+    if (key !== process.env.INTERNAL_SECRET_KEY) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
