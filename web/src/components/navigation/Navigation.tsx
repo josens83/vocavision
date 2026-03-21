@@ -773,8 +773,18 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
-              <span className="text-white font-display font-bold text-xl">V</span>
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
+              <svg viewBox="0 0 108 108" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="nav-logo-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#A5F3FC"/>
+                    <stop offset="100%" stopColor="#22D3EE"/>
+                  </linearGradient>
+                </defs>
+                <rect width="108" height="108" fill="url(#nav-logo-bg)"/>
+                <path d="M 28,40 L 40,70 L 52,40" fill="none" stroke="white" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M 56,70 L 68,40 L 80,70" fill="none" stroke="white" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
             <span className="font-display font-bold text-xl">
               <span className="text-gradient">Voca</span><span className="text-slate-700">Vision</span><span className="text-slate-400 ml-1">AI</span>
