@@ -32,7 +32,7 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       name: "2026 수능기출 완전분석",
       slug: "2026-csat-analysis",
       shortDesc: isEn
-        ? "521 words from the 2026 CSAT exam. Organized by listening, reading 2-point and 3-point sections."
+        ? "Real CSAT questions from 2026. 521 words sorted by difficulty — 2/3-point vocab only."
         : "실제 수능 출제 단어 521개. 듣기·2점·3점 독해 영역별 분류로 시험에 나온 단어만 집중 학습.",
       price: 3900,
       durationDays: 180,
@@ -45,7 +45,7 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       name: "EBS 연계어휘",
       slug: "ebs-vocab",
       shortDesc: isEn
-        ? "3,837 words from 3 EBS textbooks. 70% of CSAT exam content comes from EBS — essential coverage."
+        ? "EBS-linked CSAT vocabulary. 3,837 words from Korea's official EBS prep materials."
         : "수능 연계율 70% 완벽 대비. EBS 3개 교재 핵심 어휘 3,837개 — EBS에서 나오면 수능에 나온다.",
       price: 6900,
       durationDays: 180,
@@ -58,7 +58,7 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       name: "TOEFL Core Vocabulary",
       slug: "toefl-complete",
       shortDesc: isEn
-        ? "3,651 TOEFL words from Core to Advanced. Greek·Latin etymology makes them unforgettable."
+        ? "Master TOEFL vocabulary. 3,651 words covering academic reading, listening & speaking."
         : "세계 6,000개 이상 대학이 요구하는 TOEFL. Core~Advanced 3,651개, Greek·Latin 어원으로 한 번 외우면 잊히지 않는다.",
       price: 9900,
       durationDays: 180,
@@ -71,7 +71,7 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       name: "TOEIC Score Booster",
       slug: "toeic-complete",
       shortDesc: isEn
-        ? "2,491 essential TOEIC words from Starter to Booster. AI visual mnemonics for exam-day recall."
+        ? "Boost your TOEIC score. 2,491 essential words from Starter to Booster level."
         : "취업·승진을 결정짓는 TOEIC. Starter~Booster 2,491개 핵심 어휘, AI 이미지로 외우면 시험장에서 잊히지 않는다.",
       price: 7900,
       durationDays: 180,
@@ -84,20 +84,20 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       name: "SAT Advanced Vocabulary",
       slug: "sat-complete",
       shortDesc: isEn
-        ? "1,935 SAT words organized by Greek·Latin roots. Theme-based (L1) + confusing words (L2)."
-        : "미국 대학 입시의 관문 SAT. Greek·Latin 어근 기반 1,935개를 테마별(L1)·혼동어휘(L2)로 체계적으로 정복.",
+        ? "Ace SAT vocabulary. 2,023 words with Greek-Latin roots, thematic grouping & confusables."
+        : "미국 대학 입시의 관문 SAT. Greek·Latin 어근 기반 2,023개를 테마별(L1)·혼동어휘(L2)로 체계적으로 정복.",
       price: 9900,
       durationDays: 180,
       badge: "NEW",
       isComingSoon: false,
-      wordCount: 1935,
+      wordCount: 2023,
     },
     {
       id: "static-gre",
       name: "GRE Verbal Mastery",
       slug: "gre-complete",
       shortDesc: isEn
-        ? "4,346 GRE Verbal words. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery."
+        ? "Conquer GRE Verbal. 1,858 core + 2,488 advanced words with AI images, etymology & rhymes."
         : "대학원 유학의 관문 GRE Verbal. Greek·Latin 어근 기반 핵심(L1) 1,858개 + 고급(L2) 2,488개를 AI 이미지·어원·라임으로 단기 완성.",
       price: 12900,
       durationDays: 180,
@@ -110,7 +110,7 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       name: "IELTS Academic Mastery",
       slug: "ielts-complete",
       shortDesc: isEn
-        ? "795 IELTS words. Foundation (L1) 401 + Academic (L2) 394. Band 5~8 complete coverage."
+        ? "Band 5\u20138 IELTS vocabulary. 795 Foundation + Academic words with AI images & rhymes."
         : "영국 유학·이민의 관문 IELTS. Foundation(L1) 330개 + Academic(L2) 258개를 AI 이미지·어원·라임으로 단기 완성.",
       price: 6900,
       durationDays: 180,
@@ -123,13 +123,13 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       name: "ACT 완성 패키지",
       slug: "act-complete",
       shortDesc: isEn
-        ? "Complete ACT vocabulary — 245 words across 5 categories: Core, Tone, Transition, Academic, Confusable."
-        : "ACT 핵심 어휘 245개 — Core, Tone, Transition, Academic, Confusable 5개 카테고리를 AI 이미지·어원·라임으로 단기 완성.",
+        ? "Score higher on ACT English & Reading. 422 words across Core Meaning, Tone & Attitude, Transitions, Science Reasoning, and Academic verbs \u2014 the exact skills ACT tests."
+        : "ACT 핵심 어휘 422개 — Core, Tone, Transition, Academic, Confusable 5개 카테고리를 AI 이미지·어원·라임으로 단기 완성.",
       price: 6900,
       durationDays: 180,
       badge: "NEW",
       isComingSoon: false,
-      wordCount: 245,
+      wordCount: 422,
     },
   ];
 }
@@ -292,14 +292,14 @@ export default function ProductPackageSection() {
 
   // 영어 shortDesc 오버라이드 (API 패키지용)
   const englishShortDescs: Record<string, string> = {
-    '2026-csat-analysis': '521 words from the 2026 CSAT exam. Organized by listening, reading 2-point and 3-point sections.',
-    'ebs-vocab': '3,837 words from 3 EBS textbooks. 70% of CSAT exam content comes from EBS — essential coverage.',
-    'toefl-complete': '3,651 TOEFL words from Core to Advanced. Greek·Latin etymology makes them unforgettable.',
-    'toeic-complete': '2,491 essential TOEIC words from Starter to Booster. AI visual mnemonics for exam-day recall.',
-    'sat-complete': '1,935 SAT words organized by Greek·Latin roots. Theme-based (L1) + confusing words (L2).',
-    'gre-complete': '4,346 GRE Verbal words. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery.',
-    'ielts-complete': '795 IELTS words. Foundation (L1) 401 + Academic (L2) 394. Band 5~8 complete coverage.',
-    'act-complete': 'Complete ACT vocabulary — 245 words across 5 categories. AI-powered visual mnemonics.',
+    '2026-csat-analysis': 'Real CSAT questions from 2026. 521 words sorted by difficulty — 2/3-point vocab only.',
+    'ebs-vocab': "EBS-linked CSAT vocabulary. 3,837 words from Korea's official EBS prep materials.",
+    'toefl-complete': 'Master TOEFL vocabulary. 3,651 words covering academic reading, listening & speaking.',
+    'toeic-complete': 'Boost your TOEIC score. 2,491 essential words from Starter to Booster level.',
+    'sat-complete': 'Ace SAT vocabulary. 2,023 words with Greek-Latin roots, thematic grouping & confusables.',
+    'gre-complete': 'Conquer GRE Verbal. 1,858 core + 2,488 advanced words with AI images, etymology & rhymes.',
+    'ielts-complete': 'Band 5\u20138 IELTS vocabulary. 795 Foundation + Academic words with AI images & rhymes.',
+    'act-complete': 'Score higher on ACT English & Reading. 422 words across Core Meaning, Tone & Attitude, Transitions, Science Reasoning, and Academic verbs \u2014 the exact skills ACT tests.',
   };
 
   const fetchPackages = async () => {
