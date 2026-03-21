@@ -31,70 +31,76 @@ const Icons = {
 // 8 Section Features Data
 // ============================================
 function getFeatures(isEn: boolean) {
-  return [
-    {
-      icon: '📝',
-      title: isEn ? 'Word' : '단어',
-      description: isEn ? 'Target vocabulary word' : '학습할 영어 단어',
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-50',
-    },
+  const items = [
     {
       icon: '🎨',
-      title: 'AI 이미지',
-      description: 'Concept · Mnemonic · Rhyme',
-      color: 'from-purple-500 to-cyan-600',
-      bgColor: 'bg-purple-50',
-      badge: 'AI',
-    },
-    {
-      icon: '🎤',
-      title: isEn ? 'Pronunciation' : '발음',
-      description: isEn ? 'IPA + stress marks' : 'IPA · 한국어 · 강세',
-      color: 'from-green-500 to-green-600',
-      bgColor: 'bg-green-50',
-    },
-    {
-      icon: '🌳',
-      title: isEn ? 'Etymology' : '어원 분석',
-      description: isEn ? 'Prefix / Root / Suffix' : '접두사/어근/접미사',
-      color: 'from-amber-500 to-amber-600',
-      bgColor: 'bg-amber-50',
+      title: 'Concept',
+      description: isEn
+        ? 'Visual concept image'
+        : '단어 의미 시각화 이미지',
       badge: 'AI',
     },
     {
       icon: '💡',
-      title: isEn ? 'Memory Trick' : '창의적 암기법',
-      description: isEn ? 'Visual mnemonic' : '한글 기반 연상법',
-      color: 'from-pink-500 to-pink-600',
-      bgColor: 'bg-teal-50',
+      title: 'Mnemonic',
+      description: isEn
+        ? 'Memory association image'
+        : '한국어 연상법 이미지',
       badge: 'AI',
+      krOnly: true,
     },
     {
       icon: '🎵',
       title: 'Rhyme',
-      description: isEn ? 'Remember through rhyme' : '운율로 암기',
-      color: 'from-indigo-500 to-indigo-600',
-      bgColor: 'bg-indigo-50',
-      badge: 'AI',
-    },
-    {
-      icon: '🔗',
-      title: 'Collocation',
-      description: isEn ? '3-5 common phrases' : '연어 표현 3~5개',
-      color: 'from-teal-500 to-teal-600',
-      bgColor: 'bg-teal-50',
+      description: isEn
+        ? 'Rhyme-based scene image'
+        : '라임 기반 장면 이미지',
       badge: 'AI',
     },
     {
       icon: '📖',
       title: isEn ? 'Examples' : '예문',
-      description: isEn ? '3 memorable sentences' : '재미있는 예문 3개',
-      color: 'from-orange-500 to-orange-600',
-      bgColor: 'bg-orange-50',
+      description: isEn
+        ? '4 memorable sentences'
+        : '재미있는 예문 4개',
+      badge: 'AI',
+    },
+    {
+      icon: '🔗',
+      title: 'Collocation',
+      description: isEn
+        ? '3–5 common phrases'
+        : '연어 표현 3~5개',
+      badge: 'AI',
+    },
+    {
+      icon: '🌳',
+      title: isEn ? 'Etymology' : '어원 분석',
+      description: isEn
+        ? 'Origin & language source'
+        : 'Greek · Latin 어원',
+      badge: 'AI',
+    },
+    {
+      icon: '🔬',
+      title: isEn ? 'Morphology' : '형태 분석',
+      description: isEn
+        ? 'Prefix / Root / Suffix'
+        : '접두사/어근/접미사',
+      badge: 'AI',
+    },
+    {
+      icon: '🎶',
+      title: isEn ? 'Rhyming Words' : '라이밍',
+      description: isEn
+        ? 'Rhyming word chains'
+        : '발음 기반 라임 단어',
       badge: 'AI',
     },
   ];
+
+  // Mnemonic은 한국 서비스만 표시
+  return isEn ? items.filter(i => !i.krOnly) : items;
 }
 
 // ============================================
@@ -487,7 +493,9 @@ export default function HelpPage() {
                   {isEn ? '🎯 8-Section Learning Method' : '🎯 VocaVision AI의 8섹션 학습법'}
                 </h2>
                 <p className="text-gray-500">
-                  {isEn ? 'Master each word through 8 different approaches' : '단어 하나를 8가지 방법으로 완벽하게 암기'}
+                  {isEn
+                    ? '7 AI-powered content layers per word'
+                    : '단어 하나를 8가지 AI 콘텐츠로 완벽하게 암기'}
                 </p>
               </div>
 
