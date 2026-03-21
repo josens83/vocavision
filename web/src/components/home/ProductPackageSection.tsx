@@ -143,10 +143,10 @@ const DISPLAY_WORD_COUNTS: Record<string, number> = {
   '2026-csat-analysis': 521,
   'toefl-complete': 3651,
   'toeic-complete': 2491,
-  'sat-complete': 1935,
+  'sat-complete': 2023,
   'gre-complete': 4346,
   'ielts-complete': 795,
-  'act-complete': 245,
+  'act-complete': 422,
 };
 
 // 뱃지 스타일 결정
