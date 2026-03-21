@@ -128,6 +128,17 @@ export const EXAM_LIST: ExamConfig[] = [
       { key: 'L2', label: 'Academic Band 7~8', shortLabel: 'Academic' },
     ],
   },
+  {
+    key: 'ACT',
+    label: 'ACT',
+    icon: '📐',
+    color: 'violet',
+    packageSlug: 'act-complete',
+    levels: [
+      { key: 'L1', label: 'ACT Core', shortLabel: 'Core' },
+      { key: 'L2', label: 'ACT Advanced', shortLabel: 'Advanced' },
+    ],
+  },
 ];
 
 // ---------------------------------------------
