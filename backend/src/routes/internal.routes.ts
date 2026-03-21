@@ -5136,7 +5136,7 @@ router.get('/generate-etymology-en', async (req: Request, res: Response) => {
     // Find Etymology records with Korean origin but no English yet
     const targetEtymologies = await prisma.etymology.findMany({
       where: {
-        origin: { not: null },
+        origin: { not: '' },
         originEn: null,
         word: {
           examCategory: { in: ['SAT', 'GRE', 'TOEFL', 'IELTS'] },
