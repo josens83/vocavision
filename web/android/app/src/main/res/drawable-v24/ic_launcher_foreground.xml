@@ -9,18 +9,20 @@
         android:scaleY="0.72"
         android:pivotX="54"
         android:pivotY="54">
+        <!-- V: x=28~52, width=24 -->
         <path
-            android:pathData="M 33,40 L 45,70 L 57,40"
+            android:pathData="M 28,40 L 40,70 L 52,40"
             android:strokeColor="#FFFFFF"
             android:strokeWidth="8.5"
-            android:strokeLineCap="butt"
+            android:strokeLineCap="round"
             android:strokeLineJoin="round"
             android:fillColor="#00000000"/>
+        <!-- Λ: x=56~80, width=24, gap=4 -->
         <path
-            android:pathData="M 51,70 L 63,40 L 75,70"
+            android:pathData="M 56,70 L 68,40 L 80,70"
             android:strokeColor="#FFFFFF"
             android:strokeWidth="8.5"
-            android:strokeLineCap="butt"
+            android:strokeLineCap="round"
             android:strokeLineJoin="round"
             android:fillColor="#00000000"/>
     </group>
