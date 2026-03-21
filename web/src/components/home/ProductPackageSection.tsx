@@ -288,7 +288,7 @@ export default function ProductPackageSection() {
 
   useEffect(() => {
     fetchPackages();
-  }, []);
+  }, [locale]);
 
   // 영어 shortDesc 오버라이드 (API 패키지용)
   const englishShortDescs: Record<string, string> = {
