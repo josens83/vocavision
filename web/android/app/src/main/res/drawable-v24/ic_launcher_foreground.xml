@@ -4,20 +4,24 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- V: x 시작 33으로 안쪽 이동 (round cap 여유 확보) -->
-    <path
-        android:pathData="M 33,40 L 45,70 L 57,40"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="8.5"
-        android:strokeLineCap="butt"
-        android:strokeLineJoin="round"
-        android:fillColor="#00000000"/>
-    <!-- Λ: x 끝 75로 안쪽 이동 (동일 폭 24dp 유지) -->
-    <path
-        android:pathData="M 51,70 L 63,40 L 75,70"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="8.5"
-        android:strokeLineCap="butt"
-        android:strokeLineJoin="round"
-        android:fillColor="#00000000"/>
+    <group
+        android:scaleX="0.72"
+        android:scaleY="0.72"
+        android:pivotX="54"
+        android:pivotY="54">
+        <path
+            android:pathData="M 33,40 L 45,70 L 57,40"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="8.5"
+            android:strokeLineCap="butt"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000"/>
+        <path
+            android:pathData="M 51,70 L 63,40 L 75,70"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="8.5"
+            android:strokeLineCap="butt"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000"/>
+    </group>
 </vector>
