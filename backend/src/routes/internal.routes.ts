@@ -5320,7 +5320,7 @@ router.get('/generate-etymology-en', async (req: Request, res: Response) => {
         originEn: null,
         word: {
           examLevels: {
-            some: { examCategory: { in: targetExams } },
+            some: { examCategory: { in: targetExams as any } },
           },
         },
       },
