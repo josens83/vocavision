@@ -976,6 +976,68 @@ export async function processFillMissingJob(
 }
 
 // ---------------------------------------------
+// Etymology EN Generation (Global users)
+// → Generates originEn + breakdownEn for Etymology records
+// ---------------------------------------------
+
+const ETYMOLOGY_EN_PROMPT = `You are an etymology expert for English vocabulary learners preparing for SAT, GRE, TOEFL, and IELTS.
+
+## Input
+Word: {{WORD}}
+Korean etymology: {{KOREAN_ORIGIN}}
+
+## Task
+Generate English etymology explanation for this word.
+
+## Output Format
+Return ONLY a JSON object:
+\`\`\`json
+{
+  "originEn": "Brief origin story in English (1-2 sentences, e.g. 'From Latin pernicious, from pernicies meaning ruin or destruction')",
+  "breakdownEn": "Morpheme breakdown in English (e.g. 'per- (through/completely) + nec- (death/harm) + -ious (adjective suffix)')"
+}
+\`\`\`
+
+## Rules
+1. originEn: 1-2 sentences max, mention the source language and root meaning
+2. breakdownEn: prefix + root + suffix format when applicable
+3. If word has no clear prefix/suffix, just explain the root
+4. Write for an English-speaking learner, not an academic
+5. Keep it memorable and clear
+`;
+
+export async function generateEtymologyEn(
+  word: string,
+  koreanOrigin: string
+): Promise<{ originEn: string; breakdownEn: string }> {
+  const prompt = ETYMOLOGY_EN_PROMPT
+    .replace(/\{\{WORD\}\}/g, word)
+    .replace(/\{\{KOREAN_ORIGIN\}\}/g, koreanOrigin);
+
+  try {
+    const client = getAnthropicClient();
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 300,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const text = response.content[0].type === 'text' ? response.content[0].text : '';
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON in response');
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    return {
+      originEn: parsed.originEn || '',
+      breakdownEn: parsed.breakdownEn || '',
+    };
+  } catch (error) {
+    logger.error(`[EtymologyEn] Failed for word: ${word}`, error);
+    throw error;
+  }
+}
+
+// ---------------------------------------------
 // English Mnemonic Generation (Global users)
 // → Generates englishHint for words that have koreanHint but no englishHint
 // ---------------------------------------------
@@ -1018,4 +1080,5 @@ export default {
   processGenerationJob,
   processFillMissingJob,
   generateEnglishMnemonic,
+  generateEtymologyEn,
 };
