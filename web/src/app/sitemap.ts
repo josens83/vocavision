@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 86400;
 
 const BASE_URL_KO = 'https://vocavision.kr';
 const BASE_URL_EN = 'https://vocavision.app';
@@ -27,6 +27,10 @@ const staticPages: MetadataRoute.Sitemap = [
   { url: BASE_URL_EN, changeFrequency: 'weekly', priority: 1.0 },
   { url: `${BASE_URL_EN}/pricing`, changeFrequency: 'monthly', priority: 0.9 },
   { url: `${BASE_URL_EN}/packages`, changeFrequency: 'weekly', priority: 0.8 },
+  { url: `${BASE_URL_EN}/packages/toefl-complete`, changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL_EN}/packages/gre-complete`, changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL_EN}/packages/ielts-complete`, changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL_EN}/packages/sat-complete`, changeFrequency: 'weekly', priority: 0.9 },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -54,7 +58,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           url: `${BASE_URL_EN}/words/${word.id}`,
           lastModified: new Date(word.updatedAt),
           changeFrequency: 'monthly' as const,
-          priority: 0.7,
+          priority: 0.8,
         },
       ]);
     } else {
