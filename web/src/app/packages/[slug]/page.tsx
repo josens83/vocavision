@@ -57,7 +57,7 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
     id: 'static-toeic',
     name: 'TOEIC 점수폭발',
     slug: 'toeic-complete',
-    description: '매일 나오는 그 단어, 이제 확실하게. 취업·이직·승진에 필수인 TOEIC 핵심 어휘를 AI 이미지 연상법으로 한 번에 정복하세요. Starter(기초)부터 Booster(고득점)까지 단계별로 학습합니다.',
+    description: '매일 나오는 그 단어, 이제 확실하게. 취업·이직·승진에 필수인 TOEIC 핵심 어휘를 AI 이미지 3종 (Concept·Mnemonic·Rhyme)으로 한 번에 정복하세요. Starter(기초)부터 Booster(고득점)까지 단계별로 학습합니다.',
     price: 9900,
     durationDays: 180,
     badge: 'NEW',
@@ -339,7 +339,7 @@ export default function PackageDetailPage() {
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>AI 이미지 연상법으로 3,651개 단어를 효율적으로 암기하고 싶은 분</span>
+                        <span>AI 이미지 3종 (Concept·Mnemonic·Rhyme)으로 3,651개 단어를 효율적으로 암기하고 싶은 분</span>
                       </li>
                     </>
                   ) : slug === 'ielts-complete' ? (
