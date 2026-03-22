@@ -611,3 +611,197 @@ Output the prompt text ONLY. No JSON. No explanation. No preamble. No word label
     return defaultResult;
   }
 }
+
+// ============================================
+// V2 Concept Prompt Generator (renowned pattern)
+// ============================================
+export async function generateConceptPromptV2(
+  word: string,
+  definitionEn: string,
+  definitionKo?: string,
+  partOfSpeech?: string
+): Promise<{ prompt: string; captionKo: string; captionEn: string }> {
+  const defaultResult = {
+    prompt: `A vivid 2D cartoon illustration centered on the concept of "${word}" (${definitionEn}). The setting shows a clear real-world situation. In the center of the frame, a character clearly demonstrates the meaning of "${word}" through action and expression. The scene clearly shows ${definitionEn}. Camera: medium-close cinematic framing. Style: high-quality vector cartoon illustration with bold outlines and expressive details. High resolution 1:1 square composition The main subject must fill most of the frame Avoid empty background areas STRICT NO TEXT RULE Absolutely no text anywhere No letters No numbers No logos No labels No signage Replace any text areas with blank surfaces`,
+    captionKo: definitionKo || word,
+    captionEn: `${word}: ${definitionEn}`,
+  };
+
+  const anthropic = getAnthropicClient();
+  if (!anthropic) return defaultResult;
+
+  try {
+    const claudePrompt = `You are a Stability AI image prompt expert specializing in vocabulary learning.
+
+## Word Information
+- Word: ${word}
+- English meaning: ${definitionEn}
+- Korean meaning: ${definitionKo || ''}
+- Part of speech: ${partOfSpeech || ''}
+
+## Task
+Create a CONCEPT image prompt following the renowned/suppress example structure exactly.
+
+## Required Output Structure
+
+Line 1: "A [adjective] 2D cartoon illustration centered on [core concept of ${word}]."
+Line 2: "The setting is [specific location + time/atmosphere]."
+Line 3: (blank)
+Section "The [Core Action Name]:": 2-3 lines showing the main character demonstrating "${word}"
+Section "The Reaction:": 1-2 lines showing surrounding characters/environment responding
+Section "The Environment:": 1-2 lines reinforcing the word's meaning through context
+Line: "The scene clearly shows [restate ${word}'s meaning through visible action]."
+Line: "Camera: [specific angle + viewing direction]."
+Line: "Style: high-quality vector cartoon illustration with bold outlines and [lighting/emotional style]."
+Line: "High resolution"
+Line: "1:1 square composition"
+Line: "The [main subject] and [surrounding elements] must fill most of the frame"
+Line: "Avoid empty background areas"
+Line: "STRICT NO TEXT RULE"
+Line: "Absolutely no text anywhere."
+Line: "No letters."
+Line: "No numbers."
+Line: "No logos."
+Line: "No labels."
+Line: "No signage."
+Line: "Replace any text areas with blank surfaces."
+
+## Caption Rules
+- captionEn: "A ${word} [noun] [verb phrase showing scene]" — include the word "${word}" directly, max 12 words
+- captionKo: "[specific person] + [specific place] + [action showing meaning]" — reflect ${word}'s meaning, max 25 chars
+
+## Good Examples
+Word: renowned
+captionEn: "A renowned chef is surrounded by fans taking photos in a busy restaurant"
+captionKo: "유명한 셰프가 바쁜 레스토랑에서 팬들에게 둘러싸여 사진을 찍힌다"
+
+Word: suppress
+captionEn: "A firefighter suppresses the blaze with a powerful water stream"
+captionKo: "소방관이 강한 물줄기로 화재를 진압한다"
+
+## Output Format
+Return ONLY valid JSON:
+{
+  "prompt": "full prompt text",
+  "captionKo": "Korean caption",
+  "captionEn": "English caption"
+}`;
+
+    const message = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 800,
+      messages: [{ role: 'user', content: claudePrompt }],
+    });
+
+    const content = message.content[0];
+    if (content.type === 'text') {
+      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.prompt && parsed.prompt.length > 300) {
+          return {
+            prompt: parsed.prompt,
+            captionKo: parsed.captionKo || defaultResult.captionKo,
+            captionEn: parsed.captionEn || defaultResult.captionEn,
+          };
+        }
+      }
+    }
+    return defaultResult;
+  } catch (error) {
+    logger.error('[SmartCaption] generateConceptPromptV2 error:', error);
+    return defaultResult;
+  }
+}
+
+// ============================================
+// V2 Rhyme Prompt Generator (verdict pattern)
+// ============================================
+export async function generateRhymePromptV2(
+  word: string,
+  definitionEn: string,
+  definitionKo?: string,
+  rhymeLine?: string,
+  rhymingWords?: string[]
+): Promise<{ prompt: string; captionKo: string; captionEn: string }> {
+  const defaultResult = {
+    prompt: `A dramatic 2D cartoon illustration centered on "${word}" (${definitionEn}). Scene: a vivid situation showing the meaning. In the center, a character demonstrates "${word}" through clear action. Style: high-quality 2D vector art with clean bold outlines. High resolution, full color. STRICT NO TEXT RULE Absolutely no text anywhere No letters No numbers No logos No labels No signage Replace any text areas with blank surfaces`,
+    captionKo: definitionKo || word,
+    captionEn: rhymeLine || `${word}: ${definitionEn}`,
+  };
+
+  const anthropic = getAnthropicClient();
+  if (!anthropic) return defaultResult;
+
+  const rhymeContext = rhymeLine
+    ? `Rhyme sentence: "${rhymeLine}"`
+    : rhymingWords?.length
+    ? `Rhyming words: ${rhymingWords.slice(0, 5).join(', ')}`
+    : `Create a rhyme using the word "${word}"`;
+
+  try {
+    const claudePrompt = `You are a Stability AI rhyme image prompt expert.
+
+## Word Information
+- Word: ${word}
+- English meaning: ${definitionEn}
+- Korean meaning: ${definitionKo || ''}
+- ${rhymeContext}
+
+## Task
+Create a RHYME image prompt following the verdict example structure.
+Each rhyme keyword = independent visual element in the scene.
+
+## Required Structure
+
+Line 1: "A [mood adjective] 2D cartoon illustration centered on the word '${word}.'"
+Section "The Moment of [Core Concept]:": 2 lines showing ${word}'s meaning as the central visual
+(For each key rhyme keyword, add a section):
+  Section "[RHYME KEYWORD IN CAPS]:": 1-2 lines showing that keyword as a distinct visual element
+Line: "Style: High-quality 2D vector art with clean, bold outlines. Use [specific color palette matching the mood — e.g., deep navy blues, radiant golds, warm amber]."
+Line: "Strictly text-free, No-text: No [word-related text] anywhere. Use only [list of visual symbols used] to tell the story."
+Line: "High resolution, full color, no black and white."
+
+## Caption Rules
+captionKo: poetic Korean sentence with dash separator, reflecting rhyme meaning (max 40 chars)
+captionEn: sentence naturally containing rhyme words with rhythm
+
+## Good Example
+Word: verdict, rhyme: "truth predict — can't be contradict"
+captionKo: "판결은 예고된 진실이다 — 정의가 말하면, 모순될 수 없다"
+captionEn: "The verdict is the truth predict — when justice speaks, it can't be contradict"
+
+## Output Format
+Return ONLY valid JSON:
+{
+  "prompt": "full prompt text",
+  "captionKo": "Korean caption",
+  "captionEn": "English caption"
+}`;
+
+    const message = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 800,
+      messages: [{ role: 'user', content: claudePrompt }],
+    });
+
+    const content = message.content[0];
+    if (content.type === 'text') {
+      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.prompt && parsed.prompt.length > 200) {
+          return {
+            prompt: parsed.prompt,
+            captionKo: parsed.captionKo || defaultResult.captionKo,
+            captionEn: parsed.captionEn || defaultResult.captionEn,
+          };
+        }
+      }
+    }
+    return defaultResult;
+  } catch (error) {
+    logger.error('[SmartCaption] generateRhymePromptV2 error:', error);
+    return defaultResult;
+  }
+}
