@@ -428,7 +428,7 @@ export default function PackageDetailPage() {
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span>단어별 <strong>AI 이미지 연상법</strong> + 어원 분석</span>
+                        <span>단어별 <strong>AI 이미지 2종</strong> (Concept·Mnemonic) + 어원 분석</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
@@ -455,7 +455,7 @@ export default function PackageDetailPage() {
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span>단어별 <strong>AI 이미지 연상법</strong> + 어원 분석</span>
+                        <span>단어별 <strong>AI 이미지 2종</strong> (Concept·Mnemonic) + 어원 분석</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
@@ -478,11 +478,11 @@ export default function PackageDetailPage() {
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span>단어별 <strong>AI 이미지 연상법</strong> + 어원 분석 + 라임 암기법</span>
+                        <span>단어별 <strong>AI 이미지 3종</strong> (Concept·Mnemonic·Rhyme) + 어원 분석 + 라임</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span>적응형 시험 단어 완성 유형 대비 <strong>8섹션 플래시카드</strong> 학습</span>
+                        <span><strong>8단계 AI 콘텐츠</strong> 플래시카드 학습 (이미지·어원·라임·예문 포함)</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
@@ -505,7 +505,7 @@ export default function PackageDetailPage() {
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span>단어별 <strong>AI 이미지 연상법</strong> + 어원 분석 + 라임 암기법</span>
+                        <span>단어별 <strong>AI 이미지 3종</strong> (Concept·Mnemonic·Rhyme) + 어원 분석 + 라임</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
@@ -528,7 +528,7 @@ export default function PackageDetailPage() {
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span>단어별 <strong>AI 이미지 연상법</strong> + 어원 분석 + 라임 암기법</span>
+                        <span>단어별 <strong>AI 이미지 3종</strong> (Concept·Mnemonic·Rhyme) + 어원 분석 + 라임</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
@@ -547,7 +547,7 @@ export default function PackageDetailPage() {
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>AI 이미지 3종</strong> (의미·연상·라임)</span>
+                        <span><strong>AI 이미지 3종</strong> (Concept·Mnemonic·Rhyme)</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
