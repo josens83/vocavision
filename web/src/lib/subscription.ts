@@ -149,6 +149,9 @@ export function canAccessExam(user: User | null, exam: string): boolean {
   if (exam === 'IELTS') {
     return hasPurchasedExam(user, 'IELTS');
   }
+  if (exam === 'ACT') {
+    return hasPurchasedExam(user, 'ACT');
+  }
   return false;
 }
 
@@ -160,7 +163,7 @@ export function canAccessLevel(user: User | null, level: string): boolean {
 
 export function canAccessContent(user: User | null, exam: string, level: string): boolean {
   // EBS, CSAT_2026, TOEFL, TOEIC, SAT: 시험 접근 가능하면 전체 레벨 접근 가능 (레벨 체크 불필요)
-  if (exam === 'EBS' || exam === 'CSAT_2026' || exam === 'TOEFL' || exam === 'TOEIC' || exam === 'SAT' || exam === 'GRE' || exam === 'IELTS') {
+  if (exam === 'EBS' || exam === 'CSAT_2026' || exam === 'TOEFL' || exam === 'TOEIC' || exam === 'SAT' || exam === 'GRE' || exam === 'IELTS' || exam === 'ACT') {
     return canAccessExam(user, exam);
   }
   return canAccessExam(user, exam) && canAccessLevel(user, level);
@@ -208,6 +211,7 @@ const slugToExamMap: Record<string, string> = {
   'sat-complete': 'SAT',
   'gre-complete': 'GRE',
   'ielts-complete': 'IELTS',
+  'act-complete': 'ACT',
   'csat-core-200': 'CSAT_CORE',
 };
 
@@ -285,6 +289,7 @@ export function getAvailableExams(user: User | null, isEn: boolean = false): { e
         { exam: 'TOEFL',     locked: false },
         { exam: 'TOEIC',     locked: false },
         { exam: 'IELTS',     locked: false },
+        { exam: 'ACT',       locked: false },
       ];
     }
     return [
@@ -297,6 +302,7 @@ export function getAvailableExams(user: User | null, isEn: boolean = false): { e
       { exam: 'SAT',       locked: false },
       { exam: 'GRE',       locked: false },
       { exam: 'IELTS',     locked: false },
+      { exam: 'ACT',       locked: false },
     ];
   }
 
@@ -311,6 +317,7 @@ export function getAvailableExams(user: User | null, isEn: boolean = false): { e
       if (hasPurchasedExam(user, 'GRE'))   exams.push({ exam: 'GRE',   locked: false });
       if (hasPurchasedExam(user, 'TOEFL')) exams.push({ exam: 'TOEFL', locked: false });
       if (hasPurchasedExam(user, 'TOEIC')) exams.push({ exam: 'TOEIC', locked: false });
+      if (hasPurchasedExam(user, 'ACT'))   exams.push({ exam: 'ACT',   locked: false });
       return exams;
     }
     // 무료: SAT(열림) + 구매한 단품
@@ -321,6 +328,7 @@ export function getAvailableExams(user: User | null, isEn: boolean = false): { e
     if (hasPurchasedExam(user, 'TOEFL'))     exams.push({ exam: 'TOEFL',     locked: false });
     if (hasPurchasedExam(user, 'TOEIC'))     exams.push({ exam: 'TOEIC',     locked: false });
     if (hasPurchasedExam(user, 'IELTS'))     exams.push({ exam: 'IELTS',     locked: false });
+    if (hasPurchasedExam(user, 'ACT'))       exams.push({ exam: 'ACT',       locked: false });
     return exams;
   }
 
@@ -337,6 +345,7 @@ export function getAvailableExams(user: User | null, isEn: boolean = false): { e
     if (hasPurchasedExam(user, 'SAT'))       exams.push({ exam: 'SAT',       locked: false });
     if (hasPurchasedExam(user, 'GRE'))       exams.push({ exam: 'GRE',       locked: false });
     if (hasPurchasedExam(user, 'IELTS'))     exams.push({ exam: 'IELTS',     locked: false });
+    if (hasPurchasedExam(user, 'ACT'))       exams.push({ exam: 'ACT',       locked: false });
     return exams;
   }
 
@@ -351,5 +360,6 @@ export function getAvailableExams(user: User | null, isEn: boolean = false): { e
   if (hasPurchasedExam(user, 'TOEIC'))     exams.push({ exam: 'TOEIC',     locked: false });
   if (hasPurchasedExam(user, 'SAT'))       exams.push({ exam: 'SAT',       locked: false });
   if (hasPurchasedExam(user, 'IELTS'))     exams.push({ exam: 'IELTS',     locked: false });
+  if (hasPurchasedExam(user, 'ACT'))       exams.push({ exam: 'ACT',       locked: false });
   return exams;
 }
