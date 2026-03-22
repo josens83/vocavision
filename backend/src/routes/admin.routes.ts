@@ -1251,4 +1251,109 @@ router.get('/seed-packages', async (req: Request, res: Response) => {
   }
 });
 
+// ============================================
+// Image QA API
+// ============================================
+
+router.get('/image-qa', async (req: Request, res: Response) => {
+  try {
+    const { status = 'PENDING_QA', pageSize = '20', page = '1' } = req.query;
+    const items = await prisma.imageQueueItem.findMany({
+      where: { status: status as string },
+      include: {
+        word: { select: { word: true, definition: true, definitionKo: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: parseInt(pageSize as string),
+      skip: (parseInt(page as string) - 1) * parseInt(pageSize as string),
+    });
+    const total = await prisma.imageQueueItem.count({ where: { status: status as string } });
+    res.json({ items, total });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch QA items' });
+  }
+});
+
+router.post('/image-qa/approve', async (req: Request, res: Response) => {
+  try {
+    const { ids } = req.body as { ids: string[] };
+    let approved = 0;
+    for (const id of ids) {
+      const item = await prisma.imageQueueItem.findUnique({ where: { id } });
+      if (!item || !item.imageUrl) continue;
+      // WordVisual upsert (동일 단어+타입 중복 방지)
+      await prisma.wordVisual.upsert({
+        where: { wordId_type: { wordId: item.wordId, type: item.visualType as any } },
+        create: {
+          wordId: item.wordId,
+          type: item.visualType as any,
+          imageUrl: item.imageUrl,
+          captionKo: item.captionKo || '',
+          captionEn: item.captionEn || '',
+          promptEn: item.prompt,
+          labelEn: item.visualType === 'CONCEPT' ? 'Concept' : 'Rhyme',
+          labelKo: item.visualType === 'CONCEPT' ? '의미' : '라이밍',
+          order: item.visualType === 'CONCEPT' ? 0 : 2,
+        },
+        update: {
+          imageUrl: item.imageUrl,
+          captionKo: item.captionKo || '',
+          captionEn: item.captionEn || '',
+          promptEn: item.prompt,
+        },
+      });
+      await prisma.imageQueueItem.update({ where: { id }, data: { status: 'APPROVED' } });
+      approved++;
+    }
+    res.json({ approved });
+  } catch (error) {
+    logger.error('[ImageQA] Approve error:', error);
+    res.status(500).json({ error: 'Approve failed' });
+  }
+});
+
+router.post('/image-qa/reject', async (req: Request, res: Response) => {
+  try {
+    const { id, reason } = req.body as { id: string; reason: string };
+    const item = await prisma.imageQueueItem.findUnique({ where: { id } });
+    if (!item) return res.status(404).json({ error: 'Not found' });
+    const newCount = (item.attemptCount || 0) + 1;
+    await prisma.imageQueueItem.update({
+      where: { id },
+      data: {
+        status: newCount >= 3 ? 'MANUAL' : 'PENDING_QA',
+        rejectedReason: reason,
+        attemptCount: newCount,
+        imageUrl: null,
+      },
+    });
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Reject failed' });
+  }
+});
+
+router.post('/image-qa/update-caption', async (req: Request, res: Response) => {
+  try {
+    const { id, captionKo, captionEn } = req.body as { id: string; captionKo: string; captionEn: string };
+    await prisma.imageQueueItem.update({ where: { id }, data: { captionKo, captionEn } });
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Update failed' });
+  }
+});
+
+router.post('/image-qa/regenerate', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.body as { id: string };
+    await prisma.imageQueueItem.update({
+      where: { id },
+      data: { status: 'REGENERATING', imageUrl: null },
+    });
+    res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Regenerate failed' });
+  }
+});
+
 export default router;
