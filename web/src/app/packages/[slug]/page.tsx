@@ -6,6 +6,7 @@ import Link from "next/link";
 import Navigation from "@/components/navigation/Navigation";
 import { Check, ArrowLeft, Loader2, BookOpen, Clock, CreditCard } from "lucide-react";
 import { useLocale } from '@/hooks/useLocale';
+import { useWordCounts } from '@/hooks/useWordCounts';
 
 interface PackageInfo {
   id: string;
@@ -117,16 +118,6 @@ const STATIC_PACKAGES_EN: Record<string, Partial<PackageInfo>> = {
   },
 };
 
-// 표시용 단어 수 (교재 레벨 중복 포함)
-const DISPLAY_WORD_COUNTS: Record<string, number> = {
-  'ebs-vocab': 3837,
-  '2026-csat-analysis': 521,
-  'toefl-complete': 3651,
-  'toeic-complete': 2491,
-  'sat-complete': 2023,
-  'gre-complete': 4346,
-  'ielts-complete': 795,
-};
 
 const USD_PRICES: Record<string, string> = {
   'toefl-complete': '$9.99',
@@ -141,6 +132,7 @@ export default function PackageDetailPage() {
   const slug = params.slug as string;
   const locale = useLocale();
   const isEn = locale === 'en';
+  const wordCounts = useWordCounts();
 
   const [packageInfo, setPackageInfo] = useState<PackageInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,9 +152,9 @@ export default function PackageDetailPage() {
       if (!response.ok) throw new Error(isEn ? "Package not found." : "패키지를 찾을 수 없습니다.");
       const data = await response.json();
       const pkg = data.package;
-      // API wordCount를 표시용 수치로 오버라이드 (레벨 중복 포함 수치)
-      if (DISPLAY_WORD_COUNTS[slug]) {
-        pkg.wordCount = DISPLAY_WORD_COUNTS[slug];
+      // API wordCount를 동적 수치로 오버라이드
+      if (wordCounts.packages[slug]) {
+        pkg.wordCount = wordCounts.packages[slug];
       }
       setPackageInfo(pkg);
     } catch (err: any) {

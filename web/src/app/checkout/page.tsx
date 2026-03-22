@@ -8,6 +8,7 @@ import Navigation from "@/components/navigation/Navigation";
 import { Check, Shield, ArrowLeft, CreditCard, Loader2, Package } from "lucide-react";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { useLocale } from '@/hooks/useLocale';
+import { useWordCounts } from '@/hooks/useWordCounts';
 
 type PlanType = "basic" | "premium";
 type BillingCycle = "monthly" | "yearly";
@@ -114,15 +115,6 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
   };
 }
 
-// 표시용 단어 수 fallback (DB에 매핑 미완료 시 0으로 내려오는 경우 대비)
-const DISPLAY_WORD_COUNTS: Record<string, number> = {
-  'ebs-vocab': 3837,
-  '2026-csat-analysis': 521,
-  'toefl-complete': 3651,
-  'toeic-complete': 2491,
-  'sat-complete': 2023,
-  'gre-complete': 4346,
-};
 
 // USD 가격 매핑 (글로벌 유저용)
 const usdPackagePrices: Record<string, string> = {
@@ -141,6 +133,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
   const { user, _hasHydrated } = useAuthStore();
   const locale = useLocale();
   const isEn = locale === 'en';
+  const wordCounts = useWordCounts();
   const [packageInfo, setPackageInfo] = useState<PackageInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -167,8 +160,8 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
       if (!response.ok) throw new Error(isEn ? "Package not found." : "패키지를 찾을 수 없습니다.");
       const data = await response.json();
       const pkg = data.package;
-      if (pkg.wordCount === 0 && DISPLAY_WORD_COUNTS[packageSlug]) {
-        pkg.wordCount = DISPLAY_WORD_COUNTS[packageSlug];
+      if (pkg.wordCount === 0 && wordCounts.packages[packageSlug]) {
+        pkg.wordCount = wordCounts.packages[packageSlug];
       }
       setPackageInfo(pkg);
     } catch (err: any) {
