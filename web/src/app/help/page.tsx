@@ -115,17 +115,19 @@ function getFeatureDetails(isEn: boolean) {
       subtitle: isEn ? 'Visual learning for better memory' : '시각적 학습으로 기억력 향상',
       content: (
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
+          <div className={`grid ${isEn ? 'grid-cols-2' : 'grid-cols-3'} gap-3`}
             <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-3 text-center">
               <div className="text-2xl mb-1">🎨</div>
               <h4 className="font-semibold text-purple-800 text-sm">Concept</h4>
               <p className="text-xs text-purple-600">{isEn ? 'Core concept' : '핵심 개념 시각화'}</p>
             </div>
-            <div className="bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl p-3 text-center">
-              <div className="text-2xl mb-1">💡</div>
-              <h4 className="font-semibold text-teal-800 text-sm">Mnemonic</h4>
-              <p className="text-xs text-teal-600">{isEn ? 'Memory aid' : '암기법 시각화'}</p>
-            </div>
+            {!isEn && (
+              <div className="bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl p-3 text-center">
+                <div className="text-2xl mb-1">💡</div>
+                <h4 className="font-semibold text-teal-800 text-sm">Mnemonic</h4>
+                <p className="text-xs text-teal-600">한국어 연상법 이미지</p>
+              </div>
+            )}
             <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-3 text-center">
               <div className="text-2xl mb-1">🎵</div>
               <h4 className="font-semibold text-indigo-800 text-sm">Rhyme</h4>
@@ -133,7 +135,10 @@ function getFeatureDetails(isEn: boolean) {
             </div>
           </div>
           <ul className="text-sm text-gray-600 space-y-1">
-            <li>{isEn ? '• AI generates 3 unique images per word' : '• AI가 단어마다 3가지 이미지 자동 생성'}</li>
+            <li>{isEn
+              ? '• AI generates 2 unique images per word (Concept + Rhyme)'
+              : '• AI가 단어마다 3가지 이미지 자동 생성 (Concept + Mnemonic + Rhyme)'
+            }</li>
             <li>{isEn ? '• Visual memory for long-term retention' : '• 시각적 기억으로 장기 암기 효과'}</li>
             <li>{isEn ? '• Makes abstract words easy to grasp' : '• 추상적 단어도 쉽게 이해'}</li>
           </ul>
