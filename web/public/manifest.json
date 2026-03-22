@@ -1,6 +1,6 @@
 {
   "name": "VocaVision AI",
-  "short_name": "VocaVision",
+  "short_name": "VocaVision EN",
   "description": "AI 기반 스마트 영어 단어 학습 플랫폼",
   "start_url": "/",
   "display": "standalone",
