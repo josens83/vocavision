@@ -125,6 +125,18 @@ const usdPackagePrices: Record<string, string> = {
   'sat-complete': '$9.99',
   'gre-complete': '$12.99',
   'ielts-complete': '$6.99',
+  'act-complete': '$9.99',
+};
+
+const EN_PACKAGE_DESCS: Record<string, string> = {
+  'toefl-complete': 'Master TOEFL vocabulary. Core + Advanced levels. AI images, etymology & rhymes.',
+  'toeic-complete': 'Boost your TOEIC score. Starter to Booster level. AI visual mnemonics.',
+  'sat-complete': 'Ace SAT vocabulary. Theme-based core (L1) + confusing words (L2). Greek·Latin roots.',
+  'gre-complete': 'Conquer GRE Verbal. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery.',
+  'ielts-complete': 'Band 5~8 IELTS vocabulary. Foundation (L1) + Academic (L2). Complete coverage.',
+  'act-complete': 'Score higher on ACT. Core + Tone + Transition + Science + Reading. AI images & etymology.',
+  'ebs-vocab': 'EBS-linked CSAT vocabulary. 3,838 words from official EBS prep materials.',
+  '2026-csat-analysis': 'Real CSAT questions from 2026. 520 words sorted by question type.',
 };
 
 // 단품 패키지 결제 컴포넌트
@@ -302,7 +314,9 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
                     </h2>
                   </div>
                   <p className="text-gray-600 mb-2">
-                    {packageInfo.description || packageInfo.shortDesc}
+                    {isEn
+                      ? (EN_PACKAGE_DESCS[packageSlug] || packageInfo.shortDesc || packageInfo.description)
+                      : (packageInfo.description || packageInfo.shortDesc)}
                   </p>
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <span>📚 {packageInfo.wordCount}{isEn ? ' words' : '개 단어'}</span>
