@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SectionHeader } from "@/components/ui";
 import { BookOpen, Clock, ArrowRight } from "lucide-react";
 import { useLocale } from '@/hooks/useLocale';
+import { useWordCounts } from '@/hooks/useWordCounts';
 
 // 패키지 타입 정의
 interface ProductPackage {
@@ -137,17 +138,6 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
 // 메인페이지에 표시할 패키지 slug 목록
 const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete', 'act-complete'];
 
-// 표시용 단어 수 오버라이드 (교재별 레벨 중복 포함 수치)
-const DISPLAY_WORD_COUNTS: Record<string, number> = {
-  'ebs-vocab': 3837,
-  '2026-csat-analysis': 521,
-  'toefl-complete': 3651,
-  'toeic-complete': 2491,
-  'sat-complete': 2023,
-  'gre-complete': 4346,
-  'ielts-complete': 795,
-  'act-complete': 422,
-};
 
 // 뱃지 스타일 결정
 function getBadgeStyle(badge: string) {
@@ -283,6 +273,7 @@ function PackageCardSkeleton() {
 export default function ProductPackageSection() {
   const locale = useLocale();
   const isEn = locale === 'en';
+  const wordCounts = useWordCounts();
   const [packages, setPackages] = useState<ProductPackage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -317,7 +308,7 @@ export default function ProductPackageSection() {
         .filter((pkg) => MAIN_PAGE_SLUGS.includes(pkg.slug))
         .map((pkg) => ({
           ...pkg,
-          wordCount: DISPLAY_WORD_COUNTS[pkg.slug] || pkg.wordCount,
+          wordCount: wordCounts.packages[pkg.slug] || pkg.wordCount,
           ...(isEn && englishShortDescs[pkg.slug] ? {
             shortDesc: englishShortDescs[pkg.slug],
             description: englishShortDescs[pkg.slug],

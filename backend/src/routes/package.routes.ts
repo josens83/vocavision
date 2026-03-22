@@ -310,4 +310,58 @@ router.get('/:slug/words', authenticateToken, async (req: AuthRequest, res: Resp
   }
 });
 
+/**
+ * GET /api/packages/word-counts
+ * 시험별 학습 가능 단어 수 (WordExamLevel 기준, 1시간 캐시)
+ */
+let wordCountsCache: { data: any; cachedAt: number } | null = null;
+
+router.get('/word-counts', async (req: Request, res: Response) => {
+  try {
+    const CACHE_TTL = 3600 * 1000; // 1시간
+    const now = Date.now();
+
+    if (wordCountsCache && now - wordCountsCache.cachedAt < CACHE_TTL) {
+      return res.json(wordCountsCache.data);
+    }
+
+    const rows = await prisma.$queryRaw<Array<{ examCategory: string; count: bigint }>>`
+      SELECT wel."examCategory", COUNT(wel.id) as count
+      FROM "WordExamLevel" wel
+      JOIN "Word" w ON w.id = wel."wordId"
+      WHERE w.status = 'PUBLISHED'
+      GROUP BY wel."examCategory"
+    `;
+
+    const exams: Record<string, number> = {};
+    let total = 0;
+    for (const row of rows) {
+      exams[row.examCategory] = Number(row.count);
+      const skip = ['TEPS_ARCHIVE', 'CSAT_ARCHIVE', 'CSAT_BASIC', 'GENERAL'];
+      if (!skip.includes(row.examCategory)) {
+        total += Number(row.count);
+      }
+    }
+
+    const packages: Record<string, number> = {
+      'gre-complete':    exams['GRE']       || 0,
+      'sat-complete':    exams['SAT']       || 0,
+      'ebs-vocab':       exams['EBS']       || 0,
+      'toefl-complete':  exams['TOEFL']     || 0,
+      'toeic-complete':  exams['TOEIC']     || 0,
+      'act-complete':    exams['ACT']       || 0,
+      'ielts-complete':  exams['IELTS']     || 0,
+      '2026-csat-analysis': exams['CSAT_2026'] || 0,
+    };
+
+    const data = { total, exams, packages };
+    wordCountsCache = { data, cachedAt: now };
+
+    res.json(data);
+  } catch (error) {
+    logger.error('[WordCounts] Error:', error);
+    res.status(500).json({ error: 'Failed to fetch word counts' });
+  }
+});
+
 export default router;
