@@ -8,7 +8,7 @@
 export const PLATFORM_STATS = {
   // 전체 고유 단어 수 — 단어 수는 /api/packages/word-counts에서 동적으로 가져옴
   // 아래 값은 fallback 초기값 (useWordCounts DEFAULT_COUNTS 참고)
-  totalWords: 21195,
+  totalWords: 21839,
 
   // 수능 단어 수 (기본 무료 제공)
   csatWords: 1787,

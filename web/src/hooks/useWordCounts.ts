@@ -9,7 +9,7 @@ export interface WordCounts {
 }
 
 const DEFAULT_COUNTS: WordCounts = {
-  total: 21195,
+  total: 21839,
   exams: {
     GRE: 4270, SAT: 3932, EBS: 3838, TOEFL: 3520,
     TOEIC: 2411, CSAT: 1792, ACT: 772, IELTS: 765,
