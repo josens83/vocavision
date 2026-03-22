@@ -412,15 +412,15 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>고득점을 목표로 하는 분</span>
+                        <span>{isEn ? 'Students targeting a high ACT score' : '고득점을 목표로 하는 분'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>핵심 빈출 단어만 집중적으로 학습하고 싶은 분</span>
+                        <span>{isEn ? 'Learners who want focused high-frequency vocabulary' : '핵심 빈출 단어만 집중적으로 학습하고 싶은 분'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>단기간에 효율적으로 어휘력을 향상시키고 싶은 분</span>
+                        <span>{isEn ? 'Anyone looking to improve vocabulary efficiently' : '단기간에 효율적으로 어휘력을 향상시키고 싶은 분'}</span>
                       </li>
                     </>
                   )}
