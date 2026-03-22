@@ -50,7 +50,7 @@ const heroStatsKo = [
   { label: "시험 대비", value: "8" },
   { label: "예문 데이터", value: "40,000+" },
   { label: "AI 이미지", value: "10,000+" },
-  { label: "학습 방식", value: "8" },
+  { label: "AI 이미지 종류", value: "3" },
 ];
 
 const heroStatsEn = [
@@ -58,19 +58,19 @@ const heroStatsEn = [
   { label: "Exams Covered", value: "7" },
   { label: "Example Sentences", value: "40,000+" },
   { label: "AI Images", value: "10,000+" },
-  { label: "Learning Methods", value: "8" },
+  { label: "AI Image Types", value: "3" },
 ];
 
 const featuresKo = [
+  { icon: Icons.Sparkles, title: "AI 이미지 3종", description: "Concept · Mnemonic · Rhyme 단어마다 자동 생성", href: "/help", demoHref: "/help" },
   { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn", demoHref: "/learn?exam=CSAT&level=L1&demo=true" },
-  { icon: Icons.Brain, title: "적응형 퀴즈", description: "오답 기반 난이도 조절 시스템", href: "/review", demoHref: "/review/quiz?demo=true" },
-  { icon: Icons.ChartBar, title: "학습 분석", description: "상세한 진도 추적과 통계 제공", href: "/statistics", demoHref: "/statistics?demo=true" },
+  { icon: Icons.Brain, title: "어원·형태 분석", description: "Greek · Latin 어근으로 단어족 확장", href: "/help", demoHref: "/help" },
 ];
 
 const featuresEn = [
+  { icon: Icons.Sparkles, title: "3 AI Images / Word", description: "Concept + Rhyme images auto-generated per word", href: "/help", demoHref: "/help" },
   { icon: Icons.BookOpen, title: "Smart Flashcards", description: "Scientifically proven spaced repetition", href: "/learn", demoHref: "/learn?exam=SAT&level=L1&demo=true" },
-  { icon: Icons.Brain, title: "Adaptive Quiz", description: "Difficulty adjusts based on your answers", href: "/review", demoHref: "/review/quiz?demo=true" },
-  { icon: Icons.ChartBar, title: "Learning Analytics", description: "Detailed progress tracking and statistics", href: "/statistics", demoHref: "/statistics?demo=true" },
+  { icon: Icons.Brain, title: "Etymology & Morphology", description: "Greek · Latin roots for word family mastery", href: "/help", demoHref: "/help" },
 ];
 
 // ============================================
@@ -739,7 +739,9 @@ export default function Hero() {
             <div className={`space-y-8 min-w-0 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
                 <Icons.Sparkles />
-                <span className="text-sm font-medium text-slate-600">One Word. Eight Ways to Remember.</span>
+                <span className="text-sm font-medium text-slate-600">
+                  {locale === 'en' ? 'Every word. Three AI images.' : '단어마다 AI 이미지 3장.'}
+                </span>
               </div>
 
               <h1 className="font-display leading-snug">
@@ -749,7 +751,7 @@ export default function Hero() {
                       See a word, <span className="text-cyan-500 font-black">remember it.</span>
                     </span>
                     <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
-                      Master SAT · GRE · TOEFL · IELTS vocabulary with AI images, rhymes, and etymology.
+                      Master SAT · GRE · TOEFL · IELTS with <span className="font-semibold text-cyan-600">Concept + Rhyme AI images</span>, etymology & mnemonics.
                     </span>
                   </>
                 ) : (
@@ -761,7 +763,7 @@ export default function Hero() {
                       기억됩니다.
                     </span>
                     <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
-                      AI 이미지 · 라임 · 어원으로 수능 · TEPS · TOEFL · TOEIC · SAT 단어를 오래 기억하세요.
+                      <span className="font-semibold text-cyan-600">Concept · Mnemonic · Rhyme</span> — AI가 만든 3가지 이미지로 수능 · TOEFL · SAT 단어를 눈으로 기억하세요.
                     </span>
                   </>
                 )}
