@@ -22,6 +22,8 @@ import {
   extractMnemonicScene,
   generateRhymeScene,
   generateConceptScene,
+  generateConceptPromptV2,
+  generateRhymePromptV2,
 } from '../services/smartCaption.service';
 
 const router = Router();
@@ -5401,6 +5403,205 @@ Return ONLY the JSON object, no other text.`;
     if (!res.headersSent) {
       res.status(500).json({ error: 'Etymology EN generation failed' });
     }
+  }
+});
+
+/**
+ * GET /internal/generate-image-batch
+ * ?key=...&batchSize=10&examCategory=SAT&types=CONCEPT,RHYME
+ * 이미지 없는 단어 선별 → 프롬프트 생성 → Stability AI → ImageQueueItem 저장
+ */
+router.get('/generate-image-batch', async (req: Request, res: Response) => {
+  try {
+    const { key, batchSize: batchSizeStr, examCategory, types: typesStr } = req.query;
+    if (key !== process.env.INTERNAL_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const batchSize = Math.min(parseInt(batchSizeStr as string) || 10, 50);
+    const targetExams = examCategory
+      ? [(examCategory as string).toUpperCase()]
+      : ['SAT', 'GRE', 'TOEFL', 'IELTS'];
+    const types = typesStr
+      ? (typesStr as string).split(',').filter(t => ['CONCEPT', 'RHYME'].includes(t))
+      : ['CONCEPT', 'RHYME'];
+
+    // 이미지 없는 단어 선별 (CONCEPT 또는 RHYME 둘 다 없는 단어)
+    const words = await prisma.word.findMany({
+      where: {
+        status: 'PUBLISHED',
+        examLevels: {
+          some: { examCategory: { in: targetExams as any } },
+        },
+        AND: types.map(type => ({
+          NOT: {
+            visuals: { some: { type } },
+          },
+        })),
+        // 이미 큐에 있는 단어 제외 (PENDING_QA)
+        NOT: {
+          imageQueue: {
+            some: {
+              status: { in: ['PENDING_QA', 'REGENERATING'] },
+              visualType: { in: types },
+            },
+          },
+        },
+      },
+      include: {
+        mnemonics: { take: 1 },
+        etymology: true,
+        examLevels: {
+          where: { examCategory: { in: targetExams as any } },
+          take: 1,
+        },
+      },
+      take: batchSize,
+      orderBy: { word: 'asc' },
+    });
+
+    if (words.length === 0) {
+      return res.json({ message: 'No words need images', processed: 0 });
+    }
+
+    // 즉시 응답 후 백그라운드 처리
+    res.json({
+      message: `Processing ${words.length} words × ${types.length} types = ${words.length * types.length} images`,
+      wordCount: words.length,
+      words: words.map(w => w.word),
+      types,
+    });
+
+    // 백그라운드 처리
+    (async () => {
+      let success = 0;
+      let failed = 0;
+      let manual = 0;
+
+      // 5개씩 병렬 처리
+      const PARALLEL = 5;
+      for (let i = 0; i < words.length; i += PARALLEL) {
+        const chunk = words.slice(i, i + PARALLEL);
+
+        await Promise.allSettled(
+          chunk.flatMap(word => {
+            const mnemonic = (word as any).mnemonics?.[0];
+            const examCat = (word as any).examLevels?.[0]?.examCategory;
+
+            return types.map(async (visualType) => {
+              try {
+                // 1. 프롬프트 생성
+                let promptResult: { prompt: string; captionKo: string; captionEn: string };
+
+                if (visualType === 'CONCEPT') {
+                  promptResult = await generateConceptPromptV2(
+                    word.word,
+                    word.definition || word.word,
+                    word.definitionKo || undefined,
+                    word.partOfSpeech || undefined
+                  );
+                } else {
+                  promptResult = await generateRhymePromptV2(
+                    word.word,
+                    word.definition || word.word,
+                    word.definitionKo || undefined,
+                    mnemonic?.rhyme || undefined,
+                    mnemonic?.rhymingWords || []
+                  );
+                }
+
+                // 2. Stability AI 이미지 생성
+                let imageUrl: string | null = null;
+                let queueStatus = 'PENDING_QA';
+
+                try {
+                  const imageResult = await generateAndUploadImage(
+                    promptResult.prompt,
+                    visualType as any,
+                    word.word
+                  );
+                  imageUrl = imageResult?.imageUrl || null;
+                } catch (imgError: any) {
+                  if (imgError.message?.includes('content policy') || imgError.status === 400) {
+                    queueStatus = 'MANUAL';
+                    manual++;
+                  } else {
+                    queueStatus = 'MANUAL';
+                    manual++;
+                  }
+                }
+
+                // 3. ImageQueueItem 저장
+                await prisma.imageQueueItem.create({
+                  data: {
+                    wordId: word.id,
+                    visualType,
+                    prompt: promptResult.prompt,
+                    captionKo: promptResult.captionKo,
+                    captionEn: promptResult.captionEn,
+                    imageUrl,
+                    status: imageUrl ? 'PENDING_QA' : queueStatus,
+                    examCategory: examCat || null,
+                  },
+                });
+
+                if (imageUrl) success++;
+                logger.info(`[ImageBatch] ${word.word} ${visualType}: ${imageUrl ? '✓' : 'MANUAL'}`);
+              } catch (err) {
+                failed++;
+                logger.error(`[ImageBatch] Error ${word.word} ${visualType}:`, err);
+              }
+            });
+          })
+        );
+
+        // 청크 간 딜레이 (rate limiting)
+        if (i + PARALLEL < words.length) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+
+      logger.info(`[ImageBatch] Complete. Success: ${success}, Manual: ${manual}, Failed: ${failed}`);
+    })();
+  } catch (error) {
+    logger.error('[ImageBatch] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Batch generation failed' });
+    }
+  }
+});
+
+/**
+ * GET /internal/image-queue-stats
+ * ImageQueueItem 현황 조회
+ */
+router.get('/image-queue-stats', async (req: Request, res: Response) => {
+  try {
+    const { key } = req.query;
+    if (key !== process.env.INTERNAL_API_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const stats = await prisma.imageQueueItem.groupBy({
+      by: ['status', 'visualType'],
+      _count: { id: true },
+    });
+
+    const manualWords = await prisma.imageQueueItem.findMany({
+      where: { status: 'MANUAL' },
+      include: { word: { select: { word: true } } },
+      take: 20,
+    });
+
+    res.json({
+      stats,
+      manualWords: manualWords.map(m => ({
+        word: (m as any).word?.word,
+        visualType: m.visualType,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
 
