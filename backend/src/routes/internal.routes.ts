@@ -5307,7 +5307,7 @@ router.get('/generate-etymology-en', async (req: Request, res: Response) => {
   try {
     const { key, examCategory, batchSize: batchSizeStr } = req.query;
 
-    if (key !== process.env.INTERNAL_API_KEY) {
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -5414,7 +5414,7 @@ Return ONLY the JSON object, no other text.`;
 router.get('/generate-image-batch', async (req: Request, res: Response) => {
   try {
     const { key, batchSize: batchSizeStr, examCategory, types: typesStr } = req.query;
-    if (key !== process.env.INTERNAL_API_KEY) {
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -5578,7 +5578,7 @@ router.get('/generate-image-batch', async (req: Request, res: Response) => {
 router.get('/image-queue-stats', async (req: Request, res: Response) => {
   try {
     const { key } = req.query;
-    if (key !== process.env.INTERNAL_API_KEY) {
+    if (!key || key !== process.env.INTERNAL_SECRET_KEY) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
