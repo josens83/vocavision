@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { useAuthStore } from '@/lib/store';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://vocavisionbackend-production.up.railway.app';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://vocavisionbackend-production.up.railway.app';
+const INTERNAL_BASE = 'https://vocavisionbackend-production.up.railway.app';
 
 interface QueueItem {
   id: string;
@@ -35,7 +36,7 @@ export default function ImageQAPage() {
   const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/admin/image-qa?status=${filter}&pageSize=30`, {
+      const res = await fetch(`${API_BASE}/admin/image-qa?status=${filter}&pageSize=30`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       const data = await res.json();
@@ -49,7 +50,7 @@ export default function ImageQAPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/internal/image-queue-stats?key=dohurnk1006`);
+      const res = await fetch(`${INTERNAL_BASE}/internal/image-queue-stats?key=dohurnk1006`);
       const data = await res.json();
       const s = data.stats || [];
       const sum = (st: string) => s.filter((x: any) => x.status === st).reduce((a: number, b: any) => a + b._count.id, 0);
@@ -62,7 +63,7 @@ export default function ImageQAPage() {
   const approve = async (ids: string[]) => {
     setApproving(true);
     try {
-      await fetch(`${API_URL}/api/admin/image-qa/approve`, {
+      await fetch(`${API_BASE}/admin/image-qa/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ ids }),
@@ -76,7 +77,7 @@ export default function ImageQAPage() {
   };
 
   const reject = async (id: string) => {
-    await fetch(`${API_URL}/api/admin/image-qa/reject`, {
+    await fetch(`${API_BASE}/admin/image-qa/reject`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
       body: JSON.stringify({ id, reason: 'poor_quality' }),
@@ -86,7 +87,7 @@ export default function ImageQAPage() {
 
   const saveCaption = async () => {
     if (!editCaption) return;
-    await fetch(`${API_URL}/api/admin/image-qa/update-caption`, {
+    await fetch(`${API_BASE}/admin/image-qa/update-caption`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
       body: JSON.stringify({ id: editCaption.id, captionKo: editCaption.ko, captionEn: editCaption.en }),
