@@ -115,7 +115,7 @@ function getFeatureDetails(isEn: boolean) {
       subtitle: isEn ? 'Visual learning for better memory' : '시각적 학습으로 기억력 향상',
       content: (
         <div className="space-y-4">
-          <div className={`grid ${isEn ? 'grid-cols-2' : 'grid-cols-3'} gap-3`}
+          <div className={`grid ${isEn ? 'grid-cols-2' : 'grid-cols-3'} gap-3`}>
             <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-3 text-center">
               <div className="text-2xl mb-1">🎨</div>
               <h4 className="font-semibold text-purple-800 text-sm">Concept</h4>
