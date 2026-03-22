@@ -5435,7 +5435,7 @@ router.get('/generate-image-batch', async (req: Request, res: Response) => {
         },
         AND: types.map(type => ({
           NOT: {
-            visuals: { some: { type } },
+            visuals: { some: { type: type as any } },
           },
         })),
         // 이미 큐에 있는 단어 제외 (PENDING_QA)
