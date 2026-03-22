@@ -100,6 +100,23 @@ const getLevelInfo = (exam: string, level: string, isEn = false) => {
     return ieltsLevels[level] || ieltsLevels.L1;
   }
 
+  if (exam === 'ACT') {
+    return {
+      L1: {
+        name: isEn ? 'ACT Core' : 'Core 핵심',
+        description: isEn ? 'High-frequency ACT vocabulary' : 'ACT 핵심 빈출 어휘',
+        target: isEn ? 'Score boost' : '점수 향상',
+        wordCount: 302,
+      },
+      L2: {
+        name: isEn ? 'ACT Advanced' : 'ACT 고급',
+        description: isEn ? 'Advanced ACT vocabulary' : 'ACT 고난도 어휘',
+        target: isEn ? 'High score' : '고득점 목표',
+        wordCount: 450,
+      },
+    }[level] || { name: 'ACT Core', description: '', target: '', wordCount: 302 };
+  }
+
   if (exam === 'TEPS') {
     // TEPS는 L1, L2만 (L3 없음)
     const tepsLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
