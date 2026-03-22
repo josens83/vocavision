@@ -695,6 +695,7 @@ export const startLearningSession = async (
             tags: { has: level },
             examLevels: { some: { examCategory: exam } },
             isActive: true,
+            status: 'PUBLISHED',
           }
         : {
             // 기존 레벨 기반 조회 (L1, L2 등)
@@ -705,6 +706,7 @@ export const startLearningSession = async (
               },
             },
             isActive: true,
+            status: 'PUBLISHED',
           },
       select: { id: true },
       orderBy: { word: 'asc' },
