@@ -5,7 +5,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma';
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 import {
   getDashboardStats,
   getAdminWords,
