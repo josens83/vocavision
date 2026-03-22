@@ -170,6 +170,7 @@ model Word {
   progress    UserProgress[]
   examLevels  WordExamLevel[]  // 다중 시험/레벨 매핑
   productPackages ProductPackageWord[]  // 단품 상품 매핑
+  imageQueue     ImageQueueItem[]
 
   @@unique([word, examCategory])  // 같은 단어를 여러 시험에 추가 가능
   @@index([word])
@@ -1177,4 +1178,24 @@ enum LearningSessionStatus {
   IN_PROGRESS   // 진행 중
   COMPLETED     // 완료
   ABANDONED     // 포기/재시작으로 종료
+}
+
+model ImageQueueItem {
+  id             String   @id @default(uuid())
+  wordId         String
+  word           Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  visualType     String
+  prompt         String   @db.Text
+  captionKo      String?
+  captionEn      String?
+  imageUrl       String?
+  status         String   @default("PENDING_QA")
+  rejectedReason String?
+  attemptCount   Int      @default(0)
+  examCategory   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status])
+  @@index([wordId, visualType])
 }
