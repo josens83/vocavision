@@ -93,6 +93,16 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
     badge: 'NEW',
     wordCount: 795,
   },
+  'act-complete': {
+    id: 'static-act',
+    name: 'ACT 완전정복',
+    slug: 'act-complete',
+    description: 'ACT 핵심 어휘. Core, Tone, Transition, Science, Reading 카테고리로 구성. AI 이미지·어원·라임으로 단기간에 완성.',
+    price: 9900,
+    durationDays: 180,
+    badge: 'NEW',
+    wordCount: 772,
+  },
 };
 
 const STATIC_PACKAGES_EN: Record<string, Partial<PackageInfo>> = {
@@ -116,6 +126,10 @@ const STATIC_PACKAGES_EN: Record<string, Partial<PackageInfo>> = {
     name: 'IELTS Complete',
     description: 'Master 795 IELTS words across all bands. Foundation (L1) 401 words for Band 5~6.5 + Academic (L2) 394 words for Band 7~8.',
   },
+  'act-complete': {
+    name: 'ACT Vocabulary',
+    description: 'Score higher on ACT with 772 words. Core + Tone + Transition + Science + Reading categories. AI images & etymology included.',
+  },
 };
 
 
@@ -125,6 +139,7 @@ const USD_PRICES: Record<string, string> = {
   'sat-complete': '$9.99',
   'gre-complete': '$12.99',
   'ielts-complete': '$6.99',
+  'act-complete': '$9.99',
 };
 
 export default function PackageDetailPage() {
@@ -255,7 +270,9 @@ export default function PackageDetailPage() {
                 ) : slug === 'gre-complete' ? (
                   <>GRE Verbal 핵심~고급 어휘 4,346개.<br />Verbal 핵심(L1) 1,858개와 고급(L2) 2,488개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
                 ) : slug === 'sat-complete' ? (
-                  <>SAT/PSAT 고득점을 위한 필수 어휘 1,935개.<br />테마별 핵심어휘(L1) 1,784개와 혼동하기 쉬운 어휘(L2) 150개로 구성.<br />AI 이미지·어원·라임 8단계 학습으로 단기간에 완성.</>
+                  <>SAT/PSAT 고득점을 위한 필수 어휘.<br />테마별 핵심어휘(L1)와 혼동하기 쉬운 어휘(L2)로 구성.<br />AI 이미지·어원·라임으로 단기간에 완성.</>
+                ) : slug === 'act-complete' ? (
+                  <>ACT 핵심 어휘. Core, Tone, Transition, Science, Reading 카테고리로 구성.<br />AI 이미지·어원·라임으로 단기간에 완성.</>
                 ) : (packageInfo.description || packageInfo.shortDesc ||
                   (slug === '2026-csat-analysis'
                     ? '2026학년도 수능 영어영역 기출 단어 521개 완벽 분석. 듣기영역, 독해영역 2점, 독해영역 3점 유형별 학습.'
@@ -556,6 +573,29 @@ export default function PackageDetailPage() {
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
                         <span><strong>스마트 복습</strong> 시스템</span>
+                      </li>
+                    </>
+                  ) : slug === 'act-complete' ? (
+                    <>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>{isEn ? 'Core Words' : 'Core 핵심어휘'}</strong> — {isEn ? 'High-frequency ACT vocabulary' : 'ACT 고빈출 핵심 단어'}</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>{isEn ? 'Tone & Transition' : '어조·전환어'}</strong> — {isEn ? 'English section word choice & transitions' : 'ACT English 섹션 핵심 어휘'}</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>{isEn ? 'Science Reasoning' : 'Science Reasoning'}</strong> — {isEn ? 'Science section vocabulary' : '과학 섹션 전문 어휘'}</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span>{isEn ? 'AI images (Concept + Rhyme) per word' : 'AI 이미지 3종 (Concept·Mnemonic·Rhyme)'}</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-gray-700">
+                        <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
+                        <span><strong>{isEn ? 'Smart Review' : '스마트 복습'}</strong> {isEn ? 'system' : '시스템'}</span>
                       </li>
                     </>
                   ) : (
