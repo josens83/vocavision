@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
@@ -124,8 +124,8 @@ function SectionHeader({ icon, title }: { icon: string; title: string }) {
 }
 
 // Premium Blur Wrapper
-function PremiumBlur({ children, user }: { children: React.ReactNode; user: any }) {
-  if (user) return <>{children}</>;
+function PremiumBlur({ children, user, isDemo = false, isEn = false }: { children: React.ReactNode; user: any; isDemo?: boolean; isEn?: boolean }) {
+  if (user || isDemo) return <>{children}</>;
 
   return (
     <div className="relative">
@@ -135,16 +135,16 @@ function PremiumBlur({ children, user }: { children: React.ReactNode; user: any 
       <div className="absolute inset-0 flex items-center justify-center bg-white/60 rounded-xl">
         <div className="text-center p-6">
           <p className="text-lg font-bold text-gray-800 mb-2">
-            전체 콘텐츠를 보려면 무료 가입하세요
+            {isEn ? 'Sign up free to see all content' : '전체 콘텐츠를 보려면 무료 가입하세요'}
           </p>
           <p className="text-sm text-gray-500 mb-4">
-            어원 분석, AI 암기법, 라임, 콜로케이션, 예문까지 한 번에!
+            {isEn ? 'Etymology, AI images, rhymes, collocations & examples — all in one!' : '어원 분석, AI 암기법, 라임, 콜로케이션, 예문까지 한 번에!'}
           </p>
           <a
             href="/auth/register"
             className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
           >
-            무료로 시작하기
+            {isEn ? 'Start for Free' : '무료로 시작하기'}
           </a>
         </div>
       </div>
@@ -167,6 +167,8 @@ export default function WordDetailClient({ id, initialWord }: WordDetailClientPr
 
 function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isDemo = searchParams.get('demo') === 'true';
   const user = useAuthStore((state) => state.user);
   const locale = useLocale();
   const isEn = locale === 'en';
@@ -316,7 +318,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
             </div>
 
             {/* Concept Image */}
-            <PremiumBlur user={user}>
+            <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
               <div className="relative h-64 md:h-auto bg-gray-100">
                 {conceptVisual?.imageUrl ? (
                   <div
@@ -352,7 +354,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 2: 이미지 2개 (연상, 라이밍) — 블러 */}
         {(mnemonicVisual?.imageUrl || rhymeVisual?.imageUrl) && (
-          <PremiumBlur user={user}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
             <div className="grid sm:grid-cols-2 gap-4">
               {mnemonicVisual?.imageUrl && (
                 <SectionCard className="overflow-hidden p-0 group">
@@ -448,7 +450,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 4: 어원 분석 — 블러 */}
         {(word.etymology || word.prefix || word.root || word.suffix) && (
-          <PremiumBlur user={user}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
             <SectionCard id="etymology">
               <SectionHeader icon="🌳" title={locale === 'en' ? "Etymology" : "어원 분석"} />
 
@@ -510,7 +512,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 5: 창의적 암기법 — 블러 */}
         {(word.mnemonic || word.mnemonicKorean || (word.mnemonics && word.mnemonics.length > 0)) && (
-          <PremiumBlur user={user}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
             <SectionCard>
               <SectionHeader icon="💡" title={locale === 'en' ? "Memory Trick" : "창의적 암기법"} />
 
@@ -552,7 +554,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 6: Rhyme — 블러 */}
         {((word.rhymingWords && word.rhymingWords.length > 0) || (word.rhymes && word.rhymes.length > 0)) && (
-          <PremiumBlur user={user}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
             <SectionCard>
               <SectionHeader icon="🎵" title={locale === 'en' ? "Rhyme" : "라이밍 (Rhyme)"} />
 
@@ -584,7 +586,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 7: Collocation — 블러 */}
         {word.collocations && word.collocations.length > 0 && (
-          <PremiumBlur user={user}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
             <SectionCard>
               <SectionHeader icon="🔗" title={locale === 'en' ? "Collocations" : "연어 (Collocation)"} />
 
@@ -607,7 +609,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 8: 예문 — 블러 */}
         {word.examples && word.examples.length > 0 && (
-          <PremiumBlur user={user}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
             <SectionCard>
               <SectionHeader icon="📝" title={locale === 'en' ? "Examples" : "예문"} />
 
@@ -682,10 +684,10 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
               <p className="text-teal-100">{isEn ? 'Practice with flashcards and quizzes.' : '플래시카드와 퀴즈로 더 깊이 학습해보세요.'}</p>
             </div>
             <div className="flex gap-3">
-              <Link href={`/words/${word.id}/learn`} className="px-6 py-3 bg-white text-teal-600 font-medium rounded-xl hover:bg-teal-50 transition-colors">
+              <Link href={user ? `/words/${word.id}/learn` : (isEn ? '/learn?exam=SAT&level=L1&demo=true' : '/learn?exam=CSAT&level=L1&demo=true')} className="px-6 py-3 bg-white text-teal-600 font-medium rounded-xl hover:bg-teal-50 transition-colors">
                 {isEn ? 'Flashcards' : '플래시카드 학습'}
               </Link>
-              <Link href={`/quiz?wordId=${word.id}`} className="px-6 py-3 border border-white/30 text-white font-medium rounded-xl hover:bg-white/10 transition-colors">
+              <Link href={user ? `/quiz?wordId=${word.id}` : '/auth/register'} className="px-6 py-3 border border-white/30 text-white font-medium rounded-xl hover:bg-white/10 transition-colors">
                 {isEn ? 'Take Quiz' : '퀴즈 풀기'}
               </Link>
             </div>
