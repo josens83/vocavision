@@ -1052,6 +1052,10 @@ model ProductPackage {
   slug          String    @unique      // "teps-top-100" (URL용)
   description   String?                // 상품 설명
   shortDesc     String?                // 카드에 표시할 짧은 설명
+  nameEn        String?                // 영문 상품명
+  descriptionEn String?                // 영문 상세 설명
+  shortDescEn   String?                // 영문 카드 설명
+  priceGlobal   String?                // 글로벌 가격 ("$6.99")
 
   // 가격
   price         Int                    // 가격 (원)
