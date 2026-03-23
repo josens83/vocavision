@@ -124,13 +124,13 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       name: "ACT 완성 패키지",
       slug: "act-complete",
       shortDesc: isEn
-        ? "Score higher on ACT English & Reading. 422 words across Core Meaning, Tone & Attitude, Transitions, Science Reasoning, and Academic verbs \u2014 the exact skills ACT tests."
-        : "ACT 핵심 어휘 422개 — Core, Tone, Transition, Academic, Confusable 5개 카테고리를 AI 이미지·어원·라임으로 단기 완성.",
+        ? "Score higher on ACT English & Reading. 716 words across Core Meaning, Tone & Attitude, Transitions, Science Reasoning, and Academic verbs \u2014 the exact skills ACT tests."
+        : "ACT 핵심 어휘 716개 — Core, Tone, Transition, Academic, Confusable 5개 카테고리를 AI 이미지·어원·라임으로 단기 완성.",
       price: 6900,
       durationDays: 180,
       badge: "NEW",
       isComingSoon: false,
-      wordCount: 422,
+      wordCount: 716,
     },
   ];
 }
@@ -290,7 +290,7 @@ export default function ProductPackageSection() {
     'sat-complete': 'Ace SAT vocabulary. 2,023 words with Greek-Latin roots, thematic grouping & confusables.',
     'gre-complete': 'Conquer GRE Verbal. 1,858 core + 2,488 advanced words with AI images, etymology & rhymes.',
     'ielts-complete': 'Band 5\u20138 IELTS vocabulary. 795 Foundation + Academic words with AI images & rhymes.',
-    'act-complete': 'Score higher on ACT English & Reading. 422 words across Core Meaning, Tone & Attitude, Transitions, Science Reasoning, and Academic verbs \u2014 the exact skills ACT tests.',
+    'act-complete': 'Score higher on ACT English & Reading. 716 words across Core Meaning, Tone & Attitude, Transitions, Science Reasoning, and Academic verbs \u2014 the exact skills ACT tests.',
     'teps-top-100': 'Essential TEPS advanced vocabulary. 388 high-frequency words for top TEPS scores.',
   };
 
