@@ -5115,101 +5115,6 @@ router.post('/toefl-mapping', async (req: Request, res: Response) => {
 });
 
 // ============================================
-// Etymology EN Generation Pipeline
-// ============================================
-
-/**
- * GET /internal/generate-etymology-en?key=...&batchSize=50&maxBatches=10
- *
- * Generates originEn and breakdownEn for SAT/GRE/TOEFL/IELTS Etymology records
- * that have Korean origin but no English translation yet.
- */
-router.get('/generate-etymology-en', async (req: Request, res: Response) => {
-  try {
-    const { key, batchSize: batchSizeStr, maxBatches: maxBatchesStr } = req.query;
-
-    if (key !== process.env.INTERNAL_SECRET_KEY) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const batchSize = Math.min(parseInt(batchSizeStr as string) || 50, 100);
-    const maxBatches = Math.min(parseInt(maxBatchesStr as string) || 5, 20);
-
-    // Find Etymology records with Korean origin but no English yet
-    const targetEtymologies = await prisma.etymology.findMany({
-      where: {
-        origin: { not: '' },
-        originEn: null,
-        word: {
-          examCategory: { in: ['SAT', 'GRE', 'TOEFL', 'IELTS'] },
-          status: 'PUBLISHED',
-        },
-      },
-      include: {
-        word: { select: { id: true, word: true, examCategory: true } },
-      },
-      take: batchSize * maxBatches,
-      orderBy: { createdAt: 'asc' },
-    });
-
-    if (targetEtymologies.length === 0) {
-      return res.json({
-        message: 'All etymologies already have English translation',
-        processed: 0,
-      });
-    }
-
-    const actualBatch = targetEtymologies.slice(0, batchSize);
-
-    res.json({
-      message: `Processing ${actualBatch.length} etymologies for EN generation (${targetEtymologies.length} total remaining)`,
-      targetCount: actualBatch.length,
-      totalRemaining: targetEtymologies.length,
-      words: actualBatch.map(e => e.word.word),
-    });
-
-    // Background processing
-    (async () => {
-      let success = 0;
-      let failed = 0;
-
-      for (let i = 0; i < actualBatch.length; i++) {
-        const etym = actualBatch[i];
-        try {
-          const { originEn, breakdownEn } = await generateEtymologyEn(
-            etym.word.word,
-            etym.origin!
-          );
-
-          await prisma.etymology.update({
-            where: { id: etym.id },
-            data: { originEn, breakdownEn },
-          });
-
-          success++;
-          logger.info(`[EtymologyEn] ${i + 1}/${actualBatch.length}: ${etym.word.word} ✓`);
-        } catch (error) {
-          failed++;
-          logger.error(`[EtymologyEn] Failed: ${etym.word.word}`, error);
-        }
-
-        // Rate limiting
-        if (i < actualBatch.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1200));
-        }
-      }
-
-      logger.info(`[EtymologyEn] Batch complete. Success: ${success}, Failed: ${failed}`);
-    })();
-  } catch (error) {
-    logger.error('[EtymologyEn] Error:', error);
-    if (!res.headersSent) {
-      res.status(500).json({ error: 'Etymology EN generation failed' });
-    }
-  }
-});
-
-// ============================================
 // English Mnemonic Generation (Global Content Pipeline)
 // ============================================
 
@@ -5314,7 +5219,7 @@ router.get('/generate-etymology-en', async (req: Request, res: Response) => {
     const batchSize = Math.min(parseInt(batchSizeStr as string) || 20, 100);
     const targetExams = examCategory
       ? [examCategory as string]
-      : ['SAT', 'GRE', 'TOEFL', 'IELTS'];
+      : ['SAT', 'GRE', 'TOEFL', 'IELTS', 'ACT'];
 
     // originEn이 없는 단어 찾기
     const targets = await prisma.etymology.findMany({
@@ -5421,7 +5326,7 @@ router.get('/generate-image-batch', async (req: Request, res: Response) => {
     const batchSize = Math.min(parseInt(batchSizeStr as string) || 10, 50);
     const targetExams = examCategory
       ? [(examCategory as string).toUpperCase()]
-      : ['SAT', 'GRE', 'TOEFL', 'IELTS'];
+      : ['SAT', 'GRE', 'TOEFL', 'IELTS', 'ACT'];
     const types = typesStr
       ? (typesStr as string).split(',').filter(t => ['CONCEPT', 'RHYME'].includes(t))
       : ['CONCEPT', 'RHYME'];
