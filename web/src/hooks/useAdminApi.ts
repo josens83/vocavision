@@ -65,7 +65,7 @@ export function useDashboardStats() {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiClient<{ stats: DashboardStats }>('/api/admin/stats');
+      const data = await apiClient<{ stats: DashboardStats }>('/admin/stats');
       setStats(data.stats);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch stats');
@@ -113,7 +113,7 @@ export function useWordList() {
         params.set('limit', String(filters.limit || 20));
 
         const data = await apiClient<WordListResponse>(
-          `/api/admin/words?${params.toString()}`
+          `/admin/words?${params.toString()}`
         );
 
         setWords(data.words);
@@ -144,7 +144,7 @@ export function useWordDetail() {
     setError(null);
     try {
       const data = await apiClient<{ word: WordDetail }>(
-        `/api/admin/words/${wordId}`
+        `/admin/words/${wordId}`
       );
       setWord(data.word);
     } catch (err) {
@@ -173,7 +173,7 @@ export function useWordMutations() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiClient<{ word: AdminWord }>('/api/admin/words', {
+      const result = await apiClient<{ word: AdminWord }>('/admin/words', {
         method: 'POST',
         body: JSON.stringify(data),
       });
@@ -192,7 +192,7 @@ export function useWordMutations() {
       setError(null);
       try {
         const result = await apiClient<{ word: AdminWord }>(
-          `/api/admin/words/${wordId}`,
+          `/admin/words/${wordId}`,
           {
             method: 'PATCH',
             body: JSON.stringify(data),
@@ -213,7 +213,7 @@ export function useWordMutations() {
     setLoading(true);
     setError(null);
     try {
-      await apiClient(`/api/admin/words/${wordId}`, {
+      await apiClient(`/admin/words/${wordId}`, {
         method: 'DELETE',
       });
       return true;
@@ -236,7 +236,7 @@ export function useWordMutations() {
           .filter((w) => w.length > 0);
 
         const result = await apiClient<{ created: number; failed: string[] }>(
-          '/api/admin/words/batch',
+          '/admin/words/batch',
           {
             method: 'POST',
             body: JSON.stringify({
@@ -284,7 +284,7 @@ export function useContentGeneration() {
       try {
         // Start generation
         const result = await apiClient<ApiResponse<{ jobId: string }>>(
-          '/api/content/generate',
+          '/content/generate',
           {
             method: 'POST',
             body: JSON.stringify({ wordId, regenerate }),
@@ -301,7 +301,7 @@ export function useContentGeneration() {
             status: 'pending' | 'generating' | 'completed' | 'failed';
             progress: number;
             error?: string;
-          }>(`/api/content/jobs/${result.data?.jobId}`);
+          }>(`/content/jobs/${result.data?.jobId}`);
 
           setProgress((prev) =>
             prev
@@ -352,7 +352,7 @@ export function useReview() {
       setLoading(true);
       setError(null);
       try {
-        await apiClient(`/api/content/review/${wordId}`, {
+        await apiClient(`/content/review/${wordId}`, {
           method: 'POST',
           body: JSON.stringify(review),
         });
@@ -371,7 +371,7 @@ export function useReview() {
     setLoading(true);
     setError(null);
     try {
-      await apiClient(`/api/content/publish/${wordId}`, {
+      await apiClient(`/content/publish/${wordId}`, {
         method: 'POST',
       });
       return true;
@@ -386,7 +386,7 @@ export function useReview() {
   const getAuditLog = useCallback(async (wordId: string): Promise<AuditLog[]> => {
     try {
       const result = await apiClient<{ logs: AuditLog[] }>(
-        `/api/content/audit/${wordId}`
+        `/content/audit/${wordId}`
       );
       return result.logs;
     } catch {

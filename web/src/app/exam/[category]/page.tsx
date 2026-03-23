@@ -152,7 +152,7 @@ export default function ExamCategoryPage() {
     const fetchWords = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-        const response = await fetch(`${apiUrl}/api/words/public?examCategory=${category.toUpperCase()}&limit=10`);
+        const response = await fetch(`${apiUrl}/words/public?examCategory=${category.toUpperCase()}&limit=10`);
         if (response.ok) {
           const data = await response.json();
           setWords(data.data || []);

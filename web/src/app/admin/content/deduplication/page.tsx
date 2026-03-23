@@ -64,7 +64,7 @@ export default function DeduplicationPage() {
 
     try {
       const response = await fetch(
-        `${apiUrl}/api/internal/deduplication-stats-all?key=${secretKey}&source=CSAT`
+        `${apiUrl}/internal/deduplication-stats-all?key=${secretKey}&source=CSAT`
       );
 
       if (!response.ok) {
@@ -90,7 +90,7 @@ export default function DeduplicationPage() {
 
     try {
       const response = await fetch(
-        `${apiUrl}/api/internal/seed-exam?key=${secretKey}`,
+        `${apiUrl}/internal/seed-exam?key=${secretKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
