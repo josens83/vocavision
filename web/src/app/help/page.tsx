@@ -111,7 +111,7 @@ function getFeatureDetails(isEn: boolean) {
     {
       id: 'images',
       icon: '🎨',
-      title: isEn ? 'AI Images (3 types)' : 'AI 생성 이미지 (3가지)',
+      title: isEn ? 'AI Images' : 'AI 생성 이미지',
       subtitle: isEn ? 'Visual learning for better memory' : '시각적 학습으로 기억력 향상',
       content: (
         <div className="space-y-4">

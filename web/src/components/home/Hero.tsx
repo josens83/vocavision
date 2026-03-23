@@ -62,15 +62,15 @@ const heroStatsEn = [
 ];
 
 const featuresKo = [
-  { icon: Icons.Sparkles, title: "AI 이미지", description: "Concept · Rhyme 단어마다 자동 생성", href: "/help", demoHref: "/help" },
+  { icon: Icons.Sparkles, title: "AI 이미지", description: "Concept · Rhyme 단어마다 자동 생성", href: "/help", demoHref: "/learn?exam=CSAT&level=L1&demo=true" },
   { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn", demoHref: "/learn?exam=CSAT&level=L1&demo=true" },
-  { icon: Icons.Brain, title: "어원·형태 분석", description: "Greek · Latin 어근으로 단어족 확장", href: "/help", demoHref: "/help" },
+  { icon: Icons.Brain, title: "어원·형태 분석", description: "Greek · Latin 어근으로 단어족 확장", href: "/help", demoHref: "/learn?exam=CSAT&level=L1&demo=true" },
 ];
 
 const featuresEn = [
-  { icon: Icons.Sparkles, title: "AI Images / Word", description: "Concept + Rhyme images auto-generated per word", href: "/help", demoHref: "/help" },
+  { icon: Icons.Sparkles, title: "AI Images / Word", description: "Concept + Rhyme images auto-generated per word", href: "/help", demoHref: "/learn?exam=SAT&level=L1&demo=true" },
   { icon: Icons.BookOpen, title: "Smart Flashcards", description: "Scientifically proven spaced repetition", href: "/learn", demoHref: "/learn?exam=SAT&level=L1&demo=true" },
-  { icon: Icons.Brain, title: "Etymology & Morphology", description: "Greek · Latin roots for word family mastery", href: "/help", demoHref: "/help" },
+  { icon: Icons.Brain, title: "Etymology & Morphology", description: "Greek · Latin roots for word family mastery", href: "/help", demoHref: "/learn?exam=SAT&level=L1&demo=true" },
 ];
 
 // ============================================
