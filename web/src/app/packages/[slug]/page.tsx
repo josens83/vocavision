@@ -128,7 +128,7 @@ const STATIC_PACKAGES_EN: Record<string, Partial<PackageInfo>> = {
   },
   'act-complete': {
     name: 'ACT Vocabulary',
-    description: 'Score higher on ACT with 772 words. Core + Tone + Transition + Science + Reading categories. AI images & etymology included.',
+    description: 'Score higher on ACT with 750+ words. Core + Tone + Transition + Science + Reading categories. AI images & etymology included.',
   },
 };
 

@@ -125,7 +125,7 @@ const usdPackagePrices: Record<string, string> = {
   'sat-complete': '$9.99',
   'gre-complete': '$12.99',
   'ielts-complete': '$6.99',
-  'act-complete': '$9.99',
+  'act-complete': '$6.99',
 };
 
 const EN_PACKAGE_DESCS: Record<string, string> = {
