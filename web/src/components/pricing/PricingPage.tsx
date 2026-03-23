@@ -68,7 +68,7 @@ export default function PricingPage() {
     { name: "수능 L3(고급)", free: false, basic: true, premium: true },
     { name: "TEPS L1(기본)/L2(필수)", free: false, basic: true, premium: true },
     { name: "단어장 (TOEFL/TOEIC/SAT/GRE/IELTS/EBS/기출)", free: false, basic: false, premium: true },
-    { name: "AI 이미지 3종 (Concept·Mnemonic·Rhyme)", free: "일부", basic: true, premium: true },
+    { name: "AI 이미지 (Concept·Rhyme)", free: "일부", basic: true, premium: true },
     { name: "플래시카드", free: true, basic: true, premium: true },
     { name: "퀴즈 모드", free: "전체", basic: "전체", premium: "전체" },
     { name: "학습 통계", free: false, basic: "상세", premium: "상세" },
@@ -285,7 +285,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-center gap-3 text-[13px]">
                     <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
-                    <span>AI 이미지 3종 전체 (Concept·Mnemonic·Rhyme)</span>
+                    <span>AI 이미지 전체 (Concept·Rhyme)</span>
                   </li>
                   <li className="flex items-center gap-3 text-[13px]">
                     <Check className="w-5 h-5 text-[#86EFAC] flex-shrink-0" />
@@ -354,7 +354,7 @@ export default function PricingPage() {
               )}
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span>{isEn ? 'All AI images (Concept + Rhyme per word)' : 'AI 이미지 3종 전체 (Concept·Mnemonic·Rhyme)'}</span>
+                <span>{isEn ? 'All AI images (Concept + Rhyme per word)' : 'AI 이미지 전체 (Concept·Rhyme)'}</span>
               </li>
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
