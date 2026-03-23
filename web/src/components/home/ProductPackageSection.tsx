@@ -87,7 +87,7 @@ export default function ProductPackageSection() {
                       {pkg.wordCount.toLocaleString()}{isEn ? ' words' : '개'}
                     </span>
                     <span className="bg-purple-50 text-purple-700 text-xs px-2 py-1 rounded-full font-medium">
-                      {isEn ? '3 AI Images/Word' : 'AI 이미지 3종'}
+                      {isEn ? 'AI Images' : 'AI 이미지'}
                     </span>
                   </div>
                   <div className="border-t border-gray-100 pt-3">

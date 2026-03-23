@@ -58,17 +58,17 @@ const heroStatsEn = [
   { label: "Exams Covered", value: "7" },
   { label: "Example Sentences", value: "40,000+" },
   { label: "AI Images", value: "10,000+" },
-  { label: "AI Image Types", value: "3" },
+  { label: "AI-Powered", value: "✓" },
 ];
 
 const featuresKo = [
-  { icon: Icons.Sparkles, title: "AI 이미지 3종", description: "Concept · Mnemonic · Rhyme 단어마다 자동 생성", href: "/help", demoHref: "/help" },
+  { icon: Icons.Sparkles, title: "AI 이미지", description: "Concept · Rhyme 단어마다 자동 생성", href: "/help", demoHref: "/help" },
   { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn", demoHref: "/learn?exam=CSAT&level=L1&demo=true" },
   { icon: Icons.Brain, title: "어원·형태 분석", description: "Greek · Latin 어근으로 단어족 확장", href: "/help", demoHref: "/help" },
 ];
 
 const featuresEn = [
-  { icon: Icons.Sparkles, title: "3 AI Images / Word", description: "Concept + Rhyme images auto-generated per word", href: "/help", demoHref: "/help" },
+  { icon: Icons.Sparkles, title: "AI Images / Word", description: "Concept + Rhyme images auto-generated per word", href: "/help", demoHref: "/help" },
   { icon: Icons.BookOpen, title: "Smart Flashcards", description: "Scientifically proven spaced repetition", href: "/learn", demoHref: "/learn?exam=SAT&level=L1&demo=true" },
   { icon: Icons.Brain, title: "Etymology & Morphology", description: "Greek · Latin roots for word family mastery", href: "/help", demoHref: "/help" },
 ];
@@ -740,7 +740,7 @@ export default function Hero() {
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-surface-border shadow-sm">
                 <Icons.Sparkles />
                 <span className="text-sm font-medium text-slate-600">
-                  {locale === 'en' ? 'Every word. Three AI images.' : '단어마다 AI 이미지 3장.'}
+                  {locale === 'en' ? 'Every word. AI-visualized.' : '단어마다 AI 이미지 학습.'}
                 </span>
               </div>
 
