@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://vocavisionbackend-production.up.railway.app';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://vocavisionbackend-production.up.railway.app/api';
 
 export interface WordCounts {
   total: number;
@@ -32,7 +32,7 @@ export function useWordCounts(): WordCounts {
   useEffect(() => {
     if (_cache && Date.now() - _fetchedAt < CACHE_TTL) return;
 
-    fetch(`${API_URL}/api/packages/word-counts`)
+    fetch(`${API_URL}/packages/word-counts`)
       .then(res => res.json())
       .then((data: WordCounts) => {
         _cache = data;
@@ -48,7 +48,7 @@ export function useWordCounts(): WordCounts {
 /** 서버 컴포넌트용 fetch 함수 */
 export async function fetchWordCounts(): Promise<WordCounts> {
   try {
-    const res = await fetch(`${API_URL}/api/packages/word-counts`, {
+    const res = await fetch(`${API_URL}/packages/word-counts`, {
       next: { revalidate: 3600 },
     });
     if (!res.ok) throw new Error('Failed');
