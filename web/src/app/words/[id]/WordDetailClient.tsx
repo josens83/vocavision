@@ -64,6 +64,8 @@ interface Word {
   }>;
   etymology?: {
     origin?: string;
+    originEn?: string;
+    breakdownEn?: string;
     rootWords?: string[];
     evolution?: string;
     relatedWords?: string[];
@@ -103,9 +105,9 @@ const Icons = {
 };
 
 // Section Card Component
-function SectionCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function SectionCard({ children, className = '', id }: { children: React.ReactNode; className?: string; id?: string }) {
   return (
-    <section className={`bg-white border border-gray-200 rounded-2xl p-6 ${className}`}>
+    <section id={id} className={`bg-white border border-gray-200 rounded-2xl p-6 ${className}`}>
       {children}
     </section>
   );
@@ -447,7 +449,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
         {/* 섹션 4: 어원 분석 — 블러 */}
         {(word.etymology || word.prefix || word.root || word.suffix) && (
           <PremiumBlur user={user}>
-            <SectionCard>
+            <SectionCard id="etymology">
               <SectionHeader icon="🌳" title={locale === 'en' ? "Etymology" : "어원 분석"} />
 
               {(word.prefix || word.root || word.suffix) && (
@@ -472,7 +474,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                       </div>
                     )}
                   </div>
-                  {word.morphologyNote && (
+                  {word.morphologyNote && !isEn && (
                     <p className="text-sm text-gray-600 mt-3">{word.morphologyNote}</p>
                   )}
                 </div>
@@ -480,10 +482,10 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
               {word.etymology && (
                 <div className="space-y-4">
-                  {word.etymology.origin && (
+                  {(isEn ? (word.etymology.originEn || word.etymology.origin) : word.etymology.origin) && (
                     <div className="bg-blue-50 rounded-xl p-4">
                       <h4 className="text-sm font-semibold text-blue-900 mb-1">{isEn ? 'Origin' : '기원'}</h4>
-                      <p className="text-blue-800">{word.etymology.origin}</p>
+                      <p className="text-blue-800">{isEn ? (word.etymology.originEn || word.etymology.origin) : word.etymology.origin}</p>
                     </div>
                   )}
 
@@ -497,7 +499,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     </div>
                   )}
 
-                  {word.etymology.evolution && (
+                  {word.etymology.evolution && !isEn && (
                     <p className="text-gray-600 text-sm">{word.etymology.evolution}</p>
                   )}
                 </div>
@@ -530,7 +532,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                       <h4 className="font-semibold text-gray-900 mb-2">{mnemonic.title}</h4>
                     )}
                     <p className="text-gray-700 whitespace-pre-wrap">{mnemonic.content}</p>
-                    {mnemonic.koreanHint && (
+                    {mnemonic.koreanHint && !isEn && (
                       <div className="mt-3 bg-blue-50 p-3 rounded-xl">
                         <p className="text-blue-800 text-sm">💡 {mnemonic.koreanHint}</p>
                       </div>
@@ -593,7 +595,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     {col.example && (
                       <p className="text-sm text-gray-700 italic">"{col.example}"</p>
                     )}
-                    {col.translation && (
+                    {col.translation && !isEn && (
                       <p className="text-xs text-gray-500 mt-1">{col.translation}</p>
                     )}
                   </div>
@@ -618,7 +620,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                       </span>
                     )}
                     <p className="text-lg text-gray-800 italic mb-2">"{example.sentence}"</p>
-                    {example.translation && (
+                    {example.translation && !isEn && (
                       <p className="text-gray-600 border-t border-gray-200 pt-2">{example.translation}</p>
                     )}
                   </div>
