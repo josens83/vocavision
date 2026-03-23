@@ -202,7 +202,7 @@ const descriptionEn: Record<string, string> = {
   'sat-complete': '1,935 SAT words by Greek·Latin roots. Theme-based (L1) + confusing words (L2).',
   'gre-complete': '4,346 GRE Verbal words. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery.',
   'ielts-complete': '795 IELTS words. Foundation (L1) 401 + Academic (L2) 394. Band 5~8 complete coverage.',
-  'act-complete': '245 ACT words. Core + Tone + Transition + Academic + Confusable. AI images, etymology & rhymes included.',
+  'act-complete': '750+ ACT words. Core + Tone + Transition + Academic + Confusable. AI images, etymology & rhymes included.',
 };
 
 export default function PackagesPage() {
