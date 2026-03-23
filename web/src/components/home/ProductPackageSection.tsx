@@ -130,7 +130,7 @@ function getStaticPackages(isEn: boolean): ProductPackage[] {
       durationDays: 180,
       badge: "NEW",
       isComingSoon: false,
-      wordCount: 752,
+      wordCount: 812,
     },
   ];
 }
