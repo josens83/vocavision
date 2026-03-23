@@ -167,6 +167,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const locale = useLocale();
+  const isEn = locale === 'en';
   const [word, setWord] = useState<Word | null>(initialWord || null);
   const [loading, setLoading] = useState(!initialWord);
   const [bookmarked, setBookmarked] = useState(false);
@@ -273,7 +274,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
           <div className="flex items-center justify-between">
             <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
               <Icons.ArrowLeft />
-              <span className="hidden sm:inline">뒤로</span>
+              <span className="hidden sm:inline">{isEn ? 'Back' : '뒤로'}</span>
             </button>
             <button
               onClick={handleToggleBookmark}
@@ -302,12 +303,12 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                 {word.word}
               </h1>
 
-              {word.pronunciation && (
+              {word.pronunciation && !isEn && (
                 <p className="text-xl text-gray-500 mb-4">{word.pronunciation}</p>
               )}
 
               <p className="text-lg text-gray-700 mb-2">{word.definition}</p>
-              {word.definitionKo && (
+              {!isEn && word.definitionKo && (
                 <p className="text-lg text-gray-600">{word.definitionKo}</p>
               )}
             </div>
@@ -318,7 +319,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                 {conceptVisual?.imageUrl ? (
                   <div
                     className="relative h-full cursor-pointer"
-                    onClick={() => user && setFullscreenImage({ url: conceptVisual.imageUrl!, caption: conceptVisual.captionKo })}
+                    onClick={() => user && setFullscreenImage({ url: conceptVisual.imageUrl!, caption: isEn ? (conceptVisual.captionEn || conceptVisual.captionKo) : conceptVisual.captionKo })}
                   >
                     <img
                       src={conceptVisual.imageUrl}
@@ -327,10 +328,10 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     />
                     <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-4">
                       <span className="inline-block px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded mb-2">
-                        💡 개념
+                        {isEn ? '💡 Concept' : '💡 개념'}
                       </span>
-                      {conceptVisual.captionKo && (
-                        <p className="text-white text-sm">{conceptVisual.captionKo}</p>
+                      {(isEn ? (conceptVisual.captionEn || conceptVisual.captionKo) : conceptVisual.captionKo) && (
+                        <p className="text-white text-sm">{isEn ? (conceptVisual.captionEn || conceptVisual.captionKo) : conceptVisual.captionKo}</p>
                       )}
                     </div>
                   </div>
@@ -338,7 +339,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                   <div className="h-full flex items-center justify-center min-h-[16rem]">
                     <div className="text-center text-gray-400">
                       <Icons.Book />
-                      <p className="mt-2 text-sm">이미지 준비 중</p>
+                      <p className="mt-2 text-sm">{isEn ? 'Image coming soon' : '이미지 준비 중'}</p>
                     </div>
                   </div>
                 )}
@@ -364,7 +365,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     />
                     <div className="absolute top-3 left-3">
                       <span className="px-2 py-1 bg-emerald-500 text-white text-xs font-bold rounded">
-                        🧠 연상
+                        {isEn ? '🧠 Mnemonic' : '🧠 연상'}
                       </span>
                     </div>
                   </div>
@@ -392,7 +393,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     />
                     <div className="absolute top-3 left-3">
                       <span className="px-2 py-1 bg-teal-500 text-white text-xs font-bold rounded">
-                        🎵 라이밍
+                        {isEn ? '🎵 Rhyme' : '🎵 라이밍'}
                       </span>
                     </div>
                   </div>
@@ -454,19 +455,19 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                   <div className="flex flex-wrap gap-2 items-center">
                     {word.prefix && (
                       <div className="bg-gray-100 rounded-xl px-3 py-2">
-                        <span className="text-xs text-gray-500 block">접두사</span>
+                        <span className="text-xs text-gray-500 block">{isEn ? 'Prefix' : '접두사'}</span>
                         <span className="text-gray-900 font-medium">{word.prefix}-</span>
                       </div>
                     )}
                     {word.root && (
                       <div className="bg-teal-50 rounded-xl px-3 py-2">
-                        <span className="text-xs text-teal-600 block">어근</span>
+                        <span className="text-xs text-teal-600 block">{isEn ? 'Root' : '어근'}</span>
                         <span className="text-teal-900 font-bold">{word.root}</span>
                       </div>
                     )}
                     {word.suffix && (
                       <div className="bg-gray-100 rounded-xl px-3 py-2">
-                        <span className="text-xs text-gray-500 block">접미사</span>
+                        <span className="text-xs text-gray-500 block">{isEn ? 'Suffix' : '접미사'}</span>
                         <span className="text-gray-900 font-medium">-{word.suffix}</span>
                       </div>
                     )}
@@ -481,7 +482,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                 <div className="space-y-4">
                   {word.etymology.origin && (
                     <div className="bg-blue-50 rounded-xl p-4">
-                      <h4 className="text-sm font-semibold text-blue-900 mb-1">기원</h4>
+                      <h4 className="text-sm font-semibold text-blue-900 mb-1">{isEn ? 'Origin' : '기원'}</h4>
                       <p className="text-blue-800">{word.etymology.origin}</p>
                     </div>
                   )}
@@ -537,7 +538,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     {mnemonic.rating !== undefined && (
                       <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
                         <Icons.Star />
-                        <span>{mnemonic.rating.toFixed(1)} ({mnemonic.ratingCount}명 평가)</span>
+                        <span>{mnemonic.rating.toFixed(1)} ({mnemonic.ratingCount}{isEn ? ' ratings' : '명 평가'})</span>
                       </div>
                     )}
                   </div>
@@ -613,7 +614,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                   <div key={example.id || i} className={`p-5 rounded-xl ${example.isFunny ? 'bg-emerald-50 border border-emerald-100' : 'bg-gray-50'}`}>
                     {example.isFunny && (
                       <span className="inline-block text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full mb-2">
-                        😄 재미있는 예문
+                        {isEn ? '😄 Fun example' : '😄 재미있는 예문'}
                       </span>
                     )}
                     <p className="text-lg text-gray-800 italic mb-2">"{example.sentence}"</p>
@@ -637,7 +638,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {word.synonymList && word.synonymList.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-600 mb-2">동의어</h4>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">{isEn ? 'Synonyms' : '동의어'}</h4>
                   <div className="flex flex-wrap gap-2">
                     {word.synonymList.map((s, i) => (
                       <span key={i} className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-sm">{s}</span>
@@ -648,7 +649,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
               {word.antonymList && word.antonymList.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-600 mb-2">반의어</h4>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">{isEn ? 'Antonyms' : '반의어'}</h4>
                   <div className="flex flex-wrap gap-2">
                     {word.antonymList.map((a, i) => (
                       <span key={i} className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-sm">{a}</span>
@@ -659,7 +660,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
               {word.relatedWords && word.relatedWords.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-600 mb-2">관련어</h4>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">{isEn ? 'Related' : '관련어'}</h4>
                   <div className="flex flex-wrap gap-2">
                     {word.relatedWords.map((r, i) => (
                       <span key={i} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm">{r}</span>
@@ -675,15 +676,15 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
         <section className="bg-teal-500 text-white rounded-2xl p-6 hidden md:block">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <h3 className="text-xl font-bold mb-1">이 단어를 완벽히 외우셨나요?</h3>
-              <p className="text-teal-100">플래시카드와 퀴즈로 더 깊이 학습해보세요.</p>
+              <h3 className="text-xl font-bold mb-1">{isEn ? 'Ready to master this word?' : '이 단어를 완벽히 외우셨나요?'}</h3>
+              <p className="text-teal-100">{isEn ? 'Practice with flashcards and quizzes.' : '플래시카드와 퀴즈로 더 깊이 학습해보세요.'}</p>
             </div>
             <div className="flex gap-3">
               <Link href={`/words/${word.id}/learn`} className="px-6 py-3 bg-white text-teal-600 font-medium rounded-xl hover:bg-teal-50 transition-colors">
-                플래시카드 학습
+                {isEn ? 'Flashcards' : '플래시카드 학습'}
               </Link>
               <Link href={`/quiz?wordId=${word.id}`} className="px-6 py-3 border border-white/30 text-white font-medium rounded-xl hover:bg-white/10 transition-colors">
-                퀴즈 풀기
+                {isEn ? 'Take Quiz' : '퀴즈 풀기'}
               </Link>
             </div>
           </div>
