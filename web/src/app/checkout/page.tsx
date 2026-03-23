@@ -9,6 +9,7 @@ import { Check, Shield, ArrowLeft, CreditCard, Loader2, Package } from "lucide-r
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { useLocale } from '@/hooks/useLocale';
 import { useWordCounts } from '@/hooks/useWordCounts';
+import { usePackages } from '@/hooks/usePackages';
 
 type PlanType = "basic" | "premium";
 type BillingCycle = "monthly" | "yearly";
@@ -116,28 +117,6 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
 }
 
 
-// USD 가격 매핑 (글로벌 유저용)
-const usdPackagePrices: Record<string, string> = {
-  '2026-csat-analysis': '$3.99',
-  'ebs-vocab': '$6.99',
-  'toefl-complete': '$9.99',
-  'toeic-complete': '$7.99',
-  'sat-complete': '$9.99',
-  'gre-complete': '$12.99',
-  'ielts-complete': '$6.99',
-  'act-complete': '$6.99',
-};
-
-const EN_PACKAGE_DESCS: Record<string, string> = {
-  'toefl-complete': 'Master TOEFL vocabulary. Core + Advanced levels. AI images, etymology & rhymes.',
-  'toeic-complete': 'Boost your TOEIC score. Starter to Booster level. AI visual mnemonics.',
-  'sat-complete': 'Ace SAT vocabulary. Theme-based core (L1) + confusing words (L2). Greek·Latin roots.',
-  'gre-complete': 'Conquer GRE Verbal. Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based mastery.',
-  'ielts-complete': 'Band 5~8 IELTS vocabulary. Foundation (L1) + Academic (L2). Complete coverage.',
-  'act-complete': 'Score higher on ACT. Core + Tone + Transition + Science + Reading. AI images & etymology.',
-  'ebs-vocab': 'EBS-linked CSAT vocabulary. 3,838 words from official EBS prep materials.',
-  '2026-csat-analysis': 'Real CSAT questions from 2026. 520 words sorted by question type.',
-};
 
 // 단품 패키지 결제 컴포넌트
 function PackageCheckout({ packageSlug }: { packageSlug: string }) {
@@ -146,6 +125,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
   const locale = useLocale();
   const isEn = locale === 'en';
   const wordCounts = useWordCounts();
+  const { getBySlug } = usePackages();
   const [packageInfo, setPackageInfo] = useState<PackageInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -315,7 +295,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
                   </div>
                   <p className="text-gray-600 mb-2">
                     {isEn
-                      ? (EN_PACKAGE_DESCS[packageSlug] || packageInfo.shortDesc || packageInfo.description)
+                      ? (getBySlug(packageSlug)?.shortDescEn || packageInfo.shortDesc || packageInfo.description)
                       : (packageInfo.description || packageInfo.shortDesc)}
                   </p>
                   <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -424,7 +404,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
                   <div className="flex justify-between font-semibold text-lg">
                     <span>{isEn ? 'Total' : '총 결제 금액'}</span>
                     <span className="text-brand-primary">
-                      {isEn ? (usdPackagePrices[packageSlug] || `$${(packageInfo.price / 1300).toFixed(2)}`) : `₩${packageInfo.price.toLocaleString()}`}
+                      {isEn ? (getBySlug(packageSlug)?.priceGlobal || `$${(packageInfo.price / 1300).toFixed(2)}`) : `₩${packageInfo.price.toLocaleString()}`}
                     </span>
                   </div>
                 </div>
@@ -447,7 +427,7 @@ function PackageCheckout({ packageSlug }: { packageSlug: string }) {
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5" />
-                    {isEn ? `Pay ${usdPackagePrices[packageSlug] || `$${(packageInfo.price / 1300).toFixed(2)}`}` : `₩${packageInfo.price.toLocaleString()} 결제하기`}
+                    {isEn ? `Pay ${getBySlug(packageSlug)?.priceGlobal || `$${(packageInfo.price / 1300).toFixed(2)}`}` : `₩${packageInfo.price.toLocaleString()} 결제하기`}
                   </>
                 )}
               </button>

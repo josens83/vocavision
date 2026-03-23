@@ -7,6 +7,7 @@ import Navigation from "@/components/navigation/Navigation";
 import { Check, ArrowLeft, Loader2, BookOpen, Clock, CreditCard } from "lucide-react";
 import { useLocale } from '@/hooks/useLocale';
 import { useWordCounts } from '@/hooks/useWordCounts';
+import { usePackages } from '@/hooks/usePackages';
 
 interface PackageInfo {
   id: string;
@@ -105,49 +106,13 @@ const STATIC_PACKAGES: Record<string, PackageInfo> = {
   },
 };
 
-const STATIC_PACKAGES_EN: Record<string, Partial<PackageInfo>> = {
-  'toefl-complete': {
-    name: 'TOEFL Mastery',
-    description: 'Master 3,651 TOEFL words from Core essentials to Advanced high-difficulty. Greek·Latin etymology makes every word unforgettable. Covers all updated TOEFL question types.',
-  },
-  'toeic-complete': {
-    name: 'TOEIC Score Booster',
-    description: 'Master 2,491 essential TOEIC words from Starter to Booster. AI visual mnemonics ensure exam-day recall. Optimized for business and workplace English.',
-  },
-  'sat-complete': {
-    name: 'SAT Vocabulary',
-    description: 'Conquer 1,934 SAT words through Greek·Latin roots. Theme-based L1 + high-confusion L2 words. Perfect for SAT, PSAT, and ACT preparation.',
-  },
-  'gre-complete': {
-    name: 'GRE Verbal Mastery',
-    description: 'Complete 4,346 GRE Verbal words — Core (L1) 1,858 + Advanced (L2) 2,488. Etymology-based learning for grad school applications.',
-  },
-  'ielts-complete': {
-    name: 'IELTS Complete',
-    description: 'Master 795 IELTS words across all bands. Foundation (L1) 401 words for Band 5~6.5 + Academic (L2) 394 words for Band 7~8.',
-  },
-  'act-complete': {
-    name: 'ACT Vocabulary',
-    description: 'Score higher on ACT with 750+ words. Core + Tone + Transition + Science + Reading categories. AI images & etymology included.',
-  },
-};
-
-
-const USD_PRICES: Record<string, string> = {
-  'toefl-complete': '$9.99',
-  'toeic-complete': '$7.99',
-  'sat-complete': '$9.99',
-  'gre-complete': '$12.99',
-  'ielts-complete': '$6.99',
-  'act-complete': '$9.99',
-};
-
 export default function PackageDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
   const locale = useLocale();
   const isEn = locale === 'en';
   const wordCounts = useWordCounts();
+  const { getBySlug } = usePackages();
 
   const [packageInfo, setPackageInfo] = useState<PackageInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -219,9 +184,10 @@ export default function PackageDetailPage() {
     );
   }
 
-  const displayName = isEn ? (STATIC_PACKAGES_EN[slug]?.name || packageInfo.name) : packageInfo.name;
-  const displayDescription = isEn ? (STATIC_PACKAGES_EN[slug]?.description || packageInfo.description) : (packageInfo.description || packageInfo.shortDesc);
-  const displayPrice = isEn ? (USD_PRICES[slug] || null) : null;
+  const dbPkg = getBySlug(slug);
+  const displayName = isEn ? (dbPkg?.nameEn || packageInfo.name) : packageInfo.name;
+  const displayDescription = isEn ? (dbPkg?.descriptionEn || packageInfo.description) : (packageInfo.description || packageInfo.shortDesc);
+  const displayPrice = isEn ? (dbPkg?.priceGlobal || null) : null;
 
   const hasDiscount = packageInfo.originalPrice && packageInfo.originalPrice > packageInfo.price;
   const discountPercent = hasDiscount
