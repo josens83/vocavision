@@ -259,6 +259,8 @@ export function CelebrateCompletion({
   /** 전체 학습 완료 여부 (마지막 세트 완료 시) */
   isAllCompleted?: boolean;
 }) {
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const percentage = Math.round((score / total) * 100);
   const isPerfect = percentage === 100;
   const isGood = percentage >= 80;
@@ -281,14 +283,14 @@ export function CelebrateCompletion({
 
       <h3 className="text-2xl font-bold text-gray-900 mb-2">
         {isAllCompleted
-          ? '전체 학습 완료!'
-          : isPerfect ? '완벽해요!' : isGood ? '잘했어요!' : '수고했어요!'}
+          ? (isEn ? 'All Complete!' : '전체 학습 완료!')
+          : isPerfect ? (isEn ? 'Perfect!' : '완벽해요!') : isGood ? (isEn ? 'Great job!' : '잘했어요!') : (isEn ? 'Well done!' : '수고했어요!')}
       </h3>
 
       <p className="text-gray-600 mb-4">
         {isAllCompleted
-          ? `마지막 ${total}문제 중 ${score}문제 정답`
-          : `${total}문제 중 ${score}문제 정답`}
+          ? (isEn ? `${score} out of ${total} correct (final set)` : `마지막 ${total}문제 중 ${score}문제 정답`)
+          : (isEn ? `${score} out of ${total} correct` : `${total}문제 중 ${score}문제 정답`)}
       </p>
 
       <div className="text-4xl font-bold text-brand-primary mb-4">
@@ -299,8 +301,8 @@ export function CelebrateCompletion({
       {totalProgress && (
         <div className="bg-gray-50 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-            <span>전체 진행</span>
-            <span className="font-medium">{totalProgress.learned}/{totalProgress.total} 단어 ({overallPercentage}%)</span>
+            <span>{isEn ? 'Overall progress' : '전체 진행'}</span>
+            <span className="font-medium">{totalProgress.learned}/{totalProgress.total} {isEn ? 'words' : '단어'} ({overallPercentage}%)</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
@@ -318,7 +320,7 @@ export function CelebrateCompletion({
             onClick={onNext}
             className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-pink-500/25"
           >
-            다음 20개 학습 →
+            {isEn ? 'Next 20 words →' : '다음 20개 학습 →'}
           </button>
         )}
 
@@ -328,7 +330,7 @@ export function CelebrateCompletion({
               onClick={onRetry}
               className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
             >
-              다시 도전
+              {isEn ? 'Try again' : '다시 도전'}
             </button>
           )}
           {onHome && (
@@ -336,7 +338,7 @@ export function CelebrateCompletion({
               onClick={onHome}
               className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
             >
-              홈으로
+              {isEn ? 'Home' : '홈으로'}
             </button>
           )}
         </div>
@@ -347,21 +349,24 @@ export function CelebrateCompletion({
         <div className="mt-6 pt-6 border-t border-gray-200">
           <div className="bg-gradient-to-r from-brand-primary/10 to-brand-secondary/10 rounded-xl p-4">
             <p className="text-sm text-gray-700 mb-3">
-              가입하면 학습 기록이 저장되고,<br />
-              내일 자동으로 복습을 추천받을 수 있어요!
+              {isEn ? (
+                <>Sign up to save your progress<br />and get daily review recommendations!</>
+              ) : (
+                <>가입하면 학습 기록이 저장되고,<br />내일 자동으로 복습을 추천받을 수 있어요!</>
+              )}
             </p>
             <div className="flex gap-2 justify-center">
               <Link
                 href="/auth/register"
                 className="bg-brand-primary hover:bg-brand-primary/90 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors"
               >
-                무료로 가입하기
+                {isEn ? 'Sign up free' : '무료로 가입하기'}
               </Link>
               <Link
                 href="/auth/login"
                 className="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 transition-colors"
               >
-                로그인
+                {isEn ? 'Log in' : '로그인'}
               </Link>
             </div>
           </div>
