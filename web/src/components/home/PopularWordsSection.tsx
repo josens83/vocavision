@@ -19,6 +19,7 @@ interface Word {
   id: string;
   word: string;
   definition: string;
+  definitionKo?: string;
   level: string;
   pronunciation?: string;
   imageUrl?: string;
@@ -345,7 +346,7 @@ function WordCard({
                 >
                   <div className="text-center text-white">
                     <p className="text-sm mb-2">{isEn ? 'Meaning' : '뜻'}</p>
-                    <p className="font-medium">{word.definition}</p>
+                    <p className="font-medium">{isEn ? word.definition : (word.definitionKo || word.definition)}</p>
                   </div>
                 </motion.div>
               )}

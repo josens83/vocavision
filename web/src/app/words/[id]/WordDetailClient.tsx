@@ -220,7 +220,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
   const handleToggleBookmark = async () => {
     if (!word || !user) {
-      alert('로그인이 필요합니다.');
+      alert(isEn ? 'Please sign in to bookmark.' : '로그인이 필요합니다.');
       return;
     }
     try {
