@@ -514,7 +514,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
         {!isEn && (word.mnemonic || word.mnemonicKorean || (word.mnemonics && word.mnemonics.length > 0)) && (
           <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
             <SectionCard>
-              <SectionHeader icon="💡" title={locale === 'en' ? "Memory Trick" : "창의적 암기법"} />
+              <SectionHeader icon="💡" title="창의적 암기법" />
 
               <div className="space-y-4">
                 {(word.mnemonic || word.mnemonicKorean) && (
