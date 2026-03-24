@@ -117,7 +117,7 @@ function WordsPageContent() {
 
   // Get initial values from URL parameters
   const initialSearch = searchParams.get('search') || '';
-  const initialExam = searchParams.get('exam') || 'CSAT';
+  const initialExam = searchParams.get('exam') || (isEn ? 'SAT' : 'CSAT');
   const initialLevel = searchParams.get('level') || '';
 
   // 필터 상태
@@ -162,26 +162,18 @@ function WordsPageContent() {
   };
 
   // Exam + Level 배지 라벨
-  const examLevelLabels: Record<string, Record<string, string>> = {
-    CSAT: {
-      L1: '수능 L1',
-      L2: '수능 L2',
-      L3: '수능 L3',
-    },
-    TEPS: {
-      L1: 'TEPS L1',
-      L2: 'TEPS L2',
-    },
-    CSAT_2026: {
-      LISTENING: '듣기영역',
-      READING_2: '독해영역 2점',
-      READING_3: '독해영역 3점',
-    },
-    EBS: {
-      LISTENING: 'EBS 듣기',
-      READING_BASIC: 'EBS 독해기본',
-      READING_ADV: 'EBS 독해실력',
-    },
+  const examLevelLabels: Record<string, Record<string, string>> = isEn ? {
+    SAT: { L1: 'SAT Core', L2: 'SAT Advanced' },
+    ACT: { L1: 'ACT Core', L2: 'ACT Advanced' },
+    GRE: { L1: 'GRE Core', L2: 'GRE Advanced' },
+    TOEFL: { L1: 'TOEFL Core', L2: 'TOEFL Advanced' },
+    TOEIC: { L1: 'TOEIC Starter', L2: 'TOEIC Booster' },
+    IELTS: { L1: 'IELTS Foundation', L2: 'IELTS Academic' },
+  } : {
+    CSAT: { L1: '수능 L1', L2: '수능 L2', L3: '수능 L3' },
+    TEPS: { L1: 'TEPS L1', L2: 'TEPS L2' },
+    CSAT_2026: { LISTENING: '듣기영역', READING_2: '독해영역 2점', READING_3: '독해영역 3점' },
+    EBS: { LISTENING: 'EBS 듣기', READING_BASIC: 'EBS 독해기본', READING_ADV: 'EBS 독해실력' },
   };
 
   return (
@@ -228,92 +220,35 @@ function WordsPageContent() {
               >
                 {isEn ? 'All' : '전체'}
               </button>
-              <button
-                onMouseEnter={() => prefetchWords({ examCategory: 'CSAT' })}
-                onClick={() => {
-                  const locked = checkExamLocked('CSAT');
-                  if (locked) {
-                    router.push('/pricing');
-                    return;
-                  }
-                  setExamCategory('CSAT');
-                  setLevel('');
-                  setPage(1);
-                  syncURL('CSAT', '');
-                }}
-                className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
-                  checkExamLocked('CSAT')
-                    ? 'bg-gray-100 text-[#999999] cursor-pointer'
-                    : examCategory === 'CSAT'
-                      ? 'bg-[#14B8A6] text-white'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-              >
-                {checkExamLocked('CSAT') && <Lock className="w-3 h-3" />}
-                수능
-              </button>
-              <button
-                onMouseEnter={() => prefetchWords({ examCategory: 'TEPS' })}
-                onClick={() => {
-                  const locked = checkExamLocked('TEPS');
-                  if (locked) {
-                    router.push('/pricing');
-                    return;
-                  }
-                  setExamCategory('TEPS');
-                  setLevel('');
-                  setPage(1);
-                  syncURL('TEPS', '');
-                }}
-                className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
-                  checkExamLocked('TEPS')
-                    ? 'bg-gray-100 text-[#999999] cursor-pointer'
-                    : examCategory === 'TEPS'
-                      ? 'bg-[#A855F7] text-white'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-              >
-                {checkExamLocked('TEPS') && <Lock className="w-3 h-3" />}
-                TEPS
-              </button>
-              {/* 2026 기출 - 프리미엄 또는 단품 구매자만 */}
-              {(hasCsat2026Access || isPremium) && (
-                <button
-                  onMouseEnter={() => prefetchWords({ examCategory: 'CSAT_2026' })}
-                  onClick={() => {
-                    setExamCategory('CSAT_2026');
-                    setLevel('');
-                    setPage(1);
-                    syncURL('CSAT_2026', '');
-                  }}
-                  className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
-                    examCategory === 'CSAT_2026'
-                      ? 'bg-[#10B981] text-white'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                >
-                  2026 수능 기출
-                </button>
-              )}
-              {/* EBS 연계 - 프리미엄 또는 단품 구매자만 */}
-              {(hasEbsAccess || isPremium) && (
-                <button
-                  onMouseEnter={() => prefetchWords({ examCategory: 'EBS' })}
-                  onClick={() => {
-                    setExamCategory('EBS');
-                    setLevel('');
-                    setPage(1);
-                    syncURL('EBS', '');
-                  }}
-                  className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
-                    examCategory === 'EBS'
-                      ? 'bg-[#10B981] text-white'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                >
-                  EBS 연계
-                </button>
-              )}
+              {(isEn ? EN_EXAM_CATEGORIES : KR_EXAM_CATEGORIES).map((exam) => {
+                const locked = checkExamLocked(exam);
+                // KR 전용 시험: 2026 기출, EBS 는 접근권한 필요
+                if (exam === 'CSAT_2026' && !(hasCsat2026Access || isPremium)) return null;
+                if (exam === 'EBS' && !(hasEbsAccess || isPremium)) return null;
+                return (
+                  <button
+                    key={exam}
+                    onMouseEnter={() => prefetchWords({ examCategory: exam })}
+                    onClick={() => {
+                      if (locked) { router.push('/pricing'); return; }
+                      setExamCategory(exam);
+                      setLevel('');
+                      setPage(1);
+                      syncURL(exam, '');
+                    }}
+                    className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
+                      locked
+                        ? 'bg-gray-100 text-[#999999] cursor-pointer'
+                        : examCategory === exam
+                          ? 'bg-[#14B8A6] text-white'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    }`}
+                  >
+                    {locked && <Lock className="w-3 h-3" />}
+                    {isEn ? exam.replace('_', ' ') : (exam === 'CSAT' ? '수능' : exam === 'CSAT_2026' ? '2026 수능 기출' : exam === 'EBS' ? 'EBS 연계' : exam)}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -406,6 +341,8 @@ function WordsPageContent() {
                         >
                           {locked && <Lock className="w-3 h-3" />}
                           {lvl === '' ? (isEn ? 'All' : '전체') :
+                           isEn ?
+                             (lvl === 'L1' ? 'L1 (Core)' : 'L2 (Advanced)') :
                            examCategory === 'TEPS' ?
                              (lvl === 'L1' ? 'L1(기본)' : 'L2(필수)') :
                              (lvl === 'L1' ? 'L1(기초)' : lvl === 'L2' ? 'L2(중급)' : 'L3(고급)')}
@@ -488,8 +425,9 @@ function WordsPageContent() {
   );
 }
 
-// 서비스 중인 시험만 표시 (CSAT, TEPS, CSAT_2026, EBS)
-const ACTIVE_EXAM_CATEGORIES = ['CSAT', 'TEPS', 'CSAT_2026', 'EBS'];
+// 서비스 중인 시험 (KR/EN 분리)
+const KR_EXAM_CATEGORIES = ['CSAT', 'TEPS', 'CSAT_2026', 'EBS'];
+const EN_EXAM_CATEGORIES = ['SAT', 'ACT', 'GRE', 'TOEFL', 'TOEIC', 'IELTS'];
 
 // 배지 색상 매핑
 const BADGE_COLORS: Record<string, string> = {
@@ -497,6 +435,12 @@ const BADGE_COLORS: Record<string, string> = {
   TEPS: 'bg-[#F3E8FF] text-purple-500',
   CSAT_2026: 'bg-[#D1FAE5] text-[#059669]',
   EBS: 'bg-[#DBEAFE] text-[#2563EB]',
+  SAT: 'bg-blue-100 text-blue-700',
+  ACT: 'bg-rose-100 text-rose-700',
+  GRE: 'bg-violet-100 text-violet-700',
+  TOEFL: 'bg-amber-100 text-amber-700',
+  TOEIC: 'bg-orange-100 text-orange-700',
+  IELTS: 'bg-cyan-100 text-cyan-700',
 };
 
 function WordCard({
@@ -517,12 +461,12 @@ function WordCard({
 
   if (word.examLevels && word.examLevels.length > 0) {
     for (const el of word.examLevels) {
-      if (!ACTIVE_EXAM_CATEGORIES.includes(el.examCategory)) continue;
+      if (![...KR_EXAM_CATEGORIES, ...EN_EXAM_CATEGORIES].includes(el.examCategory)) continue;
       const label = examLevelLabels[el.examCategory]?.[el.level] || `${el.examCategory} ${el.level}`;
       const colorClass = BADGE_COLORS[el.examCategory] || 'bg-gray-100 text-gray-600';
       badges.push({ label, colorClass });
     }
-  } else if (word.examCategory && ACTIVE_EXAM_CATEGORIES.includes(word.examCategory) && word.level) {
+  } else if (word.examCategory && [...KR_EXAM_CATEGORIES, ...EN_EXAM_CATEGORIES].includes(word.examCategory) && word.level) {
     // fallback: legacy 필드
     const label = examLevelLabels[word.examCategory]?.[word.level] || `${word.examCategory} ${word.level}`;
     const colorClass = BADGE_COLORS[word.examCategory] || 'bg-gray-100 text-gray-600';
@@ -544,7 +488,7 @@ function WordCard({
       <div className="flex items-start justify-between mb-2">
         <div>
           <h3 className="text-[18px] font-bold text-[#1c1c1e]">{word.word}</h3>
-          {word.pronunciation && (
+          {word.pronunciation && !isEn && (
             <p className="text-[13px] text-gray-500">{word.pronunciation.replace(/\*\*/g, '')}</p>
           )}
         </div>
@@ -562,7 +506,7 @@ function WordCard({
         </div>
       </div>
 
-      <p className="text-[15px] text-[#1c1c1e]">{word.definitionKo || word.definition}</p>
+      <p className="text-[15px] text-[#1c1c1e]">{isEn ? word.definition : (word.definitionKo || word.definition)}</p>
 
       {/* 품사 */}
       <div className="flex items-center justify-between mt-3">
