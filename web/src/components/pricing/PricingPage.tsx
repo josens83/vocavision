@@ -580,8 +580,8 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* IELTS 완전정복 - 글로벌은 Basic에 포함 */}
-            {!isEn && <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
+            {/* IELTS 완전정복 - 글로벌은 단품 구매 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
                   NEW
@@ -593,12 +593,12 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'IELTS Academic Mastery' : 'IELTS 완전정복'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '795 words' : '795개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '720 words' : '720개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
                 {isEn
-                  ? 'IELTS Foundation (330) + Academic (258). Band 5–8 rapid mastery.'
+                  ? 'IELTS Foundation (L1) + Academic (L2). Band 5–8 complete coverage.'
                   : 'IELTS Foundation(L1) 330개 + Academic(L2) 258개. Band 5~8 전 구간 단기 완성.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
@@ -611,7 +611,7 @@ export default function PricingPage() {
               >
                 {isEn ? 'Buy Now' : '구매하기'}
               </button>
-            </div>}
+            </div>
           </div>
         </div>
 
