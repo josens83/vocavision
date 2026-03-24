@@ -70,7 +70,7 @@ const featuresKo = [
 const featuresEn = [
   { icon: Icons.Sparkles, title: "AI Images / Word", description: "Concept + Rhyme images auto-generated per word", href: "/help", demoHref: "/words/177b6c91-fb4b-4314-8415-0922915583a3?exam=SAT&demo=true" },
   { icon: Icons.BookOpen, title: "Smart Flashcards", description: "Scientifically proven spaced repetition", href: "/learn", demoHref: "/learn?exam=SAT&level=L1&demo=true" },
-  { icon: Icons.Brain, title: "Etymology & Morphology", description: "Greek · Latin roots for word family mastery", href: "/help", demoHref: "/words/95887bd1-1da0-4597-9c99-d6efc59920b0?exam=SAT&demo=true" },
+  { icon: Icons.Brain, title: "Etymology & Morphology", description: "Greek · Latin roots for word family mastery", href: "/help", demoHref: "/words/95887bd1-1da0-4597-9c99-d6efc59920b0?exam=SAT&demo=true#etymology" },
 ];
 
 // ============================================
