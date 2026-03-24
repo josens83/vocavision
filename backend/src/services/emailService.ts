@@ -96,24 +96,19 @@ class EmailService {
    * Send with SendGrid
    */
   private async sendWithSendGrid(options: EmailOptions): Promise<void> {
-    // TODO: Implement SendGrid integration
-    /*
     const sgMail = require('@sendgrid/mail');
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
     await sgMail.send({
       to: options.to,
-      from: options.from,
+      from: options.from || this.defaultFrom,
       subject: options.subject,
       text: options.text,
       html: options.html,
       cc: options.cc,
       bcc: options.bcc,
       replyTo: options.replyTo,
-      attachments: options.attachments,
     });
-    */
-    this.logEmail(options);
   }
 
   /**

@@ -193,5 +193,16 @@ export function startSubscriptionJobs(): void {
     }
   });
 
+  // 매일 오전 10시 KST (UTC 01:00) — 온보딩 트리거
+  cron.schedule('0 1 * * *', async () => {
+    logger.info('[Cron] Running onboarding trigger job...');
+    try {
+      const { processOnboardingTriggers } = await import('./onboardingTrigger');
+      await processOnboardingTriggers();
+    } catch (error) {
+      logger.error('[Cron] Onboarding trigger job error:', error);
+    }
+  });
+
   logger.info('[Cron] Subscription jobs scheduled');
 }
