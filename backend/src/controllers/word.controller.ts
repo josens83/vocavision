@@ -799,7 +799,8 @@ export const getFeaturedWords = async (
     const result = words.map((word) => ({
       id: word.id,
       word: word.word,
-      definition: word.definitionKo || word.definition,
+      definition: word.definition,
+      definitionKo: word.definitionKo,
       level: word.level || 'L1',
       pronunciation: word.phonetic || word.pronunciation,
       imageUrl: word.visuals[0]?.imageUrl || null,
