@@ -309,15 +309,15 @@ export function getAvailableExams(user: User | null, isEn: boolean = false): { e
   // 글로벌: SAT 기반
   if (isEn) {
     if (tier === 'BASIC') {
-      // 베이직: SAT(열림) + IELTS(기본 포함) + 구매한 단품
+      // 베이직: SAT + ACT 기본 포함 + 구매한 단품
       const exams: { exam: string; locked: boolean; reason?: string }[] = [
         { exam: 'SAT',   locked: false },
-        { exam: 'IELTS', locked: false },
+        { exam: 'ACT',   locked: false },
       ];
       if (hasPurchasedExam(user, 'GRE'))   exams.push({ exam: 'GRE',   locked: false });
       if (hasPurchasedExam(user, 'TOEFL')) exams.push({ exam: 'TOEFL', locked: false });
       if (hasPurchasedExam(user, 'TOEIC')) exams.push({ exam: 'TOEIC', locked: false });
-      if (hasPurchasedExam(user, 'ACT'))   exams.push({ exam: 'ACT',   locked: false });
+      if (hasPurchasedExam(user, 'IELTS')) exams.push({ exam: 'IELTS', locked: false });
       return exams;
     }
     // 무료: SAT(열림) + 구매한 단품
