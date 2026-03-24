@@ -195,7 +195,7 @@ export default function PopularWordsSection() {
                 <span className="text-4xl mb-4 block">
                   {activeTab === "best" ? "📊" : "🆕"}
                 </span>
-                <p>표시할 단어가 없습니다</p>
+                <p>{isEn ? 'No words to display' : '표시할 단어가 없습니다'}</p>
               </div>
             )}
           </motion.div>
@@ -344,7 +344,7 @@ function WordCard({
                   className="absolute inset-0 bg-slate-900/70 flex items-center justify-center p-4"
                 >
                   <div className="text-center text-white">
-                    <p className="text-sm mb-2">뜻</p>
+                    <p className="text-sm mb-2">{isEn ? 'Meaning' : '뜻'}</p>
                     <p className="font-medium">{word.definition}</p>
                   </div>
                 </motion.div>
@@ -359,7 +359,7 @@ function WordCard({
                 <h3 className="font-semibold text-slate-900 truncate group-hover:text-brand-primary transition-colors">
                   {word.word}
                 </h3>
-                {word.pronunciation && (
+                {word.pronunciation && !isEn && (
                   <p className="text-xs text-slate-400 truncate">
                     {word.pronunciation}
                   </p>
@@ -398,22 +398,22 @@ function WordCardSkeleton() {
 
 // 샘플 데이터 (API에서 이미지가 없을 때 fallback) - BEST 탭 고정 10개 단어
 const sampleBestWords: Word[] = [
-  { id: "1", word: "sycophant", definition: "아첨꾼", level: "L3", pronunciation: "/ˈsɪk.ə.fænt/" },
-  { id: "2", word: "ephemeral", definition: "일시적인", level: "L3", pronunciation: "/ɪˈfem.ər.əl/" },
-  { id: "3", word: "ubiquitous", definition: "어디에나 있는", level: "L2", pronunciation: "/juːˈbɪk.wɪ.təs/" },
-  { id: "4", word: "scrutinize", definition: "면밀히 조사하다", level: "L2", pronunciation: "/ˈskruː.tɪ.naɪz/" },
-  { id: "5", word: "eloquent", definition: "웅변적인", level: "L3", pronunciation: "/ˈel.ə.kwənt/" },
-  { id: "6", word: "synthesis", definition: "종합, 합성", level: "L2", pronunciation: "/ˈsɪn.θə.sɪs/" },
-  { id: "7", word: "paradigm", definition: "패러다임, 전형", level: "L3", pronunciation: "/ˈpær.ə.daɪm/" },
-  { id: "8", word: "anthropology", definition: "인류학", level: "L2", pronunciation: "/ˌæn.θrəˈpɒl.ə.dʒi/" },
-  { id: "9", word: "methodology", definition: "방법론", level: "L2", pronunciation: "/ˌmeθ.əˈdɒl.ə.dʒi/" },
-  { id: "10", word: "subsidiary", definition: "자회사, 부수적인", level: "L2", pronunciation: "/səbˈsɪd.i.er.i/" },
+  { id: "1", word: "sycophant", definition: "a person who flatters to gain advantage", level: "L3", pronunciation: "/ˈsɪk.ə.fænt/" },
+  { id: "2", word: "ephemeral", definition: "lasting for a very short time", level: "L3", pronunciation: "/ɪˈfem.ər.əl/" },
+  { id: "3", word: "ubiquitous", definition: "present everywhere at once", level: "L2", pronunciation: "/juːˈbɪk.wɪ.təs/" },
+  { id: "4", word: "scrutinize", definition: "to examine closely and critically", level: "L2", pronunciation: "/ˈskruː.tɪ.naɪz/" },
+  { id: "5", word: "eloquent", definition: "fluent and persuasive in speech", level: "L3", pronunciation: "/ˈel.ə.kwənt/" },
+  { id: "6", word: "synthesis", definition: "combining parts into a whole", level: "L2", pronunciation: "/ˈsɪn.θə.sɪs/" },
+  { id: "7", word: "paradigm", definition: "a model or pattern of something", level: "L3", pronunciation: "/ˈpær.ə.daɪm/" },
+  { id: "8", word: "anthropology", definition: "the study of human societies", level: "L2", pronunciation: "/ˌæn.θrəˈpɒl.ə.dʒi/" },
+  { id: "9", word: "methodology", definition: "a system of methods in a field", level: "L2", pronunciation: "/ˌmeθ.əˈdɒl.ə.dʒi/" },
+  { id: "10", word: "subsidiary", definition: "a company controlled by another", level: "L2", pronunciation: "/səbˈsɪd.i.er.i/" },
 ];
 
 const sampleNewWords: Word[] = [
-  { id: "11", word: "serendipity", definition: "뜻밖의 행운", level: "L3", pronunciation: "/ˌser.ənˈdɪp.ə.ti/" },
-  { id: "12", word: "quintessential", definition: "전형적인", level: "L3", pronunciation: "/ˌkwɪn.tɪˈsen.ʃəl/" },
-  { id: "13", word: "clandestine", definition: "비밀의", level: "L3", pronunciation: "/klænˈdes.tɪn/" },
-  { id: "14", word: "juxtapose", definition: "병치하다", level: "L3", pronunciation: "/ˈdʒʌk.stə.pəʊz/" },
-  { id: "15", word: "vicarious", definition: "대리의", level: "L3", pronunciation: "/vɪˈkeə.ri.əs/" },
+  { id: "11", word: "serendipity", definition: "a happy or fortunate accident", level: "L3", pronunciation: "/ˌser.ənˈdɪp.ə.ti/" },
+  { id: "12", word: "quintessential", definition: "the most perfect example of something", level: "L3", pronunciation: "/ˌkwɪn.tɪˈsen.ʃəl/" },
+  { id: "13", word: "clandestine", definition: "kept secret or done in hiding", level: "L3", pronunciation: "/klænˈdes.tɪn/" },
+  { id: "14", word: "juxtapose", definition: "to place side by side for comparison", level: "L3", pronunciation: "/ˈdʒʌk.stə.pəʊz/" },
+  { id: "15", word: "vicarious", definition: "experienced through another person", level: "L3", pronunciation: "/vɪˈkeə.ri.əs/" },
 ];
