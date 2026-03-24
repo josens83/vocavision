@@ -91,6 +91,15 @@ export const globalGuestNavigationItems: NavItem[] = [
     ],
   },
   {
+    label: "ACT",
+    labelEn: "ACT",
+    color: "text-rose-600",
+    children: [
+      { label: "Core", labelEn: "Core", href: "/auth/register?from=act-l1" },
+      { label: "Advanced", labelEn: "Advanced", href: "/auth/register?from=act-l2" },
+    ],
+  },
+  {
     label: "GRE",
     labelEn: "GRE",
     color: "text-indigo-600",
@@ -187,6 +196,15 @@ export const globalAuthNavigationItems: NavItem[] = [
     children: [
       { label: "Starter", labelEn: "Starter", href: "/dashboard?exam=SAT&level=L1" },
       { label: "Advanced", labelEn: "Advanced", href: "/dashboard?exam=SAT&level=L2" },
+    ],
+  },
+  {
+    label: "ACT",
+    labelEn: "ACT",
+    color: "text-rose-600",
+    children: [
+      { label: "Core", labelEn: "Core", href: "/dashboard?exam=ACT&level=L1" },
+      { label: "Advanced", labelEn: "Advanced", href: "/dashboard?exam=ACT&level=L2" },
     ],
   },
   {
