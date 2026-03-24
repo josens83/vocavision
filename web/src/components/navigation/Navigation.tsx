@@ -100,19 +100,11 @@ export const globalGuestNavigationItems: NavItem[] = [
     ],
   },
   {
-    label: "GRE",
-    labelEn: "GRE",
-    color: "text-indigo-600",
-    children: [
-      { label: "Verbal Core", labelEn: "Verbal Core", href: "/auth/register?from=gre-l1" },
-      { label: "Verbal Advanced", labelEn: "Verbal Advanced", href: "/auth/register?from=gre-l2" },
-    ],
-  },
-  {
     label: "Vocab Packs",
     labelEn: "Vocab Packs",
     color: "text-green-600",
     children: [
+      { label: "GRE Verbal Mastery", labelEn: "GRE Verbal Mastery", href: "/packages/gre-complete" },
       { label: "TOEFL Core Vocabulary", labelEn: "TOEFL Core Vocabulary", href: "/packages/toefl-complete" },
       { label: "TOEIC Score Booster", labelEn: "TOEIC Score Booster", href: "/packages/toeic-complete" },
       { label: "IELTS Academic Mastery", labelEn: "IELTS Academic Mastery", href: "/packages/ielts-complete" },
@@ -208,31 +200,14 @@ export const globalAuthNavigationItems: NavItem[] = [
     ],
   },
   {
-    label: "GRE",
-    labelEn: "GRE",
-    color: "text-indigo-600",
-    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>,
+    label: "Vocab Packs",
+    labelEn: "Vocab Packs",
+    color: "text-green-600",
     children: [
-      { label: "Verbal Core", labelEn: "Verbal Core", href: "/dashboard?exam=GRE&level=L1" },
-      { label: "Verbal Advanced", labelEn: "Verbal Advanced", href: "/dashboard?exam=GRE&level=L2" },
-    ],
-  },
-  {
-    label: "TOEFL",
-    labelEn: "TOEFL",
-    color: "text-blue-600",
-    children: [
-      { label: "Core", labelEn: "Core", href: "/dashboard?exam=TOEFL&level=L1" },
-      { label: "Advanced", labelEn: "Advanced", href: "/dashboard?exam=TOEFL&level=L2" },
-    ],
-  },
-  {
-    label: "IELTS",
-    labelEn: "IELTS",
-    color: "text-sky-600",
-    children: [
-      { label: "Foundation", labelEn: "Foundation", href: "/dashboard?exam=IELTS&level=L1" },
-      { label: "Academic", labelEn: "Academic", href: "/dashboard?exam=IELTS&level=L2" },
+      { label: "GRE Verbal Mastery", labelEn: "GRE Verbal Mastery", href: "/dashboard?exam=GRE&level=L1" },
+      { label: "TOEFL Core Vocabulary", labelEn: "TOEFL Core Vocabulary", href: "/dashboard?exam=TOEFL&level=L1" },
+      { label: "TOEIC Score Booster", labelEn: "TOEIC Score Booster", href: "/dashboard?exam=TOEIC&level=L1" },
+      { label: "IELTS Academic Mastery", labelEn: "IELTS Academic Mastery", href: "/dashboard?exam=IELTS&level=L1" },
     ],
   },
   {

@@ -162,7 +162,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                     <X className="w-5 h-5 flex-shrink-0" />
-                    <span>TOEFL / TOEIC / IELTS Packs</span>
+                    <span>GRE / TOEFL / TOEIC / IELTS Packs</span>
                   </li>
                   <li className="flex items-center gap-3 text-[13px] text-[#C8C8C8]">
                     <X className="w-5 h-5 flex-shrink-0" />
@@ -461,7 +461,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'TOEFL Complete' : 'TOEFL 완전정복'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '3,651 words' : '3,651개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '3,006 words' : '3,006개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
@@ -494,7 +494,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'TOEIC Score Booster' : 'TOEIC 점수폭발'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '2,491 words' : '2,491개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '2,437 words' : '2,437개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
@@ -527,7 +527,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'SAT Core Vocabulary' : 'SAT 핵심 어휘'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '1,935 words' : '1,935개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '2,001 words' : '2,001개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
@@ -560,7 +560,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'GRE Verbal Mastery' : 'GRE 완전정복'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '4,346 words' : '4,346개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '4,317 words' : '4,317개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
@@ -756,7 +756,7 @@ export default function PricingPage() {
                 <>
                   Start free with SAT Starter vocabulary — no credit card required.
                   <br />
-                  Upgrade anytime to unlock all 16,000+ words.
+                  Upgrade anytime to unlock all 19,000+ words.
                 </>
               ) : (
                 <>
