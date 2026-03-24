@@ -68,8 +68,8 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
         : "수능 영어 완벽 대비를 원하는 분께 추천",
       features: isEn
         ? [
-            "SAT Full (Starter L1 + Advanced L2) — 1,934 words",
-            "IELTS Academic Mastery — 795 words",
+            "SAT Full (Starter L1 + Advanced L2) — 2,001 words",
+            "ACT Complete (Core + Advanced) — 1,747 words",
             "All AI-generated images",
             "All quiz modes",
             "Detailed learning statistics",
