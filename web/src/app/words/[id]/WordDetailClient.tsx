@@ -377,7 +377,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     {mnemonicVisual.captionEn && (
                       <p className="font-medium text-gray-900 mb-1">{mnemonicVisual.captionEn}</p>
                     )}
-                    {mnemonicVisual.captionKo && (
+                    {mnemonicVisual.captionKo && !isEn && (
                       <p className="text-sm text-gray-600">{mnemonicVisual.captionKo}</p>
                     )}
                   </div>
@@ -388,7 +388,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                 <SectionCard className="overflow-hidden p-0 group">
                   <div
                     className="relative aspect-[4/3] bg-gray-50 cursor-pointer"
-                    onClick={() => user && setFullscreenImage({ url: rhymeVisual.imageUrl!, caption: rhymeVisual.captionKo })}
+                    onClick={() => user && setFullscreenImage({ url: rhymeVisual.imageUrl!, caption: isEn ? (rhymeVisual.captionEn || rhymeVisual.captionKo) : rhymeVisual.captionKo })}
                   >
                     <img
                       src={rhymeVisual.imageUrl}
@@ -405,7 +405,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     {rhymeVisual.captionEn && (
                       <p className="font-medium text-gray-900 mb-1">{rhymeVisual.captionEn}</p>
                     )}
-                    {rhymeVisual.captionKo && (
+                    {rhymeVisual.captionKo && !isEn && (
                       <p className="text-sm text-gray-600">{rhymeVisual.captionKo}</p>
                     )}
                   </div>
@@ -511,7 +511,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
         )}
 
         {/* 섹션 5: 창의적 암기법 — 블러 */}
-        {(word.mnemonic || word.mnemonicKorean || (word.mnemonics && word.mnemonics.length > 0)) && (
+        {!isEn && (word.mnemonic || word.mnemonicKorean || (word.mnemonics && word.mnemonics.length > 0)) && (
           <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
             <SectionCard>
               <SectionHeader icon="💡" title={locale === 'en' ? "Memory Trick" : "창의적 암기법"} />
@@ -573,7 +573,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                   {word.rhymes.map((rhyme, i) => (
                     <div key={i} className="bg-teal-50 p-4 rounded-xl border border-teal-100">
                       <div className="font-semibold text-teal-800">{rhyme.rhymingWord}</div>
-                      {rhyme.example && (
+                      {rhyme.example && !isEn && (
                         <p className="text-sm text-teal-600 mt-1">{rhyme.example}</p>
                       )}
                     </div>
