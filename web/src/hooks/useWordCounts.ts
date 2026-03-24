@@ -9,16 +9,16 @@ export interface WordCounts {
 }
 
 const DEFAULT_COUNTS: WordCounts = {
-  total: 21839,
+  total: 22336,
   exams: {
-    GRE: 4270, SAT: 3932, EBS: 3838, TOEFL: 3520,
-    TOEIC: 2411, CSAT: 1792, ACT: 772, IELTS: 765,
+    GRE: 4270, SAT: 3910, EBS: 3838, TOEFL: 2893,
+    TOEIC: 2356, CSAT: 1792, ACT: 1692, IELTS: 690,
     CSAT_2026: 520, TEPS: 375,
   },
   packages: {
-    'gre-complete': 4270, 'sat-complete': 3932, 'ebs-vocab': 3838,
-    'toefl-complete': 3520, 'toeic-complete': 2411, 'act-complete': 772,
-    'ielts-complete': 765, '2026-csat-analysis': 520,
+    'gre-complete': 4270, 'sat-complete': 3910, 'ebs-vocab': 3838,
+    'toefl-complete': 2893, 'toeic-complete': 2356, 'act-complete': 1692,
+    'ielts-complete': 690, '2026-csat-analysis': 520,
   },
 };
 
