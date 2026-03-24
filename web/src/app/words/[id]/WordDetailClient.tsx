@@ -356,7 +356,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
         {(mnemonicVisual?.imageUrl || rhymeVisual?.imageUrl) && (
           <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
             <div className="grid sm:grid-cols-2 gap-4">
-              {mnemonicVisual?.imageUrl && (
+              {mnemonicVisual?.imageUrl && !isEn && (
                 <SectionCard className="overflow-hidden p-0 group">
                   <div
                     className="relative aspect-[4/3] bg-gray-50 cursor-pointer"
