@@ -50,7 +50,7 @@ export default function ImageQAPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch(`${INTERNAL_BASE}/internal/image-queue-stats?key=dohurnk1006`);
+      const res = await fetch(`${INTERNAL_BASE}/internal/image-queue-stats?key=${process.env.NEXT_PUBLIC_ADMIN_KEY || ''}`);
       const data = await res.json();
       const s = data.stats || [];
       const sum = (st: string) => s.filter((x: any) => x.status === st).reduce((a: number, b: any) => a + b._count.id, 0);
