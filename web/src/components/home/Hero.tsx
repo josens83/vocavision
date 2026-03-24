@@ -62,15 +62,15 @@ const heroStatsEn = [
 ];
 
 const featuresKo = [
-  { icon: Icons.Sparkles, title: "AI 이미지", description: "Concept · Rhyme 단어마다 자동 생성", href: "/help", demoHref: "/words/9428f46b-73f5-4495-a594-b7c609209336?exam=CSAT" },
+  { icon: Icons.Sparkles, title: "AI 이미지", description: "Concept · Rhyme 단어마다 자동 생성", href: "/help", demoHref: "/words/9428f46b-73f5-4495-a594-b7c609209336?exam=CSAT&demo=true" },
   { icon: Icons.BookOpen, title: "스마트 플래시카드", description: "과학적 간격 반복으로 효율적 암기", href: "/learn", demoHref: "/learn?exam=CSAT&level=L1&demo=true" },
-  { icon: Icons.Brain, title: "어원·형태 분석", description: "Greek · Latin 어근으로 단어족 확장", href: "/help", demoHref: "/words/9428f46b-73f5-4495-a594-b7c609209336?exam=CSAT#etymology" },
+  { icon: Icons.Brain, title: "어원·형태 분석", description: "Greek · Latin 어근으로 단어족 확장", href: "/help", demoHref: "/words/9428f46b-73f5-4495-a594-b7c609209336?exam=CSAT&demo=true#etymology" },
 ];
 
 const featuresEn = [
-  { icon: Icons.Sparkles, title: "AI Images / Word", description: "Concept + Rhyme images auto-generated per word", href: "/help", demoHref: "/words/177b6c91-fb4b-4314-8415-0922915583a3?exam=SAT" },
+  { icon: Icons.Sparkles, title: "AI Images / Word", description: "Concept + Rhyme images auto-generated per word", href: "/help", demoHref: "/words/177b6c91-fb4b-4314-8415-0922915583a3?exam=SAT&demo=true" },
   { icon: Icons.BookOpen, title: "Smart Flashcards", description: "Scientifically proven spaced repetition", href: "/learn", demoHref: "/learn?exam=SAT&level=L1&demo=true" },
-  { icon: Icons.Brain, title: "Etymology & Morphology", description: "Greek · Latin roots for word family mastery", href: "/help", demoHref: "/words/95887bd1-1da0-4597-9c99-d6efc59920b0?exam=SAT" },
+  { icon: Icons.Brain, title: "Etymology & Morphology", description: "Greek · Latin roots for word family mastery", href: "/help", demoHref: "/words/95887bd1-1da0-4597-9c99-d6efc59920b0?exam=SAT&demo=true" },
 ];
 
 // ============================================
