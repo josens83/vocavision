@@ -316,6 +316,7 @@ function WordsPageContent() {
                   {/* 기존 L1/L2/L3 - TEPS일 때 L3 숨김 */}
                   {['', 'L1', 'L2', 'L3']
                     .filter((lvl) => !(examCategory === 'TEPS' && lvl === 'L3'))
+                    .filter((lvl) => !(isEn && lvl === 'L3'))
                     .map((lvl) => {
                       const locked = lvl !== '' && examCategory && checkLevelLocked(examCategory, lvl);
                       return (
@@ -461,12 +462,13 @@ function WordCard({
 
   if (word.examLevels && word.examLevels.length > 0) {
     for (const el of word.examLevels) {
-      if (![...KR_EXAM_CATEGORIES, ...EN_EXAM_CATEGORIES].includes(el.examCategory)) continue;
+      const activeExams = isEn ? EN_EXAM_CATEGORIES : KR_EXAM_CATEGORIES;
+      if (!activeExams.includes(el.examCategory)) continue;
       const label = examLevelLabels[el.examCategory]?.[el.level] || `${el.examCategory} ${el.level}`;
       const colorClass = BADGE_COLORS[el.examCategory] || 'bg-gray-100 text-gray-600';
       badges.push({ label, colorClass });
     }
-  } else if (word.examCategory && [...KR_EXAM_CATEGORIES, ...EN_EXAM_CATEGORIES].includes(word.examCategory) && word.level) {
+  } else if (word.examCategory && (isEn ? EN_EXAM_CATEGORIES : KR_EXAM_CATEGORIES).includes(word.examCategory) && word.level) {
     // fallback: legacy 필드
     const label = examLevelLabels[word.examCategory]?.[word.level] || `${word.examCategory} ${word.level}`;
     const colorClass = BADGE_COLORS[word.examCategory] || 'bg-gray-100 text-gray-600';
