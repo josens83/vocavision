@@ -85,8 +85,8 @@ export const EXAM_LIST: ExamConfig[] = [
     color: 'blue',
     packageSlug: 'toefl-complete',
     levels: [
-      { key: 'L1', label: 'Core 핵심필수', shortLabel: 'Core' },
-      { key: 'L2', label: 'Advanced 실전고난도', shortLabel: 'Adv' },
+      { key: 'L1', label: 'Essential 핵심필수', shortLabel: 'Essential' },
+      { key: 'L2', label: 'Mastery 실전고난도', shortLabel: 'Mastery' },
     ],
   },
   {
@@ -96,8 +96,8 @@ export const EXAM_LIST: ExamConfig[] = [
     color: 'green',
     packageSlug: 'toeic-complete',
     levels: [
-      { key: 'L1', label: '토익 Start', shortLabel: 'Start' },
-      { key: 'L2', label: '토익 Boost', shortLabel: 'Boost' },
+      { key: 'L1', label: 'Primer 기초필수', shortLabel: 'Primer' },
+      { key: 'L2', label: 'Booster 고득점', shortLabel: 'Booster' },
     ],
   },
   {
@@ -118,8 +118,8 @@ export const EXAM_LIST: ExamConfig[] = [
     color: 'indigo',
     packageSlug: 'gre-complete',
     levels: [
-      { key: 'L1', label: 'Verbal 핵심', shortLabel: '핵심' },
-      { key: 'L2', label: 'Verbal 고급', shortLabel: '고급' },
+      { key: 'L1', label: 'Verbal 핵심', shortLabel: 'Verbal' },
+      { key: 'L2', label: 'Elite 고급', shortLabel: 'Elite' },
     ],
   },
   {
@@ -141,7 +141,7 @@ export const EXAM_LIST: ExamConfig[] = [
     packageSlug: 'act-complete',
     levels: [
       { key: 'L1', label: 'ACT Core', shortLabel: 'Core' },
-      { key: 'L2', label: 'ACT Advanced', shortLabel: 'Advanced' },
+      { key: 'L2', label: 'ACT Plus', shortLabel: 'Plus' },
     ],
   },
 ];

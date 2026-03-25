@@ -52,16 +52,16 @@ const getLevelInfo = (exam: string, level: string, isEn = false) => {
 
   if (exam === 'TOEFL') {
     const toeflLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: 'Core 핵심필수', description: '수능/EBS 수준 기본 단어', target: '기본필수', wordCount: 1994 },
-      L2: { name: 'Advanced 실전고난도', description: '실전 고난도 학술 어휘', target: '고난도', wordCount: 1657 },
+      L1: { name: isEn ? 'Essential' : 'Essential 핵심필수', description: isEn ? 'Core TOEFL vocabulary' : '토플 핵심 필수 어휘', target: isEn ? 'Score target' : '기본필수', wordCount: 1994 },
+      L2: { name: isEn ? 'Mastery' : 'Mastery 실전고난도', description: isEn ? 'Advanced academic vocabulary' : '실전 고난도 학술 어휘', target: isEn ? 'High score' : '고난도', wordCount: 1657 },
     };
     return toeflLevels[level] || toeflLevels.L1;
   }
 
   if (exam === 'TOEIC') {
     const toeicLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: '토익 Start', description: '600~700점 목표 기초 비즈니스 어휘', target: '600~700점', wordCount: 1370 },
-      L2: { name: '토익 Boost', description: '800점+ 고득점 비즈니스 어휘', target: '800점+', wordCount: 1121 },
+      L1: { name: isEn ? 'Primer' : 'Primer 기초필수', description: isEn ? 'Business basics for 600~700' : '600~700점 목표 기초 비즈니스 어휘', target: isEn ? '600~700' : '600~700점', wordCount: 1370 },
+      L2: { name: isEn ? 'Booster' : 'Booster 고득점', description: isEn ? 'Advanced business for 800+' : '800점+ 고득점 비즈니스 어휘', target: isEn ? '800+' : '800점+', wordCount: 1121 },
     };
     return toeicLevels[level] || toeicLevels.L1;
   }
@@ -78,16 +78,16 @@ const getLevelInfo = (exam: string, level: string, isEn = false) => {
       };
     }
     const satLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: 'SAT Starter', description: isEn ? 'SAT core vocabulary' : 'SAT 기초 핵심 어휘', target: isEn ? 'Foundation' : '기초 학습', wordCount: 1786 },
-      L2: { name: 'SAT Advanced', description: isEn ? 'SAT advanced vocabulary' : 'SAT 고급 실전 어휘', target: isEn ? 'Advanced' : '고급 정복', wordCount: 149 },
+      L1: { name: isEn ? 'Starter' : 'Starter 기초핵심', description: isEn ? 'SAT core vocabulary' : 'SAT 기초 핵심 어휘', target: isEn ? 'Foundation' : '기초 학습', wordCount: 1786 },
+      L2: { name: isEn ? 'Advanced' : 'Advanced 실전고급', description: isEn ? 'SAT advanced vocabulary' : 'SAT 고급 실전 어휘', target: isEn ? 'Advanced' : '고급 정복', wordCount: 149 },
     };
     return satLevels[level] || satLevels.L1;
   }
 
   if (exam === 'GRE') {
     const greLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-      L1: { name: 'Verbal Core', description: isEn ? 'GRE Verbal high-frequency words' : 'GRE Verbal 빈출 핵심 어휘', target: isEn ? 'Score target' : '기본 점수 목표', wordCount: 1858 },
-      L2: { name: 'Verbal Advanced', description: isEn ? 'GRE Verbal advanced vocabulary' : 'GRE Verbal 고난도 어휘', target: isEn ? 'High score' : '고득점 목표', wordCount: 2488 },
+      L1: { name: isEn ? 'Verbal' : 'Verbal 핵심', description: isEn ? 'GRE Verbal high-frequency words' : 'GRE Verbal 빈출 핵심 어휘', target: isEn ? 'Score target' : '기본 점수 목표', wordCount: 1858 },
+      L2: { name: isEn ? 'Elite' : 'Elite 고급', description: isEn ? 'GRE Verbal advanced vocabulary' : 'GRE Verbal 고난도 어휘', target: isEn ? 'High score' : '고득점 목표', wordCount: 2488 },
     };
     return greLevels[level] || greLevels.L1;
   }
@@ -103,13 +103,13 @@ const getLevelInfo = (exam: string, level: string, isEn = false) => {
   if (exam === 'ACT') {
     return {
       L1: {
-        name: isEn ? 'ACT Core' : 'Core 핵심',
+        name: isEn ? 'Core' : 'Core 핵심',
         description: isEn ? 'High-frequency ACT vocabulary' : 'ACT 핵심 빈출 어휘',
         target: isEn ? 'Score boost' : '점수 향상',
         wordCount: 302,
       },
       L2: {
-        name: isEn ? 'ACT Advanced' : 'ACT 고급',
+        name: isEn ? 'Plus' : 'Plus 확장',
         description: isEn ? 'Advanced ACT vocabulary' : 'ACT 고난도 어휘',
         target: isEn ? 'High score' : '고득점 목표',
         wordCount: 450,
