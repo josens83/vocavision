@@ -123,7 +123,7 @@ export default function DashboardSidebar() {
       <div className="p-6 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
-            <span className="text-white font-bold text-xl">V</span>
+            <span className="text-white font-bold text-sm tracking-tighter">VΛ</span>
           </div>
           <span className="font-bold text-xl">
             <span className="text-teal-500">Voca</span>
@@ -153,7 +153,7 @@ export default function DashboardSidebar() {
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900 truncate">{user.name}</p>
               {(() => {
-                const planDisplay = getPlanDisplay(user);
+                const planDisplay = getPlanDisplay(user, isEn);
                 return (
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${planDisplay.bgColor} ${planDisplay.textColor}`}>
                     {planDisplay.text}

@@ -39,9 +39,9 @@ export interface PlanDisplay {
  * - TRIAL = 무료
  * - 그 외 = 무료
  */
-export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscriptionStatus?: string | null } | null): PlanDisplay {
+export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscriptionStatus?: string | null } | null, isEn = false): PlanDisplay {
   if (!user) {
-    return { text: '무료', bgColor: 'bg-gray-100', textColor: 'text-gray-500', icon: '✨' };
+    return { text: isEn ? 'Free' : '무료', bgColor: 'bg-gray-100', textColor: 'text-gray-500', icon: '✨' };
   }
 
   const plan = user.subscriptionPlan;
@@ -50,7 +50,7 @@ export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscri
   // YEARLY 또는 FAMILY = 프리미엄
   if (plan === 'YEARLY' || plan === 'FAMILY') {
     return {
-      text: '프리미엄',
+      text: isEn ? 'Premium' : '프리미엄',
       bgColor: 'bg-gradient-to-r from-[#14B8A6] to-[#06B6D4]',
       textColor: 'text-white',
       icon: '👑'
@@ -60,7 +60,7 @@ export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscri
   // MONTHLY + ACTIVE = 베이직
   if (plan === 'MONTHLY' && status === 'ACTIVE') {
     return {
-      text: '베이직',
+      text: isEn ? 'Basic' : '베이직',
       bgColor: 'bg-[#3B82F6]',
       textColor: 'text-white',
       icon: '💎'
@@ -70,7 +70,7 @@ export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscri
   // TRIAL = 무료
   if (status === 'TRIAL') {
     return {
-      text: '무료',
+      text: isEn ? 'Free' : '무료',
       bgColor: 'bg-[#EFF6FF]',
       textColor: 'text-[#3B82F6]',
       icon: '🎁'
@@ -78,7 +78,7 @@ export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscri
   }
 
   // 그 외 = 무료
-  return { text: '무료', bgColor: 'bg-gray-100', textColor: 'text-gray-500', icon: '✨' };
+  return { text: isEn ? 'Free' : '무료', bgColor: 'bg-gray-100', textColor: 'text-gray-500', icon: '✨' };
 }
 
 /**
