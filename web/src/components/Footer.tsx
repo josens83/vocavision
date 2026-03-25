@@ -77,13 +77,13 @@ export function Footer() {
             <h3 className="text-white font-semibold mb-4">{isEn ? 'Product' : '서비스'}</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/learn" className="hover:text-white transition-colors">
-                  {isEn ? 'Learn' : '학습하기'}
+                <Link href={isEn ? '/learn?exam=SAT&level=L1&demo=true' : '/learn'} className="hover:text-white transition-colors">
+                  {isEn ? 'Demo' : '학습하기'}
                 </Link>
               </li>
               <li>
-                <Link href="/quiz" className="hover:text-white transition-colors">
-                  {isEn ? 'Quiz' : '퀴즈'}
+                <Link href="/help" className="hover:text-white transition-colors">
+                  {isEn ? 'How It Works' : '이용 가이드'}
                 </Link>
               </li>
               <li>
