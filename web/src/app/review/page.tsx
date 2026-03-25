@@ -485,7 +485,6 @@ function ReviewPageContent() {
                         <span className="font-bold text-[16px]">
                           {isEn ? (
                             selectedExam === 'SAT' ? (key === 'L1' ? 'Starter' : 'Advanced') :
-                            selectedExam === 'ACT' ? (key === 'L1' ? 'Core' : 'Plus') :
                             selectedExam === 'GRE' ? (key === 'L1' ? 'Verbal' : 'Elite') :
                             selectedExam === 'TOEFL' ? (key === 'L1' ? 'Essential' : 'Mastery') :
                             selectedExam === 'TOEIC' ? (key === 'L1' ? 'Primer' : 'Booster') :
