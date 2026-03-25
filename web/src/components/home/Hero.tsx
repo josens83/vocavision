@@ -49,15 +49,15 @@ const heroStatsKo = [
   { label: "영어 단어", value: PLATFORM_STATS.totalWords.toLocaleString() + "+" },
   { label: "시험 대비", value: "8" },
   { label: "예문 데이터", value: "40,000+" },
-  { label: "AI 이미지", value: "10,000+" },
+  { label: "AI 이미지", value: "37,000+" },
   { label: "AI 이미지 종류", value: "3" },
 ];
 
 const heroStatsEn = [
   { label: "Vocabulary Words", value: PLATFORM_STATS.totalWords.toLocaleString() + "+" },
-  { label: "Exams Covered", value: "7" },
+  { label: "Exams Covered", value: PLATFORM_STATS.examCount },
   { label: "Example Sentences", value: "40,000+" },
-  { label: "AI Images", value: "10,000+" },
+  { label: "AI Images", value: "37,000+" },
   { label: "AI-Powered", value: "✓" },
 ];
 
