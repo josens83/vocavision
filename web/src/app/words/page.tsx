@@ -318,7 +318,7 @@ function WordsPageContent() {
                     .filter((lvl) => !(examCategory === 'TEPS' && lvl === 'L3'))
                     .filter((lvl) => !(isEn && lvl === 'L3'))
                     .map((lvl) => {
-                      const locked = lvl !== '' && examCategory && checkLevelLocked(examCategory, lvl);
+                      const locked = lvl !== '' && examCategory && !isPremium && checkLevelLocked(examCategory, lvl);
                       return (
                         <button
                           key={lvl}
@@ -342,8 +342,11 @@ function WordsPageContent() {
                         >
                           {locked && <Lock className="w-3 h-3" />}
                           {lvl === '' ? (isEn ? 'All' : '전체') :
-                           isEn ?
-                             (lvl === 'L1' ? 'L1 (Core)' : 'L2 (Advanced)') :
+                           isEn ? (
+                             examCategory === 'TOEIC' ? (lvl === 'L1' ? 'L1 (Starter)' : 'L2 (Booster)') :
+                             examCategory === 'IELTS' ? (lvl === 'L1' ? 'L1 (Foundation)' : 'L2 (Academic)') :
+                             (lvl === 'L1' ? 'L1 (Core)' : 'L2 (Advanced)')
+                           ) :
                            examCategory === 'TEPS' ?
                              (lvl === 'L1' ? 'L1(기본)' : 'L2(필수)') :
                              (lvl === 'L1' ? 'L1(기초)' : lvl === 'L2' ? 'L2(중급)' : 'L3(고급)')}
