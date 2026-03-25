@@ -263,7 +263,7 @@ function ReviewPageContent() {
   if (!hasHydrated || loading) {
     return (
       <DashboardLayout>
-        <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4">
+        <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4 lg:space-y-6">
           <div className="h-8 w-24 bg-gray-200 rounded animate-pulse mb-2" />
           <SkeletonCard className="h-40" />
           <div className="grid grid-cols-3 gap-3">
@@ -285,7 +285,7 @@ function ReviewPageContent() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4">
+      <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4 lg:space-y-6">
         {/* 데모 모드 배너 */}
         {isDemo && !user && (
           <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-xl p-4">
@@ -369,10 +369,10 @@ function ReviewPageContent() {
         </section>
 
         {/* 시험 선택 (은행 앱 스타일) */}
-        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">{isEn ? 'Select Exam' : '시험 선택'}</h3>
+        <section className="bg-white rounded-2xl p-5 border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">{isEn ? 'Select Exam' : '시험 선택'}</h3>
 
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
             {visibleExams
               .filter((e) => {
                 if (e.key === 'CSAT_2026') return hasCsat2026Access || isPremium;
@@ -442,8 +442,8 @@ function ReviewPageContent() {
         </section>
 
         {/* 레벨/유형 선택 (은행 앱 스타일) */}
-        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">
+        <section className="bg-white rounded-2xl p-5 border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
             {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS')
               ? (isEn ? 'Select Type' : '유형 선택')
               : (isEn ? 'Select Level' : '레벨 선택')}
@@ -482,18 +482,26 @@ function ReviewPageContent() {
                     // 기존 CSAT/TEPS: 두 줄 유지
                     <>
                       <div className="flex items-center gap-1">
-                        <span className="font-bold text-[16px]">{key}</span>
+                        <span className="font-bold text-[16px]">
+                          {isEn ? (
+                            selectedExam === 'SAT' ? (key === 'L1' ? 'Starter' : 'Advanced') :
+                            selectedExam === 'ACT' ? (key === 'L1' ? 'Core' : 'Plus') :
+                            selectedExam === 'GRE' ? (key === 'L1' ? 'Verbal' : 'Elite') :
+                            selectedExam === 'TOEFL' ? (key === 'L1' ? 'Essential' : 'Mastery') :
+                            selectedExam === 'TOEIC' ? (key === 'L1' ? 'Primer' : 'Booster') :
+                            selectedExam === 'IELTS' ? (key === 'L1' ? 'Foundation' : 'Academic') :
+                            key
+                          ) : key}
+                        </span>
                         {isLocked && <span className="text-sm">🔒</span>}
                       </div>
-                      <span className={`text-[12px] mt-1 ${
-                        isLocked
-                          ? 'text-[#999999]'
-                          : selectedLevel === key
-                          ? 'text-blue-100'
-                          : 'text-[#999999]'
-                      }`}>
-                        {info.name}
-                      </span>
+                      {(!isEn || selectedExam === 'CSAT' || selectedExam === 'TEPS') && (
+                        <span className={`text-[12px] mt-1 ${
+                          isLocked ? 'text-[#999999]' : selectedLevel === key ? 'text-blue-100' : 'text-[#999999]'
+                        }`}>
+                          {info.name}
+                        </span>
+                      )}
                     </>
                   )}
                 </button>
@@ -503,9 +511,9 @@ function ReviewPageContent() {
         </section>
 
         {/* 복습 현황 카드 (은행 앱 스타일) */}
-        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+        <section className="bg-white rounded-2xl p-5 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[15px] font-bold text-[#1c1c1e]">{isEn ? 'Review Stats' : '복습 현황'}</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Review Stats' : '복습 현황'}</h3>
             <span className="text-[13px] text-[#14B8A6] font-semibold flex items-center gap-1">
               🔥 {isEn ? `${currentStreak} day streak` : `${currentStreak}일 연속`}
             </span>
@@ -521,9 +529,9 @@ function ReviewPageContent() {
         </section>
 
         {/* 바로 복습 이어가기 카드 (은행 앱 스타일) */}
-        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+        <section className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-teal-300 transition-all duration-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[15px] font-bold text-[#1c1c1e]">{isEn ? 'Start Reviewing' : '바로 복습 이어가기'}</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Start Reviewing' : '바로 복습 이어가기'}</h3>
           </div>
 
           <div className="flex items-center gap-4 mb-4">
@@ -578,9 +586,9 @@ function ReviewPageContent() {
 
         {/* Due Words List with Pagination */}
         {dueWords.length > 0 && (
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div className="p-5 border-b border-[#f0f0f0]">
-              <h3 className="text-[15px] font-bold text-[#1c1c1e]">{isEn ? 'Due for Review' : '복습 대기 중'}</h3>
+              <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Due for Review' : '복습 대기 중'}</h3>
             </div>
             <div className="divide-y divide-[#f0f0f0]">
               {dueWords
@@ -662,8 +670,8 @@ function ReviewPageContent() {
         )}
 
         {/* 복습 일정 (은행 앱 스타일) */}
-        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <h3 className="text-[15px] font-bold text-[#1c1c1e] mb-4">{isEn ? 'Review Schedule' : '복습 일정'}</h3>
+        <section className="bg-white rounded-2xl p-5 border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">{isEn ? 'Review Schedule' : '복습 일정'}</h3>
 
           <div className="space-y-3">
             {/* 오늘 */}
@@ -710,7 +718,7 @@ function ReviewPageContent() {
 
         {/* 간격 반복 학습 안내 (은행 앱 스타일) */}
         <section className="bg-[#EFF6FF] rounded-2xl p-5 border border-[#BFDBFE]">
-          <h4 className="text-[15px] font-bold text-[#1E40AF] mb-2">{isEn ? '💡 What is Spaced Repetition?' : '💡 간격 반복 학습이란?'}</h4>
+          <h4 className="text-sm font-semibold text-[#1E40AF] mb-2">{isEn ? '💡 What is Spaced Repetition?' : '💡 간격 반복 학습이란?'}</h4>
           <p className="text-[14px] text-[#1E3A8A]">
             {isEn
               ? 'Reviewing right before you forget converts short-term memory into long-term memory. VocaVision AI calculates the optimal review timing based on your learning data.'
@@ -726,7 +734,7 @@ function ReviewPageContent() {
 function ReviewPageLoading() {
   return (
     <DashboardLayout>
-      <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4">
+      <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4 lg:space-y-6">
         <div className="h-8 w-24 bg-gray-200 rounded animate-pulse mb-2" />
         <SkeletonCard className="h-40" />
         <div className="grid grid-cols-3 gap-3">
