@@ -169,32 +169,51 @@ export function canAccessContent(user: User | null, exam: string, level: string)
   return canAccessExam(user, exam) && canAccessLevel(user, level);
 }
 
-export function getAccessibleLevels(user: User | null): { CSAT: string[]; TEPS: string[]; EBS: string[] } {
+export function getAccessibleLevels(user: User | null): Record<string, string[]> {
   const tier = getSubscriptionTier(user);
 
   // EBS는 단품 구매로 접근 (3개 교재별 레벨)
   const ebsLevels = hasPurchasedExam(user, 'EBS') || tier === 'PREMIUM'
     ? ['LISTENING', 'READING_BASIC', 'READING_ADV'] : [];
 
+  const globalL1L2 = ['L1', 'L2'];
+
   switch (tier) {
     case 'PREMIUM':
-      return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'], EBS: ['LISTENING', 'READING_BASIC', 'READING_ADV'] };
+      return {
+        CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'], EBS: ['LISTENING', 'READING_BASIC', 'READING_ADV'],
+        SAT: globalL1L2, ACT: globalL1L2, GRE: globalL1L2, TOEFL: globalL1L2, TOEIC: globalL1L2, IELTS: globalL1L2,
+      };
     case 'BASIC':
-      return { CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2'], EBS: ebsLevels };
+      return {
+        CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2'], EBS: ebsLevels,
+        SAT: globalL1L2, ACT: globalL1L2,
+        GRE: hasPurchasedExam(user, 'GRE') ? globalL1L2 : [],
+        TOEFL: hasPurchasedExam(user, 'TOEFL') ? globalL1L2 : [],
+        TOEIC: hasPurchasedExam(user, 'TOEIC') ? globalL1L2 : [],
+        IELTS: hasPurchasedExam(user, 'IELTS') ? globalL1L2 : [],
+      };
     case 'FREE':
     default:
-      return { CSAT: ['L1'], TEPS: [], EBS: ebsLevels };
+      return {
+        CSAT: ['L1'], TEPS: [], EBS: ebsLevels,
+        SAT: ['L1'], ACT: ['L1'],
+        GRE: hasPurchasedExam(user, 'GRE') ? globalL1L2 : [],
+        TOEFL: hasPurchasedExam(user, 'TOEFL') ? globalL1L2 : [],
+        TOEIC: hasPurchasedExam(user, 'TOEIC') ? globalL1L2 : [],
+        IELTS: hasPurchasedExam(user, 'IELTS') ? globalL1L2 : [],
+      };
   }
 }
 
 export function isExamLocked(user: User | null, exam: string): boolean {
   const accessible = getAccessibleLevels(user);
-  return (accessible[exam as keyof typeof accessible] || []).length === 0;
+  return (accessible[exam] || []).length === 0;
 }
 
 export function isLevelLocked(user: User | null, exam: string, level: string): boolean {
   const accessible = getAccessibleLevels(user);
-  const examLevels = accessible[exam as keyof typeof accessible] || [];
+  const examLevels = accessible[exam] || [];
   return !examLevels.includes(level);
 }
 
