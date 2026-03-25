@@ -163,11 +163,11 @@ function WordsPageContent() {
 
   // Exam + Level 배지 라벨
   const examLevelLabels: Record<string, Record<string, string>> = isEn ? {
-    SAT: { L1: 'SAT Core', L2: 'SAT Advanced' },
-    ACT: { L1: 'ACT Core', L2: 'ACT Advanced' },
-    GRE: { L1: 'GRE Core', L2: 'GRE Advanced' },
-    TOEFL: { L1: 'TOEFL Core', L2: 'TOEFL Advanced' },
-    TOEIC: { L1: 'TOEIC Starter', L2: 'TOEIC Booster' },
+    SAT: { L1: 'SAT Starter', L2: 'SAT Advanced' },
+    ACT: { L1: 'ACT Core', L2: 'ACT Plus' },
+    GRE: { L1: 'GRE Verbal', L2: 'GRE Elite' },
+    TOEFL: { L1: 'TOEFL Essential', L2: 'TOEFL Mastery' },
+    TOEIC: { L1: 'TOEIC Primer', L2: 'TOEIC Booster' },
     IELTS: { L1: 'IELTS Foundation', L2: 'IELTS Academic' },
   } : {
     CSAT: { L1: '수능 L1', L2: '수능 L2', L3: '수능 L3' },
@@ -343,8 +343,12 @@ function WordsPageContent() {
                           {locked && <Lock className="w-3 h-3" />}
                           {lvl === '' ? (isEn ? 'All' : '전체') :
                            isEn ? (
-                             examCategory === 'TOEIC' ? (lvl === 'L1' ? 'L1 (Starter)' : 'L2 (Booster)') :
-                             examCategory === 'IELTS' ? (lvl === 'L1' ? 'L1 (Foundation)' : 'L2 (Academic)') :
+                             examCategory === 'SAT' ? (lvl === 'L1' ? 'Starter' : 'Advanced') :
+                             examCategory === 'ACT' ? (lvl === 'L1' ? 'Core' : 'Plus') :
+                             examCategory === 'GRE' ? (lvl === 'L1' ? 'Verbal' : 'Elite') :
+                             examCategory === 'TOEFL' ? (lvl === 'L1' ? 'Essential' : 'Mastery') :
+                             examCategory === 'TOEIC' ? (lvl === 'L1' ? 'Primer' : 'Booster') :
+                             examCategory === 'IELTS' ? (lvl === 'L1' ? 'Foundation' : 'Academic') :
                              (lvl === 'L1' ? 'L1 (Core)' : 'L2 (Advanced)')
                            ) :
                            examCategory === 'TEPS' ?
