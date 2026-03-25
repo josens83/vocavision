@@ -405,14 +405,14 @@ function DashboardContent() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4">
+      <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4 lg:space-y-6">
         {/* 모바일 헤더 */}
         <div className="lg:hidden">
           <h1 className="text-xl font-bold text-gray-900">{isEn ? 'Dashboard' : '대시보드'}</h1>
         </div>
 
         {/* 오늘의 학습 목표 Hero */}
-        <section className="bg-white border border-gray-200 rounded-2xl p-6">
+        <section className="bg-white border border-gray-200 rounded-2xl p-6 relative overflow-hidden">
           <div className="relative">
             <span className={`text-sm font-semibold block mb-2 ${isCompleted ? 'text-emerald-600' : 'text-teal-600'}`}>
               {isCompleted ? '🎉 ' + (isEn ? 'Complete!' : '학습 완료!') : (isEn ? "Today's Goal" : '오늘의 학습 목표')}
@@ -466,7 +466,7 @@ function DashboardContent() {
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">{isEn ? 'Select Exam' : '시험 선택'}</h3>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
             {availableExams.map(({ exam: key, locked }) => {
               const cfg = EXAM_MAP[key];
               if (!cfg) return null;
@@ -585,7 +585,7 @@ function DashboardContent() {
                   }`}
                 >
                   <span className="text-xl mb-1">{theme.emoji}</span>
-                  <span className="font-medium text-[11px] leading-tight">{theme.label}</span>
+                  <span className="font-medium text-[11px] leading-tight">{isEn ? (theme.labelEn || theme.label) : theme.label}</span>
                 </button>
               ))}
             </div>
@@ -593,7 +593,7 @@ function DashboardContent() {
         )}
 
         {/* 바로 학습 이어가기 카드 (전체 너비) */}
-        <section className="bg-white border border-gray-200 rounded-2xl p-5">
+        <section className="bg-white border border-gray-200 rounded-2xl p-5 hover:border-teal-300 transition-all duration-200">
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Continue Learning' : '바로 학습 이어가기'}</h3>
@@ -696,7 +696,11 @@ function DashboardContent() {
         <section className="bg-white border border-gray-200 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Learning Streak' : '연속 학습일'}</h3>
-            <span className="text-sm text-gray-500">{currentYear}년 {currentMonth + 1}월</span>
+            <span className="text-sm text-gray-500">
+              {isEn
+                ? new Date(currentYear, currentMonth).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+                : `${currentYear}년 ${currentMonth + 1}월`}
+            </span>
           </div>
 
           {/* 현재/최장 연속 */}

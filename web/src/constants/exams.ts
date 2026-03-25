@@ -194,30 +194,31 @@ export function getLevelShortLabel(examKey: string, levelKey: string): string {
 export interface SatTheme {
   key: string;
   label: string;
+  labelEn?: string;
   emoji: string;
 }
 
 export const SAT_THEMES: SatTheme[] = [
-  { key: 'THEME_MIND',       label: '정신 / 사고',   emoji: '🧠' },
-  { key: 'THEME_EMOTION',    label: '감정 / 기분',   emoji: '💭' },
-  { key: 'THEME_CHARACTER',  label: '성격 / 기질',   emoji: '🌟' },
-  { key: 'THEME_BODY',       label: '신체 / 의학',   emoji: '🫀' },
-  { key: 'THEME_CONFLICT',   label: '갈등 / 전쟁',   emoji: '⚔️' },
-  { key: 'THEME_SOCIETY',    label: '사회 / 문화',   emoji: '🏛️' },
-  { key: 'THEME_POWER',      label: '권력 / 정치',   emoji: '👑' },
-  { key: 'THEME_MORALITY',   label: '도덕 / 윤리',   emoji: '⚖️' },
-  { key: 'THEME_SPEECH',     label: '언어 / 표현',   emoji: '💬' },
-  { key: 'THEME_KNOWLEDGE',  label: '지식 / 논리',   emoji: '📚' },
-  { key: 'THEME_CHANGE',     label: '변화 / 전환',   emoji: '🔄' },
-  { key: 'THEME_WEALTH',     label: '부 / 경제',     emoji: '💰' },
-  { key: 'THEME_CRIME',      label: '범죄 / 속임',   emoji: '🔍' },
-  { key: 'THEME_NATURE',     label: '자연 / 생물',   emoji: '🌿' },
-  { key: 'THEME_ART',        label: '예술 / 창작',   emoji: '🎨' },
-  { key: 'THEME_SCIENCE',    label: '과학 / 기술',   emoji: '🔬' },
-  { key: 'THEME_MOVEMENT',   label: '이동 / 방향',   emoji: '🧭' },
-  { key: 'THEME_CONFLICT2',  label: '재앙 / 파괴',   emoji: '💥' },
-  { key: 'THEME_APPEARANCE', label: '외모 / 형태',   emoji: '👁️' },
-  { key: 'THEME_RELATIONS',  label: '관계 / 연결',   emoji: '🤝' },
+  { key: 'THEME_MIND',       label: '정신 / 사고',   labelEn: 'Mind',        emoji: '🧠' },
+  { key: 'THEME_EMOTION',    label: '감정 / 기분',   labelEn: 'Emotion',     emoji: '💭' },
+  { key: 'THEME_CHARACTER',  label: '성격 / 기질',   labelEn: 'Character',   emoji: '🌟' },
+  { key: 'THEME_BODY',       label: '신체 / 의학',   labelEn: 'Body',        emoji: '🫀' },
+  { key: 'THEME_CONFLICT',   label: '갈등 / 전쟁',   labelEn: 'Conflict',    emoji: '⚔️' },
+  { key: 'THEME_SOCIETY',    label: '사회 / 문화',   labelEn: 'Society',     emoji: '🏛️' },
+  { key: 'THEME_POWER',      label: '권력 / 정치',   labelEn: 'Power',       emoji: '👑' },
+  { key: 'THEME_MORALITY',   label: '도덕 / 윤리',   labelEn: 'Morality',    emoji: '⚖️' },
+  { key: 'THEME_SPEECH',     label: '언어 / 표현',   labelEn: 'Speech',      emoji: '💬' },
+  { key: 'THEME_KNOWLEDGE',  label: '지식 / 논리',   labelEn: 'Knowledge',   emoji: '📚' },
+  { key: 'THEME_CHANGE',     label: '변화 / 전환',   labelEn: 'Change',      emoji: '🔄' },
+  { key: 'THEME_WEALTH',     label: '부 / 경제',     labelEn: 'Wealth',      emoji: '💰' },
+  { key: 'THEME_CRIME',      label: '범죄 / 속임',   labelEn: 'Crime',       emoji: '🔍' },
+  { key: 'THEME_NATURE',     label: '자연 / 생물',   labelEn: 'Nature',      emoji: '🌿' },
+  { key: 'THEME_ART',        label: '예술 / 창작',   labelEn: 'Art',         emoji: '🎨' },
+  { key: 'THEME_SCIENCE',    label: '과학 / 기술',   labelEn: 'Science',     emoji: '🔬' },
+  { key: 'THEME_MOVEMENT',   label: '이동 / 방향',   labelEn: 'Movement',    emoji: '🧭' },
+  { key: 'THEME_CONFLICT2',  label: '재앙 / 파괴',   labelEn: 'Disaster',    emoji: '💥' },
+  { key: 'THEME_APPEARANCE', label: '외모 / 형태',   labelEn: 'Appearance',  emoji: '👁️' },
+  { key: 'THEME_RELATIONS',  label: '관계 / 연결',   labelEn: 'Relations',   emoji: '🤝' },
 ];
 
 /** SAT 테마 키로 테마 정보 조회 */
