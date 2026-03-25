@@ -62,11 +62,11 @@ export const guestNavigationItems: NavItem[] = [
     children: [
       { label: "2026 수능기출완전분석", labelEn: "2026 CSAT Analysis", href: "/auth/register?from=csat2026" },
       { label: "EBS 연계어휘", labelEn: "EBS Vocabulary", href: "/auth/register?from=ebs" },
-      { label: "TOEFL Core Vocabulary", labelEn: "TOEFL Core Vocabulary", href: "/packages/toefl-complete" },
-      { label: "TOEIC Score Booster", labelEn: "TOEIC Score Booster", href: "/packages/toeic-complete" },
-      { label: "SAT Advanced Vocabulary", labelEn: "SAT Advanced Vocabulary", href: "/packages/sat-complete" },
-      { label: "GRE Verbal Mastery", labelEn: "GRE Verbal Mastery", href: "/packages/gre-complete" },
-      { label: "IELTS Academic Mastery", labelEn: "IELTS Academic Mastery", href: "/packages/ielts-complete" },
+      { label: "TOEFL Complete", labelEn: "TOEFL Complete", href: "/packages/toefl-complete" },
+      { label: "TOEIC Complete", labelEn: "TOEIC Complete", href: "/packages/toeic-complete" },
+      { label: "SAT Complete", labelEn: "SAT Complete", href: "/packages/sat-complete" },
+      { label: "GRE Complete", labelEn: "GRE Complete", href: "/packages/gre-complete" },
+      { label: "IELTS Complete", labelEn: "IELTS Complete", href: "/packages/ielts-complete" },
     ],
   },
   {
@@ -103,10 +103,10 @@ export const globalGuestNavigationItems: NavItem[] = [
     labelEn: "Vocab Packs",
     color: "text-green-600",
     children: [
-      { label: "GRE Verbal Mastery", labelEn: "GRE Verbal Mastery", href: "/packages/gre-complete" },
-      { label: "TOEFL Core Vocabulary", labelEn: "TOEFL Core Vocabulary", href: "/packages/toefl-complete" },
-      { label: "TOEIC Score Booster", labelEn: "TOEIC Score Booster", href: "/packages/toeic-complete" },
-      { label: "IELTS Academic Mastery", labelEn: "IELTS Academic Mastery", href: "/packages/ielts-complete" },
+      { label: "GRE Complete", labelEn: "GRE Complete", href: "/packages/gre-complete" },
+      { label: "TOEFL Complete", labelEn: "TOEFL Complete", href: "/packages/toefl-complete" },
+      { label: "TOEIC Complete", labelEn: "TOEIC Complete", href: "/packages/toeic-complete" },
+      { label: "IELTS Complete", labelEn: "IELTS Complete", href: "/packages/ielts-complete" },
     ],
   },
   {
@@ -147,11 +147,11 @@ export const authNavigationItems: NavItem[] = [
     children: [
       { label: "2026 수능기출완전분석", labelEn: "2026 CSAT Analysis", href: "/dashboard?exam=CSAT_2026" },
       { label: "EBS 연계어휘", labelEn: "EBS Vocabulary", href: "/dashboard?exam=EBS" },
-      { label: "TOEFL Core Vocabulary", labelEn: "TOEFL Core Vocabulary", href: "/dashboard?exam=TOEFL" },
-      { label: "TOEIC Score Booster", labelEn: "TOEIC Score Booster", href: "/dashboard?exam=TOEIC" },
-      { label: "SAT Advanced Vocabulary", labelEn: "SAT Advanced Vocabulary", href: "/dashboard?exam=SAT" },
-      { label: "GRE Verbal Mastery", labelEn: "GRE Verbal Mastery", href: "/dashboard?exam=GRE" },
-      { label: "IELTS Academic Mastery", labelEn: "IELTS Academic Mastery", href: "/dashboard?exam=IELTS" },
+      { label: "TOEFL Complete", labelEn: "TOEFL Complete", href: "/dashboard?exam=TOEFL" },
+      { label: "TOEIC Complete", labelEn: "TOEIC Complete", href: "/dashboard?exam=TOEIC" },
+      { label: "SAT Complete", labelEn: "SAT Complete", href: "/dashboard?exam=SAT" },
+      { label: "GRE Complete", labelEn: "GRE Complete", href: "/dashboard?exam=GRE" },
+      { label: "IELTS Complete", labelEn: "IELTS Complete", href: "/dashboard?exam=IELTS" },
     ],
   },
   {
@@ -202,10 +202,10 @@ export const globalAuthNavigationItems: NavItem[] = [
     labelEn: "Vocab Packs",
     color: "text-green-600",
     children: [
-      { label: "GRE Verbal Mastery", labelEn: "GRE Verbal Mastery", href: "/dashboard?exam=GRE&level=L1" },
-      { label: "TOEFL Core Vocabulary", labelEn: "TOEFL Core Vocabulary", href: "/dashboard?exam=TOEFL&level=L1" },
-      { label: "TOEIC Score Booster", labelEn: "TOEIC Score Booster", href: "/dashboard?exam=TOEIC&level=L1" },
-      { label: "IELTS Academic Mastery", labelEn: "IELTS Academic Mastery", href: "/dashboard?exam=IELTS&level=L1" },
+      { label: "GRE Complete", labelEn: "GRE Complete", href: "/dashboard?exam=GRE&level=L1" },
+      { label: "TOEFL Complete", labelEn: "TOEFL Complete", href: "/dashboard?exam=TOEFL&level=L1" },
+      { label: "TOEIC Complete", labelEn: "TOEIC Complete", href: "/dashboard?exam=TOEIC&level=L1" },
+      { label: "IELTS Complete", labelEn: "IELTS Complete", href: "/dashboard?exam=IELTS&level=L1" },
     ],
   },
   {
