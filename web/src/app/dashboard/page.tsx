@@ -550,11 +550,13 @@ function DashboardContent() {
                         <span className="font-bold">{displayName}</span>
                         {isLocked && <span className="text-sm">🔒</span>}
                       </div>
-                      <span className={`text-xs mt-1 ${
-                        isLocked ? 'text-gray-400' : selectedLevel === lvl ? 'text-blue-100' : 'text-gray-500'
-                      }`}>
-                        {levelLabel}
-                      </span>
+                      {(!isEn || useKeyDisplay) && (
+                        <span className={`text-xs mt-1 ${
+                          isLocked ? 'text-gray-400' : selectedLevel === lvl ? 'text-blue-100' : 'text-gray-500'
+                        }`}>
+                          {levelLabel}
+                        </span>
+                      )}
                     </>
                   )}
                 </button>
