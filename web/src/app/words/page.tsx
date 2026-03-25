@@ -221,7 +221,7 @@ function WordsPageContent() {
                 {isEn ? 'All' : '전체'}
               </button>
               {(isEn ? EN_EXAM_CATEGORIES : KR_EXAM_CATEGORIES).map((exam) => {
-                const locked = checkExamLocked(exam);
+                const locked = isPremium ? false : checkExamLocked(exam);
                 // KR 전용 시험: 2026 기출, EBS 는 접근권한 필요
                 if (exam === 'CSAT_2026' && !(hasCsat2026Access || isPremium)) return null;
                 if (exam === 'EBS' && !(hasEbsAccess || isPremium)) return null;
@@ -464,6 +464,7 @@ function WordCard({
     for (const el of word.examLevels) {
       const activeExams = isEn ? EN_EXAM_CATEGORIES : KR_EXAM_CATEGORIES;
       if (!activeExams.includes(el.examCategory)) continue;
+      if (!['L1', 'L2', 'L3', 'LISTENING', 'READING_2', 'READING_3', 'READING_BASIC', 'READING_ADV'].includes(el.level)) continue;
       const label = examLevelLabels[el.examCategory]?.[el.level] || `${el.examCategory} ${el.level}`;
       const colorClass = BADGE_COLORS[el.examCategory] || 'bg-gray-100 text-gray-600';
       badges.push({ label, colorClass });
