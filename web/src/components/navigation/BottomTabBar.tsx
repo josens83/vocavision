@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
+import { useLocale } from '@/hooks/useLocale';
 
 // SVG Icons
 const icons = {
@@ -40,28 +41,28 @@ const icons = {
   ),
 };
 
-// Tab configurations
-const guestTabs = [
-  { key: 'home', label: '홈', href: '/', icon: icons.home },
-  { key: 'guide', label: '가이드', href: '/help', icon: icons.help },
-  { key: 'words', label: '단어', href: '/words', icon: icons.words },
-  { key: 'login', label: '로그인', href: '/auth/login', icon: icons.user },
-];
-
-const authTabs = [
-  { key: 'home', label: '홈', href: '/', icon: icons.home },
-  { key: 'learn', label: '학습', href: '/dashboard', icon: icons.learn },
-  { key: 'review', label: '복습', href: '/review', icon: icons.review },
-  { key: 'my', label: 'MY', href: '/my', icon: icons.user, showLoggedIn: true },
-];
-
-// Paths where tab bar should be hidden
-const hiddenPaths = ['/auth', '/admin', '/checkout'];
-
 export default function BottomTabBar() {
   const pathname = usePathname();
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const { user } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+
+  const guestTabs = [
+    { key: 'home', label: isEn ? 'Home' : '홈', href: '/', icon: icons.home },
+    { key: 'guide', label: isEn ? 'Guide' : '가이드', href: '/help', icon: icons.help },
+    { key: 'words', label: isEn ? 'Words' : '단어', href: '/words', icon: icons.words },
+    { key: 'login', label: isEn ? 'Sign In' : '로그인', href: '/auth/login', icon: icons.user },
+  ];
+
+  const authTabs = [
+    { key: 'home', label: isEn ? 'Home' : '홈', href: '/', icon: icons.home },
+    { key: 'learn', label: isEn ? 'Learn' : '학습', href: '/dashboard', icon: icons.learn },
+    { key: 'review', label: isEn ? 'Review' : '복습', href: '/review', icon: icons.review },
+    { key: 'my', label: 'MY', href: '/my', icon: icons.user, showLoggedIn: true },
+  ];
+
+  const hiddenPaths = ['/auth', '/admin', '/checkout'];
 
   // Portal needs to be mounted on client side only
   useEffect(() => {
