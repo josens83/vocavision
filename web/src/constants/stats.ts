@@ -8,42 +8,43 @@
 export const PLATFORM_STATS = {
   // 전체 고유 단어 수 — 단어 수는 /api/packages/word-counts에서 동적으로 가져옴
   // 아래 값은 fallback 초기값 (useWordCounts DEFAULT_COUNTS 참고)
-  totalWords: 21839,
+  totalWords: 22244,
 
   // 수능 단어 수 (기본 무료 제공)
-  csatWords: 1787,
+  csatWords: 1724,
 
   // 수능 L1 단어 수 (무료 제공)
-  csatL1Words: 885,
+  csatL1Words: 948,
 
   // 레벨별 단어 수 (CSAT 기준)
   levels: {
-    L1: 885, // 기초
-    L2: 747, // 중급
-    L3: 158, // 고급
+    L1: 948, // 기초
+    L2: 571, // 중급
+    L3: 215, // 고급
   },
 
   // 시험 카테고리
   exams: {
-    CSAT: { name: '수능', words: 1787, active: true },
-    TEPS: { name: 'TEPS', words: 388, active: true, premium: true },
-    TOEFL: { name: 'TOEFL', words: 3315, active: true },
-    TOEIC: { name: 'TOEIC', words: 2491, active: true },
-    EBS: { name: 'EBS', words: 3837, active: true },
-    CSAT_2026: { name: '2026 기출', words: 521, active: true },
-    SAT: { name: 'SAT', words: 2023, active: true },
-    GRE: { name: 'GRE', words: 4346, active: true },
-    IELTS: { name: 'IELTS', words: 795, active: true },
+    CSAT: { name: '수능', words: 1724, active: true },
+    TEPS: { name: 'TEPS', words: 375, active: true, premium: true },
+    TOEFL: { name: 'TOEFL', words: 2894, active: true },
+    TOEIC: { name: 'TOEIC', words: 2357, active: true },
+    EBS: { name: 'EBS', words: 3840, active: true },
+    CSAT_2026: { name: '2026 기출', words: 520, active: true },
+    SAT: { name: 'SAT', words: 3910, active: true },
+    GRE: { name: 'GRE', words: 4241, active: true },
+    IELTS: { name: 'IELTS', words: 691, active: true },
+    ACT: { name: 'ACT', words: 1692, active: true },
   },
 
   // 프리미엄 통계
   premium: {
-    totalWords: 2175, // CSAT 1,787 + TEPS 388
+    totalWords: 2099, // CSAT 1,724 + TEPS 375
     exams: ['CSAT', 'TEPS'],
   },
 
   // 대비 가능한 시험 수
-  examCount: '7',
+  examCount: '8',
 
   // AI 콘텐츠 단계 수
   learningModes: 8,
