@@ -43,8 +43,8 @@ export default function PricingPage() {
   };
 
   const pricesUsd = {
-    monthly: { basic: 4.99, premium: 7.99 },
-    yearly: { basic: 47.88, premium: 76.68 },
+    monthly: { basic: 4.99, premium: 9.99 },
+    yearly: { basic: 47.88, premium: 95.88 },
   };
 
   const currentPrices = isEn ? pricesUsd[billingCycle] : prices[billingCycle];
@@ -56,7 +56,7 @@ export default function PricingPage() {
   const features: PlanFeature[] = isEn ? [
     { name: "SAT Starter (L1) — 934 words", free: true, basic: true, premium: true },
     { name: "SAT Advanced (L2) — 1,000 words", free: false, basic: true, premium: true },
-    { name: "ACT Complete (1,747 words)", free: false, basic: true, premium: true },
+    { name: "ACT Complete (1,692 words)", free: false, basic: true, premium: true },
     { name: "GRE / TOEFL / TOEIC Packs", free: false, basic: false, premium: true },
     { name: "AI Images (Concept + Rhyme) per word", free: "some", basic: true, premium: true },
     { name: "Flashcards", free: true, basic: true, premium: true },
@@ -338,12 +338,12 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span className="font-semibold">{isEn ? 'SAT Full (Starter L1 + Advanced L2) — 2,001 words' : '수능 전체 (L1/L2/L3) — 1,793개 단어'}</span>
+                <span className="font-semibold">{isEn ? 'SAT Full (Starter + Advanced) — 3,910 words' : '수능 전체 (L1/L2/L3) — 1,793개 단어'}</span>
               </li>
               {isEn && (
                 <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                   <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                  <span className="font-semibold">ACT Complete (Core + Advanced) — 1,747 words</span>
+                  <span className="font-semibold">ACT Complete (Core + Plus) — 1,692 words</span>
                 </li>
               )}
               {!isEn && (
@@ -382,11 +382,11 @@ export default function PricingPage() {
           </p>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
-            {/* 2026 수능기출완전분석 - 베스트 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
+            {/* 2026 수능기출완전분석 - 베스트 (글로벌 숨김) */}
+            {!isEn && (<div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#F59E0B] text-white text-[11px] font-bold px-3 py-1 rounded-full">
-                  {isEn ? 'Best' : '베스트'}
+                  베스트
                 </span>
               </div>
               <div className="flex items-center gap-3 mb-4">
@@ -394,29 +394,28 @@ export default function PricingPage() {
                   <span className="text-white text-xl">📝</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? '2026 CSAT Analysis' : '2026 수능기출완전분석'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '521 words' : '521개 단어'}</p>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">2026 수능기출완전분석</h3>
+                  <p className="text-[12px] text-[#999999]">521개 단어</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
-                {isEn
-                  ? 'Complete analysis of 2026 CSAT exam. Key vocabulary from listening and reading sections.'
-                  : '2026년 수능 기출문제 완전 분석. 듣기/독해 영역별 핵심 어휘를 한 번에!'}
+                2026년 수능 기출문제 완전 분석. 듣기/독해 영역별 핵심 어휘를 한 번에!
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$3.99' : '₩3,900'}</span>
-                <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">₩3,900</span>
+                <span className="text-[#999999] text-[12px] mb-1">6개월</span>
               </div>
               <button
                 onClick={() => router.push("/checkout?package=2026-csat-analysis")}
                 className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#F59E0B] text-white hover:bg-[#D97706] transition-colors"
               >
-                {isEn ? 'Buy Now' : '구매하기'}
+                구매하기
               </button>
-            </div>
+            </div>)}
 
             {/* EBS 연계어휘 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
+            {/* EBS 연계어휘 (글로벌 숨김) */}
+            {!isEn && (<div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
                   NEW
@@ -427,26 +426,24 @@ export default function PricingPage() {
                   <span className="text-white text-xl">📚</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'EBS Linked Vocabulary' : 'EBS 연계어휘'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '3,837 words' : '3,837개 단어'}</p>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">EBS 연계어휘</h3>
+                  <p className="text-[12px] text-[#999999]">3,837개 단어</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
-                {isEn
-                  ? 'Vocabulary linked to 3 EBS textbooks — complete CSAT preparation.'
-                  : '3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 완벽 대비'}
+                3개 교재(영어듣기·영어·영어독해연습) 연계 어휘 완벽 대비
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$6.99' : '₩6,900'}</span>
-                <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">₩6,900</span>
+                <span className="text-[#999999] text-[12px] mb-1">6개월</span>
               </div>
               <button
                 onClick={() => router.push("/checkout?package=ebs-vocab")}
                 className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#10B981] text-white hover:bg-[#059669] transition-colors"
               >
-                {isEn ? 'Buy Now' : '구매하기'}
+                구매하기
               </button>
-            </div>
+            </div>)}
 
             {/* TOEFL 완전정복 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
@@ -461,13 +458,13 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'TOEFL Complete' : 'TOEFL 완전정복'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '3,006 words' : '3,006개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '2,894 words' : '2,894개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
                 {isEn
-                  ? 'TOEFL Core + Advanced — systematic vocabulary mastery.'
-                  : 'TOEFL Core + Advanced 전체 단어를 체계적으로 학습하세요.'}
+                  ? 'TOEFL Essential + Mastery — systematic vocabulary mastery.'
+                  : 'TOEFL Essential + Mastery 전체 단어를 체계적으로 학습하세요.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
                 <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$9.99' : '₩9,900'}</span>
@@ -494,16 +491,16 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'TOEIC Score Booster' : 'TOEIC 점수폭발'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '2,437 words' : '2,437개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '2,357 words' : '2,357개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
                 {isEn
-                  ? 'Essential TOEIC vocabulary with AI images. Starter + Booster two-stage system.'
+                  ? 'Essential TOEIC vocabulary with AI images. Primer + Booster two-stage system.'
                   : '취업·승진 필수! TOEIC 핵심 어휘를 AI 이미지로 한 번에 정복. Starter(기초) + Booster(실전) 2단계 구성.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$7.99' : '₩7,900'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$9.99' : '₩9,900'}</span>
                 <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
               </div>
               <button
@@ -527,7 +524,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'SAT Core Vocabulary' : 'SAT 핵심 어휘'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '2,001 words' : '2,001개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '3,910 words' : '3,910개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
@@ -565,8 +562,8 @@ export default function PricingPage() {
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
                 {isEn
-                  ? 'GRE Verbal Core (1,858) + Advanced (2,488). Greek & Latin root-based rapid mastery.'
-                  : 'GRE Verbal 핵심(L1) 1,858개 + 고급(L2) 2,488개. Greek·Latin 어원 기반 단기 완성.'}
+                  ? 'GRE Verbal (1,829) + Elite (2,488). Greek & Latin root-based rapid mastery.'
+                  : 'GRE Verbal(L1) 1,829개 + Elite(L2) 2,488개. Greek·Latin 어원 기반 단기 완성.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
                 <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$12.99' : '₩12,900'}</span>
@@ -593,7 +590,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'IELTS Academic Mastery' : 'IELTS 완전정복'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '720 words' : '720개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '691 words' : '691개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
@@ -608,6 +605,39 @@ export default function PricingPage() {
               <button
                 onClick={() => router.push("/checkout?package=ielts-complete")}
                 className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#0EA5E9] text-white hover:bg-[#0284C7] transition-colors"
+              >
+                {isEn ? 'Buy Now' : '구매하기'}
+              </button>
+            </div>
+
+            {/* ACT 핵심 어휘 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
+              <div className="absolute -top-3 right-4">
+                <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
+                  NEW
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] rounded-xl flex items-center justify-center">
+                  <span className="text-white text-xl">📐</span>
+                </div>
+                <div>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'ACT Complete' : 'ACT 완전정복'}</h3>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '1,692 words' : '1,692개 단어'}</p>
+                </div>
+              </div>
+              <p className="text-gray-500 text-[13px] mb-4">
+                {isEn
+                  ? 'ACT Core + Plus. Complete ACT English vocabulary for top scores.'
+                  : 'ACT Core(핵심) + Plus(확장) 전체 어휘. ACT 고득점 완벽 대비.'}
+              </p>
+              <div className="flex items-end gap-1 mb-4">
+                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$9.99' : '₩9,900'}</span>
+                <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
+              </div>
+              <button
+                onClick={() => router.push("/checkout?package=act-complete")}
+                className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#8B5CF6] text-white hover:bg-[#7C3AED] transition-colors"
               >
                 {isEn ? 'Buy Now' : '구매하기'}
               </button>
