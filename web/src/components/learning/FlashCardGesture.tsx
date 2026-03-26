@@ -66,6 +66,8 @@ interface Word {
   rhymes?: any[];
   rhymingWords?: string[];
   relatedWords?: string[];
+  synonymList?: string[];
+  antonymList?: string[];
   etymology?: any;
   collocations?: any[];
   visuals?: WordVisual[];
@@ -500,19 +502,41 @@ export default function FlashCardGesture({
                   </div>
                 )}
 
-                {/* 5. Related Words (관련어) */}
-                {word.relatedWords && word.relatedWords.length > 0 && (
-                  <div className="bg-amber-50 rounded-xl p-5">
-                    <p className="text-sm font-medium text-amber-600 mb-2">{isEn ? '🔗 Related Words' : '🔗 관련어'}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {word.relatedWords.slice(0, 8).map((rw: string, i: number) => (
-                        <span
-                          key={i}
-                          className="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full text-sm"
-                        >
-                          {rw}
-                        </span>
-                      ))}
+                {/* 5. Related Words (동의어/반의어/관련어) */}
+                {((word.synonymList && word.synonymList.length > 0) || (word.antonymList && word.antonymList.length > 0) || (word.relatedWords && word.relatedWords.length > 0)) && (
+                  <div className="bg-gray-50 rounded-xl p-5">
+                    <p className="text-sm font-medium text-gray-700 mb-3">{isEn ? '📖 Related Words' : '📖 관련 단어'}</p>
+                    <div className="space-y-3">
+                      {word.synonymList && word.synonymList.length > 0 && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1.5">{isEn ? 'Synonyms' : '동의어'}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {word.synonymList.slice(0, 5).map((s: string, i: number) => (
+                              <span key={i} className="bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-xs">{s}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {word.antonymList && word.antonymList.length > 0 && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1.5">{isEn ? 'Antonyms' : '반의어'}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {word.antonymList.slice(0, 5).map((a: string, i: number) => (
+                              <span key={i} className="bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs">{a}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {word.relatedWords && word.relatedWords.length > 0 && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1.5">{isEn ? 'Related' : '관련어'}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {word.relatedWords.slice(0, 5).map((r: string, i: number) => (
+                              <span key={i} className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs">{r}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
