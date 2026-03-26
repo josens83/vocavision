@@ -1157,32 +1157,43 @@ function LearnPageContent() {
   // 단품 구매 필요 (CSAT_2026, EBS 등)
   if (packageBlocked && user) {
     const levelName = examParam && levelParam ? getLevelName(examParam, levelParam) : levelParam;
-    const packageInfo: Record<string, { name: string; slug: string }> = {
-      'CSAT_2026': { name: '2026 수능기출완전분석', slug: '2026-csat-analysis' },
-      'EBS': { name: 'EBS 연계어휘', slug: 'ebs-vocab' },
-      'TOEFL': { name: 'TOEFL 완전정복', slug: 'toefl-complete' },
-      'TOEIC': { name: 'TOEIC 점수폭발', slug: 'toeic-complete' },
-      'SAT': { name: 'SAT 핵심 어휘', slug: 'sat-complete' },
-      'GRE': { name: 'GRE 완전정복', slug: 'gre-complete' },
-      'IELTS': { name: 'IELTS 완전정복', slug: 'ielts-complete' },
+    const packageInfo: Record<string, { name: string; nameEn: string; slug: string }> = {
+      'CSAT_2026': { name: '2026 수능기출완전분석', nameEn: '2026 CSAT Analysis', slug: '2026-csat-analysis' },
+      'EBS': { name: 'EBS 연계어휘', nameEn: 'EBS Vocabulary', slug: 'ebs-vocab' },
+      'TOEFL': { name: 'TOEFL 완전정복', nameEn: 'TOEFL Complete', slug: 'toefl-complete' },
+      'TOEIC': { name: 'TOEIC 점수폭발', nameEn: 'TOEIC Score Booster', slug: 'toeic-complete' },
+      'SAT': { name: 'SAT 핵심 어휘', nameEn: 'SAT Core Vocabulary', slug: 'sat-complete' },
+      'GRE': { name: 'GRE 완전정복', nameEn: 'GRE Verbal Mastery', slug: 'gre-complete' },
+      'IELTS': { name: 'IELTS 완전정복', nameEn: 'IELTS Academic Mastery', slug: 'ielts-complete' },
+      'ACT': { name: 'ACT 완전정복', nameEn: 'ACT Complete', slug: 'act-complete' },
     };
-    const pkg = packageInfo[examParam || ''] || { name: examParam, slug: '' };
+    const pkg = packageInfo[examParam || ''] || { name: examParam, nameEn: examParam, slug: '' };
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">📦</div>
-          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">단품 구매가 필요합니다</h2>
+          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">
+            {isEn ? 'Upgrade Required' : '단품 구매가 필요합니다'}
+          </h2>
           <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
-            <strong>{pkg.name} {levelName}</strong> 콘텐츠는<br />
-            단품 구매 후 이용 가능합니다.
+            <strong>{isEn ? pkg.nameEn : pkg.name} {levelName}</strong>
+            {isEn
+              ? <><br />Purchase this pack or subscribe to Premium for full access.</>
+              : <><br />단품 구매 또는 프리미엄 구독으로 이용 가능합니다.</>}
           </p>
           <div className="space-y-3">
             <a
               href={`/packages/${pkg.slug}`}
               className="block w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-[14px] rounded-xl hover:opacity-90 transition shadow-[0_4px_12px_rgba(16,185,129,0.3)]"
             >
-              상품 보기
+              {isEn ? 'View Pack' : '상품 보기'}
+            </a>
+            <a
+              href="/pricing"
+              className="block w-full py-3.5 px-4 bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white font-bold text-[14px] rounded-xl hover:opacity-90 transition shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
+            >
+              {isEn ? 'See Plans' : '구독 플랜 보기'}
             </a>
             <button
               onClick={() => router.push(exitPath)}
