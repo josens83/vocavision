@@ -9,103 +9,64 @@ import BottomTabBar from '@/components/navigation/BottomTabBar';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import BackButtonHandler from '@/components/native/BackButtonHandler';
 import AppIntro from '@/components/native/AppIntro';
+import { getServerLocale, getSiteUrl } from '@/lib/utils/getLocale';
 
-const siteUrl = 'https://vocavision.kr';
-const siteName = 'VocaVision AI';
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = getServerLocale();
+  const siteUrl = getSiteUrl(locale);
+  const isEn = locale === 'en';
 
-export const metadata: Metadata = {
-  // 기본 정보
-  title: {
-    default: 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼',
-    template: '%s | VocaVision AI',
-  },
-  description: '수능, TEPS, TOEFL 영어 단어를 AI 이미지 연상법, 어원 분석, Rhyme으로 효과적으로 암기하세요. 3,000개+ 단어 무료 제공.',
+  const title = isEn
+    ? 'VocaVision AI - Master Vocabulary with AI Images'
+    : 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼';
 
-  // 검색 엔진
-  keywords: [
-    '영어 단어 암기',
-    '수능 영단어',
-    'TEPS 단어',
-    'TOEFL 단어',
-    '영어 어휘',
-    '단어 암기법',
-    '연상법 영어',
-    '어원 학습',
-    'AI 영어 학습',
-    'VocaVision AI',
-    '보카비전 AI',
-    'SAT vocabulary',
-    'GRE vocabulary',
-    'TOEFL vocabulary',
-    'IELTS vocabulary',
-    'English vocabulary app',
-    'AI vocabulary learning',
-    'spaced repetition English',
-    'vocabulary flashcards',
-  ],
+  const description = isEn
+    ? 'Master SAT, GRE, TOEFL & IELTS vocabulary with AI-generated images, etymology & rhymes. 19,000+ words. Free to start.'
+    : '수능, TEPS, TOEFL 영어 단어를 AI 이미지 연상법, 어원 분석, Rhyme으로 효과적으로 암기하세요. 3,000개+ 단어 무료 제공.';
 
-  // 저자 정보
-  authors: [{ name: 'VocaVision AI', url: siteUrl }],
-  creator: 'Unipath',
-  publisher: 'Unipath',
+  const keywords = isEn
+    ? [
+        'SAT vocabulary', 'GRE vocabulary', 'TOEFL vocabulary', 'IELTS vocabulary',
+        'English vocabulary app', 'AI vocabulary learning', 'spaced repetition English',
+        'vocabulary flashcards', 'etymology', 'word roots', 'VocaVision AI',
+        'learn english words', 'SAT prep', 'GRE prep', 'visual vocabulary',
+      ]
+    : [
+        '영어 단어 암기', '수능 영단어', 'TEPS 단어', 'TOEFL 단어', '영어 어휘',
+        '단어 암기법', '연상법 영어', '어원 학습', 'AI 영어 학습', 'VocaVision AI', '보카비전 AI',
+      ];
 
-  // 로봇 설정
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+  return {
+    title: { default: title, template: '%s | VocaVision AI' },
+    description,
+    keywords,
+    authors: [{ name: 'VocaVision AI', url: siteUrl }],
+    creator: 'Unipath',
+    publisher: 'Unipath',
+    robots: {
+      index: true, follow: true,
+      googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large', 'max-snippet': -1 },
     },
-  },
-
-  // ✅ 이 한 줄 추가
-  manifest: '/manifest.json',
-
-  // Open Graph (소셜 공유)
-  openGraph: {
-    type: 'website',
-    locale: 'ko_KR',
-    url: siteUrl,
-    siteName: siteName,
-    title: 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼',
-    description: '수능, TEPS 필수 영단어를 AI 이미지와 함께 학습하세요.',
-    images: [
-      {
-        url: `${siteUrl}/og-image-v2.jpg`,
-        width: 1200,
-        height: 630,
-        alt: 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼',
-      },
-    ],
-  },
-
-  // Twitter Card
-  twitter: {
-    card: 'summary_large_image',
-    title: 'VocaVision AI - AI 기반 영어 단어 학습 플랫폼',
-    description: '수능, TEPS 필수 영단어를 AI 이미지와 함께 학습하세요.',
-    images: [`${siteUrl}/og-image-v2.jpg`],
-  },
-
-  // 추가 메타
-  metadataBase: new URL(siteUrl),
-
-  // 앱 정보
-  applicationName: 'VocaVision AI',
-  category: 'education',
-
-  // 사이트 소유 확인
-  verification: {
-    google: 'KmcZnbsxKMk9XpW3_UrrtXPh-kevM3EI0ra_Trmme5Y',
-    other: {
-      'naver-site-verification': '6441ff858511a40b6f042e7d0d771f8026a93471',
+    manifest: '/manifest.json',
+    openGraph: {
+      type: 'website',
+      locale: isEn ? 'en_US' : 'ko_KR',
+      url: siteUrl,
+      siteName: 'VocaVision AI',
+      title,
+      description,
+      images: [{ url: `${siteUrl}/og-image-v2.jpg`, width: 1200, height: 630, alt: title }],
     },
-  },
-};
+    twitter: { card: 'summary_large_image', title, description, images: [`${siteUrl}/og-image-v2.jpg`] },
+    metadataBase: new URL(siteUrl),
+    applicationName: 'VocaVision AI',
+    category: 'education',
+    verification: {
+      google: 'KmcZnbsxKMk9XpW3_UrrtXPh-kevM3EI0ra_Trmme5Y',
+      other: { 'naver-site-verification': '6441ff858511a40b6f042e7d0d771f8026a93471' },
+    },
+  };
+}
 
 export default function RootLayout({
   children,
@@ -115,7 +76,7 @@ export default function RootLayout({
   const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   return (
-    <html lang="ko">
+    <html lang={getServerLocale() === 'en' ? 'en' : 'ko'}>
       <head>
         {/* Google Analytics */}
         {GA_MEASUREMENT_ID && (
