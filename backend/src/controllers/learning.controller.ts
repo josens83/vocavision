@@ -57,10 +57,18 @@ const FLASHCARD_WORD_SELECT = {
   etymology: {
     select: {
       origin: true,
+      originEn: true,
       rootWords: true,
       evolution: true,
       relatedWords: true,
       breakdown: true,
+      breakdownEn: true,
+    }
+  },
+  collocations: {
+    select: {
+      phrase: true,
+      meaning: true,
     }
   },
 };
