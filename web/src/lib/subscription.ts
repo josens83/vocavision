@@ -328,27 +328,25 @@ export function getAvailableExams(user: User | null, isEn: boolean = false): { e
   // 글로벌: SAT 기반
   if (isEn) {
     if (tier === 'BASIC') {
-      // 베이직: SAT + ACT 기본 포함 + 구매한 단품
-      const exams: { exam: string; locked: boolean; reason?: string }[] = [
+      // 베이직: SAT + ACT 포함, 나머지 잠금 표시 (구매 시 해제)
+      return [
         { exam: 'SAT',   locked: false },
         { exam: 'ACT',   locked: false },
+        { exam: 'GRE',   locked: !hasPurchasedExam(user, 'GRE'),   reason: 'Pack purchase or Premium required' },
+        { exam: 'TOEFL', locked: !hasPurchasedExam(user, 'TOEFL'), reason: 'Pack purchase or Premium required' },
+        { exam: 'TOEIC', locked: !hasPurchasedExam(user, 'TOEIC'), reason: 'Pack purchase or Premium required' },
+        { exam: 'IELTS', locked: !hasPurchasedExam(user, 'IELTS'), reason: 'Pack purchase or Premium required' },
       ];
-      if (hasPurchasedExam(user, 'GRE'))   exams.push({ exam: 'GRE',   locked: false });
-      if (hasPurchasedExam(user, 'TOEFL')) exams.push({ exam: 'TOEFL', locked: false });
-      if (hasPurchasedExam(user, 'TOEIC')) exams.push({ exam: 'TOEIC', locked: false });
-      if (hasPurchasedExam(user, 'IELTS')) exams.push({ exam: 'IELTS', locked: false });
-      return exams;
     }
-    // 무료: SAT(열림) + 구매한 단품
-    const exams: { exam: string; locked: boolean; reason?: string }[] = [
-      { exam: 'SAT', locked: false },
+    // 무료: SAT+ACT 열림, 나머지 잠금 표시 (구매 시 해제)
+    return [
+      { exam: 'SAT',   locked: false },
+      { exam: 'ACT',   locked: false },
+      { exam: 'GRE',   locked: !hasPurchasedExam(user, 'GRE'),   reason: 'Pack purchase or Premium required' },
+      { exam: 'TOEFL', locked: !hasPurchasedExam(user, 'TOEFL'), reason: 'Pack purchase or Premium required' },
+      { exam: 'TOEIC', locked: !hasPurchasedExam(user, 'TOEIC'), reason: 'Pack purchase or Premium required' },
+      { exam: 'IELTS', locked: !hasPurchasedExam(user, 'IELTS'), reason: 'Pack purchase or Premium required' },
     ];
-    if (hasPurchasedExam(user, 'GRE'))       exams.push({ exam: 'GRE',       locked: false });
-    if (hasPurchasedExam(user, 'TOEFL'))     exams.push({ exam: 'TOEFL',     locked: false });
-    if (hasPurchasedExam(user, 'TOEIC'))     exams.push({ exam: 'TOEIC',     locked: false });
-    if (hasPurchasedExam(user, 'IELTS'))     exams.push({ exam: 'IELTS',     locked: false });
-    if (hasPurchasedExam(user, 'ACT'))       exams.push({ exam: 'ACT',       locked: false });
-    return exams;
   }
 
   // 한국: CSAT 기반

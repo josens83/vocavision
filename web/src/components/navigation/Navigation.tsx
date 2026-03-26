@@ -856,7 +856,7 @@ export default function Navigation() {
                       <p className="text-sm font-medium text-slate-900">{user.name}</p>
                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
                       {(() => {
-                        const planDisplay = getPlanDisplay(user);
+                        const planDisplay = getPlanDisplay(user, locale === 'en');
                         return (
                           <span className={`inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${planDisplay.bgColor} ${planDisplay.textColor}`}>
                             {planDisplay.text}
