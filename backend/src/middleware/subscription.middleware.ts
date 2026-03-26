@@ -48,6 +48,7 @@ function canAccessContent(tier: SubscriptionTier, exam: string, level: string, i
     if (exam === 'SAT') {
       if (level === 'L1') return true;
       if (level === 'L2') return tier === 'BASIC' || tier === 'PREMIUM';
+      if (level.startsWith('THEME_')) return true;
       return false;
     }
     // 글로벌: IELTS L1+L2 = BASIC+ (Basic 플랜에 포함)

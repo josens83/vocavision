@@ -7,6 +7,17 @@ import { verifyContentAccess, isGlobalLocale } from '../middleware/subscription.
 import { updateUserStats } from './progress.controller';
 import appCache from '../lib/cache';
 
+async function getUserTier(userId: string): Promise<'FREE' | 'BASIC' | 'PREMIUM'> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { subscriptionPlan: true, subscriptionStatus: true },
+  });
+  if (!user) return 'FREE';
+  if (user.subscriptionPlan === 'YEARLY' || user.subscriptionPlan === 'FAMILY') return 'PREMIUM';
+  if (user.subscriptionPlan === 'MONTHLY' && user.subscriptionStatus === 'ACTIVE') return 'BASIC';
+  return 'FREE';
+}
+
 // QuizType enum (matches Prisma schema)
 type QuizType = 'LEVEL_TEST' | 'ENG_TO_KOR' | 'KOR_TO_ENG' | 'FLASHCARD' | 'SPELLING';
 
@@ -698,13 +709,18 @@ export const startLearningSession = async (
 
     // 해당 레벨의 모든 단어 ID 조회
     const isThematic = level.startsWith('THEME_');
+
+    // Free 유저는 Theme Learning에서 L1 단어만 접근 가능
+    const userTier = isThematic ? await getUserTier(userId) : 'FREE';
+    const thematicLevelFilter = (userTier === 'FREE')
+      ? { examCategory: exam, level: 'L1' }
+      : { examCategory: exam };
+
     const allWords = await prisma.word.findMany({
       where: isThematic
         ? {
-            // THEME_ 접두사: tags 배열에 해당 테마 포함된 단어 조회
-            // Word.examCategory는 원래 시험 카테고리 — SAT 매핑은 WordExamLevel로 확인
             tags: { has: level },
-            examLevels: { some: { examCategory: exam } },
+            examLevels: { some: thematicLevelFilter },
             isActive: true,
             status: 'PUBLISHED',
           }
