@@ -310,68 +310,68 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>2026 Updated TOEFL 고득점을 목표로 하는 유학 준비생</span>
+                        <span>{isEn ? 'Students aiming for a high TOEFL score' : '2026 Updated TOEFL 고득점을 목표로 하는 유학 준비생'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>적응형 시험의 단어 완성(Complete the Words) 유형에 대비하고 싶은 분</span>
+                        <span>{isEn ? 'Preparing for adaptive test word completion sections' : '적응형 시험의 단어 완성(Complete the Words) 유형에 대비하고 싶은 분'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>학술 어휘부터 일상 영어까지 폭넓게 준비하고 싶은 분</span>
+                        <span>{isEn ? 'Learners covering academic to everyday English' : '학술 어휘부터 일상 영어까지 폭넓게 준비하고 싶은 분'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>AI 이미지 (Concept·Rhyme)로 효율적으로 암기하고 싶은 분</span>
+                        <span>{isEn ? 'Anyone who wants to memorize with AI images' : 'AI 이미지 (Concept·Rhyme)로 효율적으로 암기하고 싶은 분'}</span>
                       </li>
                     </>
                   ) : slug === 'ielts-complete' ? (
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>영국·호주·캐나다 유학을 준비하는 수험생</span>
+                        <span>{isEn ? 'Students preparing for study in UK, Australia, or Canada' : '영국·호주·캐나다 유학을 준비하는 수험생'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>이민 비자(IELTS General) 준비생</span>
+                        <span>{isEn ? 'Immigration visa (IELTS General) applicants' : '이민 비자(IELTS General) 준비생'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>TOEFL 이후 IELTS 고득점을 목표로 하는 학습자</span>
+                        <span>{isEn ? 'Learners targeting high IELTS scores after TOEFL' : 'TOEFL 이후 IELTS 고득점을 목표로 하는 학습자'}</span>
                       </li>
                     </>
                   ) : slug === 'gre-complete' ? (
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>미국/해외 대학원 입학시험(GRE)을 준비하는 수험생</span>
+                        <span>{isEn ? 'Students preparing for the GRE exam' : '미국/해외 대학원 입학시험(GRE)을 준비하는 수험생'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>TOEFL 이후 GRE까지 도전하는 유학 준비생</span>
+                        <span>{isEn ? 'Learners advancing from TOEFL to GRE' : 'TOEFL 이후 GRE까지 도전하는 유학 준비생'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>Verbal Reasoning 고득점을 목표로 하는 학습자</span>
+                        <span>{isEn ? 'Targeting a high Verbal Reasoning score' : 'Verbal Reasoning 고득점을 목표로 하는 학습자'}</span>
                       </li>
                     </>
                   ) : slug === 'sat-complete' ? (
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>미국 대학 입시(SAT/PSAT)를 준비하는 수험생</span>
+                        <span>{isEn ? 'Students preparing for SAT/PSAT' : '미국 대학 입시(SAT/PSAT)를 준비하는 수험생'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>고득점을 위해 어휘력을 집중적으로 키우고 싶은 분</span>
+                        <span>{isEn ? 'Learners who want to build vocabulary for top scores' : '고득점을 위해 어휘력을 집중적으로 키우고 싶은 분'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>단어를 외워도 금방 잊어버리는 분</span>
+                        <span>{isEn ? 'Anyone who forgets words right after studying' : '단어를 외워도 금방 잊어버리는 분'}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span>단기간에 효율적으로 어휘력을 향상시키고 싶은 분</span>
+                        <span>{isEn ? 'Anyone looking to improve vocabulary efficiently' : '단기간에 효율적으로 어휘력을 향상시키고 싶은 분'}</span>
                       </li>
                     </>
                   ) : (
@@ -449,42 +449,42 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>3,651개</strong> TOEFL 핵심 단어 (2026 Updated TOEFL 대비)</span>
+                        <span>{isEn ? <><strong>2,894</strong> TOEFL vocabulary words</> : <><strong>2,894개</strong> TOEFL 핵심 단어</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <span className="flex-shrink-0 mt-0.5">🔵</span>
-                        <span><strong>TOEFL Core 기본필수</strong> — 1,994개 (필수 기본 어휘)</span>
+                        <span>{isEn ? <><strong>Essential</strong> — core vocabulary</> : <><strong>TOEFL Essential 기본필수</strong> — 필수 기본 어휘</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <span className="flex-shrink-0 mt-0.5">🔴</span>
-                        <span><strong>TOEFL Advanced 실전고난도</strong> — 1,657개 (고득점 학술 어휘)</span>
+                        <span>{isEn ? <><strong>Mastery</strong> — advanced academic vocabulary</> : <><strong>TOEFL Mastery 실전고난도</strong> — 고득점 학술 어휘</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span>단어별 <strong>AI 이미지</strong> (Concept·Rhyme) + 어원 분석 + 라임</span>
+                        <span>{isEn ? <>AI images (Concept + Rhyme) + Etymology per word</> : <>단어별 <strong>AI 이미지</strong> (Concept·Rhyme) + 어원 분석 + 라임</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>8단계 AI 콘텐츠</strong> 플래시카드 학습 (이미지·어원·라임·예문 포함)</span>
+                        <span>{isEn ? <>8-layer AI flashcard learning</> : <><strong>8단계 AI 콘텐츠</strong> 플래시카드 학습 (이미지·어원·라임·예문 포함)</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>스마트 복습</strong> 시스템</span>
+                        <span>{isEn ? <>Smart spaced repetition review</> : <><strong>스마트 복습</strong> 시스템</>}</span>
                       </li>
                     </>
                   ) : slug === 'ielts-complete' ? (
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>795개</strong> IELTS Foundation~Academic 어휘</span>
+                        <span>{isEn ? <><strong>691</strong> IELTS words</> : <><strong>691개</strong> IELTS Foundation~Academic 어휘</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <span className="flex-shrink-0 mt-0.5">🔵</span>
-                        <span><strong>L1 Foundation</strong> — 401개 (Band 5~6.5 기초 필수)</span>
+                        <span>{isEn ? <><strong>Foundation</strong> — Band 5~6.5 core vocabulary</> : <><strong>L1 Foundation</strong> — Band 5~6.5 기초 필수</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <span className="flex-shrink-0 mt-0.5">🔴</span>
-                        <span><strong>L2 Academic</strong> — 394개 (Band 7~8 학술 핵심)</span>
+                        <span>{isEn ? <><strong>Academic</strong> — Band 7~8 advanced vocabulary</> : <><strong>L2 Academic</strong> — Band 7~8 학술 핵심</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
@@ -499,15 +499,15 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>4,346개</strong> GRE Verbal 핵심~고급 어휘</span>
+                        <span>{isEn ? <><strong>4,317</strong> GRE Verbal words</> : <><strong>4,317개</strong> GRE Verbal 핵심~고급 어휘</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <span className="flex-shrink-0 mt-0.5">🔵</span>
-                        <span><strong>L1 Verbal 핵심</strong> — 1,858개 (빈출 핵심 어휘)</span>
+                        <span>{isEn ? <><strong>Verbal</strong> — 1,829 high-frequency words</> : <><strong>L1 Verbal 핵심</strong> — 1,829개 (빈출 핵심 어휘)</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <span className="flex-shrink-0 mt-0.5">🔴</span>
-                        <span><strong>L2 Verbal 고급</strong> — 2,488개 (고난도 어휘)</span>
+                        <span>{isEn ? <><strong>Elite</strong> — 2,488 advanced words</> : <><strong>L2 Elite 고급</strong> — 2,488개 (고난도 어휘)</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
@@ -522,23 +522,23 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>L1 테마별 핵심어휘</strong> 1,784개</span>
+                        <span>{isEn ? <><strong>Starter</strong> — thematic core vocabulary</> : <><strong>L1 테마별 핵심어휘</strong></>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>L2 혼동하기 쉬운 어휘</strong> 150개</span>
+                        <span>{isEn ? <><strong>Advanced</strong> — confusable word pairs</> : <><strong>L2 혼동하기 쉬운 어휘</strong></>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>AI 이미지</strong> (Concept·Rhyme)</span>
+                        <span>{isEn ? <>AI images (Concept + Rhyme) per word</> : <><strong>AI 이미지</strong> (Concept·Rhyme)</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>어원 분석</strong> + 한국어 암기법 + 예문 4개</span>
+                        <span>{isEn ? <>Etymology + example sentences</> : <><strong>어원 분석</strong> + 한국어 암기법 + 예문 4개</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>스마트 복습</strong> 시스템</span>
+                        <span>{isEn ? <>Smart spaced repetition review</> : <><strong>스마트 복습</strong> 시스템</>}</span>
                       </li>
                     </>
                   ) : slug === 'act-complete' ? (
