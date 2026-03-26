@@ -540,9 +540,10 @@ interface MobileMenuProps {
   onAuthRequired?: (label: string) => void;
   user?: any;
   onLogout?: () => void;
+  locale?: 'ko' | 'en';
 }
 
-function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, user, onLogout }: MobileMenuProps) {
+function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, user, onLogout, locale = 'ko' }: MobileMenuProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const router = useRouter();
 
@@ -683,7 +684,7 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, u
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                <span className="font-medium">로그아웃</span>
+                <span className="font-medium">{locale === 'en' ? 'Sign Out' : '로그아웃'}</span>
               </button>
             </div>
           )}
@@ -937,7 +938,7 @@ export default function Navigation() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
-                        로그아웃
+                        {locale === 'en' ? 'Sign Out' : '로그아웃'}
                       </button>
                     </div>
                   </div>
@@ -962,6 +963,7 @@ export default function Navigation() {
         onAuthRequired={handleAuthRequired}
         user={user}
         onLogout={handleLogout}
+        locale={locale}
       />
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
