@@ -62,7 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: 'VocaVision AI',
     category: 'education',
     verification: {
-      google: 'KmcZnbsxKMk9XpW3_UrrtXPh-kevM3EI0ra_Trmme5Y',
+      google: ['KmcZnbsxKMk9XpW3_UrrtXPh-kevM3EI0ra_Trmme5Y', 'pds_cyPa4VyEPjt_KPCxcJHEUDH2mhH9De5dU01lhYQ'],
       other: { 'naver-site-verification': '6441ff858511a40b6f042e7d0d771f8026a93471' },
     },
   };
