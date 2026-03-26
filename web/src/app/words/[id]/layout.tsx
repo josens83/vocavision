@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       : `${w.word}: ${w.definitionKo || w.definition}. ${w.pronunciation ? `발음: ${w.pronunciation.replace(/\*\*/g, '')}.` : ''} AI 이미지 연상법, 어원 분석으로 암기.`;
 
     const ogTitle = isEn ? `${w.word} | VocaVision AI` : `${w.word} 뜻 | VocaVision AI`;
-    const ogImg = w.visuals?.find((v: any) => v.type === 'CONCEPT')?.imageUrl || `${siteUrl}/og-image-v2.jpg`;
+    const ogImg = w.visuals?.find((v: any) => v.type === 'CONCEPT')?.imageUrl || `${siteUrl}/${isEn ? 'og-image-en.jpg' : 'og-image-v2.jpg'}`;
 
     return {
       title,
