@@ -64,12 +64,12 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
     basic: {
       name: isEn ? "Basic" : "베이직",
       description: isEn
-        ? "Perfect for SAT & IELTS preparation"
+        ? "Perfect for SAT & ACT test-takers"
         : "수능 영어 완벽 대비를 원하는 분께 추천",
       features: isEn
         ? [
-            "SAT Full (Starter L1 + Advanced L2) — 2,001 words",
-            "ACT Complete (Core + Advanced) — 1,747 words",
+            "SAT Full (Starter + Advanced) — 3,910 words",
+            "ACT Complete (Core + Plus) — 1,692 words",
             "All AI-generated images",
             "All quiz modes",
             "Detailed learning statistics",
@@ -93,9 +93,9 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
         : "수능 + TEPS 완벽 대비를 원하는 분께 추천",
       features: isEn
         ? [
-            "✨ All vocabulary packs included free",
-            "SAT Full (Starter + Advanced) — 1,934 words",
-            "IELTS Full (Foundation + Academic) — 795 words",
+            "✨ All Vocab Packs included (GRE/TOEFL/TOEIC/IELTS)",
+            "SAT Full (Starter + Advanced) — 3,910 words",
+            "ACT Full (Core + Plus) — 1,692 words",
             "All AI-generated images",
             "All quiz modes",
             "Detailed learning statistics",
@@ -109,8 +109,8 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
             "상세 학습 통계",
           ],
       prices: {
-        monthly: isEn ? 799 : 9900,
-        yearly: isEn ? 7668 : 95000,
+        monthly: isEn ? 999 : 9900,
+        yearly: isEn ? 9588 : 95000,
       },
     },
   };
