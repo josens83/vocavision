@@ -95,6 +95,8 @@ function DashboardItem({ value, label, color, suffix }: { value: string | number
 // ============================================
 function WordSearchCard({ className = '' }: { className?: string }) {
   const router = useRouter();
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = () => {
@@ -105,20 +107,26 @@ function WordSearchCard({ className = '' }: { className?: string }) {
     }
   };
 
-  const popularWords = ['contemporary', 'circumstance', 'nevertheless', 'stimulate'];
+  const popularWords = isEn
+    ? ['eloquent', 'ubiquitous', 'pragmatic', 'ephemeral', 'resilient', 'scrutinize']
+    : ['contemporary', 'circumstance', 'nevertheless', 'stimulate'];
 
   return (
-    <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-5 w-full overflow-hidden ${className}`}>
-      <div className="flex items-center gap-2 mb-3">
-        <Search className="w-5 h-5 text-teal-600" />
-        <h3 className="font-semibold text-gray-900">단어 찾기</h3>
+    <div className={`bg-white rounded-2xl border border-gray-200 p-5 w-full overflow-hidden ${className}`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Search className="w-5 h-5 text-teal-600" />
+          <h3 className="font-semibold text-gray-900">{isEn ? 'Search Words' : '단어 찾기'}</h3>
+        </div>
+        <Link href="/words" className="text-xs text-teal-600 font-medium hover:text-teal-700">
+          {isEn ? 'Browse All →' : '전체 보기 →'}
+        </Link>
       </div>
 
-      {/* 검색창 */}
       <div className="relative">
         <input
           type="text"
-          placeholder="영어 단어를 검색하세요"
+          placeholder={isEn ? 'Search vocabulary...' : '영어 단어를 검색하세요'}
           className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -132,9 +140,8 @@ function WordSearchCard({ className = '' }: { className?: string }) {
         </button>
       </div>
 
-      {/* 인기 검색어 태그 */}
       <div className="mt-3 flex items-center flex-wrap gap-2">
-        <span className="text-xs text-gray-500">인기:</span>
+        <span className="text-xs text-gray-500">{isEn ? 'Popular:' : '인기:'}</span>
         {popularWords.map((word) => (
           <button
             key={word}
@@ -325,24 +332,24 @@ function TotalStatsCard({
   isError,
   refetch,
   className = '',
+  isEn = false,
 }: {
   stats: { totalWordsLearned: number; totalFlashcardAccuracy: number } | null;
   loading: boolean;
   isError: boolean;
   refetch: () => void;
   className?: string;
+  isEn?: boolean;
 }) {
   return (
-    <div className={`bg-white rounded-2xl p-5 shadow-sm border border-gray-200 w-full overflow-hidden ${className}`}>
-      {/* 헤더 */}
+    <div className={`bg-white rounded-2xl p-5 border border-gray-200 w-full overflow-hidden ${className}`}>
       <div className="flex items-center gap-2 mb-4">
         <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
           <Icons.ChartBar />
         </div>
-        <h3 className="font-semibold text-gray-900">전체 학습 현황</h3>
+        <h3 className="font-semibold text-gray-900">{isEn ? 'Overall Progress' : '전체 학습 현황'}</h3>
       </div>
 
-      {/* 누적 통계 그리드 */}
       {loading ? (
         <div className="grid grid-cols-2 gap-3 mb-4">
           {[1, 2].map((i) => (
@@ -354,33 +361,32 @@ function TotalStatsCard({
         </div>
       ) : isError ? (
         <div className="flex flex-col items-center gap-2 py-4 mb-4">
-          <p className="text-sm text-gray-500">데이터를 불러올 수 없습니다</p>
+          <p className="text-sm text-gray-500">{isEn ? 'Failed to load data' : '데이터를 불러올 수 없습니다'}</p>
           <button
             onClick={refetch}
             className="text-sm text-purple-600 font-medium hover:text-purple-700"
           >
-            다시 시도
+            {isEn ? 'Retry' : '다시 시도'}
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-purple-50 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold text-purple-600" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.totalWordsLearned || 0}</p>
-            <p className="text-xs text-gray-500">누적 학습 단어</p>
+            <p className="text-xs text-gray-500">{isEn ? 'Words Learned' : '누적 학습 단어'}</p>
           </div>
           <div className="bg-purple-50 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold text-purple-600" style={{ fontVariantNumeric: 'tabular-nums' }}>{stats?.totalFlashcardAccuracy || 0}<span className="text-base font-medium ml-0.5">%</span></p>
-            <p className="text-xs text-gray-500">전체 정답률</p>
+            <p className="text-xs text-gray-500">{isEn ? 'Accuracy' : '전체 정답률'}</p>
           </div>
         </div>
       )}
 
-      {/* 자세히 보기 */}
       <Link
         href="/statistics"
         className="flex items-center justify-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium py-2 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
       >
-        자세히 보기
+        {isEn ? 'View Details' : '자세히 보기'}
         <Icons.ChevronRight />
       </Link>
     </div>
@@ -397,6 +403,7 @@ function DailyGoalCard({
   progressPercent,
   goalOptions,
   className = '',
+  isEn = false,
 }: {
   todayProgress: number;
   dailyGoal: number;
@@ -404,20 +411,20 @@ function DailyGoalCard({
   progressPercent: number;
   goalOptions: number[];
   className?: string;
+  isEn?: boolean;
 }) {
   return (
-    <div className={`bg-white rounded-2xl p-5 shadow-sm border border-gray-200 w-full overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-2xl p-5 border border-gray-200 w-full overflow-hidden ${className}`}>
       <div className="flex items-center justify-between mb-4 min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-lg flex-shrink-0">⚡</span>
-          <h3 className="text-[15px] font-bold text-[#1c1c1e] truncate">오늘의 목표</h3>
+          <h3 className="text-[15px] font-bold text-[#1c1c1e] truncate">{isEn ? 'Daily Goal' : '오늘의 목표'}</h3>
         </div>
         <span className="text-[13px] text-[#14B8A6] font-semibold flex-shrink-0 whitespace-nowrap">
-          {progressPercent >= 100 ? '🎉 ' : ''}{progressPercent}% 달성
+          {progressPercent >= 100 ? '🎉 ' : ''}{isEn ? `${progressPercent}% done` : `${progressPercent}% 달성`}
         </span>
       </div>
 
-      {/* 프로그레스 바 */}
       <div className="w-full h-2 bg-[#f0f0f0] rounded-full mb-4 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${
@@ -431,11 +438,10 @@ function DailyGoalCard({
 
       <p className="text-[14px] text-gray-500 mb-4">
         {progressPercent >= 100
-          ? `목표 달성! 오늘 ${todayProgress}개 학습 완료!`
-          : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`}
+          ? (isEn ? `Goal reached! ${todayProgress} words today!` : `목표 달성! 오늘 ${todayProgress}개 학습 완료!`)
+          : (isEn ? `${dailyGoal - todayProgress} more to reach your goal!` : `${dailyGoal - todayProgress}개만 더 학습하면 목표 달성!`)}
       </p>
 
-      {/* 목표 선택 버튼들 */}
       <div className="flex gap-2 min-w-0">
         {goalOptions.map((goal) => (
           <button
@@ -454,7 +460,7 @@ function DailyGoalCard({
                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
             }`}
           >
-            {goal}개
+            {isEn ? `${goal}` : `${goal}개`}
           </button>
         ))}
       </div>
@@ -477,6 +483,7 @@ function DesktopMemberCard({
   prefetchReviews,
   activeExam,
   activeLevel,
+  isEn = false,
 }: {
   user: any;
   plan: string;
@@ -489,10 +496,10 @@ function DesktopMemberCard({
   prefetchReviews: (exam: string, level: string) => void;
   activeExam: string | null;
   activeLevel: string | null;
+  isEn?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 h-full flex flex-col">
-      {/* 상단: 프로필 + 플랜 (D-day) - 한 줄 */}
+    <div className="bg-white rounded-2xl border border-gray-200 p-5 h-full flex flex-col">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0">
           <span className="text-white text-sm font-bold">
@@ -500,25 +507,24 @@ function DesktopMemberCard({
           </span>
         </div>
         <p className="text-[15px] text-gray-900 truncate min-w-0">
-          <span className="font-semibold">{user?.name || '회원'}</span>
+          <span className="font-semibold">{user?.name || (isEn ? 'Member' : '회원')}</span>
           <span className="text-gray-300 mx-1.5">·</span>
           {(plan === 'YEARLY' || plan === 'FAMILY') && (
             <span className="text-amber-600 font-medium text-sm">
-              👑 프리미엄{daysRemaining ? ` (D-${daysRemaining})` : ''}
+              👑 {isEn ? 'Premium' : '프리미엄'}{daysRemaining ? ` (D-${daysRemaining})` : ''}
             </span>
           )}
           {plan === 'MONTHLY' && (
             <span className="text-teal-600 font-medium text-sm">
-              ✨ 베이직{daysRemaining ? ` (D-${daysRemaining})` : ''}
+              ✨ {isEn ? 'Basic' : '베이직'}{daysRemaining ? ` (D-${daysRemaining})` : ''}
             </span>
           )}
           {plan === 'FREE' && (
-            <span className="text-gray-500 font-medium text-sm">무료 플랜</span>
+            <span className="text-gray-500 font-medium text-sm">{isEn ? 'Free Plan' : '무료 플랜'}</span>
           )}
         </p>
       </div>
 
-      {/* 활성 단품 구매 표시 */}
       {(() => {
         const activePurchases = (user as any)?.purchases?.filter(
           (p: any) => new Date(p.expiresAt) > new Date()
@@ -527,20 +533,19 @@ function DesktopMemberCard({
           <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3 -mt-2">
             {activePurchases.map((p: any) => (
               <span key={p.id} className="text-xs text-blue-600">
-                📦 {p.package?.name || p.packageName} (~{new Date(p.expiresAt).toLocaleDateString('ko-KR')})
+                📦 {p.package?.name || p.packageName} (~{new Date(p.expiresAt).toLocaleDateString(isEn ? 'en-US' : 'ko-KR')})
               </span>
             ))}
           </div>
         ) : null;
       })()}
 
-      {/* 중단: 오늘의 학습 현황 */}
-      <div className="flex-1 py-3 border-t border-gray-100">
+      <div className="flex-1 py-3 border-t border-gray-200">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-medium text-gray-700">오늘의 학습</p>
+          <p className="text-sm font-medium text-gray-700">{isEn ? "Today's Learning" : '오늘의 학습'}</p>
           {!loading && stats && stats.currentStreak > 0 && (
             <span className="text-xs text-orange-500 font-medium flex items-center gap-1">
-              🔥 {stats.currentStreak}일 연속
+              🔥 {isEn ? `${stats.currentStreak} day streak` : `${stats.currentStreak}일 연속`}
             </span>
           )}
         </div>
@@ -556,40 +561,39 @@ function DesktopMemberCard({
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center gap-2 py-2">
-            <p className="text-sm text-gray-500">데이터를 불러올 수 없습니다</p>
+            <p className="text-sm text-gray-500">{isEn ? 'Failed to load data' : '데이터를 불러올 수 없습니다'}</p>
             <button
               onClick={refetch}
               className="text-sm text-teal-600 font-medium hover:text-teal-700"
             >
-              다시 시도
+              {isEn ? 'Retry' : '다시 시도'}
             </button>
           </div>
         ) : (
           <div className="flex justify-between items-center">
-            <DashboardItem value={stats?.todayWordsLearned || 0} label="오늘 학습" color="#3B82F6" />
+            <DashboardItem value={stats?.todayWordsLearned || 0} label={isEn ? 'Today' : '오늘 학습'} color="#3B82F6" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-            <DashboardItem value={stats?.dueReviewCount || 0} label="복습 대기" color="#F59E0B" />
+            <DashboardItem value={stats?.dueReviewCount || 0} label={isEn ? 'Due' : '복습 대기'} color="#F59E0B" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-            <DashboardItem value={stats?.todayFlashcardAccuracy || 0} label="정답률" color="#10B981" suffix="%" />
+            <DashboardItem value={stats?.todayFlashcardAccuracy || 0} label={isEn ? 'Accuracy' : '정답률'} color="#10B981" suffix="%" />
           </div>
         )}
       </div>
 
-      {/* 하단: 버튼 */}
-      <div className="pt-3 border-t border-gray-100 flex gap-3 mt-auto">
+      <div className="pt-3 border-t border-gray-200 flex gap-3 mt-auto">
         <Link
           href="/dashboard"
           onMouseEnter={() => prefetchDashboard(activeExam || 'CSAT', activeLevel || 'L1')}
           className="flex-1 py-2.5 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors text-sm"
         >
-          학습하기
+          {isEn ? 'Learn' : '학습하기'}
         </Link>
         <Link
           href="/review"
           onMouseEnter={() => prefetchReviews(activeExam || 'CSAT', activeLevel || 'L1')}
           className="flex-1 py-2.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold rounded-xl text-center transition-colors text-sm"
         >
-          복습하기
+          {isEn ? 'Review' : '복습하기'}
         </Link>
       </div>
     </div>
@@ -601,6 +605,8 @@ function DesktopMemberCard({
 // ============================================
 function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
   const { user, _hasHydrated } = useAuthStore();
+  const locale = useLocale();
+  const isEn = locale === 'en';
   const activeExam = useExamCourseStore((state) => state.activeExam);
   const activeLevel = useExamCourseStore((state) => state.activeLevel);
   const examHasHydrated = useExamCourseStore((state) => state._hasHydrated);
@@ -656,18 +662,19 @@ function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
       <div className="lg:hidden flex flex-col gap-4">
         <MemberInfoCard />
         <WordSearchCard />
-        <TotalStatsCard stats={stats} loading={loading} isError={isError} refetch={() => refetch()} />
+        <TotalStatsCard stats={stats} loading={loading} isError={isError} refetch={() => refetch()} isEn={isEn} />
         <DailyGoalCard
           todayProgress={todayProgress}
           dailyGoal={dailyGoal}
           setDailyGoal={setDailyGoal}
           progressPercent={progressPercent}
           goalOptions={goalOptions}
+          isEn={isEn}
         />
       </div>
 
       {/* ========== 데스크톱: 2x2 그리드 ========== */}
-      <div className="hidden lg:grid grid-cols-2 gap-5">
+      <div className="hidden lg:grid grid-cols-2 gap-6">
         {/* 좌상: 회원정보 카드 */}
         <DesktopMemberCard
           user={user}
@@ -681,13 +688,14 @@ function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
           prefetchReviews={prefetchReviews}
           activeExam={activeExam}
           activeLevel={activeLevel}
+          isEn={isEn}
         />
 
         {/* 우상: 단어 찾기 */}
         <WordSearchCard className="h-full" />
 
         {/* 좌하: 전체 학습 현황 */}
-        <TotalStatsCard stats={stats} loading={loading} isError={isError} refetch={() => refetch()} className="h-full" />
+        <TotalStatsCard stats={stats} loading={loading} isError={isError} refetch={() => refetch()} className="h-full" isEn={isEn} />
 
         {/* 우하: 오늘의 목표 */}
         <DailyGoalCard
@@ -697,6 +705,7 @@ function LoggedInDashboard({ isVisible }: { isVisible: boolean }) {
           progressPercent={progressPercent}
           goalOptions={goalOptions}
           className="h-full"
+          isEn={isEn}
         />
       </div>
     </div>
