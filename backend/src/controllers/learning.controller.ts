@@ -68,7 +68,7 @@ const FLASHCARD_WORD_SELECT = {
   collocations: {
     select: {
       phrase: true,
-      meaning: true,
+      translation: true,
     }
   },
 };

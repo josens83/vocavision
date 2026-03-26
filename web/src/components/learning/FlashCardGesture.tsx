@@ -452,8 +452,8 @@ export default function FlashCardGesture({
                           <span className="bg-green-100 text-green-800 px-3 py-1.5 rounded-lg text-sm font-medium">
                             {col.phrase}
                           </span>
-                          {!isEn && col.meaning && (
-                            <span className="text-gray-500 text-sm">— {col.meaning}</span>
+                          {!isEn && col.translation && (
+                            <span className="text-gray-500 text-sm">— {col.translation}</span>
                           )}
                         </div>
                       ))}
