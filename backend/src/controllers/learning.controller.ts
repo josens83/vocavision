@@ -27,6 +27,8 @@ const FLASHCARD_WORD_SELECT = {
   level: true,
   rhymingWords: true,
   relatedWords: true,
+  synonymList: true,
+  antonymList: true,
   // 관계 데이터 (select로 필요 필드만)
   visuals: {
     orderBy: { order: 'asc' } as const,
