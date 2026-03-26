@@ -117,7 +117,7 @@ function WordsPageContent() {
 
   // Get initial values from URL parameters
   const initialSearch = searchParams.get('search') || '';
-  const initialExam = searchParams.get('exam') || (isEn ? 'SAT' : 'CSAT');
+  const initialExam = searchParams.get('exam') || (initialSearch ? '' : (isEn ? 'SAT' : 'CSAT'));
   const initialLevel = searchParams.get('level') || '';
 
   // 필터 상태

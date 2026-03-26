@@ -65,6 +65,7 @@ interface Word {
   examples?: any[];
   rhymes?: any[];
   rhymingWords?: string[];
+  relatedWords?: string[];
   etymology?: any;
   collocations?: any[];
   visuals?: WordVisual[];
@@ -445,17 +446,15 @@ export default function FlashCardGesture({
                 {/* 2. Collocations (콜로케이션) */}
                 {word.collocations && word.collocations.length > 0 && (
                   <div className="bg-green-50 rounded-xl p-5">
-                    <p className="text-sm font-medium text-green-600 mb-3">{isEn ? '🔗 Collocations' : '🔗 콜로케이션'}</p>
-                    <div className="space-y-2">
-                      {word.collocations.slice(0, 5).map((col: any, i: number) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <span className="bg-green-100 text-green-800 px-3 py-1.5 rounded-lg text-sm font-medium">
-                            {col.phrase}
-                          </span>
-                          {!isEn && col.translation && (
-                            <span className="text-gray-500 text-sm">— {col.translation}</span>
-                          )}
-                        </div>
+                    <p className="text-sm font-medium text-green-600 mb-2">{isEn ? '🔗 Collocations' : '🔗 콜로케이션'}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {word.collocations.slice(0, 6).map((col: any, i: number) => (
+                        <span
+                          key={i}
+                          className="bg-green-100 text-green-800 px-3 py-1.5 rounded-full text-sm"
+                        >
+                          {col.phrase}
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -501,7 +500,24 @@ export default function FlashCardGesture({
                   </div>
                 )}
 
-                {/* 5. Rhyming (라이밍) */}
+                {/* 5. Related Words (관련어) */}
+                {word.relatedWords && word.relatedWords.length > 0 && (
+                  <div className="bg-amber-50 rounded-xl p-5">
+                    <p className="text-sm font-medium text-amber-600 mb-2">{isEn ? '🔗 Related Words' : '🔗 관련어'}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {word.relatedWords.slice(0, 8).map((rw: string, i: number) => (
+                        <span
+                          key={i}
+                          className="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full text-sm"
+                        >
+                          {rw}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. Rhyming (라이밍) */}
                 {word.rhymingWords && word.rhymingWords.length > 0 && (
                   <div className="bg-pink-50 rounded-xl p-5">
                     <p className="text-sm font-medium text-pink-600 mb-2">{isEn ? '🎵 Rhyme' : '🎵 라이밍'}</p>
