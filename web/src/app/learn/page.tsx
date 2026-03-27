@@ -1209,7 +1209,7 @@ function LearnPageContent() {
 
   // 구독 제한으로 접근 차단
   if (accessBlocked && user) {
-    const examNameMap: Record<string, string> = { 'CSAT': '수능', 'TEPS': 'TEPS', 'EBS': 'EBS 연계', 'CSAT_2026': '2026 기출' };
+    const examNameMap: Record<string, string> = { 'CSAT': '수능', 'TEPS': 'TEPS', 'EBS': 'EBS 연계', 'CSAT_2026': '2026 기출', 'SAT': 'SAT', 'ACT': 'ACT', 'GRE': 'GRE', 'TOEFL': 'TOEFL', 'TOEIC': 'TOEIC', 'IELTS': 'IELTS' };
     const examName = examNameMap[examParam || ''] || '수능';
     const levelName = examParam && levelParam ? getLevelName(examParam, levelParam) : levelParam;
 
