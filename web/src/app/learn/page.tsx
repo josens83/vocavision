@@ -238,6 +238,10 @@ function LearnPageContent() {
     if (!hasHydrated || isDemo) return;
     if (!user || !examParam || !levelParam) return;
 
+    // locale 변경 시 이전 판정 초기화
+    setPackageBlocked(false);
+    setAccessBlocked(false);
+
     // 글로벌 SAT/ACT: 구독 기반 접근 (패키지 체크 스킵)
     const isSubscriptionExam = isEn && (examParam === 'SAT' || examParam === 'ACT');
 
@@ -263,7 +267,7 @@ function LearnPageContent() {
     if (!canAccessContent(user, examParam, levelParam)) {
       setAccessBlocked(true);
     }
-  }, [hasHydrated, user, examParam, levelParam, isDemo, packageSlug, packageAccessData]);
+  }, [hasHydrated, user, examParam, levelParam, isDemo, packageSlug, packageAccessData, isEn]);
 
   // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트 (복습/북마크 모드 제외)
   useEffect(() => {
