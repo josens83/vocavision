@@ -489,12 +489,14 @@ function ReviewPageContent() {
                             selectedExam === 'TOEFL' ? (key === 'L1' ? 'Essential' : 'Mastery') :
                             selectedExam === 'TOEIC' ? (key === 'L1' ? 'Primer' : 'Booster') :
                             selectedExam === 'IELTS' ? (key === 'L1' ? 'Foundation' : 'Academic') :
+                            selectedExam === 'CSAT' ? (key === 'L1' ? 'L1 (Basic)' : key === 'L2' ? 'L2 (Intermediate)' : 'L3 (Advanced)') :
+                            selectedExam === 'TEPS' ? (key === 'L1' ? 'L1 (Basic)' : 'L2 (Essential)') :
                             key
                           ) : key}
                         </span>
                         {isLocked && <span className="text-sm">🔒</span>}
                       </div>
-                      {(!isEn || selectedExam === 'CSAT' || selectedExam === 'TEPS') && (
+                      {!isEn && (selectedExam === 'CSAT' || selectedExam === 'TEPS') && (
                         <span className={`text-[12px] mt-1 ${
                           isLocked ? 'text-[#999999]' : selectedLevel === key ? 'text-blue-100' : 'text-[#999999]'
                         }`}>
