@@ -51,11 +51,9 @@ function canAccessContent(tier: SubscriptionTier, exam: string, level: string, i
       if (level.startsWith('THEME_')) return true;
       return false;
     }
-    // 글로벌: ACT L1 = FREE, ACT L2 = BASIC+
+    // 글로벌: ACT L1+L2 = BASIC+ (SAT과 달리 Free 접근 불가)
     if (exam === 'ACT') {
-      if (level === 'L1') return true;
-      if (level === 'L2') return tier === 'BASIC' || tier === 'PREMIUM';
-      return false;
+      return tier === 'BASIC' || tier === 'PREMIUM';
     }
     // 글로벌: IELTS L1+L2 = BASIC+ (Basic 플랜에 포함)
     if (exam === 'IELTS') {
