@@ -6,7 +6,7 @@ import { useAuthStore, useLearningStore, saveLearningSession, loadLearningSessio
 import { progressAPI, wordsAPI, learningAPI, bookmarkAPI } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePackageAccessBulk } from '@/hooks/useQueries';
-import { canAccessContent } from '@/lib/subscription';
+import { canAccessContent, getAccessibleLevels } from '@/lib/subscription';
 import { motion } from 'framer-motion';
 import FlashCardGesture from '@/components/learning/FlashCardGesture';
 import { EmptyFirstTime, CelebrateCompletion } from '@/components/ui/EmptyState';
@@ -250,8 +250,10 @@ function LearnPageContent() {
     }
 
     if (isSubscriptionExam) {
-      // SAT/ACT 글로벌: 구독 기반 접근 제어
-      if (!canAccessContent(user, examParam!, levelParam!)) {
+      // SAT/ACT 글로벌: getAccessibleLevels 기반 접근 제어
+      const accessible = getAccessibleLevels(user);
+      const examLevels = accessible[examParam!] || [];
+      if (!examLevels.includes(levelParam!)) {
         setAccessBlocked(true);
       }
       return;
