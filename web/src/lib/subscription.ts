@@ -197,7 +197,7 @@ export function getAccessibleLevels(user: User | null): Record<string, string[]>
     default:
       return {
         CSAT: ['L1'], TEPS: [], EBS: ebsLevels,
-        SAT: ['L1'], ACT: ['L1'],
+        SAT: ['L1'], ACT: [],
         GRE: hasPurchasedExam(user, 'GRE') ? globalL1L2 : [],
         TOEFL: hasPurchasedExam(user, 'TOEFL') ? globalL1L2 : [],
         TOEIC: hasPurchasedExam(user, 'TOEIC') ? globalL1L2 : [],
@@ -338,10 +338,10 @@ export function getAvailableExams(user: User | null, isEn: boolean = false): { e
         { exam: 'IELTS', locked: !hasPurchasedExam(user, 'IELTS'), reason: 'Pack purchase or Premium required' },
       ];
     }
-    // 무료: SAT+ACT 열림, 나머지 잠금 표시 (구매 시 해제)
+    // 무료: SAT만 열림, 나머지 잠금 표시 (구매 시 해제)
     return [
       { exam: 'SAT',   locked: false },
-      { exam: 'ACT',   locked: false },
+      { exam: 'ACT',   locked: true, reason: 'Basic plan or Premium required' },
       { exam: 'GRE',   locked: !hasPurchasedExam(user, 'GRE'),   reason: 'Pack purchase or Premium required' },
       { exam: 'TOEFL', locked: !hasPurchasedExam(user, 'TOEFL'), reason: 'Pack purchase or Premium required' },
       { exam: 'TOEIC', locked: !hasPurchasedExam(user, 'TOEIC'), reason: 'Pack purchase or Premium required' },
