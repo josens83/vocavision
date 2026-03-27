@@ -238,10 +238,21 @@ function LearnPageContent() {
     if (!hasHydrated || isDemo) return;
     if (!user || !examParam || !levelParam) return;
 
-    // 단품 구매 상품: usePackageAccess 훅 결과 사용
-    if (packageSlug) {
+    // 글로벌 SAT/ACT: 구독 기반 접근 (패키지 체크 스킵)
+    const isSubscriptionExam = isEn && (examParam === 'SAT' || examParam === 'ACT');
+
+    if (packageSlug && !isSubscriptionExam) {
+      // 단품 구매 상품: usePackageAccess 훅 결과 사용
       if (packageAccessData !== undefined && !packageAccessData?.hasAccess) {
         setPackageBlocked(true);
+      }
+      return;
+    }
+
+    if (isSubscriptionExam) {
+      // SAT/ACT 글로벌: 구독 기반 접근 제어
+      if (!canAccessContent(user, examParam!, levelParam!)) {
+        setAccessBlocked(true);
       }
       return;
     }
