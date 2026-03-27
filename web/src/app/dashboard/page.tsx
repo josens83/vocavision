@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore, useExamCourseStore, useUserSettingsStore, ExamType } from '@/lib/store';
-import { canAccessExamWithPurchase, canAccessContentWithPurchase, getAvailableExams, getSubscriptionTier } from '@/lib/subscription';
+import { canAccessExamWithPurchase, canAccessContentWithPurchase, getAvailableExams, getSubscriptionTier, isLevelLocked } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 import { useDashboardSummary, usePackageAccessBulk, usePrefetchDashboard } from '@/hooks/useQueries';
@@ -513,7 +513,7 @@ function DashboardContent() {
 
           <div className="flex gap-3">
             {getValidLevelsForExam(selectedExam).map((lvl) => {
-              const isLocked = !EXAM_MAP[selectedExam]?.packageSlug && !canAccessLevel(selectedExam, lvl as 'L1' | 'L2' | 'L3');
+              const isLocked = isLevelLocked(user, selectedExam, lvl);
               // CSAT/TEPS: key(L1) + shortLabel(기초), TOEFL/TOEIC: shortLabel + label
               const useKeyDisplay = selectedExam === 'CSAT' || selectedExam === 'TEPS';
               const levelLabel = useKeyDisplay ? getLevelShortLabel(selectedExam, lvl) : getLevelLabel(selectedExam, lvl);
