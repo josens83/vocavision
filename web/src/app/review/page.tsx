@@ -561,7 +561,7 @@ function ReviewPageContent() {
           <div className="flex justify-between items-center">
             <DashboardItem value={stats.dueToday} label={isEn ? 'Due' : '복습 대기'} color="#A855F7" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-            <DashboardItem value={(stats.todayCorrect || 0) === 0 ? '—' : stats.todayCorrect} label={(stats.todayCorrect || 0) === 0 ? '' : (isEn ? 'Reviewed' : '오늘 복습')} color="#F59E0B" />
+            <DashboardItem value={(stats.todayCorrect || 0) === 0 ? '—' : (stats.todayCorrect || 0)} label={(stats.todayCorrect || 0) === 0 ? '' : (isEn ? 'Reviewed' : '오늘 복습')} color="#F59E0B" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
             <DashboardItem value={(stats.accuracy || 0) === 0 && (stats.todayCorrect || 0) === 0 ? '—' : `${stats.accuracy || 0}%`} label={(stats.accuracy || 0) === 0 && (stats.todayCorrect || 0) === 0 ? '' : (isEn ? 'Accuracy' : '복습 정답률')} color="#10B981" />
           </div>
