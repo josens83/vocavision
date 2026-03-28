@@ -56,7 +56,7 @@ export default function PricingPage() {
   const features: PlanFeature[] = isEn ? [
     { name: "SAT Starter (L1) — 934 words", free: true, basic: true, premium: true },
     { name: "SAT Advanced (L2) — 1,000 words", free: false, basic: true, premium: true },
-    { name: "ACT Complete (1,692 words)", free: false, basic: true, premium: true },
+    { name: "ACT Complete (822 words)", free: false, basic: true, premium: true },
     { name: "GRE / TOEFL / TOEIC Packs", free: false, basic: false, premium: true },
     { name: "AI Images (Concept + Rhyme) per word", free: "some", basic: true, premium: true },
     { name: "Flashcards", free: true, basic: true, premium: true },
@@ -338,12 +338,12 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span className="font-semibold">{isEn ? 'SAT Full (Starter + Advanced) — 3,910 words' : '수능 전체 (L1/L2/L3) — 1,793개 단어'}</span>
+                <span className="font-semibold">{isEn ? 'SAT Full (Starter + Advanced) — 2,047 words' : '수능 전체 (L1/L2/L3) — 1,793개 단어'}</span>
               </li>
               {isEn && (
                 <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                   <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                  <span className="font-semibold">ACT Complete (Core + Plus) — 1,692 words</span>
+                  <span className="font-semibold">ACT Complete (Core + Plus) — 822 words</span>
                 </li>
               )}
               {!isEn && (
@@ -427,7 +427,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">EBS 연계어휘</h3>
-                  <p className="text-[12px] text-[#999999]">3,837개 단어</p>
+                  <p className="text-[12px] text-[#999999]">3,546개 단어</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
@@ -458,7 +458,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'TOEFL Complete' : 'TOEFL 완전정복'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '2,894 words' : '2,894개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '2,907 words' : '2,907개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
@@ -524,7 +524,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'SAT Core Vocabulary' : 'SAT 핵심 어휘'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '3,910 words' : '3,910개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '2,047 words' : '2,047개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
@@ -623,7 +623,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'ACT Complete' : 'ACT 완전정복'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '1,692 words' : '1,692개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '822 words' : '822개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
