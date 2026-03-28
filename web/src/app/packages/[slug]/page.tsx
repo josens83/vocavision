@@ -449,7 +449,7 @@ export default function PackageDetailPage() {
                     <>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span>{isEn ? <><strong>2,894</strong> TOEFL vocabulary words</> : <><strong>2,894개</strong> TOEFL 핵심 단어</>}</span>
+                        <span>{isEn ? <><strong>2,907</strong> TOEFL vocabulary words</> : <><strong>2,907개</strong> TOEFL 핵심 단어</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <span className="flex-shrink-0 mt-0.5">🔵</span>
