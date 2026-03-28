@@ -610,7 +610,8 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* ACT 핵심 어휘 */}
+            {/* ACT 핵심 어휘 - KR only (글로벌은 구독에 포함) */}
+            {!isEn && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
@@ -622,26 +623,25 @@ export default function PricingPage() {
                   <span className="text-white text-xl">📐</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'ACT Complete' : 'ACT 완전정복'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '822 words' : '822개 단어'}</p>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">ACT 완전정복</h3>
+                  <p className="text-[12px] text-[#999999]">822개 단어</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
-                {isEn
-                  ? 'ACT Core + Plus. Complete ACT English vocabulary for top scores.'
-                  : 'ACT Core(핵심) + Plus(확장) 전체 어휘. ACT 고득점 완벽 대비.'}
+                ACT Core(핵심) + Plus(확장) 전체 어휘. ACT 고득점 완벽 대비.
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$9.99' : '₩9,900'}</span>
-                <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">₩9,900</span>
+                <span className="text-[#999999] text-[12px] mb-1">6개월</span>
               </div>
               <button
                 onClick={() => router.push("/checkout?package=act-complete")}
                 className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#8B5CF6] text-white hover:bg-[#7C3AED] transition-colors"
               >
-                {isEn ? 'Buy Now' : '구매하기'}
+                구매하기
               </button>
             </div>
+            )}
           </div>
         </div>
 
