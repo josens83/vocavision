@@ -338,7 +338,7 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span className="font-semibold">{isEn ? 'SAT Full (Starter + Advanced) — 2,047 words' : '수능 전체 (L1/L2/L3) — 1,724개 단어'}</span>
+                <span className="font-semibold">{isEn ? 'SAT Full (Starter + Advanced) — 2,120 words' : '수능 전체 (L1/L2/L3) — 1,724개 단어'}</span>
               </li>
               {isEn && (
                 <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
@@ -525,7 +525,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">SAT 핵심 어휘</h3>
-                  <p className="text-[12px] text-[#999999]">2,047개 단어</p>
+                  <p className="text-[12px] text-[#999999]">2,120개 단어</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
