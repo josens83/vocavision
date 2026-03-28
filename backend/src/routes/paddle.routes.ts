@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { createPaddleCheckout, createPaddlePackageCheckout, handlePaddleWebhook } from '../controllers/paddle.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
-import express from 'express';
 
 const router = Router();
 
@@ -12,9 +11,7 @@ router.post('/create-checkout', authenticateToken, createPaddleCheckout);
 router.post('/create-package-checkout', authenticateToken, createPaddlePackageCheckout);
 
 // Webhook (인증 불필요, Paddle에서 직접 호출)
-router.post('/webhook',
-  express.raw({ type: 'application/json' }),
-  handlePaddleWebhook
-);
+// rawBody는 index.ts의 express.json verify callback에서 캡처됨
+router.post('/webhook', handlePaddleWebhook);
 
 export default router;
