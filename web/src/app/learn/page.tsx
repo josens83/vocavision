@@ -1382,7 +1382,7 @@ function LearnPageContent() {
             transition={{ delay: 0.3 }}
           >
             <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              Set {completedSet} 완료!
+              {isEn ? `Set ${completedSet} Complete!` : `Set ${completedSet} 완료!`}
             </h3>
             <p className="text-gray-600 mb-4">
               {isEn ? `${wordsStudied} words · Accuracy ${percentage}%` : `${wordsStudied}단어 학습 · 정확도 ${percentage}%`}
@@ -1397,7 +1397,7 @@ function LearnPageContent() {
             className="bg-[#F0FDF4] rounded-xl p-4 mb-6"
           >
             <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-gray-600">전체 진행</span>
+              <span className="text-gray-600">{isEn ? 'Overall Progress' : '전체 진행'}</span>
               <span className="font-bold text-[#10B981]">
                 Set {completedSet}/{totalSets}
               </span>
@@ -1411,7 +1411,7 @@ function LearnPageContent() {
               />
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              총 {totalReviewed}단어 학습 완료
+              {isEn ? `${totalReviewed} words learned` : `총 ${totalReviewed}단어 학습 완료`}
             </p>
           </motion.div>
 
@@ -1432,7 +1432,7 @@ function LearnPageContent() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  다음 Set 준비 중...
+                  {isEn ? 'Preparing next set...' : '다음 Set 준비 중...'}
                 </span>
               </button>
             ) : hasNextSet ? (
@@ -1453,7 +1453,7 @@ function LearnPageContent() {
                 }}
                 className="w-full bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] hover:opacity-90 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-[#14B8A6]/25"
               >
-                학습 결과 보기
+                {isEn ? 'View Results' : '학습 결과 보기'}
               </button>
             )}
 
@@ -1461,7 +1461,7 @@ function LearnPageContent() {
               onClick={() => router.push(exitPath)}
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95"
             >
-              나중에 계속하기
+              {isEn ? 'Continue Later' : '나중에 계속하기'}
             </button>
           </motion.div>
         </motion.div>
@@ -1505,7 +1505,7 @@ function LearnPageContent() {
             queryClient.removeQueries({ queryKey: ['dashboardSummary'] });
             router.push(exitPath);
           }}
-          onNext={user && hasMoreWords && examParam && !serverSession ? handleNextBatch : undefined}
+          onNext={user && hasMoreWords && examParam ? handleNextBatch : undefined}
           isGuest={!user}
           isAllCompleted={!!allCompleted}
           totalProgress={user && totalWordsInLevel > 0 ? {
