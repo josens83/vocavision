@@ -18,7 +18,7 @@ const DEFAULT_COUNTS: WordCounts = {
   packages: {
     'gre-complete': 4241, 'sat-complete': 2047, 'ebs-vocab': 3546,
     'toefl-complete': 2907, 'toeic-complete': 2357, 'act-complete': 822,
-    'ielts-complete': 691, '2026-csat-analysis': 520,
+    'ielts-complete': 691, '2026-csat-analysis': 520, 'teps-complete': 419,
   },
 };
 

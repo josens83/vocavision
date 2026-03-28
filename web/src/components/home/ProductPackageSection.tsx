@@ -16,7 +16,8 @@ interface ProductPackage {
   displayPrice?: string;
 }
 
-const MAIN_PAGE_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete', 'act-complete'];
+const KR_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete', 'act-complete'];
+const GLOBAL_SLUGS = ['gre-complete', 'toefl-complete', 'toeic-complete', 'ielts-complete'];
 
 function PackageCardSkeleton() {
   return (
@@ -40,8 +41,9 @@ function PackageCardSkeleton() {
 export default function ProductPackageSection() {
   const { packages, loading, isEn, getLocalized } = usePackages();
 
+  const slugs = isEn ? GLOBAL_SLUGS : KR_SLUGS;
   const displayPackages = packages
-    .filter(pkg => MAIN_PAGE_SLUGS.includes(pkg.slug))
+    .filter(pkg => slugs.includes(pkg.slug))
     .map(pkg => getLocalized(pkg));
 
   if (!loading && displayPackages.length === 0) return null;
