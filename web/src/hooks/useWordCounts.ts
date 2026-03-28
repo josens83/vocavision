@@ -11,12 +11,12 @@ export interface WordCounts {
 const DEFAULT_COUNTS: WordCounts = {
   total: 19274,
   exams: {
-    GRE: 4241, SAT: 2047, EBS: 3546, TOEFL: 2907,
+    GRE: 4241, SAT: 2120, EBS: 3546, TOEFL: 2907,
     TOEIC: 2357, CSAT: 1724, ACT: 822, IELTS: 691,
     CSAT_2026: 520, TEPS: 419,
   },
   packages: {
-    'gre-complete': 4241, 'sat-complete': 2047, 'ebs-vocab': 3546,
+    'gre-complete': 4241, 'sat-complete': 2120, 'ebs-vocab': 3546,
     'toefl-complete': 2907, 'toeic-complete': 2357, 'act-complete': 822,
     'ielts-complete': 691, '2026-csat-analysis': 520, 'teps-complete': 419,
   },
