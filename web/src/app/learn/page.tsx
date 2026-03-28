@@ -60,7 +60,7 @@ const examNamesEn: Record<string, string> = {
 };
 
 // Level name mapping - exam-specific
-const getLevelName = (exam: string, level: string): string => {
+const getLevelName = (exam: string, level: string, isEnLocale: boolean = false): string => {
   if (exam === 'CSAT_2026') {
     switch (level) {
       case 'LISTENING': return '듣기영역';
@@ -78,23 +78,18 @@ const getLevelName = (exam: string, level: string): string => {
     }
   }
   if (exam === 'TEPS') {
-    // TEPS는 L1, L2만 (L3 없음)
     return level === 'L1' ? 'L1(기본)' : 'L2(필수)';
   }
   if (exam === 'TOEFL') {
-    return level === 'L1' ? 'Core' : 'Advanced';
+    return level === 'L1' ? 'Essential' : 'Mastery';
   }
   if (exam === 'TOEIC') {
-    switch (level) {
-      case 'L1': return '토익 Start';
-      case 'L2': return '토익 Boost';
-      default: return level;
-    }
+    return level === 'L1' ? 'Primer' : 'Booster';
   }
   if (exam === 'SAT') {
     if (level.startsWith('THEME_')) {
       const theme = SAT_THEMES.find(t => t.key === level);
-      return theme ? theme.label : level;
+      return theme ? (isEnLocale ? (theme.labelEn || theme.label) : theme.label) : level;
     }
     switch (level) {
       case 'L1': return 'Starter';
@@ -103,11 +98,7 @@ const getLevelName = (exam: string, level: string): string => {
     }
   }
   if (exam === 'GRE') {
-    switch (level) {
-      case 'L1': return 'Verbal 핵심';
-      case 'L2': return 'Verbal 고급';
-      default: return level;
-    }
+    return level === 'L1' ? 'Verbal' : 'Elite';
   }
   if (exam === 'IELTS') {
     switch (level) {
@@ -116,7 +107,18 @@ const getLevelName = (exam: string, level: string): string => {
       default: return level;
     }
   }
+  if (exam === 'ACT') {
+    return level === 'L1' ? 'Core' : 'Plus';
+  }
   // CSAT 및 기타
+  if (isEnLocale) {
+    switch (level) {
+      case 'L1': return 'Level 1';
+      case 'L2': return 'Level 2';
+      case 'L3': return 'Level 3';
+      default: return level;
+    }
+  }
   switch (level) {
     case 'L1': return 'L1(기초)';
     case 'L2': return 'L2(중급)';
@@ -1173,7 +1175,7 @@ function LearnPageContent() {
 
   // 단품 구매 필요 (CSAT_2026, EBS 등)
   if (packageBlocked && user) {
-    const levelName = examParam && levelParam ? getLevelName(examParam, levelParam) : levelParam;
+    const levelName = examParam && levelParam ? getLevelName(examParam, levelParam, isEn) : levelParam;
     const packageInfo: Record<string, { name: string; nameEn: string; slug: string }> = {
       'CSAT_2026': { name: '2026 수능기출완전분석', nameEn: '2026 CSAT Analysis', slug: '2026-csat-analysis' },
       'EBS': { name: 'EBS 연계어휘', nameEn: 'EBS Vocabulary', slug: 'ebs-vocab' },
@@ -1226,19 +1228,18 @@ function LearnPageContent() {
 
   // 구독 제한으로 접근 차단
   if (accessBlocked && user) {
-    const examNameMap: Record<string, string> = { 'CSAT': '수능', 'TEPS': 'TEPS', 'EBS': 'EBS 연계', 'CSAT_2026': '2026 기출', 'SAT': 'SAT', 'ACT': 'ACT', 'GRE': 'GRE', 'TOEFL': 'TOEFL', 'TOEIC': 'TOEIC', 'IELTS': 'IELTS' };
-    const examName = examNameMap[examParam || ''] || '수능';
-    const levelName = examParam && levelParam ? getLevelName(examParam, levelParam) : levelParam;
+    const examName = examParam || '';
+    const levelName = examParam && levelParam ? getLevelName(examParam, levelParam, isEn) : levelParam;
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">{isEn ? 'Premium Content' : '프리미엄 콘텐츠'}</h2>
+          <h2 className="text-[22px] font-bold text-[#1c1c1e] mb-2">{isEn ? 'Upgrade Required' : '프리미엄 콘텐츠'}</h2>
           <p className="text-[14px] text-gray-500 mb-6 leading-relaxed">
             <strong>{examName} {levelName}</strong><br />
             {isEn
-              ? `Available from ${examParam === 'TEPS' ? 'Premium' : 'Basic'} plan.`
+              ? `Subscribe to ${examParam === 'TEPS' ? 'Premium' : 'Basic'} or higher for full access.`
               : `${examParam === 'TEPS' ? '프리미엄' : '베이직'} 플랜부터 이용 가능합니다.`}
           </p>
           <div className="space-y-3">
@@ -1246,7 +1247,7 @@ function LearnPageContent() {
               href="/pricing"
               className="block w-full py-3.5 px-4 bg-gradient-to-r from-[#14B8A6] to-[#06B6D4] text-white font-bold text-[14px] rounded-xl hover:opacity-90 transition shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
             >
-              {isEn ? 'Upgrade Plan' : '플랜 업그레이드'}
+              {isEn ? 'See Plans' : '구독 플랜 보기'}
             </a>
             <button
               onClick={() => router.push(exitPath)}
@@ -1580,7 +1581,7 @@ function LearnPageContent() {
               ) : examParam && !isDemo && (
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
                   <span className="text-[15px] font-bold text-[#1c1c1e]">
-                    {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {getLevelName(examParam, levelParam)}</span>}
+                    {examNames[examParam]} {levelParam && <span className="text-gray-500 font-normal">· {getLevelName(examParam, levelParam, isEn)}</span>}
                   </span>
                   {/* Set 정보 표시 (복습 모드에서는 숨김) */}
                   {serverSession && serverSession.totalSets > 0 && (
