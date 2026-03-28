@@ -101,7 +101,12 @@ const corsOptions = {
 // Handle preflight requests explicitly
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '5mb' }));  // base64 image uploads (5mb 충분)
+app.use(express.json({
+  limit: '5mb',
+  verify: (req: any, _res, buf) => {
+    req.rawBody = buf.toString();
+  },
+}));  // base64 image uploads (5mb 충분) + rawBody for Paddle webhook
 app.use(express.text({ type: 'text/plain' }));  // For sendBeacon text/plain requests
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
 app.use(rateLimiter);

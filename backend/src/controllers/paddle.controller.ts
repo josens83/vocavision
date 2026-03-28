@@ -92,7 +92,11 @@ export const createPaddlePackageCheckout = async (req: AuthRequest, res: Respons
 export const handlePaddleWebhook = async (req: Request, res: Response) => {
   try {
     const signature = req.headers['paddle-signature'] as string;
-    const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+    const rawBody = (req as any).rawBody;
+    if (!rawBody) {
+      console.error('[Paddle Webhook] rawBody is missing');
+      return res.status(400).json({ error: 'Raw body not available' });
+    }
 
     // Webhook 서명 검증
     const webhookSecret = process.env.PADDLE_WEBHOOK_SECRET!;
