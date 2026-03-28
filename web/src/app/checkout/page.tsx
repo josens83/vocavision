@@ -76,7 +76,7 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
           ]
         : [
             "수능 L1(기초)/L2(중급)/L3(고급) 전체",
-            "TEPS 기초/중급 어휘 (388개)",
+            "TEPS 전체 어휘 (419개)",
             "AI 생성 이미지 전체",
             "전체 퀴즈 모드",
             "상세 학습 통계",
