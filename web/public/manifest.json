@@ -1,6 +1,6 @@
 {
   "name": "VocaVision AI",
-  "short_name": "VocaVision AI",
+  "short_name": "VocaVision",
   "description": "AI-powered vocabulary learning platform",
   "start_url": "/",
   "display": "standalone",
