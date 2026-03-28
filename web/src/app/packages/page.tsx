@@ -7,8 +7,10 @@ import { usePackages } from '@/hooks/usePackages';
 export default function PackagesPage() {
   const { packages, loading, isEn, getLocalized } = usePackages();
 
+  const KR_ONLY_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'sat-complete', 'act-complete', 'teps-top-100'];
   const displayPackages = packages
     .filter(pkg => pkg.isComingSoon !== true)
+    .filter(pkg => isEn ? !KR_ONLY_SLUGS.includes(pkg.slug) : true)
     .map(pkg => getLocalized(pkg));
 
   return (

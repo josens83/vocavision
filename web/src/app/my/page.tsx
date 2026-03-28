@@ -63,7 +63,7 @@ export default function MyPage() {
     return null;
   }
 
-  const currentSub = getPlanDisplay(user);
+  const currentSub = getPlanDisplay(user, isEn);
   const activePurchases = (user as any).purchases || [];
 
   return (
