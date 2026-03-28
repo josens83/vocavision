@@ -76,8 +76,9 @@ export default function RootLayout({
   const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   return (
-    <html lang={getServerLocale() === 'en' ? 'en' : 'ko'}>
+    <html lang={getServerLocale() === 'en' ? 'en' : 'ko'} translate="no" className="notranslate">
       <head>
+        <meta name="google" content="notranslate" />
         {/* Google Analytics */}
         {GA_MEASUREMENT_ID && (
           <>
