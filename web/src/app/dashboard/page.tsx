@@ -411,6 +411,113 @@ function DashboardContent() {
           <h1 className="text-xl font-bold text-gray-900">{isEn ? 'Dashboard' : '대시보드'}</h1>
         </div>
 
+        {/* 바로 학습 이어가기 카드 (최상단) */}
+        <section className="bg-white border border-gray-200 rounded-2xl p-5 hover:border-teal-300 transition-all duration-200">
+          {/* 헤더 */}
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Continue Learning' : '바로 학습 이어가기'}</h3>
+            <span className="text-sm text-teal-600 font-medium flex items-center gap-1">
+              {(stats?.currentStreak || 0) === 0
+                ? (isEn ? '🔥 Start your streak!' : '🔥 스트릭을 시작하세요!')
+                : (isEn ? `🔥 ${stats?.currentStreak} day streak` : `🔥 ${stats?.currentStreak}일 연속`)}
+            </span>
+          </div>
+
+          {/* 현재 학습 정보 + Set 정보 */}
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center">
+                <span className="text-2xl">{exam.icon}</span>
+              </div>
+              <div>
+                <p className="font-bold text-gray-900">
+                  {exam.name} {level.name}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {level.description} • {level.target}
+                </p>
+              </div>
+            </div>
+            {/* Set 정보 뱃지 (데스크톱) */}
+            {totalWords > 0 && (
+              <div className="hidden sm:flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-xl">
+                <span className="text-blue-600 font-semibold">
+                  Set {currentSet} / {totalSets}
+                </span>
+                <span className="text-gray-400">•</span>
+                <span className="text-gray-600 text-sm">
+                  {wordsInCurrentSet} / {wordsPerCurrentSet}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Set 정보 (모바일용) */}
+          {totalWords > 0 && (
+            <div className="sm:hidden flex items-center justify-center gap-2 bg-blue-50 px-4 py-3 rounded-xl mb-4">
+              <span className="text-lg">📚</span>
+              <span className="text-blue-600 font-semibold">
+                Set {currentSet} / {totalSets}
+              </span>
+              <span className="text-gray-400">•</span>
+              <span className="text-gray-600 text-sm">
+                {wordsInCurrentSet} / {wordsPerCurrentSet}
+              </span>
+            </div>
+          )}
+
+          {/* 통계 3분할 */}
+          <div className="flex justify-between items-center py-4 border-y border-gray-100 mb-4">
+            <DashboardItem value={learnedWords} label={isEn ? 'Learned' : '학습 완료'} color="blue" loading={examLevelLoading} />
+            <div className="w-px h-10 bg-gray-100" />
+            <DashboardItem value={remainingWords} label={isEn ? 'Remaining' : '남은 단어'} color="amber" loading={examLevelLoading} />
+            <div className="w-px h-10 bg-gray-100" />
+            <DashboardItem
+              value={progressPercent === 0 ? (isEn ? 'Not started' : '시작 전') : `${progressPercent}%`}
+              label={progressPercent === 0 ? '' : (isEn ? 'Progress' : '진행률')}
+              color="emerald"
+              loading={examLevelLoading}
+            />
+          </div>
+
+          {/* 프로그레스 바 */}
+          <div className="w-full h-2 bg-gray-100 rounded-full mb-4 overflow-hidden">
+            <div
+              className={`h-full bg-teal-500 rounded-full transition-all duration-500 ${examLevelLoading ? 'animate-pulse' : ''}`}
+              style={{ width: examLevelLoading ? '0%' : `${progressPercent}%` }}
+            />
+          </div>
+
+          {/* 부가 정보 */}
+          <div className="flex justify-between text-sm text-gray-500 mb-4">
+            <span>{isEn ? 'Last study: ' : '마지막 학습: '}{stats?.lastActiveDate ? new Date(stats.lastActiveDate).toLocaleDateString(isEn ? 'en-US' : 'ko-KR') : (isEn ? 'Today' : '오늘')}</span>
+            <span>{isEn ? `Daily goal: ${dailyGoal}` : `오늘 목표: ${dailyGoal}개`}</span>
+          </div>
+
+          {/* 버튼 */}
+          {isCompleted ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-2 py-3 bg-emerald-50 rounded-xl">
+                <span className="text-xl">✅</span>
+                <span className="font-semibold text-emerald-600">{isEn ? 'Complete!' : '학습 완료!'}</span>
+              </div>
+              <Link
+                href={`/learn?exam=${selectedExam}&level=${selectedLevel}&restart=true`}
+                className="block w-full py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 font-semibold text-center transition-colors"
+              >
+                {isEn ? 'Start Over' : '처음부터 다시 학습'}
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href={`/learn?exam=${selectedExam}&level=${selectedLevel}`}
+              className="block w-full py-4 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
+            >
+              {learnedWords === 0 ? (isEn ? 'Start Learning' : '학습 시작하기') : (isEn ? 'Resume Learning' : '이어서 학습하기')}
+            </Link>
+          )}
+        </section>
+
         {/* 오늘의 학습 목표 Hero */}
         <section className="bg-white border border-gray-200 rounded-2xl p-6 relative overflow-hidden">
           <div className="relative">
@@ -424,17 +531,9 @@ function DashboardContent() {
                   {isEn ? `${exam.name} ${level.name} Complete!` : `${exam.name} ${level.name} 마스터!`}<br />
                   <span className="text-emerald-600">{totalWords}{isEn ? '' : '개'}</span> {isEn ? 'words completed!' : '단어 완료'}
                 </h2>
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-gray-500">
                   {isEn ? "You've learned all words! Try a quiz to test your knowledge." : '모든 단어를 학습했어요! 복습 퀴즈로 실력을 확인해보세요.'}
                 </p>
-                <div className="space-y-2">
-                  <Link
-                    href={`/learn?exam=${selectedExam}&level=${selectedLevel}&restart=true`}
-                    className="block w-full bg-emerald-50 hover:bg-emerald-100 rounded-xl py-4 text-emerald-600 font-semibold text-center transition-colors"
-                  >
-                    {isEn ? 'Start Over' : '처음부터 다시 학습'}
-                  </Link>
-                </div>
               </>
             ) : (
               <>
@@ -445,12 +544,6 @@ function DashboardContent() {
                 <p className="text-sm text-gray-500 mb-4">
                   {isEn ? <>Takes about <span className="font-semibold text-gray-900">{estimatedMinutes} min</span></> : <>지금 시작하면 <span className="font-semibold text-gray-900">{estimatedMinutes}분</span>이면 끝나요</>}
                 </p>
-                <Link
-                  href={`/learn?exam=${selectedExam}&level=${selectedLevel}`}
-                  className="block w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl py-4 text-center transition-colors"
-                >
-                  {learnedWords === 0 ? (isEn ? 'Start Learning' : '학습 시작') : (isEn ? 'Continue' : '이어서 학습')}
-                </Link>
               </>
             )}
           </div>
@@ -591,106 +684,6 @@ function DashboardContent() {
             </div>
           </section>
         )}
-
-        {/* 바로 학습 이어가기 카드 (전체 너비) */}
-        <section className="bg-white border border-gray-200 rounded-2xl p-5 hover:border-teal-300 transition-all duration-200">
-          {/* 헤더 */}
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Continue Learning' : '바로 학습 이어가기'}</h3>
-            <span className="text-sm text-teal-600 font-medium flex items-center gap-1">
-              🔥 {stats?.currentStreak || 0}{isEn ? ' day streak' : '일 연속'}
-            </span>
-          </div>
-
-          {/* 현재 학습 정보 + Set 정보 */}
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center">
-                <span className="text-2xl">{exam.icon}</span>
-              </div>
-              <div>
-                <p className="font-bold text-gray-900">
-                  {exam.name} {level.name}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {level.description} • {level.target}
-                </p>
-              </div>
-            </div>
-            {/* Set 정보 뱃지 (데스크톱) */}
-            {totalWords > 0 && (
-              <div className="hidden sm:flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-xl">
-                <span className="text-blue-600 font-semibold">
-                  Set {currentSet} / {totalSets}
-                </span>
-                <span className="text-gray-400">•</span>
-                <span className="text-gray-600 text-sm">
-                  {wordsInCurrentSet} / {wordsPerCurrentSet}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Set 정보 (모바일용) */}
-          {totalWords > 0 && (
-            <div className="sm:hidden flex items-center justify-center gap-2 bg-blue-50 px-4 py-3 rounded-xl mb-4">
-              <span className="text-lg">📚</span>
-              <span className="text-blue-600 font-semibold">
-                Set {currentSet} / {totalSets}
-              </span>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-600 text-sm">
-                {wordsInCurrentSet} / {wordsPerCurrentSet}
-              </span>
-            </div>
-          )}
-
-          {/* 통계 3분할 */}
-          <div className="flex justify-between items-center py-4 border-y border-gray-100 mb-4">
-            <DashboardItem value={learnedWords} label={isEn ? 'Learned' : '학습 완료'} color="blue" loading={examLevelLoading} />
-            <div className="w-px h-10 bg-gray-100" />
-            <DashboardItem value={remainingWords} label={isEn ? 'Remaining' : '남은 단어'} color="amber" loading={examLevelLoading} />
-            <div className="w-px h-10 bg-gray-100" />
-            <DashboardItem value={`${progressPercent}%`} label={isEn ? 'Progress' : '진행률'} color="emerald" loading={examLevelLoading} />
-          </div>
-
-          {/* 프로그레스 바 */}
-          <div className="w-full h-2 bg-gray-100 rounded-full mb-4 overflow-hidden">
-            <div
-              className={`h-full bg-teal-500 rounded-full transition-all duration-500 ${examLevelLoading ? 'animate-pulse' : ''}`}
-              style={{ width: examLevelLoading ? '0%' : `${progressPercent}%` }}
-            />
-          </div>
-
-          {/* 부가 정보 */}
-          <div className="flex justify-between text-sm text-gray-500 mb-4">
-            <span>{isEn ? 'Last study: ' : '마지막 학습: '}{stats?.lastActiveDate ? new Date(stats.lastActiveDate).toLocaleDateString(isEn ? 'en-US' : 'ko-KR') : (isEn ? 'Today' : '오늘')}</span>
-            <span>{isEn ? `Daily goal: ${dailyGoal}` : `오늘 목표: ${dailyGoal}개`}</span>
-          </div>
-
-          {/* 버튼 */}
-          {isCompleted ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-center gap-2 py-3 bg-emerald-50 rounded-xl">
-                <span className="text-xl">✅</span>
-                <span className="font-semibold text-emerald-600">{isEn ? 'Complete!' : '학습 완료!'}</span>
-              </div>
-              <Link
-                href={`/learn?exam=${selectedExam}&level=${selectedLevel}&restart=true`}
-                className="block w-full py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 font-semibold text-center transition-colors"
-              >
-                {isEn ? 'Start Over' : '처음부터 다시 학습'}
-              </Link>
-            </div>
-          ) : (
-            <Link
-              href={`/learn?exam=${selectedExam}&level=${selectedLevel}`}
-              className="block w-full py-4 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
-            >
-              {learnedWords === 0 ? (isEn ? 'Start Learning' : '학습 시작') : (isEn ? 'Continue' : '이어서 학습')}
-            </Link>
-          )}
-        </section>
 
         {/* 연속 학습일 + 캘린더 */}
         <section className="bg-white border border-gray-200 rounded-2xl p-5">

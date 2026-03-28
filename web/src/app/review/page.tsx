@@ -368,6 +368,44 @@ function ReviewPageContent() {
           </div>
         </section>
 
+        {/* ===== Empty Review Mode ===== */}
+        {stats.dueToday === 0 && stats.totalReviewed === 0 && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-8 text-center">
+              <div className="text-4xl mb-4">📚</div>
+              <h2 className="text-xl font-bold mb-2">
+                {isEn ? 'No words to review today' : '오늘 복습할 단어가 없어요'}
+              </h2>
+              <p className="text-gray-500 mb-6">
+                {isEn
+                  ? "Learn new words first — they'll automatically appear here for review using spaced repetition."
+                  : '새 단어를 먼저 학습하세요. 간격 반복 알고리즘으로 자동 복습 일정이 만들어집니다.'}
+              </p>
+              <div className="flex gap-3 justify-center">
+                <a href="/dashboard"
+                  className="px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 transition">
+                  {isEn ? 'Go to Learn' : '학습하러 가기'}
+                </a>
+                <a href="/words"
+                  className="px-6 py-3 border border-gray-300 text-gray-600 rounded-xl font-medium hover:bg-gray-50 transition">
+                  {isEn ? 'Browse Words' : '단어 탐색'}
+                </a>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-sm text-amber-800">
+                💡 {isEn
+                  ? 'Spaced repetition reviews words right before you forget — building lasting memory.'
+                  : '간격 반복은 잊기 직전에 복습하여 장기 기억을 형성합니다.'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ===== Active Review Mode ===== */}
+        {(stats.dueToday > 0 || stats.totalReviewed > 0) && (<>
+
         {/* 시험 선택 (은행 앱 스타일) */}
         <section className="bg-white rounded-2xl p-5 border border-gray-200">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">{isEn ? 'Select Exam' : '시험 선택'}</h3>
@@ -523,9 +561,9 @@ function ReviewPageContent() {
           <div className="flex justify-between items-center">
             <DashboardItem value={stats.dueToday} label={isEn ? 'Due' : '복습 대기'} color="#A855F7" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-            <DashboardItem value={stats.todayCorrect || 0} label={isEn ? 'Reviewed' : '오늘 복습'} color="#F59E0B" />
+            <DashboardItem value={(stats.todayCorrect || 0) === 0 ? '—' : stats.todayCorrect} label={(stats.todayCorrect || 0) === 0 ? '' : (isEn ? 'Reviewed' : '오늘 복습')} color="#F59E0B" />
             <div className="w-[1px] h-10 bg-[#f0f0f0]" />
-            <DashboardItem value={`${stats.accuracy || 0}%`} label={isEn ? 'Accuracy' : '복습 정답률'} color="#10B981" />
+            <DashboardItem value={(stats.accuracy || 0) === 0 && (stats.todayCorrect || 0) === 0 ? '—' : `${stats.accuracy || 0}%`} label={(stats.accuracy || 0) === 0 && (stats.todayCorrect || 0) === 0 ? '' : (isEn ? 'Accuracy' : '복습 정답률')} color="#10B981" />
           </div>
         </section>
 
@@ -726,6 +764,8 @@ function ReviewPageContent() {
               : '기억이 사라지기 직전에 복습하면 장기 기억으로 전환됩니다. VocaVision AI는 학습 데이터를 기반으로 최적의 복습 시점을 계산합니다.'}
           </p>
         </section>
+
+        </>)}
       </div>
     </DashboardLayout>
   );
