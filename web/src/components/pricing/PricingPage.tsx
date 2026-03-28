@@ -54,8 +54,8 @@ export default function PricingPage() {
   const isYearly = billingCycle === "yearly";
 
   const features: PlanFeature[] = isEn ? [
-    { name: "SAT Starter (L1) — 934 words", free: true, basic: true, premium: true },
-    { name: "SAT Advanced (L2) — 1,000 words", free: false, basic: true, premium: true },
+    { name: "SAT Starter (L1) — 1,750 words", free: true, basic: true, premium: true },
+    { name: "SAT Advanced (L2) — 297 words", free: false, basic: true, premium: true },
     { name: "ACT Complete (822 words)", free: false, basic: true, premium: true },
     { name: "GRE / TOEFL / TOEIC Packs", free: false, basic: false, premium: true },
     { name: "AI Images (Concept + Rhyme) per word", free: "some", basic: true, premium: true },
@@ -146,7 +146,7 @@ export default function PricingPage() {
                 <>
                   <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                    <span>SAT Starter vocabulary (934 words)</span>
+                    <span>SAT Starter vocabulary (1,750 words)</span>
                   </li>
                   <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -338,7 +338,7 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span className="font-semibold">{isEn ? 'SAT Full (Starter + Advanced) — 2,047 words' : '수능 전체 (L1/L2/L3) — 1,793개 단어'}</span>
+                <span className="font-semibold">{isEn ? 'SAT Full (Starter + Advanced) — 2,047 words' : '수능 전체 (L1/L2/L3) — 1,724개 단어'}</span>
               </li>
               {isEn && (
                 <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
@@ -349,7 +349,7 @@ export default function PricingPage() {
               {!isEn && (
                 <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                   <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                  <span className="font-semibold">TEPS 전체 (L1/L2) — 388개 단어</span>
+                  <span className="font-semibold">TEPS 전체 (L1/L2) — 419개 단어</span>
                 </li>
               )}
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
@@ -557,13 +557,13 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'GRE Verbal Mastery' : 'GRE 완전정복'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '4,317 words' : '4,317개 단어'}</p>
+                  <p className="text-[12px] text-[#999999]">{isEn ? '4,241 words' : '4,241개 단어'}</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
                 {isEn
-                  ? 'GRE Verbal (1,829) + Elite (2,488). Greek & Latin root-based rapid mastery.'
-                  : 'GRE Verbal(L1) 1,829개 + Elite(L2) 2,488개. Greek·Latin 어원 기반 단기 완성.'}
+                  ? 'GRE Verbal + Elite — 4,241 words. Greek & Latin root-based rapid mastery.'
+                  : 'GRE Verbal + Elite 4,241개. Greek·Latin 어원 기반 단기 완성.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
                 <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$12.99' : '₩12,900'}</span>
@@ -595,8 +595,8 @@ export default function PricingPage() {
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
                 {isEn
-                  ? 'IELTS Foundation (L1) + Academic (L2). Band 5–8 complete coverage.'
-                  : 'IELTS Foundation(L1) 330개 + Academic(L2) 258개. Band 5~8 전 구간 단기 완성.'}
+                  ? 'IELTS Foundation + Academic — 691 words. Band 5–8 complete coverage.'
+                  : 'IELTS Foundation + Academic 691개. Band 5~8 전 구간 단기 완성.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
                 <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$4.99' : '₩4,900'}</span>
