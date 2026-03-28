@@ -735,7 +735,7 @@ export const startLearningSession = async (
             isActive: true,
             status: 'PUBLISHED',
           },
-      select: { id: true },
+      select: { id: true, word: true, tags: true },
       orderBy: { word: 'asc' },
     });
 
@@ -745,9 +745,43 @@ export const startLearningSession = async (
       throw new AppError('No words found for this exam/level', 404);
     }
 
-    // 단어 ID 배열 셔플
-    const wordIds = allWords.map(w => w.id);
-    const shuffledWordIds = shuffleArray(wordIds);
+    // 단어 ID 배열 정렬
+    let orderedWordIds: string[];
+
+    // SAT L2 (Confusable): 그룹별 정렬 — 같은 그룹 연속 배치
+    if (exam === 'SAT' && level === 'L2') {
+      const grouped: Map<string, typeof allWords> = new Map();
+      const ungrouped: typeof allWords = [];
+
+      for (const w of allWords) {
+        const confusableTag = (w.tags || []).find((t: string) => t.startsWith('confusable:'));
+        if (confusableTag) {
+          if (!grouped.has(confusableTag)) grouped.set(confusableTag, []);
+          grouped.get(confusableTag)!.push(w);
+        } else {
+          ungrouped.push(w);
+        }
+      }
+
+      // 그룹 내: 알파벳순 / 그룹 간: 셔플 / 비그룹: 셔플 후 뒤에 배치
+      const groupKeys = shuffleArray([...grouped.keys()]);
+      const sortedIds: string[] = [];
+
+      for (const key of groupKeys) {
+        const group = grouped.get(key)!;
+        group.sort((a, b) => a.word.localeCompare(b.word));
+        sortedIds.push(...group.map(w => w.id));
+      }
+
+      const shuffledUngrouped = shuffleArray(ungrouped.map(w => w.id));
+      sortedIds.push(...shuffledUngrouped);
+
+      orderedWordIds = sortedIds;
+      console.log(`[Learning] SAT L2 confusable ordering: ${grouped.size} groups, ${ungrouped.length} ungrouped`);
+    } else {
+      // 기존 로직: 전체 셔플
+      orderedWordIds = shuffleArray(allWords.map(w => w.id));
+    }
 
     // 새 세션 생성
     const newSession = await prisma.learningSession.create({
@@ -755,8 +789,8 @@ export const startLearningSession = async (
         userId,
         examCategory: exam,
         level,
-        wordOrder: JSON.stringify(shuffledWordIds),
-        totalWords: shuffledWordIds.length,
+        wordOrder: JSON.stringify(orderedWordIds),
+        totalWords: orderedWordIds.length,
         currentSet: 0,
         currentIndex: 0,
         status: 'IN_PROGRESS',
@@ -766,7 +800,7 @@ export const startLearningSession = async (
 
     // 첫 번째 세트 단어들 조회
     const setSize = 20;
-    const firstSetWordIds = shuffledWordIds.slice(0, setSize);
+    const firstSetWordIds = orderedWordIds.slice(0, setSize);
 
     const words = await prisma.word.findMany({
       where: { id: { in: firstSetWordIds } },
