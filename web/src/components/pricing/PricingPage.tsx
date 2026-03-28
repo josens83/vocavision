@@ -511,7 +511,8 @@ export default function PricingPage() {
               </button>
             </div>
 
-            {/* SAT 핵심 어휘 */}
+            {/* SAT 핵심 어휘 - KR only (글로벌은 구독에 포함) */}
+            {!isEn && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
               <div className="absolute -top-3 right-4">
                 <span className="bg-[#10B981] text-white text-[11px] font-bold px-3 py-1 rounded-full">
@@ -523,26 +524,25 @@ export default function PricingPage() {
                   <span className="text-white text-xl">🎯</span>
                 </div>
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">{isEn ? 'SAT Core Vocabulary' : 'SAT 핵심 어휘'}</h3>
-                  <p className="text-[12px] text-[#999999]">{isEn ? '2,047 words' : '2,047개 단어'}</p>
+                  <h3 className="text-[16px] font-bold text-[#1c1c1e]">SAT 핵심 어휘</h3>
+                  <p className="text-[12px] text-[#999999]">2,047개 단어</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">
-                {isEn
-                  ? 'Essential SAT/PSAT vocabulary. Greek & Latin root-based thematic (L1) + confusable words (L2).'
-                  : 'SAT/PSAT 고득점 필수 어휘. Greek·Latin 어근 기반 테마별(L1) + 혼동어휘(L2) 체계적 구성.'}
+                SAT/PSAT 고득점 필수 어휘. Greek·Latin 어근 기반 테마별(L1) + 혼동어휘(L2) 체계적 구성.
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$9.99' : '₩9,900'}</span>
-                <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">₩9,900</span>
+                <span className="text-[#999999] text-[12px] mb-1">6개월</span>
               </div>
               <button
                 onClick={() => router.push("/checkout?package=sat-complete")}
                 className="w-full py-3 px-4 text-center rounded-xl font-semibold text-[14px] bg-[#F97316] text-white hover:bg-[#EA580C] transition-colors"
               >
-                {isEn ? 'Buy Now' : '구매하기'}
+                구매하기
               </button>
             </div>
+            )}
 
             {/* GRE 완전정복 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-shadow">
@@ -599,7 +599,7 @@ export default function PricingPage() {
                   : 'IELTS Foundation(L1) 330개 + Academic(L2) 258개. Band 5~8 전 구간 단기 완성.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$6.99' : '₩6,900'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$4.99' : '₩4,900'}</span>
                 <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
               </div>
               <button
