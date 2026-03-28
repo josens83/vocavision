@@ -488,11 +488,11 @@ export default function PackageDetailPage() {
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span>단어별 <strong>AI 이미지</strong> (Concept·Rhyme) + 어원 분석 + 라임</span>
+                        <span>{isEn ? <>AI images (Concept + Rhyme) + Etymology per word</> : <>단어별 <strong>AI 이미지</strong> (Concept·Rhyme) + 어원 분석 + 라임</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>스마트 복습</strong> 시스템</span>
+                        <span>{isEn ? <>Smart spaced repetition review</> : <><strong>스마트 복습</strong> 시스템</>}</span>
                       </li>
                     </>
                   ) : slug === 'gre-complete' ? (
@@ -511,11 +511,11 @@ export default function PackageDetailPage() {
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span>단어별 <strong>AI 이미지</strong> (Concept·Rhyme) + 어원 분석 + 라임</span>
+                        <span>{isEn ? <>AI images (Concept + Rhyme) + Etymology per word</> : <>단어별 <strong>AI 이미지</strong> (Concept·Rhyme) + 어원 분석 + 라임</>}</span>
                       </li>
                       <li className="flex items-start gap-3 text-gray-700">
                         <Check className="w-5 h-5 text-brand-primary flex-shrink-0 mt-0.5" />
-                        <span><strong>스마트 복습</strong> 시스템</span>
+                        <span>{isEn ? <>Smart spaced repetition review</> : <><strong>스마트 복습</strong> 시스템</>}</span>
                       </li>
                     </>
                   ) : slug === 'sat-complete' ? (
