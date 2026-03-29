@@ -203,6 +203,8 @@ function DashboardContent() {
   // → 이후 effects 체인이 state를 변경해도 queryKey는 변하지 않음
   // → 사용자가 UI에서 시험/레벨을 명시적으로 변경할 때만 업데이트
   const [stableQuery, setStableQuery] = useState<{exam: string, level: string} | null>(null);
+  const [isCourseExpanded, setIsCourseExpanded] = useState(false);
+  const [isThemeExpanded, setIsThemeExpanded] = useState(false);
   // ref 가드: fallback effect에서 stableQuery 초기화를 1회로 제한
   // → useEffect 재실행 시에도 중복 초기화 방지 (state 업데이트 + ref 이중 가드)
   const stableQueryInitRef = useRef(false);
@@ -555,194 +557,244 @@ function DashboardContent() {
           </div>
         </section>
 
-        {/* 시험 선택 섹션 */}
-        <section className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">{isEn ? 'Select Exam' : '시험 선택'}</h3>
-
-          <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
-            {availableExams.map(({ exam: key, locked }) => {
-              const cfg = EXAM_MAP[key];
-              if (!cfg) return null;
-              const activeColors: Record<string, string> = {
-                CSAT: 'bg-teal-500', TEPS: 'bg-purple-500', CSAT_2026: 'bg-emerald-500',
-                EBS: 'bg-green-500', TOEFL: 'bg-blue-600', TOEIC: 'bg-green-500',
-                SAT: 'bg-orange-500',
-                GRE: 'bg-indigo-500',
-                IELTS: 'bg-sky-500',
-              };
-              const defaultLevel = getValidLevelsForExam(key)[0];
-              return (
-                <button
-                  key={key}
-                  onClick={() => {
-                    if (locked) { router.push('/pricing'); return; }
-                    const lastLevel = localStorage.getItem(`dashboard_${key}_level`) || defaultLevel;
-                    const lvl = getValidLevelForExam(key, lastLevel);
-                    setActiveExamWithLevel(key as ExamType, lvl as 'L1' | 'L2' | 'L3');
-                    setStableQuery({ exam: key, level: lvl });
-                  }}
-                  className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
-                    locked
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : selectedExam === key
-                      ? `${activeColors[key] || 'bg-teal-500'} text-white`
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  <span className="text-2xl">{cfg.icon}</span>
-                  <span className="font-semibold text-xs">{cfg.label}</span>
-                  {locked && <span className="text-xs">🔒</span>}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* 레벨/유형 선택 섹션 */}
-        <section className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            {isEn ? 'Select Level' : (selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : (selectedExam === 'TOEFL' || selectedExam === 'TOEIC' || selectedExam === 'SAT' || selectedExam === 'GRE' || selectedExam === 'IELTS') ? '난이도 선택' : '레벨 선택'}
-          </h3>
-
-          <div className="flex gap-3">
-            {getValidLevelsForExam(selectedExam).map((lvl) => {
-              const isLocked = isLevelLocked(user, selectedExam, lvl);
-              // CSAT/TEPS: key(L1) + shortLabel(기초), TOEFL/TOEIC: shortLabel + label
-              const useKeyDisplay = selectedExam === 'CSAT' || selectedExam === 'TEPS';
-              const levelLabel = useKeyDisplay ? getLevelShortLabel(selectedExam, lvl) : getLevelLabel(selectedExam, lvl);
-              const displayName = useKeyDisplay ? lvl : getLevelShortLabel(selectedExam, lvl);
-              return (
-                <button
-                  key={lvl}
-                  onClick={() => {
-                    if (isLocked) {
-                      router.push('/pricing');
-                    } else {
-                      setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
-                      localStorage.setItem(`dashboard_${selectedExam}_level`, lvl);
-                      setStableQuery(prev => prev ? { ...prev, level: lvl } : null);
-                    }
-                  }}
-                  className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all ${
-                    isLocked
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : selectedLevel === lvl
-                      ? selectedExam === 'CSAT_2026' ? 'bg-emerald-500 text-white'
-                        : selectedExam === 'EBS' ? 'bg-green-500 text-white'
-                        : 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? (
-                    // CSAT_2026/EBS: 한 줄로 표시
-                    <span className="font-semibold text-sm">{levelLabel}</span>
-                  ) : (
-                    // 기존 CSAT/TEPS: 두 줄 유지
-                    <>
-                      <div className="flex items-center gap-1">
-                        <span className="font-bold">{displayName}</span>
-                        {isLocked && <span className="text-sm">🔒</span>}
-                      </div>
-                      {(!isEn || useKeyDisplay) && (
-                        <span className={`text-xs mt-1 ${
-                          isLocked ? 'text-gray-400' : selectedLevel === lvl ? 'text-blue-100' : 'text-gray-500'
-                        }`}>
-                          {levelLabel}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* SAT 테마별 학습 섹션 */}
-        {selectedExam === 'SAT' && (
-          <section className="bg-white border border-gray-200 rounded-2xl p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">{isEn ? 'Theme Learning' : '테마별 학습'}</h3>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-              {SAT_THEMES.map((theme) => (
-                <button
-                  key={theme.key}
-                  onClick={() => {
-                    setActiveLevel(theme.key as any);
-                    localStorage.setItem(`dashboard_SAT_level`, theme.key);
-                    setStableQuery(prev => prev ? { ...prev, level: theme.key } : null);
-                  }}
-                  className={`flex flex-col items-center py-3 px-1 rounded-xl transition-all text-center ${
-                    selectedLevel === theme.key
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  <span className="text-xl mb-1">{theme.emoji}</span>
-                  <span className="font-medium text-[11px] leading-tight">{isEn ? (theme.labelEn || theme.label) : theme.label}</span>
-                </button>
-              ))}
+        {/* Course Selection — Collapsible */}
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <button
+            onClick={() => setIsCourseExpanded(!isCourseExpanded)}
+            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-gray-900">
+                {isEn ? 'Current Course' : '현재 코스'}
+              </span>
+              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium">
+                {examCfg?.label || selectedExam} · {level.name || selectedLevel}
+              </span>
             </div>
-          </section>
+            <span className={`text-gray-400 transition-transform duration-200 ${isCourseExpanded ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+
+          {isCourseExpanded && (
+            <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-4">
+              {/* 시험 선택 */}
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">{isEn ? 'Select Exam' : '시험 선택'}</h4>
+                <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
+                  {availableExams.map(({ exam: key, locked }) => {
+                    const cfg = EXAM_MAP[key];
+                    if (!cfg) return null;
+                    const activeColors: Record<string, string> = {
+                      CSAT: 'bg-teal-500', TEPS: 'bg-purple-500', CSAT_2026: 'bg-emerald-500',
+                      EBS: 'bg-green-500', TOEFL: 'bg-blue-600', TOEIC: 'bg-green-500',
+                      SAT: 'bg-orange-500', GRE: 'bg-indigo-500', IELTS: 'bg-sky-500',
+                    };
+                    const defaultLevel = getValidLevelsForExam(key)[0];
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => {
+                          if (locked) { router.push('/pricing'); return; }
+                          const lastLevel = localStorage.getItem(`dashboard_${key}_level`) || defaultLevel;
+                          const lvl = getValidLevelForExam(key, lastLevel);
+                          setActiveExamWithLevel(key as ExamType, lvl as 'L1' | 'L2' | 'L3');
+                          setStableQuery({ exam: key, level: lvl });
+                          setIsCourseExpanded(false);
+                        }}
+                        className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
+                          locked
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : selectedExam === key
+                            ? `${activeColors[key] || 'bg-teal-500'} text-white`
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        <span className="text-2xl">{cfg.icon}</span>
+                        <span className="font-semibold text-xs">{cfg.label}</span>
+                        {locked && <span className="text-xs">🔒</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 레벨 선택 */}
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                  {isEn ? 'Select Level' : (selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? '유형 선택' : (selectedExam === 'TOEFL' || selectedExam === 'TOEIC' || selectedExam === 'SAT' || selectedExam === 'GRE' || selectedExam === 'IELTS') ? '난이도 선택' : '레벨 선택'}
+                </h4>
+                <div className="flex gap-3">
+                  {getValidLevelsForExam(selectedExam).map((lvl) => {
+                    const isLocked = isLevelLocked(user, selectedExam, lvl);
+                    const useKeyDisplay = selectedExam === 'CSAT' || selectedExam === 'TEPS';
+                    const levelLabel = useKeyDisplay ? getLevelShortLabel(selectedExam, lvl) : getLevelLabel(selectedExam, lvl);
+                    const displayName = useKeyDisplay ? lvl : getLevelShortLabel(selectedExam, lvl);
+                    return (
+                      <button
+                        key={lvl}
+                        onClick={() => {
+                          if (isLocked) {
+                            router.push('/pricing');
+                          } else {
+                            setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
+                            localStorage.setItem(`dashboard_${selectedExam}_level`, lvl);
+                            setStableQuery(prev => prev ? { ...prev, level: lvl } : null);
+                            setIsCourseExpanded(false);
+                          }
+                        }}
+                        className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all ${
+                          isLocked
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : selectedLevel === lvl
+                            ? selectedExam === 'CSAT_2026' ? 'bg-emerald-500 text-white'
+                              : selectedExam === 'EBS' ? 'bg-green-500 text-white'
+                              : 'bg-blue-500 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS') ? (
+                          <span className="font-semibold text-sm">{levelLabel}</span>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-1">
+                              <span className="font-bold">{displayName}</span>
+                              {isLocked && <span className="text-sm">🔒</span>}
+                            </div>
+                            {(!isEn || useKeyDisplay) && (
+                              <span className={`text-xs mt-1 ${
+                                isLocked ? 'text-gray-400' : selectedLevel === lvl ? 'text-blue-100' : 'text-gray-500'
+                              }`}>
+                                {levelLabel}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* SAT 테마별 학습 — Collapsible */}
+        {selectedExam === 'SAT' && (
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <button
+              onClick={() => setIsThemeExpanded(!isThemeExpanded)}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+            >
+              <span className="text-sm font-semibold text-gray-900">
+                {isEn ? 'Theme Learning' : '테마별 학습'}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">
+                  {isEn ? '20 themes' : '20개 테마'}
+                </span>
+                <span className={`text-gray-400 transition-transform duration-200 ${isThemeExpanded ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </div>
+            </button>
+
+            {isThemeExpanded && (
+              <div className="px-4 pb-4">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {SAT_THEMES.map((theme) => (
+                    <button
+                      key={theme.key}
+                      onClick={() => {
+                        setActiveLevel(theme.key as any);
+                        localStorage.setItem(`dashboard_SAT_level`, theme.key);
+                        setStableQuery(prev => prev ? { ...prev, level: theme.key } : null);
+                        setIsThemeExpanded(false);
+                      }}
+                      className={`flex flex-col items-center py-3 px-1 rounded-xl transition-all text-center ${
+                        selectedLevel === theme.key
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <span className="text-xl mb-1">{theme.emoji}</span>
+                      <span className="font-medium text-[11px] leading-tight">{isEn ? (theme.labelEn || theme.label) : theme.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* 연속 학습일 + 캘린더 */}
-        <section className="bg-white border border-gray-200 rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Learning Streak' : '연속 학습일'}</h3>
-            <span className="text-sm text-gray-500">
-              {isEn
-                ? new Date(currentYear, currentMonth).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
-                : `${currentYear}년 ${currentMonth + 1}월`}
-            </span>
-          </div>
-
-          {/* 현재/최장 연속 */}
-          <div className="flex gap-4 mb-4">
-            <div className="flex-1 bg-teal-50 rounded-xl p-4 text-center">
-              <span className="text-2xl mb-1 block">🔥</span>
-              <p className="text-2xl font-bold text-teal-600">{stats?.currentStreak || 0}{isEn ? 'd' : '일'}</p>
-              <p className="text-xs text-gray-500">{isEn ? 'Current' : '현재 연속'}</p>
-            </div>
-            <div className="flex-1 bg-amber-50 rounded-xl p-4 text-center">
-              <span className="text-2xl mb-1 block">🏆</span>
-              <p className="text-2xl font-bold text-amber-600">{stats?.longestStreak || 0}{isEn ? 'd' : '일'}</p>
-              <p className="text-xs text-gray-500">{isEn ? 'Best' : '최장 기록'}</p>
+        {(stats?.currentStreak || 0) === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-gray-900">
+                {isEn ? 'Learning Streak' : '학습 스트릭'}
+              </span>
+              <span className="text-sm text-gray-500">
+                {isEn
+                  ? "🔥 Complete today's goal to start!"
+                  : '🔥 오늘 목표를 달성하면 시작돼요!'}
+              </span>
             </div>
           </div>
+        ) : (
+          <section className="bg-white border border-gray-200 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Learning Streak' : '연속 학습일'}</h3>
+              <span className="text-sm text-gray-500">
+                {isEn
+                  ? new Date(currentYear, currentMonth).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+                  : `${currentYear}년 ${currentMonth + 1}월`}
+              </span>
+            </div>
 
-          {/* 캘린더 그리드 */}
-          <div className="grid grid-cols-7 gap-1 text-center">
-            {/* 요일 헤더 */}
-            {(isEn ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : ['일', '월', '화', '수', '목', '금', '토']).map((day, i) => (
-              <div key={`${day}-${i}`} className="text-xs text-gray-400 py-1">{day}</div>
-            ))}
-            {/* 빈 셀 */}
-            {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-              <div key={`empty-${i}`} className="py-2" />
-            ))}
-            {/* 날짜들 */}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1;
-              const isToday = day === today.getDate();
-              const hasActivity = day <= today.getDate() && day > today.getDate() - (stats?.currentStreak || 0);
+            <div className="flex gap-4 mb-4">
+              <div className="flex-1 bg-teal-50 rounded-xl p-4 text-center">
+                <span className="text-2xl mb-1 block">🔥</span>
+                <p className="text-2xl font-bold text-teal-600">{stats?.currentStreak || 0}{isEn ? 'd' : '일'}</p>
+                <p className="text-xs text-gray-500">{isEn ? 'Current' : '현재 연속'}</p>
+              </div>
+              <div className="flex-1 bg-amber-50 rounded-xl p-4 text-center">
+                <span className="text-2xl mb-1 block">🏆</span>
+                <p className="text-2xl font-bold text-amber-600">{stats?.longestStreak || 0}{isEn ? 'd' : '일'}</p>
+                <p className="text-xs text-gray-500">{isEn ? 'Best' : '최장 기록'}</p>
+              </div>
+            </div>
 
-              return (
-                <div
-                  key={day}
-                  className={`py-2 text-sm rounded-full ${
-                    isToday
-                      ? 'bg-teal-500 text-white font-bold'
-                      : hasActivity
-                      ? 'bg-teal-50 text-teal-600 font-semibold'
-                      : 'text-gray-900'
-                  }`}
-                >
-                  {day}
-                </div>
-              );
-            })}
-          </div>
-        </section>
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {(isEn ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : ['일', '월', '화', '수', '목', '금', '토']).map((day, i) => (
+                <div key={`${day}-${i}`} className="text-xs text-gray-400 py-1">{day}</div>
+              ))}
+              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                <div key={`empty-${i}`} className="py-2" />
+              ))}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const isToday = day === today.getDate();
+                const hasActivity = day <= today.getDate() && day > today.getDate() - (stats?.currentStreak || 0);
+
+                return (
+                  <div
+                    key={day}
+                    className={`py-2 text-sm rounded-full ${
+                      isToday
+                        ? 'bg-teal-500 text-white font-bold'
+                        : hasActivity
+                        ? 'bg-teal-50 text-teal-600 font-semibold'
+                        : 'text-gray-900'
+                    }`}
+                  >
+                    {day}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </div>
     </DashboardLayout>
   );
