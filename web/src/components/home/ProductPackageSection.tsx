@@ -16,7 +16,7 @@ interface ProductPackage {
   displayPrice?: string;
 }
 
-const KR_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete', 'act-complete'];
+const KR_HOME_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete'];
 const GLOBAL_SLUGS = ['gre-complete', 'toefl-complete', 'toeic-complete', 'ielts-complete'];
 
 function PackageCardSkeleton() {
@@ -41,7 +41,7 @@ function PackageCardSkeleton() {
 export default function ProductPackageSection() {
   const { packages, loading, isEn, getLocalized } = usePackages();
 
-  const slugs = isEn ? GLOBAL_SLUGS : KR_SLUGS;
+  const slugs = isEn ? GLOBAL_SLUGS : KR_HOME_SLUGS;
   const displayPackages = packages
     .filter(pkg => slugs.includes(pkg.slug))
     .map(pkg => getLocalized(pkg));
@@ -99,6 +99,15 @@ export default function ProductPackageSection() {
                   </div>
                 </Link>
               ))}
+        </div>
+        <div className="text-center mt-6">
+          <Link
+            href="/packages"
+            className="inline-flex items-center gap-1 text-teal-600 hover:text-teal-700 font-medium transition"
+          >
+            {isEn ? 'View All Packages' : '모든 패키지 보기'}
+            <span>→</span>
+          </Link>
         </div>
       </div>
     </section>
