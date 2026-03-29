@@ -173,14 +173,14 @@ export default function PopularWordsSection() {
             transition={{ duration: 0.2 }}
           >
             {isLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {[...Array(10)].map((_, i) => (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
                   <WordCardSkeleton key={i} />
                 ))}
               </div>
             ) : displayWords.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {displayWords.map((word, index) => (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {displayWords.slice(0, 4).map((word, index) => (
                   <WordCard
                     key={word.id}
                     word={word}
