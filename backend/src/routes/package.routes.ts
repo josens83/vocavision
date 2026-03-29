@@ -201,7 +201,7 @@ router.get('/word-counts', async (req: Request, res: Response) => {
     }
 
     const rows = await prisma.$queryRaw<Array<{ examCategory: string; count: bigint }>>`
-      SELECT wel."examCategory", COUNT(wel.id) as count
+      SELECT wel."examCategory", COUNT(DISTINCT wel."wordId") as count
       FROM "WordExamLevel" wel
       JOIN "Word" w ON w.id = wel."wordId"
       WHERE w.status = 'PUBLISHED'
