@@ -104,6 +104,7 @@ function SuccessContent() {
           }
           // 패키지 접근 권한 캐시 무효화 (결제 완료 후 권한 갱신)
           queryClient.invalidateQueries({ queryKey: ['packageAccess'] });
+          queryClient.invalidateQueries({ queryKey: ['packageAccessBulk'] });
           queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
         } else {
           setStatus("error");
@@ -156,6 +157,7 @@ function SuccessContent() {
                     console.error('Failed to refresh user before navigation:', e);
                   }
                   queryClient.invalidateQueries({ queryKey: ['packageAccess'] });
+                  queryClient.invalidateQueries({ queryKey: ['packageAccessBulk'] });
                   queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
                   router.push("/dashboard");
                 }}
