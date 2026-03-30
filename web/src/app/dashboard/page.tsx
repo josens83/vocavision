@@ -183,7 +183,13 @@ function DashboardContent() {
   // React Query: 대시보드 데이터 캐싱
   // useLocale 초기값 'ko' → CSAT 오설정 방지: 도메인 직접 체크 (동기)
   const defaultExam = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app') ? 'SAT' : 'CSAT';
-  const examCategory = useMemo(() => activeExam || defaultExam, [activeExam, defaultExam]);
+  const isGlobalDash = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app');
+  const KR_ONLY = ['CSAT', 'CSAT_2026', 'EBS', 'TEPS'];
+  const examCategory = useMemo(() => {
+    const exam = activeExam || defaultExam;
+    if (isGlobalDash && KR_ONLY.includes(exam)) return 'SAT';
+    return exam;
+  }, [activeExam, defaultExam, isGlobalDash]);
   const validLevel = useMemo(() => getValidLevelForExam(examCategory, activeLevel || 'L1'), [examCategory, activeLevel]);
 
   // 4개 패키지 접근 권한을 1번의 API 호출로 체크

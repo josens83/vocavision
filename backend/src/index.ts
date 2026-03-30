@@ -102,7 +102,7 @@ const corsOptions = {
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(express.json({
-  limit: '10mb',
+  limit: '50mb',
   verify: (req: any, _res, buf) => {
     if (req.url?.includes('/paddle/webhook')) {
       req.rawBody = buf.toString();
