@@ -54,8 +54,8 @@ export default function PricingPage() {
   const isYearly = billingCycle === "yearly";
 
   const features: PlanFeature[] = isEn ? [
-    { name: "SAT Starter (L1) — 1,750 words", free: true, basic: true, premium: true },
-    { name: "SAT Advanced (L2) — 297 words", free: false, basic: true, premium: true },
+    { name: "SAT Starter (L1) — 1,359 words", free: true, basic: true, premium: true },
+    { name: "SAT Advanced (L2) — 347 words", free: false, basic: true, premium: true },
     { name: "ACT Complete (822 words)", free: false, basic: true, premium: true },
     { name: "GRE / TOEFL / TOEIC Packs", free: false, basic: false, premium: true },
     { name: "AI Images (Concept + Rhyme) per word", free: "some", basic: true, premium: true },
@@ -146,7 +146,7 @@ export default function PricingPage() {
                 <>
                   <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                    <span>SAT Starter vocabulary (1,750 words)</span>
+                    <span>SAT Starter vocabulary (1,359 words)</span>
                   </li>
                   <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
