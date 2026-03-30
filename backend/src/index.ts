@@ -110,7 +110,7 @@ app.use(express.json({
   },
 }));  // base64 image uploads (10mb for base64 overhead) + rawBody for Paddle webhook only
 app.use(express.text({ type: 'text/plain' }));  // For sendBeacon text/plain requests
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(rateLimiter);
 
 // Health check endpoints

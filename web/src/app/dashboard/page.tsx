@@ -321,12 +321,20 @@ function DashboardContent() {
     // 이미 초기화 완료 → fallback 체크 불필요 (사용자 명시적 변경은 onClick에서 처리)
     if (stableQueryInitRef.current) return;
 
-    // 접근 불가 시험 → CSAT/L1로 fallback (이미 CSAT/L1이면 skip)
+    // vocavision.app에서 KR-only 시험 강제 전환
+    const isGlobalDomain = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app');
+    const KR_ONLY_EXAMS = ['CSAT', 'CSAT_2026', 'EBS', 'TEPS'];
+    if (isGlobalDomain && activeExam && KR_ONLY_EXAMS.includes(activeExam)) {
+      setActiveExamWithLevel('SAT' as ExamType, 'L1');
+      return;
+    }
+
+    // 접근 불가 시험 → fallback
     const examEntry = availableExams.find(e => e.exam === activeExam);
     const needsFallback = !examEntry || examEntry.locked;
 
     if (needsFallback) {
-      setActiveExamWithLevel((isEn ? 'SAT' : 'CSAT') as ExamType, 'L1');
+      setActiveExamWithLevel((isGlobalDomain ? 'SAT' : 'CSAT') as ExamType, 'L1');
       return;
     }
 
