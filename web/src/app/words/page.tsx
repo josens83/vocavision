@@ -61,6 +61,38 @@ function WordsPageContent() {
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
+  // 2026 기출 접근 권한 체크
+  const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user && hasHydrated);
+  const hasCsat2026Access = accessData?.hasAccess || false;
+  // EBS 접근 권한 체크
+  const { data: ebsAccessData } = usePackageAccess('ebs-vocab', !!user && hasHydrated);
+  const hasEbsAccess = ebsAccessData?.hasAccess || false;
+  const isPremium = getSubscriptionTier(user) === 'PREMIUM';
+
+  // Get initial values from URL parameters
+  const initialSearch = searchParams.get('search') || '';
+  const initialExam = searchParams.get('exam') || (initialSearch ? '' : (isEn ? 'SAT' : 'CSAT'));
+  const initialLevel = searchParams.get('level') || '';
+
+  // 필터 상태
+  const [search, setSearch] = useState(initialSearch);
+  const [examCategory, setExamCategory] = useState(initialExam);
+  const [level, setLevel] = useState(initialLevel);
+  const [page, setPage] = useState(1);
+  // 검색 트리거용 상태 (Enter 누를 때만 검색 실행)
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+
+  // React Query 훅
+  const { data, isLoading } = useWordsSearch({
+    page,
+    limit: 20,
+    examCategory: examCategory || undefined,
+    level: level || undefined,
+    search: searchQuery || undefined,
+  }, !!user && hasHydrated);
+
+  const prefetchWords = usePrefetchWordsSearch();
+
   // 비로그인 시 로그인 유도 화면
   if (!user) {
     return (
@@ -103,30 +135,9 @@ function WordsPageContent() {
   // 접근 가능 레벨 계산 (디버깅/표시용)
   const accessibleLevels = getAccessibleLevels(user);
 
-  // 2026 기출 접근 권한 체크
-  const { data: accessData } = usePackageAccess('2026-csat-analysis', !!user && hasHydrated);
-  const hasCsat2026Access = accessData?.hasAccess || false;
-  // EBS 접근 권한 체크
-  const { data: ebsAccessData } = usePackageAccess('ebs-vocab', !!user && hasHydrated);
-  const hasEbsAccess = ebsAccessData?.hasAccess || false;
-  const isPremium = getSubscriptionTier(user) === 'PREMIUM';
-
   // 잠금 체크 헬퍼 함수 (공통 유틸 사용)
   const checkExamLocked = (exam: string) => isExamLocked(user, exam);
   const checkLevelLocked = (exam: string, level: string) => isLevelLocked(user, exam, level);
-
-  // Get initial values from URL parameters
-  const initialSearch = searchParams.get('search') || '';
-  const initialExam = searchParams.get('exam') || (initialSearch ? '' : (isEn ? 'SAT' : 'CSAT'));
-  const initialLevel = searchParams.get('level') || '';
-
-  // 필터 상태
-  const [search, setSearch] = useState(initialSearch);
-  const [examCategory, setExamCategory] = useState(initialExam);
-  const [level, setLevel] = useState(initialLevel);
-  const [page, setPage] = useState(1);
-  // 검색 트리거용 상태 (Enter 누를 때만 검색 실행)
-  const [searchQuery, setSearchQuery] = useState(initialSearch);
 
   // URL 동기화 헬퍼
   const syncURL = (exam: string, lvl: string) => {
@@ -137,17 +148,6 @@ function WordsPageContent() {
     const qs = params.toString();
     router.replace(`/words${qs ? `?${qs}` : ''}`, { scroll: false });
   };
-
-  // React Query 훅
-  const { data, isLoading } = useWordsSearch({
-    page,
-    limit: 20,
-    examCategory: examCategory || undefined,
-    level: level || undefined,
-    search: searchQuery || undefined,
-  }, !!user && hasHydrated);
-
-  const prefetchWords = usePrefetchWordsSearch();
 
   // 데이터 추출
   const words: Word[] = data?.words || [];
