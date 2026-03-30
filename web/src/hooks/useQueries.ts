@@ -313,18 +313,20 @@ export function useWordsSearch(
     examCategory?: string;
     level?: string;
     search?: string;
+    sort?: string;
   },
   enabled = true
 ) {
   return useQuery({
-    queryKey: ['wordsSearch', params.examCategory, params.level, params.search, params.page],
+    queryKey: ['wordsSearch', params.examCategory, params.level, params.search, params.page, params.sort],
     queryFn: () => wordsAPI.getWords({
       page: params.page,
       limit: params.limit || 20,
       examCategory: params.examCategory || undefined,
       level: params.level || undefined,
       search: params.search || undefined,
-      fields: 'list', // 🚀 목록용 경량 쿼리 (6개 JOIN 제거)
+      sort: params.sort || undefined,
+      fields: 'list',
     }),
     enabled,
     staleTime: 30_000, // 30초 캐시

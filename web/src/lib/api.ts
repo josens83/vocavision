@@ -193,6 +193,7 @@ export const wordsAPI = {
     shuffle?: boolean; // 랜덤 순서
     mode?: 'weak'; // 약한 단어만 조회
     fields?: 'list' | 'full'; // 'list': 목록용 경량, 'full': 학습용 전체 (기본값)
+    sort?: string; // 'popular' | 'alpha' | 'newest'
   }) => {
     if (isMockMode()) return mockWordsAPI.getWords(params);
     const response = await api.get('/words', { params });
