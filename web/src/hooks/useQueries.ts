@@ -313,19 +313,17 @@ export function useWordsSearch(
     examCategory?: string;
     level?: string;
     search?: string;
-    sort?: string;
   },
   enabled = true
 ) {
   return useQuery({
-    queryKey: ['wordsSearch', params.examCategory, params.level, params.search, params.page, params.sort],
+    queryKey: ['wordsSearch', params.examCategory, params.level, params.search, params.page],
     queryFn: () => wordsAPI.getWords({
       page: params.page,
       limit: params.limit || 20,
       examCategory: params.examCategory || undefined,
       level: params.level || undefined,
       search: params.search || undefined,
-      sort: params.sort || undefined,
       fields: 'list',
     }),
     enabled,
