@@ -8,7 +8,7 @@
 export const PLATFORM_STATS = {
   // 전체 고유 단어 수 — 단어 수는 /api/packages/word-counts에서 동적으로 가져옴
   // 아래 값은 fallback 초기값 (useWordCounts DEFAULT_COUNTS 참고)
-  totalWords: 19274,
+  totalWords: 19347,
 
   // 수능 단어 수 (기본 무료 제공)
   csatWords: 1724,
@@ -44,7 +44,7 @@ export const PLATFORM_STATS = {
   },
 
   // 대비 가능한 시험 수
-  examCount: '8',
+  examCount: '10',
 
   // AI 콘텐츠 단계 수
   learningModes: 8,
