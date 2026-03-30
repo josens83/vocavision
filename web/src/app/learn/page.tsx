@@ -244,19 +244,10 @@ function LearnPageContent() {
     setPackageBlocked(false);
     setAccessBlocked(false);
 
-    // 글로벌 SAT/ACT: 구독 기반 접근 (패키지 체크 스킵)
-    const isSubscriptionExam = isEn && (examParam === 'SAT' || examParam === 'ACT');
-
-    if (packageSlug && !isSubscriptionExam) {
-      // 단품 구매 상품: usePackageAccess 훅 결과 사용
-      if (packageAccessData !== undefined && !packageAccessData?.hasAccess) {
-        setPackageBlocked(true);
-      }
-      return;
-    }
-
-    if (isSubscriptionExam) {
-      // SAT/ACT 글로벌: getAccessibleLevels 기반 접근 제어
+    // 글로벌에서 SAT/ACT/IELTS는 구독 기반 → 패키지 체크 스킵
+    const isGlobal = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app');
+    const SUBSCRIPTION_EXAMS = ['SAT', 'ACT', 'IELTS'];
+    if (isGlobal && SUBSCRIPTION_EXAMS.includes(examParam)) {
       const accessible = getAccessibleLevels(user);
       const examLevels = accessible[examParam!] || [];
       if (!examLevels.includes(levelParam!)) {
@@ -265,11 +256,19 @@ function LearnPageContent() {
       return;
     }
 
+    // 단품 구매 상품: usePackageAccess 훅 결과 사용
+    if (packageSlug) {
+      if (packageAccessData !== undefined && !packageAccessData?.hasAccess) {
+        setPackageBlocked(true);
+      }
+      return;
+    }
+
     // 기존 구독 기반 접근 제어 (CSAT, TEPS 등)
     if (!canAccessContent(user, examParam, levelParam)) {
       setAccessBlocked(true);
     }
-  }, [hasHydrated, user, examParam, levelParam, isDemo, packageSlug, packageAccessData, isEn]);
+  }, [hasHydrated, user, examParam, levelParam, isDemo, packageSlug, packageAccessData]);
 
   // 시험/레벨 파라미터 없이 접근 시 대시보드로 리다이렉트 (복습/북마크 모드 제외)
   useEffect(() => {
