@@ -181,7 +181,8 @@ function DashboardContent() {
   const setDailyGoal = useUserSettingsStore((state) => state.setDailyGoal);
 
   // React Query: 대시보드 데이터 캐싱
-  const defaultExam = isEn ? 'SAT' : 'CSAT';
+  // useLocale 초기값 'ko' → CSAT 오설정 방지: 도메인 직접 체크 (동기)
+  const defaultExam = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app') ? 'SAT' : 'CSAT';
   const examCategory = useMemo(() => activeExam || defaultExam, [activeExam, defaultExam]);
   const validLevel = useMemo(() => getValidLevelForExam(examCategory, activeLevel || 'L1'), [examCategory, activeLevel]);
 

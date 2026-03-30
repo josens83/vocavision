@@ -71,7 +71,8 @@ function WordsPageContent() {
 
   // Get initial values from URL parameters
   const initialSearch = searchParams.get('search') || '';
-  const initialExam = searchParams.get('exam') || (initialSearch ? '' : (isEn ? 'SAT' : 'CSAT'));
+  const isGlobal = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app');
+  const initialExam = searchParams.get('exam') || (initialSearch ? '' : (isGlobal ? 'SAT' : 'CSAT'));
   const initialLevel = searchParams.get('level') || '';
 
   // 필터 상태

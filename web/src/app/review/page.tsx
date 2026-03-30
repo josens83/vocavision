@@ -114,8 +114,9 @@ function ReviewPageContent() {
   const setActiveLevel = useExamCourseStore((state) => state.setActiveLevel);
   const examHasHydrated = useExamCourseStore((state) => state._hasHydrated);
 
-  // store 연동 (기본값: CSAT, L1)
-  const selectedExam = activeExam || 'CSAT';
+  // store 연동 (기본값: 도메인에 따라 SAT/CSAT)
+  const defaultExam = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app') ? 'SAT' : 'CSAT';
+  const selectedExam = activeExam || defaultExam;
   const selectedLevel = activeLevel || 'L1';
 
   // stableQuery: localStorage 복원 + fallback 완료 후에만 query 시작
