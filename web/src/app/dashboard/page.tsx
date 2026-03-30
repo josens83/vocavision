@@ -363,7 +363,8 @@ function DashboardContent() {
     }
   }, [hasHydrated, examHasHydrated, activeExam, activeLevel, setActiveLevel]);
 
-  const selectedExam = activeExam || defaultExam;
+  const rawSelectedExam = activeExam || defaultExam;
+  const selectedExam = (isGlobalDash && KR_ONLY.includes(rawSelectedExam)) ? 'SAT' : rawSelectedExam;
   const selectedLevel = activeLevel || 'L1';
   const examCfg = EXAM_MAP[selectedExam];
   const exam = { name: examCfg?.label || selectedExam, icon: examCfg?.icon || '📝', color: examCfg?.color || 'blue' };
