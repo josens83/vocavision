@@ -115,8 +115,11 @@ function ReviewPageContent() {
   const examHasHydrated = useExamCourseStore((state) => state._hasHydrated);
 
   // store 연동 (기본값: 도메인에 따라 SAT/CSAT)
-  const defaultExam = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app') ? 'SAT' : 'CSAT';
-  const selectedExam = activeExam || defaultExam;
+  const isGlobalDomain = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app');
+  const KR_ONLY_EXAMS = ['CSAT', 'CSAT_2026', 'EBS', 'TEPS'];
+  const defaultExam = isGlobalDomain ? 'SAT' : 'CSAT';
+  // 글로벌에서 KR-only 시험이 store에 있으면 강제 SAT 전환
+  const selectedExam = (isGlobalDomain && activeExam && KR_ONLY_EXAMS.includes(activeExam)) ? 'SAT' : (activeExam || defaultExam);
   const selectedLevel = activeLevel || 'L1';
 
   // stableQuery: localStorage 복원 + fallback 완료 후에만 query 시작
