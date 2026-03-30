@@ -2683,6 +2683,8 @@ export const uploadWordImage = async (
 
     logger.info(`[Admin/UploadImage] Successfully uploaded ${imageType} for "${word.word}"`);
 
+    appCache.invalidateWord(wordId);
+
     res.json({
       success: true,
       data: {
