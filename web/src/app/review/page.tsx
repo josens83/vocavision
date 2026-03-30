@@ -374,36 +374,29 @@ function ReviewPageContent() {
 
         {/* ===== Empty Review Mode ===== */}
         {stats.dueToday === 0 && stats.totalReviewed === 0 && (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-8 text-center">
-              <div className="text-4xl mb-4">📚</div>
-              <h2 className="text-xl font-bold mb-2">
-                {isEn ? 'No words to review today' : '오늘 복습할 단어가 없어요'}
-              </h2>
-              <p className="text-gray-500 mb-6">
-                {isEn
-                  ? "Learn new words first — they'll automatically appear here for review using spaced repetition."
-                  : '새 단어를 먼저 학습하세요. 간격 반복 알고리즘으로 자동 복습 일정이 만들어집니다.'}
-              </p>
-              <div className="flex gap-3 justify-center">
-                <a href="/dashboard"
-                  className="px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 transition">
-                  {isEn ? 'Go to Learn' : '학습하러 가기'}
-                </a>
-                <a href="/words"
-                  className="px-6 py-3 border border-gray-300 text-gray-600 rounded-xl font-medium hover:bg-gray-50 transition">
-                  {isEn ? 'Browse Words' : '단어 탐색'}
-                </a>
-              </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+            <div className="text-5xl mb-4">📚</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              {isEn ? 'No reviews yet' : '아직 복습할 단어가 없어요'}
+            </h3>
+            <p className="text-gray-500 mb-6">
+              {isEn
+                ? "Learn new words first — they'll automatically appear here for review using spaced repetition."
+                : '먼저 새 단어를 학습하세요. 간격 반복으로 자동 복습 일정이 생성됩니다.'}
+            </p>
+            <div className="flex gap-3 justify-center">
+              <a href="/dashboard" className="px-6 py-3 bg-[#14B8A6] text-white font-bold rounded-xl hover:opacity-90 transition">
+                {isEn ? 'Go to Learn' : '학습하러 가기'}
+              </a>
+              <a href="/words" className="px-6 py-3 bg-gray-100 text-gray-600 font-medium rounded-xl hover:bg-gray-200 transition">
+                {isEn ? 'Browse Words' : '단어 둘러보기'}
+              </a>
             </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <p className="text-sm text-amber-800">
-                💡 {isEn
-                  ? 'Spaced repetition reviews words right before you forget — building lasting memory.'
-                  : '간격 반복은 잊기 직전에 복습하여 장기 기억을 형성합니다.'}
-              </p>
-            </div>
+            <p className="text-xs text-gray-400 mt-4">
+              {isEn
+                ? 'Spaced repetition reviews words right before you forget — building lasting memory.'
+                : '간격 반복은 잊기 직전에 복습시켜 장기 기억을 만듭니다.'}
+            </p>
           </div>
         )}
 
