@@ -34,12 +34,21 @@ export const getWords = async (
       excludeLearned,
       shuffle,
       mode,
-      fields,  // 'list' | 'full' (기본값: 'full')
+      fields,
+      sort,
     } = req.query;
 
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
+
+    // Sort 파라미터 처리
+    const sortMap: Record<string, any> = {
+      popular: { frequency: 'desc' },
+      alpha: { word: 'asc' },
+      newest: { createdAt: 'desc' },
+    };
+    const orderBy = sortMap[sort as string] || sortMap.popular;
 
     // Get user ID if authenticated (set by optionalAuth middleware)
     const userId = (req as any).userId;
@@ -194,7 +203,7 @@ export const getWords = async (
         prisma.word.findMany({
           where,
           include: wordInclude,
-          orderBy: { frequency: 'desc' },
+          orderBy,
           take: 200, // Limit to prevent memory issues
         }),
       ]);
@@ -218,7 +227,7 @@ export const getWords = async (
           include: wordInclude,
           skip,
           take: limitNum,
-          orderBy: { frequency: 'desc' },
+          orderBy,
         }),
       ]);
       total = countResult;
