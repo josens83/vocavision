@@ -6,12 +6,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { loginWithGoogle } from '@/lib/auth/google';
 import { useAuthStore } from '@/lib/store';
+import { useLocale } from '@/hooks/useLocale';
 
 // 실제 콜백 처리 컴포넌트
 function GoogleCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const locale = useLocale();
+  const isEn = locale === 'en';
 
   const [status, setStatus] = useState<'loading' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
@@ -22,13 +25,13 @@ function GoogleCallbackContent() {
 
     if (error) {
       setStatus('error');
-      setErrorMessage('Google 로그인이 취소되었습니다');
+      setErrorMessage(isEn ? 'Google login was cancelled' : 'Google 로그인이 취소되었습니다');
       return;
     }
 
     if (!code) {
       setStatus('error');
-      setErrorMessage('인증 코드가 없습니다');
+      setErrorMessage(isEn ? 'Authentication code is missing' : '인증 코드가 없습니다');
       return;
     }
 
@@ -45,7 +48,7 @@ function GoogleCallbackContent() {
       .catch((err) => {
         console.error('Google login error:', err);
         setStatus('error');
-        setErrorMessage(err.message || '로그인에 실패했습니다');
+        setErrorMessage(err.message || (isEn ? 'Login failed' : '로그인에 실패했습니다'));
       });
   }, [searchParams, router, setAuth]);
 
@@ -59,7 +62,7 @@ function GoogleCallbackContent() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">
-            로그인 실패
+            {isEn ? 'Login Failed' : '로그인 실패'}
           </h1>
           <p className="text-slate-500 mb-6">{errorMessage}</p>
           <div className="flex flex-col gap-3">
@@ -67,13 +70,13 @@ function GoogleCallbackContent() {
               href="/auth/login"
               className="px-6 py-3 bg-brand-primary text-white rounded-xl font-medium hover:bg-brand-primary/90 transition-colors"
             >
-              다시 시도하기
+              {isEn ? 'Try Again' : '다시 시도하기'}
             </Link>
             <Link
               href="/"
               className="px-6 py-3 text-slate-600 hover:text-slate-900 transition-colors"
             >
-              홈으로 돌아가기
+              {isEn ? 'Go to Home' : '홈으로 돌아가기'}
             </Link>
           </div>
         </div>
@@ -86,9 +89,9 @@ function GoogleCallbackContent() {
       <div className="text-center p-8">
         <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
         <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          Google 로그인 중...
+          {isEn ? 'Signing in with Google...' : 'Google 로그인 중...'}
         </h1>
-        <p className="text-slate-500">잠시만 기다려주세요</p>
+        <p className="text-slate-500">{isEn ? 'Please wait...' : '잠시만 기다려주세요'}</p>
       </div>
     </div>
   );
@@ -102,7 +105,7 @@ export default function GoogleCallbackPage() {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
           <div className="text-center p-8">
             <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">로딩 중...</h1>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Loading...</h1>
           </div>
         </div>
       }
