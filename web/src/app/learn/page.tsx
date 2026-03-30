@@ -51,12 +51,12 @@ interface Review {
 const examNamesKo: Record<string, string> = {
   CSAT: '수능', CSAT_2026: '2026 수능 기출', SAT: 'SAT',
   TOEFL: 'TOEFL', TOEIC: 'TOEIC', TEPS: 'TEPS',
-  EBS: 'EBS 연계', GRE: 'GRE',
+  EBS: 'EBS 연계', GRE: 'GRE', IELTS: 'IELTS', ACT: 'ACT',
 };
 const examNamesEn: Record<string, string> = {
   CSAT: 'CSAT', CSAT_2026: '2026 CSAT', SAT: 'SAT',
   TOEFL: 'TOEFL', TOEIC: 'TOEIC', TEPS: 'TEPS',
-  EBS: 'EBS', GRE: 'GRE',
+  EBS: 'EBS', GRE: 'GRE', IELTS: 'IELTS', ACT: 'ACT',
 };
 
 // Level name mapping - exam-specific
