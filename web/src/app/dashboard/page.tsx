@@ -194,7 +194,7 @@ function DashboardContent() {
 
   // 4개 패키지 접근 권한을 1번의 API 호출로 체크
   const { data: bulkAccessData } = usePackageAccessBulk(
-    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete'],
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete', 'act-complete'],
     !!user && hasHydrated
   );
 
@@ -605,6 +605,7 @@ function DashboardContent() {
                       CSAT: 'bg-teal-500', TEPS: 'bg-purple-500', CSAT_2026: 'bg-emerald-500',
                       EBS: 'bg-green-500', TOEFL: 'bg-blue-600', TOEIC: 'bg-green-500',
                       SAT: 'bg-orange-500', GRE: 'bg-indigo-500', IELTS: 'bg-sky-500',
+                      ACT: 'bg-violet-500',
                     };
                     const defaultLevel = getValidLevelsForExam(key)[0];
                     return (

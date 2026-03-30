@@ -154,7 +154,13 @@ export const login = async (
 
     // Find user
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
+      include: {
+        purchases: {
+          where: { status: 'ACTIVE', expiresAt: { gt: new Date() } },
+          include: { package: { select: { slug: true, name: true } } },
+        },
+      },
     });
 
     if (!user) {
@@ -187,6 +193,7 @@ export const login = async (
         subscriptionStatus: user.subscriptionStatus,
         subscriptionPlan: user.subscriptionPlan,
         subscriptionEnd: user.subscriptionEnd,
+        purchases: user.purchases,
       },
       token
     });
