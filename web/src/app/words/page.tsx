@@ -115,14 +115,14 @@ function WordsPageContent() {
   const checkExamLocked = (exam: string) => isExamLocked(user, exam);
   const checkLevelLocked = (exam: string, level: string) => isLevelLocked(user, exam, level);
 
-  // Get initial values from URL parameters
+  // Get initial values from URL parameters (memoized to prevent re-render loops)
   const initialSearch = searchParams.get('search') || '';
-  const initialExam = searchParams.get('exam') || (initialSearch ? '' : (isEn ? 'SAT' : 'CSAT'));
+  const initialExam = searchParams.get('exam') || '';
   const initialLevel = searchParams.get('level') || '';
 
   // 필터 상태
   const [search, setSearch] = useState(initialSearch);
-  const [examCategory, setExamCategory] = useState(initialExam);
+  const [examCategory, setExamCategory] = useState(() => initialExam || (initialSearch ? '' : (isEn ? 'SAT' : 'CSAT')));
   const [level, setLevel] = useState(initialLevel);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState('popular');
