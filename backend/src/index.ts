@@ -102,13 +102,13 @@ const corsOptions = {
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(express.json({
-  limit: '5mb',
+  limit: '10mb',
   verify: (req: any, _res, buf) => {
     if (req.url?.includes('/paddle/webhook')) {
       req.rawBody = buf.toString();
     }
   },
-}));  // base64 image uploads (5mb 충분) + rawBody for Paddle webhook only
+}));  // base64 image uploads (10mb for base64 overhead) + rawBody for Paddle webhook only
 app.use(express.text({ type: 'text/plain' }));  // For sendBeacon text/plain requests
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
 app.use(rateLimiter);
