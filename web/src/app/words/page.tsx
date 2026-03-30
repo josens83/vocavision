@@ -80,6 +80,7 @@ function WordsPageContent() {
   const [examCategory, setExamCategory] = useState(initialExam);
   const [level, setLevel] = useState(initialLevel);
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState<'popular' | 'alpha' | 'newest'>('popular');
   // 검색 트리거용 상태 (Enter 누를 때만 검색 실행)
   const [searchQuery, setSearchQuery] = useState(initialSearch);
 
@@ -90,6 +91,7 @@ function WordsPageContent() {
     examCategory: examCategory || undefined,
     level: level || undefined,
     search: searchQuery || undefined,
+    sort: sortBy,
   }, !!user && hasHydrated);
 
   const prefetchWords = usePrefetchWordsSearch();
@@ -213,7 +215,7 @@ function WordsPageContent() {
                   setPage(1);
                   syncURL('', '');
                 }}
-                className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   examCategory === ''
                     ? 'bg-[#1c1c1e] text-white'
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -237,7 +239,7 @@ function WordsPageContent() {
                       setPage(1);
                       syncURL(exam, '');
                     }}
-                    className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
                       locked
                         ? 'bg-gray-100 text-[#999999] cursor-pointer'
                         : examCategory === exam
@@ -262,7 +264,7 @@ function WordsPageContent() {
               {/* 시험 "전체" 선택 시 레벨도 "전체"만 표시 */}
               {examCategory === '' ? (
                 <button
-                  className="px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all bg-[#1c1c1e] text-white"
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all bg-[#1c1c1e] text-white"
                 >
                   {isEn ? 'All' : '전체'}
                 </button>
@@ -277,7 +279,7 @@ function WordsPageContent() {
                         setPage(1);
                         syncURL(examCategory, lvl);
                       }}
-                      className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                         level === lvl
                           ? 'bg-[#10B981] text-white'
                           : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -300,7 +302,7 @@ function WordsPageContent() {
                         setPage(1);
                         syncURL(examCategory, lvl);
                       }}
-                      className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                         level === lvl
                           ? 'bg-[#10B981] text-white'
                           : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -333,7 +335,7 @@ function WordsPageContent() {
                             setPage(1);
                             syncURL(examCategory, lvl);
                           }}
-                          className={`px-4 py-2 rounded-[10px] text-[13px] font-semibold transition-all flex items-center gap-1 ${
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${
                             locked
                               ? 'bg-gray-100 text-[#999999] cursor-pointer'
                               : level === lvl
@@ -364,17 +366,26 @@ function WordsPageContent() {
           </div>
         </section>
 
-        {/* 결과 카운트 */}
+        {/* 결과 카운트 + Sort */}
         <div className="flex items-center justify-between">
           <p className="text-[14px] text-gray-500">
             {isEn ? '' : '총 '}<span className="font-semibold text-[#1c1c1e]">{totalCount}</span>{isEn ? ' words' : '개 단어'}
           </p>
+          <select
+            value={sortBy}
+            onChange={(e) => { setSortBy(e.target.value as any); setPage(1); }}
+            className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white cursor-pointer"
+          >
+            <option value="popular">{isEn ? 'Popular' : '인기순'}</option>
+            <option value="alpha">{isEn ? 'A → Z' : '알파벳순'}</option>
+            <option value="newest">{isEn ? 'Newest' : '최신순'}</option>
+          </select>
         </div>
 
         {/* 단어 목록 */}
         {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <SkeletonWordCard key={i} />
             ))}
           </div>
@@ -392,7 +403,7 @@ function WordsPageContent() {
           />
         ) : (
           <>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {words.map((word) => (
                 <WordCard
                   key={word.id}
@@ -491,39 +502,42 @@ function WordCard({
   const linkQuery = linkParams.toString();
   const href = `/words/${word.id}${linkQuery ? `?${linkQuery}` : ''}`;
 
+  const posAbbr: Record<string, string> = {
+    ADJECTIVE: 'ADJ', ADVERB: 'ADV', PREPOSITION: 'PREP',
+    CONJUNCTION: 'CONJ', PRONOUN: 'PRON', INTERJECTION: 'INTERJ',
+  };
+
   return (
     <Link
       href={href}
-      className="block bg-white rounded-2xl p-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+      className="block bg-white rounded-xl p-3 border border-gray-100 hover:border-teal-200 hover:shadow-sm transition"
     >
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <h3 className="text-[18px] font-bold text-[#1c1c1e]">{word.word}</h3>
-          {word.pronunciation && !isEn && (
-            <p className="text-[13px] text-gray-500">{word.pronunciation.replace(/\*\*/g, '')}</p>
+      {/* 1줄: 단어 + 품사 + 배지(max 2) + 화살표 */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-bold text-lg text-[#1c1c1e] truncate">{word.word}</span>
+          {word.partOfSpeech && (
+            <span className="text-xs text-gray-400 uppercase flex-shrink-0">
+              {posAbbr[word.partOfSpeech] || word.partOfSpeech}
+            </span>
           )}
         </div>
-
-        {/* 배지 */}
-        <div className="flex gap-1.5 flex-wrap justify-end">
-          {badges.map((badge, i) => (
-            <span
-              key={i}
-              className={`text-[11px] px-2 py-1 rounded-full font-medium ${badge.colorClass}`}
-            >
+        <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+          {badges.slice(0, 2).map((badge, i) => (
+            <span key={i} className={`text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${badge.colorClass}`}>
               {badge.label}
             </span>
           ))}
+          {badges.length > 2 && (
+            <span className="text-xs text-gray-400">+{badges.length - 2}</span>
+          )}
+          <span className="text-gray-300 ml-1">→</span>
         </div>
       </div>
-
-      <p className="text-[15px] text-[#1c1c1e]">{isEn ? word.definition : (word.definitionKo || word.definition)}</p>
-
-      {/* 품사 */}
-      <div className="flex items-center justify-between mt-3">
-        <span className="text-[12px] text-[#999999]">{word.partOfSpeech}</span>
-        <span className="text-[13px] text-[#14B8A6] font-medium">{isEn ? 'Details →' : '자세히 보기 →'}</span>
-      </div>
+      {/* 2줄: 뜻 */}
+      <p className="text-sm text-gray-600 truncate mt-0.5">
+        {isEn ? word.definition : (word.definitionKo || word.definition)}
+      </p>
     </Link>
   );
 }
