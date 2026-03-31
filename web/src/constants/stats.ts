@@ -14,11 +14,11 @@ export const PLATFORM_STATS = {
   csatWords: 1724,
 
   // 수능 L1 단어 수 (무료 제공)
-  csatL1Words: 948,
+  csatL1Words: 951,
 
   // 레벨별 단어 수 (CSAT 기준)
   levels: {
-    L1: 948, // 기초
+    L1: 951, // 기초
     L2: 571, // 중급
     L3: 215, // 고급
   },

@@ -136,7 +136,7 @@ const getLevelInfo = (exam: string, level: string, isEn = false) => {
   }
 
   const defaultLevels: Record<string, { name: string; description: string; target: string; wordCount: number }> = {
-    L1: { name: 'L1(기초)', description: '기초 필수 단어', target: '3등급 목표', wordCount: 884 },
+    L1: { name: 'L1(기초)', description: '기초 필수 단어', target: '3등급 목표', wordCount: 951 },
     L2: { name: 'L2(중급)', description: '핵심 심화 단어', target: '2등급 목표', wordCount: 747 },
     L3: { name: 'L3(고급)', description: '고난도 단어', target: '1등급 목표', wordCount: 158 },
   };
