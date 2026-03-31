@@ -10,7 +10,7 @@ import { canAccessExamWithPurchase, canAccessContentWithPurchase, getAvailableEx
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonDashboard } from '@/components/ui/Skeleton';
 import { useDashboardSummary, usePackageAccessBulk, usePrefetchDashboard } from '@/hooks/useQueries';
-import { EXAM_MAP, VALID_EXAM_KEYS, getValidLevelForExam, getValidLevelsForExam, getLevelLabel, getLevelShortLabel, SAT_THEMES, getSatTheme } from '@/constants/exams';
+import { EXAM_MAP, VALID_EXAM_KEYS, getValidLevelForExam, getValidLevelsForExam, getLevelLabel, getLevelShortLabel, getExamLabel, SAT_THEMES, getSatTheme } from '@/constants/exams';
 import { useLocale } from '@/hooks/useLocale';
 
 // ============================================
@@ -367,7 +367,7 @@ function DashboardContent() {
   const selectedExam = (isGlobalDash && KR_ONLY.includes(rawSelectedExam)) ? 'SAT' : rawSelectedExam;
   const selectedLevel = activeLevel || 'L1';
   const examCfg = EXAM_MAP[selectedExam];
-  const exam = { name: examCfg?.label || selectedExam, icon: examCfg?.icon || '📝', color: examCfg?.color || 'blue' };
+  const exam = { name: getExamLabel(selectedExam, isEn), icon: examCfg?.icon || '📝', color: examCfg?.color || 'blue' };
   const level = getLevelInfo(selectedExam, selectedLevel, isEn);
 
   const totalWords = examLevelTotalWords || level.wordCount;
@@ -584,7 +584,7 @@ function DashboardContent() {
                 {isEn ? 'Current Course' : '현재 코스'}
               </span>
               <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium">
-                {examCfg?.label || selectedExam} · {level.name || selectedLevel}
+                {getExamLabel(selectedExam, isEn)} · {level.name || selectedLevel}
               </span>
             </div>
             <span className={`text-gray-400 transition-transform duration-200 ${isCourseExpanded ? 'rotate-180' : ''}`}>
@@ -645,8 +645,8 @@ function DashboardContent() {
                   {getValidLevelsForExam(selectedExam).map((lvl) => {
                     const isLocked = isLevelLocked(user, selectedExam, lvl);
                     const useKeyDisplay = selectedExam === 'CSAT' || selectedExam === 'TEPS';
-                    const levelLabel = useKeyDisplay ? getLevelShortLabel(selectedExam, lvl) : getLevelLabel(selectedExam, lvl);
-                    const displayName = useKeyDisplay ? lvl : getLevelShortLabel(selectedExam, lvl);
+                    const levelLabel = useKeyDisplay ? getLevelShortLabel(selectedExam, lvl, isEn) : getLevelLabel(selectedExam, lvl, isEn);
+                    const displayName = useKeyDisplay ? lvl : getLevelShortLabel(selectedExam, lvl, isEn);
                     return (
                       <button
                         key={lvl}

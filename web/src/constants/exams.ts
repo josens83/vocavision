@@ -11,12 +11,15 @@
 export interface LevelConfig {
   key: string;
   label: string;       // 풀 라벨 (예: 'L1(기초)')
+  labelEn?: string;    // EN 라벨 (예: 'L1 (Basic)')
   shortLabel: string;  // 짧은 라벨 (예: '기초')
+  shortLabelEn?: string; // EN 짧은 라벨 (예: 'Basic')
 }
 
 export interface ExamConfig {
   key: string;
   label: string;         // 표시명 (예: '수능')
+  labelEn?: string;      // EN 표시명 (예: 'CSAT')
   icon: string;          // 이모지 아이콘
   color: string;         // 색상 키 (blue, purple 등)
   levels: LevelConfig[];
@@ -32,116 +35,126 @@ export const EXAM_LIST: ExamConfig[] = [
   {
     key: 'CSAT',
     label: '수능',
+    labelEn: 'CSAT',
     icon: '📝',
     color: 'blue',
     globalHidden: true,
     levels: [
-      { key: 'L1', label: 'L1(기초)', shortLabel: '기초' },
-      { key: 'L2', label: 'L2(중급)', shortLabel: '중급' },
-      { key: 'L3', label: 'L3(고급)', shortLabel: '고급' },
+      { key: 'L1', label: 'L1(기초)', labelEn: 'L1 (Basic)', shortLabel: '기초', shortLabelEn: 'Basic' },
+      { key: 'L2', label: 'L2(중급)', labelEn: 'L2 (Intermediate)', shortLabel: '중급', shortLabelEn: 'Intermediate' },
+      { key: 'L3', label: 'L3(고급)', labelEn: 'L3 (Advanced)', shortLabel: '고급', shortLabelEn: 'Advanced' },
     ],
   },
   {
     key: 'TEPS',
     label: 'TEPS',
+    labelEn: 'TEPS',
     icon: '🎓',
     color: 'purple',
     globalHidden: true,
     levels: [
-      { key: 'L1', label: 'L1(기본)', shortLabel: '기본' },
-      { key: 'L2', label: 'L2(필수)', shortLabel: '필수' },
+      { key: 'L1', label: 'L1(기본)', labelEn: 'L1 (Core)', shortLabel: '기본', shortLabelEn: 'Core' },
+      { key: 'L2', label: 'L2(필수)', labelEn: 'L2 (Essential)', shortLabel: '필수', shortLabelEn: 'Essential' },
     ],
   },
   {
     key: 'CSAT_2026',
     label: '2026 수능 기출',
+    labelEn: '2026 CSAT',
     icon: '📋',
     color: 'emerald',
     globalHidden: true,
     packageSlug: '2026-csat-analysis',
     levels: [
-      { key: 'LISTENING', label: '듣기영역', shortLabel: '듣기' },
-      { key: 'READING_2', label: '독해 2점', shortLabel: '독해2점' },
-      { key: 'READING_3', label: '독해 3점', shortLabel: '독해3점' },
+      { key: 'LISTENING', label: '듣기영역', labelEn: 'Listening', shortLabel: '듣기', shortLabelEn: 'Listening' },
+      { key: 'READING_2', label: '독해 2점', labelEn: 'Reading 2pt', shortLabel: '독해2점', shortLabelEn: 'Reading 2pt' },
+      { key: 'READING_3', label: '독해 3점', labelEn: 'Reading 3pt', shortLabel: '독해3점', shortLabelEn: 'Reading 3pt' },
     ],
   },
   {
     key: 'EBS',
     label: 'EBS 연계',
+    labelEn: 'EBS',
     icon: '📗',
     color: 'green',
     globalHidden: true,
     packageSlug: 'ebs-vocab',
     levels: [
-      { key: 'LISTENING', label: '듣기영역', shortLabel: '듣기' },
-      { key: 'READING_BASIC', label: '독해 기본', shortLabel: '독해기본' },
-      { key: 'READING_ADV', label: '독해 실력', shortLabel: '독해실력' },
+      { key: 'LISTENING', label: '듣기영역', labelEn: 'Listening', shortLabel: '듣기', shortLabelEn: 'Listening' },
+      { key: 'READING_BASIC', label: '독해 기본', labelEn: 'Reading Basic', shortLabel: '독해기본', shortLabelEn: 'Reading Basic' },
+      { key: 'READING_ADV', label: '독해 실력', labelEn: 'Reading Advanced', shortLabel: '독해실력', shortLabelEn: 'Reading Adv' },
     ],
   },
   {
     key: 'TOEFL',
     label: 'TOEFL',
+    labelEn: 'TOEFL',
     icon: '🌍',
     color: 'blue',
     packageSlug: 'toefl-complete',
     levels: [
-      { key: 'L1', label: 'Essential 핵심필수', shortLabel: 'Essential' },
-      { key: 'L2', label: 'Mastery 실전고난도', shortLabel: 'Mastery' },
+      { key: 'L1', label: 'Essential 핵심필수', labelEn: 'Essential', shortLabel: 'Essential', shortLabelEn: 'Essential' },
+      { key: 'L2', label: 'Mastery 실전고난도', labelEn: 'Mastery', shortLabel: 'Mastery', shortLabelEn: 'Mastery' },
     ],
   },
   {
     key: 'TOEIC',
     label: 'TOEIC',
+    labelEn: 'TOEIC',
     icon: '💼',
     color: 'green',
     packageSlug: 'toeic-complete',
     levels: [
-      { key: 'L1', label: 'Primer 기초필수', shortLabel: 'Primer' },
-      { key: 'L2', label: 'Booster 고득점', shortLabel: 'Booster' },
+      { key: 'L1', label: 'Primer 기초필수', labelEn: 'Primer', shortLabel: 'Primer', shortLabelEn: 'Primer' },
+      { key: 'L2', label: 'Booster 고득점', labelEn: 'Booster', shortLabel: 'Booster', shortLabelEn: 'Booster' },
     ],
   },
   {
     key: 'SAT',
     label: 'SAT',
+    labelEn: 'SAT',
     icon: '🎯',
     color: 'orange',
     packageSlug: 'sat-complete',
     levels: [
-      { key: 'L1', label: 'SAT Starter', shortLabel: 'Starter' },
-      { key: 'L2', label: 'SAT Advanced', shortLabel: 'Advanced' },
+      { key: 'L1', label: 'SAT Starter', labelEn: 'Starter', shortLabel: 'Starter', shortLabelEn: 'Starter' },
+      { key: 'L2', label: 'SAT Advanced', labelEn: 'Advanced', shortLabel: 'Advanced', shortLabelEn: 'Advanced' },
     ],
   },
   {
     key: 'GRE',
     label: 'GRE',
+    labelEn: 'GRE',
     icon: '🎓',
     color: 'indigo',
     packageSlug: 'gre-complete',
     levels: [
-      { key: 'L1', label: 'Verbal 핵심', shortLabel: 'Verbal' },
-      { key: 'L2', label: 'Elite 고급', shortLabel: 'Elite' },
+      { key: 'L1', label: 'Verbal 핵심', labelEn: 'Verbal', shortLabel: 'Verbal', shortLabelEn: 'Verbal' },
+      { key: 'L2', label: 'Elite 고급', labelEn: 'Elite', shortLabel: 'Elite', shortLabelEn: 'Elite' },
     ],
   },
   {
     key: 'IELTS',
     label: 'IELTS',
+    labelEn: 'IELTS',
     icon: '🌐',
     color: 'sky',
     packageSlug: 'ielts-complete',
     levels: [
-      { key: 'L1', label: 'Foundation Band 5~6.5', shortLabel: 'Foundation' },
-      { key: 'L2', label: 'Academic Band 7~8', shortLabel: 'Academic' },
+      { key: 'L1', label: 'Foundation Band 5~6.5', labelEn: 'Foundation', shortLabel: 'Foundation', shortLabelEn: 'Foundation' },
+      { key: 'L2', label: 'Academic Band 7~8', labelEn: 'Academic', shortLabel: 'Academic', shortLabelEn: 'Academic' },
     ],
   },
   {
     key: 'ACT',
     label: 'ACT',
+    labelEn: 'ACT',
     icon: '📐',
     color: 'violet',
     packageSlug: 'act-complete',
     levels: [
-      { key: 'L1', label: 'ACT Core', shortLabel: 'Core' },
-      { key: 'L2', label: 'ACT Plus', shortLabel: 'Plus' },
+      { key: 'L1', label: 'ACT Core', labelEn: 'Core', shortLabel: 'Core', shortLabelEn: 'Core' },
+      { key: 'L2', label: 'ACT Plus', labelEn: 'Plus', shortLabel: 'Plus', shortLabelEn: 'Plus' },
     ],
   },
 ];
@@ -171,20 +184,29 @@ export function getValidLevelForExam(examKey: string, currentLevel: string): str
   return validLevels.includes(currentLevel) ? currentLevel : validLevels[0];
 }
 
-/** 레벨 키 → 라벨 변환 (시험별) */
-export function getLevelLabel(examKey: string, levelKey: string): string {
+/** 시험 키 → 표시명 (isEn 분기) */
+export function getExamLabel(examKey: string, isEn: boolean = false): string {
   const exam = EXAM_MAP[examKey];
-  if (!exam) return levelKey;
-  const level = exam.levels.find((l) => l.key === levelKey);
-  return level?.label || levelKey;
+  if (!exam) return examKey;
+  return isEn ? (exam.labelEn || exam.label) : exam.label;
 }
 
-/** 레벨 키 → 짧은 라벨 변환 */
-export function getLevelShortLabel(examKey: string, levelKey: string): string {
+/** 레벨 키 → 라벨 변환 (시험별, isEn 분기) */
+export function getLevelLabel(examKey: string, levelKey: string, isEn: boolean = false): string {
   const exam = EXAM_MAP[examKey];
   if (!exam) return levelKey;
   const level = exam.levels.find((l) => l.key === levelKey);
-  return level?.shortLabel || levelKey;
+  if (!level) return levelKey;
+  return isEn ? (level.labelEn || level.label) : level.label;
+}
+
+/** 레벨 키 → 짧은 라벨 변환 (isEn 분기) */
+export function getLevelShortLabel(examKey: string, levelKey: string, isEn: boolean = false): string {
+  const exam = EXAM_MAP[examKey];
+  if (!exam) return levelKey;
+  const level = exam.levels.find((l) => l.key === levelKey);
+  if (!level) return levelKey;
+  return isEn ? (level.shortLabelEn || level.shortLabel) : level.shortLabel;
 }
 
 // ---------------------------------------------
