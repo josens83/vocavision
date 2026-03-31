@@ -127,23 +127,29 @@ export function TestimonialsGrid({ children, columns = 3 }: TestimonialsGridProp
 // Default Testimonials for VocaVision
 // ============================================
 
-export const vocaVisionTestimonials: TestimonialProps[] = [
+export const getVocaVisionTestimonials = (isEn: boolean): TestimonialProps[] => [
   {
-    quote:
-      "VocaVision AI를 사용한 후 영어 단어 암기가 훨씬 쉬워졌어요. AI 이미지와 플래시카드가 정말 효과적이고, 매일 학습하는 게 즐거워졌습니다. TOEIC 점수도 100점이나 올랐어요!",
-    authorName: "김민지",
-    authorTitle: "대학생",
+    quote: isEn
+      ? "After using VocaVision AI, memorizing English words became so much easier. The AI images and flashcards are really effective, and studying every day has become enjoyable. My TOEIC score went up by 100 points!"
+      : "VocaVision AI를 사용한 후 영어 단어 암기가 훨씬 쉬워졌어요. AI 이미지와 플래시카드가 정말 효과적이고, 매일 학습하는 게 즐거워졌습니다. TOEIC 점수도 100점이나 올랐어요!",
+    authorName: isEn ? "Minji K." : "김민지",
+    authorTitle: isEn ? "College Student" : "대학생",
   },
   {
-    quote:
-      "간격 반복 학습 시스템이 정말 과학적이에요! 잊어버릴 때쯤 복습 알림이 와서 효율적으로 암기할 수 있었습니다. UI도 깔끔하고 사용하기 편해요.",
-    authorName: "이준호",
-    authorTitle: "직장인",
+    quote: isEn
+      ? "The spaced repetition system is truly scientific! Review reminders come right when I'm about to forget, making memorization so efficient. The UI is clean and easy to use."
+      : "간격 반복 학습 시스템이 정말 과학적이에요! 잊어버릴 때쯤 복습 알림이 와서 효율적으로 암기할 수 있었습니다. UI도 깔끔하고 사용하기 편해요.",
+    authorName: isEn ? "Junho L." : "이준호",
+    authorTitle: isEn ? "Office Worker" : "직장인",
   },
   {
-    quote:
-      "영어 학원 강사로서 학생들에게 VocaVision AI를 추천하고 있어요. 학생들의 동기부여에 효과적이고, AI 이미지가 기억에 오래 남아서 더 효과적으로 공부하게 만들어요.",
-    authorName: "박서연",
-    authorTitle: "영어 강사",
+    quote: isEn
+      ? "As an English tutor, I recommend VocaVision AI to my students. It's great for motivation, and the AI images are memorable, helping students study more effectively."
+      : "영어 학원 강사로서 학생들에게 VocaVision AI를 추천하고 있어요. 학생들의 동기부여에 효과적이고, AI 이미지가 기억에 오래 남아서 더 효과적으로 공부하게 만들어요.",
+    authorName: isEn ? "Seoyeon P." : "박서연",
+    authorTitle: isEn ? "English Tutor" : "영어 강사",
   },
 ];
+
+/** @deprecated Use getVocaVisionTestimonials(isEn) instead */
+export const vocaVisionTestimonials = getVocaVisionTestimonials(false);
