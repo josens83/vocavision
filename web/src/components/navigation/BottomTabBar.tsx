@@ -62,7 +62,7 @@ export default function BottomTabBar() {
     { key: 'my', label: 'MY', href: '/my', icon: icons.user, showLoggedIn: true },
   ];
 
-  const hiddenPaths = ['/auth', '/admin', '/checkout'];
+  const hiddenPaths = ['/auth', '/admin', '/checkout', '/learn'];
 
   // Portal needs to be mounted on client side only
   useEffect(() => {
