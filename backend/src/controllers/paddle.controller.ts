@@ -150,37 +150,6 @@ export const handlePaddleWebhook = async (req: Request, res: Response) => {
         break;
       }
 
-      case 'transaction.refunded': {
-        const tx = event.data as any;
-        const userId = tx.customData?.userId;
-        const packageSlug = tx.customData?.packageSlug;
-
-        if (!userId) break;
-
-        if (packageSlug) {
-          // 단품 환불 → UserPurchase 비활성화
-          const pkg = await prisma.productPackage.findUnique({ where: { slug: packageSlug } });
-          if (pkg) {
-            await prisma.userPurchase.updateMany({
-              where: { userId, packageId: pkg.id, status: 'ACTIVE' },
-              data: { status: 'REFUNDED' },
-            });
-            console.log(`[Paddle] Package refunded: ${packageSlug} for user ${userId}`);
-          }
-        } else {
-          // 구독 환불 → 구독 취소 처리
-          await prisma.user.update({
-            where: { id: userId },
-            data: {
-              subscriptionPlan: null,
-              subscriptionStatus: 'CANCELLED',
-            },
-          });
-          console.log(`[Paddle] Subscription refunded for user ${userId}`);
-        }
-        break;
-      }
-
       case 'transaction.completed': {
         const tx = event.data as any;
         const userId = tx.customData?.userId;
@@ -209,6 +178,40 @@ export const handlePaddleWebhook = async (req: Request, res: Response) => {
             });
             console.log(`[Paddle] Package ${packageSlug} activated for user ${userId}`);
           }
+        }
+        break;
+      }
+
+      default: {
+        const eventType = (event as any).eventType || '';
+        if (eventType === 'transaction.refunded') {
+          const tx = (event as any).data;
+          const userId = tx?.customData?.userId;
+          const packageSlug = tx?.customData?.packageSlug;
+
+          if (userId) {
+            if (packageSlug) {
+              const pkg = await prisma.productPackage.findUnique({ where: { slug: packageSlug } });
+              if (pkg) {
+                await prisma.userPurchase.updateMany({
+                  where: { userId, packageId: pkg.id, status: 'ACTIVE' },
+                  data: { status: 'REFUNDED' },
+                });
+                console.log(`[Paddle] Package refunded: ${packageSlug} for user ${userId}`);
+              }
+            } else {
+              await prisma.user.update({
+                where: { id: userId },
+                data: {
+                  subscriptionPlan: null,
+                  subscriptionStatus: 'CANCELLED',
+                },
+              });
+              console.log(`[Paddle] Subscription refunded for user ${userId}`);
+            }
+          }
+        } else {
+          console.log(`[Paddle] Unhandled event: ${eventType}`);
         }
         break;
       }
