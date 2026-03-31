@@ -308,12 +308,6 @@ export const kakaoLogin = async (
     // 3. 기존 사용자 확인 또는 새 사용자 생성
     let user = await prisma.user.findUnique({
       where: { kakaoId },
-      include: {
-        purchases: {
-          where: { status: 'ACTIVE', expiresAt: { gt: new Date() } },
-          include: { package: { select: { slug: true, name: true } } },
-        },
-      },
     });
 
     const trialEnd = new Date();
@@ -351,7 +345,13 @@ export const kakaoLogin = async (
     // 4. JWT 토큰 발급
     const token = generateToken(user.id, user.role);
 
-    // 5. 응답
+    // 5. purchases re-fetch (create 경로에는 purchases 없으므로)
+    const userPurchases = await prisma.purchase.findMany({
+      where: { userId: user.id, status: 'ACTIVE', expiresAt: { gt: new Date() } },
+      include: { package: { select: { slug: true, name: true } } },
+    });
+
+    // 6. 응답
     res.json({
       success: true,
       message: '카카오 로그인 성공',
@@ -366,7 +366,7 @@ export const kakaoLogin = async (
         subscriptionStatus: user.subscriptionStatus,
         subscriptionPlan: user.subscriptionPlan,
         subscriptionEnd: user.subscriptionEnd,
-        purchases: (user as any).purchases || [],
+        purchases: userPurchases,
       },
     });
   } catch (error) {
@@ -455,12 +455,6 @@ export const googleLogin = async (
     // 3. 기존 사용자 확인 또는 새 사용자 생성
     let user = await prisma.user.findUnique({
       where: { googleId },
-      include: {
-        purchases: {
-          where: { status: 'ACTIVE', expiresAt: { gt: new Date() } },
-          include: { package: { select: { slug: true, name: true } } },
-        },
-      },
     });
 
     const trialEnd = new Date();
@@ -516,7 +510,13 @@ export const googleLogin = async (
     // 4. JWT 토큰 발급
     const token = generateToken(user.id, user.role);
 
-    // 5. 응답
+    // 5. purchases re-fetch
+    const userPurchases = await prisma.purchase.findMany({
+      where: { userId: user.id, status: 'ACTIVE', expiresAt: { gt: new Date() } },
+      include: { package: { select: { slug: true, name: true } } },
+    });
+
+    // 6. 응답
     res.json({
       success: true,
       message: '구글 로그인 성공',
@@ -531,7 +531,7 @@ export const googleLogin = async (
         subscriptionStatus: user.subscriptionStatus,
         subscriptionPlan: user.subscriptionPlan,
         subscriptionEnd: user.subscriptionEnd,
-        purchases: (user as any).purchases || [],
+        purchases: userPurchases,
       },
     });
   } catch (error) {
