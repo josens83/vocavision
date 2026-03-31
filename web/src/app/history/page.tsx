@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
+import { useLocale } from '@/hooks/useLocale';
 import { EmptyFirstTime } from '@/components/ui/EmptyState';
 import { SkeletonListItem } from '@/components/ui/Skeleton';
 import axios from 'axios';
@@ -29,6 +30,7 @@ export default function HistoryPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
+  const isEn = useLocale() === 'en';
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,11 +79,11 @@ export default function HistoryPage() {
   });
 
   const ratingLabels = {
-    1: '다시',
-    2: '어려움',
-    3: '보통',
-    4: '쉬움',
-    5: '완벽',
+    1: isEn ? 'Again' : '다시',
+    2: isEn ? 'Hard' : '어려움',
+    3: isEn ? 'Normal' : '보통',
+    4: isEn ? 'Easy' : '쉬움',
+    5: isEn ? 'Perfect' : '완벽',
   };
 
   const ratingColors = {
@@ -93,11 +95,11 @@ export default function HistoryPage() {
   };
 
   const methodLabels = {
-    FLASHCARD: '플래시카드',
-    IMAGE: '이미지',
-    MNEMONIC: '연상법',
-    ETYMOLOGY: '어원',
-    QUIZ: '퀴즈',
+    FLASHCARD: isEn ? 'Flashcard' : '플래시카드',
+    IMAGE: isEn ? 'Image' : '이미지',
+    MNEMONIC: isEn ? 'Mnemonic' : '연상법',
+    ETYMOLOGY: isEn ? 'Etymology' : '어원',
+    QUIZ: isEn ? 'Quiz' : '퀴즈',
   };
 
   if (loading) {
@@ -107,9 +109,9 @@ export default function HistoryPage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center gap-4">
               <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1">
-                <ArrowLeft className="w-4 h-4" /> 대시보드
+                <ArrowLeft className="w-4 h-4" /> {isEn ? 'Dashboard' : '대시보드'}
               </Link>
-              <h1 className="text-2xl font-bold text-blue-600">학습 기록</h1>
+              <h1 className="text-2xl font-bold text-blue-600">{isEn ? 'Study History' : '학습 기록'}</h1>
             </div>
           </div>
         </header>
@@ -144,18 +146,18 @@ export default function HistoryPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-              ← 대시보드
+              {isEn ? '← Dashboard' : '← 대시보드'}
             </Link>
-            <h1 className="text-2xl font-bold text-blue-600">학습 기록</h1>
+            <h1 className="text-2xl font-bold text-blue-600">{isEn ? 'Study History' : '학습 기록'}</h1>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">복습 기록</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">{isEn ? 'Review History' : '복습 기록'}</h2>
           <p className="text-gray-600">
-            총 {filteredReviews.length}개의 복습 기록이 있습니다
+            {isEn ? `${filteredReviews.length} review records` : `총 ${filteredReviews.length}개의 복습 기록이 있습니다`}
           </p>
         </div>
 
@@ -170,7 +172,7 @@ export default function HistoryPage() {
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              전체
+              {isEn ? 'All' : '전체'}
             </button>
             <button
               onClick={() => setFilter('today')}
@@ -180,7 +182,7 @@ export default function HistoryPage() {
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              오늘
+              {isEn ? 'Today' : '오늘'}
             </button>
             <button
               onClick={() => setFilter('week')}
@@ -190,7 +192,7 @@ export default function HistoryPage() {
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              이번 주
+              {isEn ? 'This Week' : '이번 주'}
             </button>
             <button
               onClick={() => setFilter('month')}
@@ -200,7 +202,7 @@ export default function HistoryPage() {
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              이번 달
+              {isEn ? 'This Month' : '이번 달'}
             </button>
           </div>
         </div>
@@ -238,11 +240,11 @@ export default function HistoryPage() {
                     <p className="text-gray-600 mb-2">{review.word.definition}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       <span>
-                        복습: {new Date(review.reviewedAt).toLocaleString('ko-KR')}
+                        {isEn ? 'Reviewed: ' : '복습: '}{new Date(review.reviewedAt).toLocaleString(isEn ? 'en-US' : 'ko-KR')}
                       </span>
                       <span>
-                        다음 복습:{' '}
-                        {new Date(review.nextReviewDate).toLocaleDateString('ko-KR')}
+                        {isEn ? 'Next Review: ' : '다음 복습: '}
+                        {new Date(review.nextReviewDate).toLocaleDateString(isEn ? 'en-US' : 'ko-KR')}
                       </span>
                     </div>
                   </div>
@@ -255,7 +257,7 @@ export default function HistoryPage() {
         {/* Stats Summary */}
         {filteredReviews.length > 0 && (
           <div className="mt-8 bg-white rounded-xl p-6 shadow-sm">
-            <h3 className="text-lg font-bold mb-4">기간 요약</h3>
+            <h3 className="text-lg font-bold mb-4">{isEn ? 'Period Summary' : '기간 요약'}</h3>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {Object.entries(ratingLabels).map(([rating, label]) => {
                 const count = filteredReviews.filter(

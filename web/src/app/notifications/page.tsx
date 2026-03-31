@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
+import { useLocale } from '@/hooks/useLocale';
 import { useToast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmModal';
 import { EmptyNotifications } from '@/components/ui/EmptyState';
@@ -35,6 +36,7 @@ export default function NotificationsPage() {
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const toast = useToast();
   const confirm = useConfirm();
+  const isEn = useLocale() === 'en';
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
@@ -137,10 +139,10 @@ export default function NotificationsPage() {
 
   const clearAllNotifications = async () => {
     const confirmed = await confirm({
-      title: '모든 알림 삭제',
-      message: '모든 알림을 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.',
-      confirmText: '모두 삭제',
-      cancelText: '취소',
+      title: isEn ? 'Delete All Notifications' : '모든 알림 삭제',
+      message: isEn ? 'Delete all notifications? This cannot be undone.' : '모든 알림을 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.',
+      confirmText: isEn ? 'Delete All' : '모두 삭제',
+      cancelText: isEn ? 'Cancel' : '취소',
       type: 'danger',
     });
 
@@ -154,10 +156,10 @@ export default function NotificationsPage() {
 
       setNotifications([]);
       setUnreadCount(0);
-      toast.success('알림 삭제 완료', '모든 알림이 삭제되었습니다');
+      toast.success(isEn ? 'Notifications Cleared' : '알림 삭제 완료', isEn ? 'All notifications have been deleted' : '모든 알림이 삭제되었습니다');
     } catch (error) {
       console.error('Failed to clear notifications:', error);
-      toast.error('알림 삭제 실패', '다시 시도해주세요');
+      toast.error(isEn ? 'Failed to Delete' : '알림 삭제 실패', isEn ? 'Please try again' : '다시 시도해주세요');
     }
   };
 
@@ -199,12 +201,12 @@ export default function NotificationsPage() {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return '방금 전';
-    if (minutes < 60) return `${minutes}분 전`;
-    if (hours < 24) return `${hours}시간 전`;
-    if (days < 7) return `${days}일 전`;
+    if (minutes < 1) return isEn ? 'Just now' : '방금 전';
+    if (minutes < 60) return isEn ? `${minutes}m ago` : `${minutes}분 전`;
+    if (hours < 24) return isEn ? `${hours}h ago` : `${hours}시간 전`;
+    if (days < 7) return isEn ? `${days}d ago` : `${days}일 전`;
 
-    return date.toLocaleDateString('ko-KR', {
+    return date.toLocaleDateString(isEn ? 'en-US' : 'ko-KR', {
       month: 'short',
       day: 'numeric',
     });
@@ -215,7 +217,7 @@ export default function NotificationsPage() {
       ? notifications.filter((n) => !n.isRead)
       : notifications;
 
-  const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+  const dayNames = isEn ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['월', '화', '수', '목', '금', '토', '일'];
 
   if (loading) {
     return (
@@ -225,9 +227,9 @@ export default function NotificationsPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                  ← 대시보드
+                  {isEn ? '← Dashboard' : '← 대시보드'}
                 </Link>
-                <h1 className="text-2xl font-bold text-blue-600">알림</h1>
+                <h1 className="text-2xl font-bold text-blue-600">{isEn ? 'Notifications' : '알림'}</h1>
               </div>
             </div>
           </div>
@@ -256,9 +258,9 @@ export default function NotificationsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                ← 대시보드
+                {isEn ? '← Dashboard' : '← 대시보드'}
               </Link>
-              <h1 className="text-2xl font-bold text-blue-600">알림</h1>
+              <h1 className="text-2xl font-bold text-blue-600">{isEn ? 'Notifications' : '알림'}</h1>
               {unreadCount > 0 && (
                 <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                   {unreadCount}
@@ -280,7 +282,7 @@ export default function NotificationsPage() {
                 : 'bg-white text-gray-600 hover:bg-gray-100'
             }`}
           >
-            전체
+            {isEn ? 'All' : '전체'}
           </button>
           <button
             onClick={() => setActiveTab('unread')}
@@ -290,7 +292,7 @@ export default function NotificationsPage() {
                 : 'bg-white text-gray-600 hover:bg-gray-100'
             }`}
           >
-            읽지 않음 ({unreadCount})
+            {isEn ? `Unread (${unreadCount})` : `읽지 않음 (${unreadCount})`}
           </button>
           <button
             onClick={() => setActiveTab('settings')}
@@ -300,7 +302,7 @@ export default function NotificationsPage() {
                 : 'bg-white text-gray-600 hover:bg-gray-100'
             }`}
           >
-            설정
+            {isEn ? 'Settings' : '설정'}
           </button>
         </div>
 
@@ -313,13 +315,13 @@ export default function NotificationsPage() {
                   onClick={markAllAsRead}
                   className="text-sm text-blue-600 hover:text-blue-700"
                 >
-                  모두 읽음 처리
+                  {isEn ? 'Mark All Read' : '모두 읽음 처리'}
                 </button>
                 <button
                   onClick={clearAllNotifications}
                   className="text-sm text-red-600 hover:text-red-700"
                 >
-                  모두 삭제
+                  {isEn ? 'Delete All' : '모두 삭제'}
                 </button>
               </div>
             )}
@@ -328,7 +330,7 @@ export default function NotificationsPage() {
             <div className="space-y-3">
               {filteredNotifications.length === 0 ? (
                 <EmptyNotifications
-                  message={activeTab === 'unread' ? '읽지 않은 알림이 없습니다' : undefined}
+                  message={activeTab === 'unread' ? (isEn ? 'No unread notifications' : '읽지 않은 알림이 없습니다') : undefined}
                 />
               ) : (
                 filteredNotifications.map((notification) => (
@@ -362,14 +364,14 @@ export default function NotificationsPage() {
                               onClick={() => markAsRead(notification.id)}
                               className="text-sm text-blue-600 hover:text-blue-700"
                             >
-                              읽음 처리
+                              {isEn ? 'Mark as Read' : '읽음 처리'}
                             </button>
                           )}
                           <button
                             onClick={() => deleteNotification(notification.id)}
                             className="text-sm text-gray-500 hover:text-red-600"
                           >
-                            삭제
+                            {isEn ? 'Delete' : '삭제'}
                           </button>
                         </div>
                       </div>
@@ -382,16 +384,16 @@ export default function NotificationsPage() {
         ) : (
           /* Settings Tab */
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-bold mb-6">알림 설정</h2>
+            <h2 className="text-xl font-bold mb-6">{isEn ? 'Notification Settings' : '알림 설정'}</h2>
 
             {preferences && (
               <div className="space-y-6">
                 {/* Email Notifications */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold">이메일 알림</h3>
+                    <h3 className="font-semibold">{isEn ? 'Email Notifications' : '이메일 알림'}</h3>
                     <p className="text-sm text-gray-600">
-                      중요한 알림을 이메일로 받습니다
+                      {isEn ? 'Receive important notifications via email' : '중요한 알림을 이메일로 받습니다'}
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -410,9 +412,9 @@ export default function NotificationsPage() {
                 {/* Push Notifications */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold">푸시 알림</h3>
+                    <h3 className="font-semibold">{isEn ? 'Push Notifications' : '푸시 알림'}</h3>
                     <p className="text-sm text-gray-600">
-                      앱에서 실시간 알림을 받습니다
+                      {isEn ? 'Receive real-time notifications in the app' : '앱에서 실시간 알림을 받습니다'}
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -432,9 +434,9 @@ export default function NotificationsPage() {
 
                 {/* Reminder Time */}
                 <div>
-                  <h3 className="font-semibold mb-2">리마인더 시간</h3>
+                  <h3 className="font-semibold mb-2">{isEn ? 'Reminder Time' : '리마인더 시간'}</h3>
                   <p className="text-sm text-gray-600 mb-3">
-                    매일 학습 리마인더를 받을 시간을 설정하세요
+                    {isEn ? 'Set the time to receive daily study reminders' : '매일 학습 리마인더를 받을 시간을 설정하세요'}
                   </p>
                   <input
                     type="time"
@@ -448,9 +450,9 @@ export default function NotificationsPage() {
 
                 {/* Reminder Days */}
                 <div>
-                  <h3 className="font-semibold mb-2">리마인더 요일</h3>
+                  <h3 className="font-semibold mb-2">{isEn ? 'Reminder Days' : '리마인더 요일'}</h3>
                   <p className="text-sm text-gray-600 mb-3">
-                    리마인더를 받을 요일을 선택하세요
+                    {isEn ? 'Select the days to receive reminders' : '리마인더를 받을 요일을 선택하세요'}
                   </p>
                   <div className="flex gap-2">
                     {dayNames.map((day, index) => {
