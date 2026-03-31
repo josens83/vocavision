@@ -89,7 +89,7 @@ export async function processSubscriptionRenewals(): Promise<{
         // 플랜에 따라 billingCycle 결정
         const billingCycle = user.subscriptionPlan === 'YEARLY' ? 'yearly' : 'monthly';
         // 기본 플랜은 basic (추후 확장 가능)
-        const plan = 'basic';
+        const plan = (user.subscriptionPlan === 'PREMIUM_MONTHLY' || user.subscriptionPlan === 'PREMIUM_YEARLY' || user.subscriptionPlan === 'YEARLY' || user.subscriptionPlan === 'FAMILY') ? 'premium' : 'basic';
 
         logger.info(`[SubscriptionRenewal] Renewing user ${user.id} (${user.email})`);
 
