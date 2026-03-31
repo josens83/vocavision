@@ -308,6 +308,12 @@ export const kakaoLogin = async (
     // 3. 기존 사용자 확인 또는 새 사용자 생성
     let user = await prisma.user.findUnique({
       where: { kakaoId },
+      include: {
+        purchases: {
+          where: { status: 'ACTIVE', expiresAt: { gt: new Date() } },
+          include: { package: { select: { slug: true, name: true } } },
+        },
+      },
     });
 
     const trialEnd = new Date();
@@ -360,6 +366,7 @@ export const kakaoLogin = async (
         subscriptionStatus: user.subscriptionStatus,
         subscriptionPlan: user.subscriptionPlan,
         subscriptionEnd: user.subscriptionEnd,
+        purchases: (user as any).purchases || [],
       },
     });
   } catch (error) {
@@ -448,6 +455,12 @@ export const googleLogin = async (
     // 3. 기존 사용자 확인 또는 새 사용자 생성
     let user = await prisma.user.findUnique({
       where: { googleId },
+      include: {
+        purchases: {
+          where: { status: 'ACTIVE', expiresAt: { gt: new Date() } },
+          include: { package: { select: { slug: true, name: true } } },
+        },
+      },
     });
 
     const trialEnd = new Date();
@@ -518,6 +531,7 @@ export const googleLogin = async (
         subscriptionStatus: user.subscriptionStatus,
         subscriptionPlan: user.subscriptionPlan,
         subscriptionEnd: user.subscriptionEnd,
+        purchases: (user as any).purchases || [],
       },
     });
   } catch (error) {

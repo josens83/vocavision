@@ -141,7 +141,8 @@ export const handlePaddleWebhook = async (req: Request, res: Response) => {
         await prisma.user.update({
           where: { id: userId },
           data: {
-            subscriptionPlan: undefined,
+            subscriptionPlan: null,
+            subscriptionStatus: 'CANCELLED',
             subscriptionEnd,
           },
         });

@@ -15,6 +15,8 @@ const addCorsHeaders = (req: Request, res: Response) => {
     'https://vocavision-web.vercel.app',
     'https://vocavision.kr',
     'https://www.vocavision.kr',
+    'https://vocavision.app',
+    'https://www.vocavision.app',
   ];
 
   if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app'))) {
