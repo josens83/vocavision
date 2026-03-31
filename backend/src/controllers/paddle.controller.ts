@@ -184,10 +184,16 @@ export const handlePaddleWebhook = async (req: Request, res: Response) => {
 
       default: {
         const eventType = (event as any).eventType || '';
-        if (eventType === 'transaction.refunded') {
-          const tx = (event as any).data;
-          const userId = tx?.customData?.userId;
-          const packageSlug = tx?.customData?.packageSlug;
+        if (eventType === 'adjustment.created') {
+          const adj = (event as any).data;
+          const action = adj?.action; // 'refund', 'credit', 'chargeback'
+          if (action !== 'refund' && action !== 'chargeback') break;
+
+          // adjustment → 원본 transaction의 customData에서 userId/packageSlug 참조
+          const userId = adj?.customData?.userId;
+          const packageSlug = adj?.customData?.packageSlug;
+
+          console.log(`[Paddle] Adjustment ${action}: userId=${userId}, pkg=${packageSlug}`);
 
           if (userId) {
             if (packageSlug) {
