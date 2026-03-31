@@ -123,35 +123,35 @@ export function getSubscriptionTier(user: User | null): SubscriptionTier {
   return 'FREE';
 }
 
-export function canAccessExam(user: User | null, exam: string): boolean {
-  if (exam === 'CSAT') return true;
+export function canAccessExam(user: User | null, exam: string, isGlobal: boolean = false): boolean {
+  const tier = getSubscriptionTier(user);
+
+  // KR-only 시험: 글로벌에서 접근 불가
+  if (exam === 'CSAT') return !isGlobal;
   if (exam === 'TEPS') {
-    const tier = getSubscriptionTier(user);
+    if (isGlobal) return false;
     return tier === 'PREMIUM' || tier === 'BASIC';
   }
-  // EBS, CSAT_2026: 프리미엄 또는 단품 구매
   if (exam === 'EBS' || exam === 'CSAT_2026') {
-    return getSubscriptionTier(user) === 'PREMIUM' || hasPurchasedExam(user, exam);
+    if (isGlobal) return false;
+    return tier === 'PREMIUM' || hasPurchasedExam(user, exam);
   }
-  // TOEFL, TOEIC: 단품 구매 전용 (구독 미포함)
-  if (exam === 'TOEFL') {
-    return hasPurchasedExam(user, 'TOEFL');
-  }
-  if (exam === 'TOEIC') {
-    return hasPurchasedExam(user, 'TOEIC');
-  }
-  if (exam === 'SAT') {
-    return hasPurchasedExam(user, 'SAT');
-  }
-  if (exam === 'GRE') {
-    return hasPurchasedExam(user, 'GRE');
+
+  // 글로벌 구독 기반 시험: SAT/ACT/IELTS
+  if (exam === 'SAT' || exam === 'ACT') {
+    if (isGlobal) return true; // 시험 자체는 접근 가능 (레벨은 getAccessibleLevels에서 체크)
+    return tier === 'PREMIUM' || hasPurchasedExam(user, exam);
   }
   if (exam === 'IELTS') {
-    return hasPurchasedExam(user, 'IELTS');
+    if (isGlobal) return tier === 'BASIC' || tier === 'PREMIUM';
+    return tier === 'PREMIUM' || hasPurchasedExam(user, exam);
   }
-  if (exam === 'ACT') {
-    return hasPurchasedExam(user, 'ACT');
+
+  // 단품 구매 시험: TOEFL/TOEIC/GRE (KR/글로벌 동일)
+  if (exam === 'TOEFL' || exam === 'TOEIC' || exam === 'GRE') {
+    return tier === 'PREMIUM' || hasPurchasedExam(user, exam);
   }
+
   return false;
 }
 
@@ -161,12 +161,12 @@ export function canAccessLevel(user: User | null, level: string): boolean {
   return tier === 'BASIC' || tier === 'PREMIUM';
 }
 
-export function canAccessContent(user: User | null, exam: string, level: string): boolean {
+export function canAccessContent(user: User | null, exam: string, level: string, isGlobal: boolean = false): boolean {
   // EBS, CSAT_2026, TOEFL, TOEIC, SAT: 시험 접근 가능하면 전체 레벨 접근 가능 (레벨 체크 불필요)
   if (exam === 'EBS' || exam === 'CSAT_2026' || exam === 'TOEFL' || exam === 'TOEIC' || exam === 'SAT' || exam === 'GRE' || exam === 'IELTS' || exam === 'ACT') {
-    return canAccessExam(user, exam);
+    return canAccessExam(user, exam, isGlobal);
   }
-  return canAccessExam(user, exam) && canAccessLevel(user, level);
+  return canAccessExam(user, exam, isGlobal) && canAccessLevel(user, level);
 }
 
 export function getAccessibleLevels(user: User | null): Record<string, string[]> {
