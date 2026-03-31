@@ -1,22 +1,22 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export function useLocale(): 'ko' | 'en' {
-  const [locale, setLocale] = useState<'ko' | 'en'>('ko');
+  const [locale] = useState<'ko' | 'en'>(() => {
+    if (typeof window === 'undefined') return 'ko';
 
-  useEffect(() => {
-    // 1. 쿠키에서 locale 읽기
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('locale='))
-      ?.split('=')[1];
-
-    // 2. 도메인으로 감지
+    // 1. 도메인으로 즉시 감지 (가장 신뢰)
     const domainLocale = window.location.hostname.includes('vocavision.app')
       ? 'en' : 'ko';
 
-    setLocale((cookieLocale as 'ko' | 'en') || domainLocale);
-  }, []);
+    // 2. 쿠키 확인 (있으면 우선)
+    const cookieLocale = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('locale='))
+      ?.split('=')[1] as 'ko' | 'en' | undefined;
+
+    return cookieLocale || domainLocale;
+  });
 
   return locale;
 }
