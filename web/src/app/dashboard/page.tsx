@@ -486,12 +486,12 @@ function DashboardContent() {
 
           {/* 통계 3분할 */}
           <div className="flex justify-between items-center py-4 border-y border-gray-100 mb-4">
-            <DashboardItem value={learnedWords === 0 ? '—' : learnedWords} label={learnedWords === 0 ? (isEn ? 'Not started' : '시작 전') : (isEn ? 'Learned' : '학습 완료')} color="blue" loading={examLevelLoading} />
+            <DashboardItem value={learnedWords === 0 ? '—' : learnedWords} label={isEn ? 'Learned' : '학습 완료'} color="blue" loading={examLevelLoading} />
             <div className="w-px h-10 bg-gray-100" />
             <DashboardItem value={remainingWords} label={isEn ? 'Remaining' : '남은 단어'} color="amber" loading={examLevelLoading} />
             <div className="w-px h-10 bg-gray-100" />
             <DashboardItem
-              value={progressPercent === 0 ? (isEn ? 'Not started' : '시작 전') : `${progressPercent}%`}
+              value={progressPercent === 0 ? (isEn ? 'New' : '시작 전') : `${progressPercent}%`}
               label={progressPercent === 0 ? '' : (isEn ? 'Progress' : '진행률')}
               color="emerald"
               loading={examLevelLoading}
@@ -511,6 +511,17 @@ function DashboardContent() {
             <span>{isEn ? 'Last study: ' : '마지막 학습: '}{stats?.lastActiveDate ? new Date(stats.lastActiveDate).toLocaleDateString(isEn ? 'en-US' : 'ko-KR') : (isEn ? 'Today' : '오늘')}</span>
             <span>{isEn ? `Daily goal: ${dailyGoal}` : `오늘 목표: ${dailyGoal}개`}</span>
           </div>
+
+          {/* Today's Goal — compact 1줄 */}
+          {!isCompleted && todayRemaining > 0 && (
+            <div className="flex items-center justify-between bg-teal-50 rounded-xl px-4 py-2.5 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-teal-600">{isEn ? "Today's Goal" : '오늘 목표'}</span>
+                <span className="text-sm font-bold text-teal-700">{todayRemaining}{isEn ? ' words' : '개'}</span>
+              </div>
+              <span className="text-xs text-gray-500">~{estimatedMinutes}{isEn ? ' min' : '분'}</span>
+            </div>
+          )}
 
           {/* 버튼 */}
           {isCompleted ? (
@@ -534,43 +545,6 @@ function DashboardContent() {
               {learnedWords === 0 ? (isEn ? 'Start Learning' : '학습 시작하기') : (isEn ? 'Resume Learning' : '이어서 학습하기')}
             </Link>
           )}
-        </section>
-
-        {/* 오늘의 학습 목표 Hero */}
-        <section className="bg-white border border-gray-200 rounded-2xl p-6 relative overflow-hidden">
-          <div className="relative">
-            <span className={`text-sm font-semibold block mb-2 ${isCompleted ? 'text-emerald-600' : 'text-teal-600'}`}>
-              {isCompleted ? '🎉 ' + (isEn ? 'Complete!' : '학습 완료!') : (isEn ? "Today's Goal" : '오늘의 학습 목표')}
-            </span>
-
-            {isCompleted ? (
-              <>
-                <h2 className="text-2xl font-bold text-gray-900 leading-tight mb-2">
-                  {isEn ? `${exam.name} ${level.name} Complete!` : `${exam.name} ${level.name} 마스터!`}<br />
-                  <span className="text-emerald-600">{totalWords}{isEn ? '' : '개'}</span> {isEn ? 'words completed!' : '단어 완료'}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  {isEn ? "You've learned all words! Try a quiz to test your knowledge." : '모든 단어를 학습했어요! 복습 퀴즈로 실력을 확인해보세요.'}
-                </p>
-              </>
-            ) : (
-              <>
-                <h2 className="text-2xl font-bold text-gray-900 leading-tight mb-2">
-                  {isEn ? 'Words to learn next' : '다음 학습할 단어'}<br />
-                  <span className="text-teal-600">{todayRemaining}{isEn ? '' : '개'}</span>
-                </h2>
-                <p className="text-sm text-gray-500 mb-4">
-                  {isEn ? <>Takes about <span className="font-semibold text-gray-900">{estimatedMinutes} min</span></> : <>지금 시작하면 <span className="font-semibold text-gray-900">{estimatedMinutes}분</span>이면 끝나요</>}
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* 장식 요소 */}
-          <div className="absolute top-4 right-4 opacity-40 select-none pointer-events-none hidden md:flex gap-1">
-            <span className="text-4xl transform -rotate-12">{isCompleted ? '🎉' : '📚'}</span>
-            <span className="text-3xl transform rotate-6">{isCompleted ? '✅' : '✨'}</span>
-          </div>
         </section>
 
         {/* Course Selection — Collapsible */}
@@ -617,7 +591,6 @@ function DashboardContent() {
                           const lvl = getValidLevelForExam(key, lastLevel);
                           setActiveExamWithLevel(key as ExamType, lvl as 'L1' | 'L2' | 'L3');
                           setStableQuery({ exam: key, level: lvl });
-                          setIsCourseExpanded(false);
                         }}
                         className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all ${
                           locked
@@ -657,7 +630,6 @@ function DashboardContent() {
                             setActiveLevel(lvl as 'L1' | 'L2' | 'L3');
                             localStorage.setItem(`dashboard_${selectedExam}_level`, lvl);
                             setStableQuery(prev => prev ? { ...prev, level: lvl } : null);
-                            setIsCourseExpanded(false);
                           }
                         }}
                         className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all ${
