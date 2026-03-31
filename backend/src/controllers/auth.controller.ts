@@ -346,7 +346,7 @@ export const kakaoLogin = async (
     const token = generateToken(user.id, user.role);
 
     // 5. purchases re-fetch (create 경로에는 purchases 없으므로)
-    const userPurchases = await prisma.purchase.findMany({
+    const userPurchases = await prisma.userPurchase.findMany({
       where: { userId: user.id, status: 'ACTIVE', expiresAt: { gt: new Date() } },
       include: { package: { select: { slug: true, name: true } } },
     });
@@ -511,7 +511,7 @@ export const googleLogin = async (
     const token = generateToken(user.id, user.role);
 
     // 5. purchases re-fetch
-    const userPurchases = await prisma.purchase.findMany({
+    const userPurchases = await prisma.userPurchase.findMany({
       where: { userId: user.id, status: 'ACTIVE', expiresAt: { gt: new Date() } },
       include: { package: { select: { slug: true, name: true } } },
     });
