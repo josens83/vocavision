@@ -132,13 +132,13 @@ function ReviewPageContent() {
   // React Query: 복습 데이터 + 대시보드 요약 (streak 등)
   // stableQuery 기반으로 queryKey 고정 → effects 체인 완료 전 중복 호출 방지
   const { data: reviewData, isLoading: reviewLoading, isFetching: reviewFetching } = useDueReviews(
-    stableQuery?.exam || 'CSAT',
+    stableQuery?.exam || defaultExam,
     stableQuery?.level || 'L1',
     !!stableQuery && !!user && hasHydrated && examHasHydrated && !isDemo
   );
 
   const { data: summaryData } = useDashboardSummary(
-    stableQuery?.exam || 'CSAT',
+    stableQuery?.exam || defaultExam,
     stableQuery?.level || 'L1',
     !!stableQuery && !!user && hasHydrated && examHasHydrated && !isDemo
   );
@@ -148,7 +148,7 @@ function ReviewPageContent() {
 
   // 접근 권한 일괄 확인 (4회 개별 → 1회 bulk)
   const { data: bulkAccessData } = usePackageAccessBulk(
-    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete'],
+    ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete', 'sat-complete', 'gre-complete', 'ielts-complete', 'act-complete'],
     !!user
   );
   const hasCsat2026Access = bulkAccessData?.['2026-csat-analysis']?.hasAccess || false;
@@ -158,6 +158,7 @@ function ReviewPageContent() {
   const hasSatAccess = bulkAccessData?.['sat-complete']?.hasAccess || false;
   const hasGreAccess = bulkAccessData?.['gre-complete']?.hasAccess || false;
   const hasIeltsAccess = bulkAccessData?.['ielts-complete']?.hasAccess || false;
+  const hasActAccess = bulkAccessData?.['act-complete']?.hasAccess || false;
 
   // 구독 상태 확인 (프리미엄 회원은 모든 단품 접근 가능)
   const isPremium = (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY');
@@ -234,39 +235,35 @@ function ReviewPageContent() {
     }
   }, [user, hasHydrated, router, isDemo]);
 
-  // 단품 시험 접근 권한 없으면 CSAT으로 폴백
+  // 단품 시험 접근 권한 없으면 fallback (글로벌=SAT, KR=CSAT)
   useEffect(() => {
-    if (activeExam === 'EBS' && !(hasEbsAccess || isPremium)) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
-      setStableQuery({ exam: 'CSAT', level: 'L1' });
+    const fallbackExam = isGlobalDomain ? 'SAT' : 'CSAT';
+    const fallbackLevel = 'L1';
+
+    // 글로벌에서 KR_ONLY 시험 선택 시 SAT으로 전환
+    if (isGlobalDomain && activeExam && KR_ONLY_EXAMS.includes(activeExam)) {
+      setActiveExam(fallbackExam as ExamType);
+      setActiveLevel(fallbackLevel);
+      setStableQuery({ exam: fallbackExam, level: fallbackLevel });
+      return;
     }
-    if (activeExam === 'TOEFL' && !(hasToeflAccess || isPremium)) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
-      setStableQuery({ exam: 'CSAT', level: 'L1' });
+
+    const examAccessMap: Record<string, boolean> = {
+      EBS: hasEbsAccess || isPremium,
+      TOEFL: hasToeflAccess || isPremium,
+      TOEIC: hasToeicAccess || isPremium,
+      SAT: hasSatAccess || isPremium,
+      GRE: hasGreAccess || isPremium,
+      IELTS: hasIeltsAccess || isPremium,
+      ACT: hasActAccess || isPremium,
+    };
+
+    if (activeExam && activeExam in examAccessMap && !examAccessMap[activeExam]) {
+      setActiveExam(fallbackExam as ExamType);
+      setActiveLevel(fallbackLevel);
+      setStableQuery({ exam: fallbackExam, level: fallbackLevel });
     }
-    if (activeExam === 'TOEIC' && !(hasToeicAccess || isPremium)) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
-      setStableQuery({ exam: 'CSAT', level: 'L1' });
-    }
-    if (activeExam === 'SAT' && !(hasSatAccess || isPremium)) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
-      setStableQuery({ exam: 'CSAT', level: 'L1' });
-    }
-    if (activeExam === 'GRE' && !(hasGreAccess || isPremium)) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
-      setStableQuery({ exam: 'CSAT', level: 'L1' });
-    }
-    if (activeExam === 'IELTS' && !(hasIeltsAccess || isPremium)) {
-      setActiveExam('CSAT' as ExamType);
-      setActiveLevel('L1');
-      setStableQuery({ exam: 'CSAT', level: 'L1' });
-    }
-  }, [activeExam, hasEbsAccess, hasToeflAccess, hasToeicAccess, hasSatAccess, hasGreAccess, hasIeltsAccess, isPremium]);
+  }, [activeExam, isGlobalDomain, hasEbsAccess, hasToeflAccess, hasToeicAccess, hasSatAccess, hasGreAccess, hasIeltsAccess, hasActAccess, isPremium]);
 
   if (!hasHydrated || loading) {
     return (
