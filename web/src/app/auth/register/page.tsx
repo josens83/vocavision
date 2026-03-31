@@ -20,7 +20,17 @@ function RegisterContent() {
   const locale = useLocale();
   const isEn = locale === 'en';
 
-  const nextUrl = searchParams.get('next') || '/dashboard';
+  // from 파라미터 → learn 페이지 리다이렉트 (예: act-l1 → /learn?exam=ACT&level=L1)
+  const fromParam = searchParams.get('from');
+  let nextUrl = searchParams.get('next') || '/dashboard';
+  if (fromParam && !searchParams.get('next')) {
+    const match = fromParam.match(/^([a-z_]+)-([a-z0-9]+)$/i);
+    if (match) {
+      const exam = match[1].toUpperCase();
+      const level = match[2].toUpperCase();
+      nextUrl = `/learn?exam=${exam}&level=${level}`;
+    }
+  }
 
   // 이미 로그인된 상태면 리다이렉트
   useEffect(() => {
