@@ -27,7 +27,7 @@ export function isGlobalLocale(req: Request): boolean {
  * 사용자의 실제 구독 티어를 계산
  */
 function getSubscriptionTier(subscriptionPlan: string | null, subscriptionStatus: string | null): SubscriptionTier {
-  if (subscriptionPlan === 'YEARLY' || subscriptionPlan === 'FAMILY') {
+  if (subscriptionPlan === 'YEARLY' || subscriptionPlan === 'FAMILY' || subscriptionPlan === 'PREMIUM_MONTHLY' || subscriptionPlan === 'PREMIUM_YEARLY') {
     return 'PREMIUM';
   }
 

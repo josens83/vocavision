@@ -97,6 +97,8 @@ enum SubscriptionPlan {
   MONTHLY
   YEARLY
   FAMILY
+  PREMIUM_MONTHLY
+  PREMIUM_YEARLY
 }
 
 // ============================================

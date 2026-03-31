@@ -48,7 +48,7 @@ export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscri
   const status = user.subscriptionStatus;
 
   // YEARLY 또는 FAMILY = 프리미엄
-  if (plan === 'YEARLY' || plan === 'FAMILY') {
+  if (plan === 'YEARLY' || plan === 'FAMILY' || plan === 'PREMIUM_MONTHLY' || plan === 'PREMIUM_YEARLY') {
     return {
       text: isEn ? 'Premium' : '프리미엄',
       bgColor: 'bg-gradient-to-r from-[#14B8A6] to-[#06B6D4]',
@@ -86,7 +86,7 @@ export function getPlanDisplay(user: { subscriptionPlan?: string | null; subscri
  */
 export function isPremiumPlan(user: { subscriptionPlan?: string | null } | null): boolean {
   if (!user) return false;
-  return user.subscriptionPlan === 'YEARLY' || user.subscriptionPlan === 'FAMILY';
+  return user.subscriptionPlan === 'YEARLY' || user.subscriptionPlan === 'FAMILY' || user.subscriptionPlan === 'PREMIUM_MONTHLY' || user.subscriptionPlan === 'PREMIUM_YEARLY';
 }
 
 /**
@@ -98,7 +98,7 @@ export function isFreeUser(user: User | null): boolean {
   const status = user.subscriptionStatus;
 
   // YEARLY 또는 FAMILY = 프리미엄
-  if (plan === 'YEARLY' || plan === 'FAMILY') return false;
+  if (plan === 'YEARLY' || plan === 'FAMILY' || plan === 'PREMIUM_MONTHLY' || plan === 'PREMIUM_YEARLY') return false;
 
   // MONTHLY + ACTIVE = 베이직
   if (plan === 'MONTHLY' && status === 'ACTIVE') return false;
@@ -112,7 +112,7 @@ export function getSubscriptionTier(user: User | null): SubscriptionTier {
   const plan = user.subscriptionPlan;
   const status = user.subscriptionStatus;
 
-  if (plan === 'YEARLY' || plan === 'FAMILY') {
+  if (plan === 'YEARLY' || plan === 'FAMILY' || plan === 'PREMIUM_MONTHLY' || plan === 'PREMIUM_YEARLY') {
     return 'PREMIUM';
   }
 

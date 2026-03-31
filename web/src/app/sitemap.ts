@@ -15,6 +15,11 @@ const staticPages: MetadataRoute.Sitemap = [
   { url: `${BASE_URL_KO}/packages/2026-csat-analysis`, changeFrequency: 'weekly', priority: 0.9 },
   { url: `${BASE_URL_KO}/packages/ebs-vocab`, changeFrequency: 'weekly', priority: 0.9 },
   { url: `${BASE_URL_KO}/packages/toefl-complete`, changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL_KO}/packages/toeic-complete`, changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${BASE_URL_KO}/packages/sat-complete`, changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${BASE_URL_KO}/packages/gre-complete`, changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${BASE_URL_KO}/packages/ielts-complete`, changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${BASE_URL_KO}/packages/act-complete`, changeFrequency: 'monthly', priority: 0.7 },
   { url: `${BASE_URL_KO}/exam/csat`, changeFrequency: 'weekly', priority: 0.8 },
   { url: `${BASE_URL_KO}/exam/teps`, changeFrequency: 'weekly', priority: 0.8 },
   { url: `${BASE_URL_KO}/exam/toefl`, changeFrequency: 'weekly', priority: 0.8 },
@@ -31,6 +36,12 @@ const staticPages: MetadataRoute.Sitemap = [
   { url: `${BASE_URL_EN}/packages/gre-complete`, changeFrequency: 'weekly', priority: 0.9 },
   { url: `${BASE_URL_EN}/packages/ielts-complete`, changeFrequency: 'weekly', priority: 0.9 },
   { url: `${BASE_URL_EN}/packages/sat-complete`, changeFrequency: 'weekly', priority: 0.9 },
+  { url: `${BASE_URL_EN}/packages/toeic-complete`, changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${BASE_URL_EN}/packages/act-complete`, changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${BASE_URL_EN}/help`, changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${BASE_URL_EN}/faq`, changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${BASE_URL_EN}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
+  { url: `${BASE_URL_EN}/terms`, changeFrequency: 'yearly', priority: 0.3 },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
