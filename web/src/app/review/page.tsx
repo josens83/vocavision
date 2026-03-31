@@ -105,6 +105,9 @@ function ReviewPageContent() {
   const visibleExams = getVisibleExams(isEn);
 
   const [wordListPage, setWordListPage] = useState(1);
+  const [isCourseExpanded, setIsCourseExpanded] = useState(false);
+  const [isWordsExpanded, setIsWordsExpanded] = useState(false);
+  const [showSRInfo, setShowSRInfo] = useState(false);
   const WORDS_PER_PAGE = 10;
 
   // 필터 상태 (store 연동)
@@ -213,13 +216,14 @@ function ReviewPageContent() {
     const level = getValidLevelForExam(exam, lastLevel || '');
     setActiveLevel(level as 'L1' | 'L2' | 'L3');
     setStableQuery({ exam, level });
+    setIsCourseExpanded(false);
   };
 
   const handleLevelChange = (level: string) => {
     setActiveLevel(level as 'L1' | 'L2' | 'L3');
-    // localStorage에 마지막 선택한 레벨 저장
     localStorage.setItem(`review_${selectedExam}_level`, level);
     setStableQuery(prev => prev ? { ...prev, level } : null);
+    setIsCourseExpanded(false);
   };
 
   // 로그인 체크
@@ -403,8 +407,18 @@ function ReviewPageContent() {
         {/* ===== Active Review Mode ===== */}
         {(stats.dueToday > 0 || stats.totalReviewed > 0) && (<>
 
-        {/* 시험 선택 (은행 앱 스타일) */}
-        <section className="bg-white rounded-2xl p-5 border border-gray-200">
+        {/* 코스 선택 — 접기형 */}
+        <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <button onClick={() => setIsCourseExpanded(!isCourseExpanded)} className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-gray-900">{isEn ? 'Review Course' : '복습 코스'}</span>
+              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-700">{EXAM_MAP[selectedExam]?.icon} {getExamLabel(selectedExam, isEn)} · {selectedLevel}</span>
+            </div>
+            <span className={`text-gray-400 transition-transform duration-200 ${isCourseExpanded ? 'rotate-180' : ''}`}>▼</span>
+          </button>
+          {isCourseExpanded && (
+          <div className="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
+          <div>
           <h3 className="text-sm font-semibold text-gray-900 mb-4">{isEn ? 'Select Exam' : '시험 선택'}</h3>
 
           <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
@@ -474,10 +488,8 @@ function ReviewPageContent() {
               );
             })}
           </div>
-        </section>
-
-        {/* 레벨/유형 선택 (은행 앱 스타일) */}
-        <section className="bg-white rounded-2xl p-5 border border-gray-200">
+          </div>
+          <div>
           <h3 className="text-sm font-semibold text-gray-900 mb-4">
             {(selectedExam === 'CSAT_2026' || selectedExam === 'EBS')
               ? (isEn ? 'Select Type' : '유형 선택')
@@ -544,6 +556,9 @@ function ReviewPageContent() {
               );
             })}
           </div>
+          </div>
+          </div>
+          )}
         </section>
 
         {/* 복습 현황 카드 (은행 앱 스타일) */}
@@ -620,12 +635,15 @@ function ReviewPageContent() {
           </section>
         )}
 
-        {/* Due Words List with Pagination */}
+        {/* Due Words — collapsible */}
         {dueWords.length > 0 && (
-          <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-            <div className="p-5 border-b border-[#f0f0f0]">
-              <h3 className="text-sm font-semibold text-gray-900">{isEn ? 'Due for Review' : '복습 대기 중'}</h3>
-            </div>
+          <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <button onClick={() => setIsWordsExpanded(!isWordsExpanded)} className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition">
+              <span className="text-sm font-semibold text-gray-900">{isEn ? `Due Words (${dueWords.length})` : `복습 대기 단어 (${dueWords.length}개)`}</span>
+              <span className={`text-gray-400 transition-transform duration-200 ${isWordsExpanded ? 'rotate-180' : ''}`}>▼</span>
+            </button>
+            {isWordsExpanded && (
+            <div className="border-t border-gray-100">
             <div className="divide-y divide-[#f0f0f0]">
               {dueWords
                 .slice((wordListPage - 1) * WORDS_PER_PAGE, wordListPage * WORDS_PER_PAGE)
@@ -702,65 +720,26 @@ function ReviewPageContent() {
                 </div>
               </div>
             )}
+            </div>
+            )}
           </section>
         )}
 
-        {/* 복습 일정 (은행 앱 스타일) */}
-        <section className="bg-white rounded-2xl p-5 border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">{isEn ? 'Review Schedule' : '복습 일정'}</h3>
-
-          <div className="space-y-3">
-            {/* 오늘 */}
-            <div className="flex items-center justify-between p-4 bg-[#F3E8FF] rounded-xl">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">📅</span>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#1c1c1e]">{isEn ? 'Today' : '오늘'}</p>
-                  <p className="text-[12px] text-gray-500">{new Date().toLocaleDateString(isEn ? 'en-US' : 'ko-KR')}</p>
-                </div>
-              </div>
-              <span className="text-purple-500 font-bold">{stats.dueToday}{isEn ? '' : '개'}</span>
-            </div>
-
-            {/* 내일 */}
-            <div className="flex items-center justify-between p-4 bg-gray-100 rounded-xl">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">📆</span>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#1c1c1e]">{isEn ? 'Tomorrow' : '내일'}</p>
-                  <p className="text-[12px] text-gray-500">{isEn ? 'Scheduled for tomorrow' : '내일 복습 예정'}</p>
-                </div>
-              </div>
-              <span className={`font-bold ${(stats.tomorrowDue || 0) > 0 ? 'text-blue-500' : 'text-gray-400'}`}>
-                {stats.tomorrowDue || 0}{isEn ? '' : '개'}
-              </span>
-            </div>
-
-            {/* 이번 주 */}
-            <div className="flex items-center justify-between p-4 bg-gray-100 rounded-xl">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">🗓️</span>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#1c1c1e]">{isEn ? 'This Week' : '이번 주'}</p>
-                  <p className="text-[12px] text-gray-500">{isEn ? 'Within 2-7 days' : '2~7일 이내'}</p>
-                </div>
-              </div>
-              <span className={`font-bold ${(stats.thisWeekDue || 0) > 0 ? 'text-teal-500' : 'text-gray-400'}`}>
-                {stats.thisWeekDue || 0}{isEn ? '' : '개'}
-              </span>
-            </div>
+        {/* 복습 일정 — compact */}
+        <section className="bg-white rounded-2xl border border-gray-100 p-4">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">{isEn ? 'Schedule' : '복습 일정'}</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-purple-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-purple-500">{stats.dueToday}</p><p className="text-xs text-gray-500">{isEn ? 'Today' : '오늘'}</p></div>
+            <div className="bg-gray-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-gray-400">{stats.tomorrowDue || 0}</p><p className="text-xs text-gray-500">{isEn ? 'Tomorrow' : '내일'}</p></div>
+            <div className="bg-teal-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-teal-500">{stats.thisWeekDue || 0}</p><p className="text-xs text-gray-500">{isEn ? 'This Week' : '이번 주'}</p></div>
           </div>
         </section>
 
-        {/* 간격 반복 학습 안내 (은행 앱 스타일) */}
-        <section className="bg-[#EFF6FF] rounded-2xl p-5 border border-[#BFDBFE]">
-          <h4 className="text-sm font-semibold text-[#1E40AF] mb-2">{isEn ? '💡 What is Spaced Repetition?' : '💡 간격 반복 학습이란?'}</h4>
-          <p className="text-[14px] text-[#1E3A8A]">
-            {isEn
-              ? 'Reviewing right before you forget converts short-term memory into long-term memory. VocaVision AI calculates the optimal review timing based on your learning data.'
-              : '기억이 사라지기 직전에 복습하면 장기 기억으로 전환됩니다. VocaVision AI는 학습 데이터를 기반으로 최적의 복습 시점을 계산합니다.'}
-          </p>
-        </section>
+        {/* SR — collapsible */}
+        <div className="text-center py-2">
+          <button onClick={() => setShowSRInfo(!showSRInfo)} className="text-xs text-gray-400 hover:text-gray-600 transition">{isEn ? '💡 What is spaced repetition?' : '💡 간격 반복 학습이란?'}</button>
+          {showSRInfo && (<p className="text-xs text-gray-400 mt-2 max-w-md mx-auto">{isEn ? 'Reviewing right before you forget converts short-term memory into long-term memory.' : '기억이 사라지기 직전에 복습하면 장기 기억으로 전환됩니다.'}</p>)}
+        </div>
 
         </>)}
       </div>
