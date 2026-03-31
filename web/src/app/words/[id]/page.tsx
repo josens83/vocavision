@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 import WordDetailClient from './WordDetailClient';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -22,8 +23,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const word = await getWordBasic(id);
 
+  const headersList = await headers();
+  const host = headersList.get('host') || '';
+  const isGlobal = host.includes('vocavision.app');
+  const domain = isGlobal ? 'https://vocavision.app' : 'https://vocavision.kr';
+
   if (!word) {
-    return { title: 'VocaVision AI - 단어를 찾을 수 없습니다' };
+    return { title: isGlobal ? 'Word not found — VocaVision AI' : 'VocaVision AI - 단어를 찾을 수 없습니다' };
   }
 
   const titleKo = `${word.word} 뜻 — ${word.definitionKo || word.definition} | VocaVision AI`;
@@ -32,16 +38,16 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const descEn = `${word.word} (${word.partOfSpeech || ''}): ${word.definition}. Learn with AI visual mnemonic, etymology breakdown, and spaced repetition. Perfect for SAT • GRE • TOEFL • IELTS.`;
 
   return {
-    title: titleKo,
-    description: descKo,
+    title: isGlobal ? titleEn : titleKo,
+    description: isGlobal ? descEn : descKo,
     openGraph: {
-      title: titleKo,
-      description: descKo,
+      title: isGlobal ? titleEn : titleKo,
+      description: isGlobal ? descEn : descKo,
       type: 'article',
-      url: `https://vocavision.kr/words/${id}`,
+      url: `${domain}/words/${id}`,
     },
     alternates: {
-      canonical: `https://vocavision.kr/words/${id}`,
+      canonical: `${domain}/words/${id}`,
       languages: {
         'ko': `https://vocavision.kr/words/${id}`,
         'en': `https://vocavision.app/words/${id}`,
