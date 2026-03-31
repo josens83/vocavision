@@ -83,7 +83,7 @@ export default function HomePage() {
             <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
               {locale === 'en'
                 ? 'SAT Starter vocabulary — completely free, no time limit.'
-                : '수능 기초 어휘 885개 — 완전 무료, 기간 제한 없음.'}
+                : '수능 기초 어휘 951개 — 완전 무료, 기간 제한 없음.'}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <a href="/auth/login" className="btn bg-white text-brand-primary hover:bg-white/90 hover:shadow-lg">
