@@ -486,7 +486,7 @@ function DashboardContent() {
 
           {/* 통계 3분할 */}
           <div className="flex justify-between items-center py-4 border-y border-gray-100 mb-4">
-            <DashboardItem value={learnedWords} label={isEn ? 'Learned' : '학습 완료'} color="blue" loading={examLevelLoading} />
+            <DashboardItem value={learnedWords === 0 ? '—' : learnedWords} label={learnedWords === 0 ? (isEn ? 'Not started' : '시작 전') : (isEn ? 'Learned' : '학습 완료')} color="blue" loading={examLevelLoading} />
             <div className="w-px h-10 bg-gray-100" />
             <DashboardItem value={remainingWords} label={isEn ? 'Remaining' : '남은 단어'} color="amber" loading={examLevelLoading} />
             <div className="w-px h-10 bg-gray-100" />
