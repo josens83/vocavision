@@ -10,7 +10,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { useDueReviews, useDashboardSummary, usePrefetchReviews, usePackageAccessBulk } from '@/hooks/useQueries';
-import { EXAM_LIST, EXAM_MAP, getValidLevelsForExam, getValidLevelForExam, getVisibleExams } from '@/constants/exams';
+import { EXAM_LIST, EXAM_MAP, getValidLevelsForExam, getValidLevelForExam, getVisibleExams, getExamLabel } from '@/constants/exams';
 import { useLocale } from '@/hooks/useLocale';
 
 // ============================================
@@ -576,7 +576,7 @@ function ReviewPageContent() {
             </div>
             <div>
               <p className="text-[16px] font-bold text-[#1c1c1e]">
-                {EXAM_MAP[selectedExam]?.label || selectedExam} {selectedLevel}
+                {getExamLabel(selectedExam, isEn)} {selectedLevel}
               </p>
               <p className="text-[13px] text-gray-500">{isEn ? 'Due words • Memory boost' : '복습 대기 단어 • 기억 강화'}</p>
             </div>
