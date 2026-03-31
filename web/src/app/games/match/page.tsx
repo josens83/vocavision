@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
+import { useLocale } from '@/hooks/useLocale';
 import { wordsAPI } from '@/lib/api';
 import Link from 'next/link';
 
@@ -42,6 +43,7 @@ interface Card {
 export default function MatchGamePage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const isEn = useLocale() === 'en';
 
   const [cards, setCards] = useState<Card[]>([]);
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
@@ -167,7 +169,7 @@ export default function MatchGamePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
-        <div className="text-white text-2xl">게임 준비 중...</div>
+        <div className="text-white text-2xl">{isEn ? 'Preparing game...' : '게임 준비 중...'}</div>
       </div>
     );
   }
@@ -181,19 +183,19 @@ export default function MatchGamePage() {
             href="/dashboard"
             className="text-white hover:text-purple-200 transition inline-flex items-center gap-1"
           >
-            <ArrowLeft className="w-4 h-4" /> 대시보드로
+            <ArrowLeft className="w-4 h-4" /> {isEn ? 'Dashboard' : '대시보드로'}
           </Link>
           <div className="flex gap-2 md:gap-6 text-white w-full sm:w-auto justify-between sm:justify-end">
             <div className="bg-white/20 rounded-lg px-3 md:px-4 py-2 backdrop-blur-sm flex-1 sm:flex-initial">
-              <div className="text-xs md:text-sm opacity-80">시간</div>
+              <div className="text-xs md:text-sm opacity-80">{isEn ? 'Time' : '시간'}</div>
               <div className="text-lg md:text-2xl font-bold">{formatTime(elapsedTime)}</div>
             </div>
             <div className="bg-white/20 rounded-lg px-3 md:px-4 py-2 backdrop-blur-sm flex-1 sm:flex-initial">
-              <div className="text-xs md:text-sm opacity-80">실수</div>
+              <div className="text-xs md:text-sm opacity-80">{isEn ? 'Mistakes' : '실수'}</div>
               <div className="text-lg md:text-2xl font-bold">{mistakes}</div>
             </div>
             <div className="bg-white/20 rounded-lg px-3 md:px-4 py-2 backdrop-blur-sm flex-1 sm:flex-initial">
-              <div className="text-xs md:text-sm opacity-80">매칭</div>
+              <div className="text-xs md:text-sm opacity-80">{isEn ? 'Matched' : '매칭'}</div>
               <div className="text-lg md:text-2xl font-bold">{matchedPairs.length}/8</div>
             </div>
           </div>
@@ -202,7 +204,7 @@ export default function MatchGamePage() {
         <div className="text-center text-white">
           <h1 className="text-2xl md:text-4xl font-bold mb-2">🎯 Match Game</h1>
           <p className="text-purple-100 text-sm md:text-base">
-            단어와 정의를 매칭하세요! 빠를수록 좋습니다!
+            {isEn ? 'Match words with definitions! Faster is better!' : '단어와 정의를 매칭하세요! 빠를수록 좋습니다!'}
           </p>
         </div>
       </div>
@@ -236,7 +238,7 @@ export default function MatchGamePage() {
                     `}
                   >
                     <div className="text-xs md:text-sm opacity-60 mb-1">
-                      {card.type === 'word' ? '단어' : '정의'}
+                      {card.type === 'word' ? (isEn ? 'Word' : '단어') : (isEn ? 'Definition' : '정의')}
                     </div>
                     <div className="text-sm md:text-lg leading-tight line-clamp-2">
                       {card.content}
@@ -272,23 +274,23 @@ export default function MatchGamePage() {
                 🎉
               </motion.div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                완료!
+                {isEn ? 'Complete!' : '완료!'}
               </h2>
               <div className="space-y-3 mb-6">
                 <div className="bg-purple-50 rounded-lg p-4">
-                  <div className="text-sm text-purple-600 mb-1">걸린 시간</div>
+                  <div className="text-sm text-purple-600 mb-1">{isEn ? 'Time Taken' : '걸린 시간'}</div>
                   <div className="text-3xl font-bold text-purple-900">
                     {formatTime(elapsedTime)}
                   </div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 mb-1">실수</div>
+                  <div className="text-sm text-gray-600 mb-1">{isEn ? 'Mistakes' : '실수'}</div>
                   <div className="text-2xl font-bold text-gray-900">
-                    {mistakes}번
+                    {isEn ? mistakes : `${mistakes}번`}
                   </div>
                 </div>
                 <div className="bg-green-50 rounded-lg p-4">
-                  <div className="text-sm text-green-600 mb-1">정확도</div>
+                  <div className="text-sm text-green-600 mb-1">{isEn ? 'Accuracy' : '정확도'}</div>
                   <div className="text-2xl font-bold text-green-900">
                     {Math.round((8 / (8 + mistakes)) * 100)}%
                   </div>
@@ -299,13 +301,13 @@ export default function MatchGamePage() {
                   onClick={handleRestart}
                   className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
                 >
-                  다시 하기
+                  {isEn ? 'Play Again' : '다시 하기'}
                 </button>
                 <Link
                   href="/dashboard"
                   className="flex-1 bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition text-center"
                 >
-                  대시보드
+                  {isEn ? 'Dashboard' : '대시보드'}
                 </Link>
               </div>
             </motion.div>

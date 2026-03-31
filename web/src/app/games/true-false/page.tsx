@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
+import { useLocale } from '@/hooks/useLocale';
 import { wordsAPI } from '@/lib/api';
 import Link from 'next/link';
 
@@ -40,6 +41,7 @@ interface Question {
 export default function TrueFalsePage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const isEn = useLocale() === 'en';
 
   const [words, setWords] = useState<Word[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -130,7 +132,7 @@ export default function TrueFalsePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-500">
-        <div className="text-white text-2xl">게임 준비 중...</div>
+        <div className="text-white text-2xl">{isEn ? 'Preparing game...' : '게임 준비 중...'}</div>
       </div>
     );
   }
@@ -146,15 +148,15 @@ export default function TrueFalsePage() {
             href="/dashboard"
             className="text-white hover:text-blue-200 transition inline-flex items-center gap-1"
           >
-            <ArrowLeft className="w-4 h-4" /> 대시보드로
+            <ArrowLeft className="w-4 h-4" /> {isEn ? 'Dashboard' : '대시보드로'}
           </Link>
           <div className="flex gap-4 text-white">
             <div className="bg-white/20 rounded-lg px-4 py-2 backdrop-blur-sm">
-              <div className="text-sm opacity-80">점수</div>
+              <div className="text-sm opacity-80">{isEn ? 'Score' : '점수'}</div>
               <div className="text-2xl font-bold">{score}/10</div>
             </div>
             <div className="bg-white/20 rounded-lg px-4 py-2 backdrop-blur-sm">
-              <div className="text-sm opacity-80">연속</div>
+              <div className="text-sm opacity-80">{isEn ? 'Streak' : '연속'}</div>
               <div className="text-2xl font-bold">🔥 {streak}</div>
             </div>
           </div>
@@ -163,7 +165,7 @@ export default function TrueFalsePage() {
         <div className="text-center text-white mb-4">
           <h1 className="text-4xl font-bold mb-2">✅ True or False</h1>
           <p className="text-blue-100">
-            단어와 정의가 맞는지 판단하세요!
+            {isEn ? 'Judge if the word and definition match!' : '단어와 정의가 맞는지 판단하세요!'}
           </p>
         </div>
 
@@ -179,7 +181,7 @@ export default function TrueFalsePage() {
           />
         </div>
         <div className="text-white text-center mt-2">
-          문제 {currentQuestion + 1} / {questions.length}
+          {isEn ? `Question ${currentQuestion + 1} / ${questions.length}` : `문제 ${currentQuestion + 1} / ${questions.length}`}
         </div>
       </div>
 
@@ -206,7 +208,7 @@ export default function TrueFalsePage() {
               </div>
 
               <div className="text-center text-gray-600 mb-6">
-                이 정의가 위 단어와 맞나요?
+                {isEn ? 'Does this definition match the word above?' : '이 정의가 위 단어와 맞나요?'}
               </div>
 
               {/* True/False Buttons */}
@@ -251,12 +253,12 @@ export default function TrueFalsePage() {
                       {lastAnswer ? '🎉' : '😔'}
                     </motion.div>
                     <div className="text-3xl font-bold mb-2">
-                      {lastAnswer ? '정답입니다!' : '틀렸습니다!'}
+                      {lastAnswer ? (isEn ? 'Correct!' : '정답입니다!') : (isEn ? 'Wrong!' : '틀렸습니다!')}
                     </div>
                     <div className="text-lg">
                       {lastAnswer
-                        ? '계속 진행하세요!'
-                        : `정답: ${question.isCorrect ? 'True' : 'False'}`}
+                        ? (isEn ? 'Keep going!' : '계속 진행하세요!')
+                        : (isEn ? `Answer: ${question.isCorrect ? 'True' : 'False'}` : `정답: ${question.isCorrect ? 'True' : 'False'}`)}
                     </div>
                   </motion.div>
                 )}
@@ -289,25 +291,25 @@ export default function TrueFalsePage() {
                 {score >= 8 ? '🏆' : score >= 6 ? '🎉' : '💪'}
               </motion.div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                게임 완료!
+                {isEn ? 'Game Complete!' : '게임 완료!'}
               </h2>
               <div className="space-y-3 mb-6">
                 <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="text-sm text-blue-600 mb-1">최종 점수</div>
+                  <div className="text-sm text-blue-600 mb-1">{isEn ? 'Final Score' : '최종 점수'}</div>
                   <div className="text-4xl font-bold text-blue-900">
                     {score}/10
                   </div>
                 </div>
                 <div className="bg-green-50 rounded-lg p-4">
-                  <div className="text-sm text-green-600 mb-1">정확도</div>
+                  <div className="text-sm text-green-600 mb-1">{isEn ? 'Accuracy' : '정확도'}</div>
                   <div className="text-3xl font-bold text-green-900">
                     {(score / 10) * 100}%
                   </div>
                 </div>
                 <div className="text-gray-600">
-                  {score >= 8 && '완벽합니다! 🌟'}
-                  {score >= 6 && score < 8 && '잘하셨어요! 👍'}
-                  {score < 6 && '조금 더 연습이 필요해요! 💪'}
+                  {score >= 8 && (isEn ? 'Perfect! 🌟' : '완벽합니다! 🌟')}
+                  {score >= 6 && score < 8 && (isEn ? 'Great job! 👍' : '잘하셨어요! 👍')}
+                  {score < 6 && (isEn ? 'Keep practicing! 💪' : '조금 더 연습이 필요해요! 💪')}
                 </div>
               </div>
               <div className="flex gap-3">
@@ -315,13 +317,13 @@ export default function TrueFalsePage() {
                   onClick={handleRestart}
                   className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
                 >
-                  다시 하기
+                  {isEn ? 'Play Again' : '다시 하기'}
                 </button>
                 <Link
                   href="/dashboard"
                   className="flex-1 bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition text-center"
                 >
-                  대시보드
+                  {isEn ? 'Dashboard' : '대시보드'}
                 </Link>
               </div>
             </motion.div>
