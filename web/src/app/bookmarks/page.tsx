@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
+import { useLocale } from '@/hooks/useLocale';
 import { useToast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmModal';
 import { EmptyFirstTime } from '@/components/ui/EmptyState';
@@ -32,6 +33,7 @@ export default function BookmarksPage() {
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const toast = useToast();
   const confirm = useConfirm();
+  const isEn = useLocale() === 'en';
 
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,10 +64,10 @@ export default function BookmarksPage() {
 
   const handleRemoveBookmark = async (wordId: string) => {
     const confirmed = await confirm({
-      title: '북마크 삭제',
-      message: '이 단어를 북마크에서 삭제하시겠습니까?',
-      confirmText: '삭제',
-      cancelText: '취소',
+      title: isEn ? 'Remove Bookmark' : '북마크 삭제',
+      message: isEn ? 'Remove this word from bookmarks?' : '이 단어를 북마크에서 삭제하시겠습니까?',
+      confirmText: isEn ? 'Delete' : '삭제',
+      cancelText: isEn ? 'Cancel' : '취소',
       type: 'warning',
     });
 
@@ -77,10 +79,10 @@ export default function BookmarksPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBookmarks(bookmarks.filter(b => b.wordId !== wordId));
-      toast.success('북마크 삭제 완료', '북마크가 삭제되었습니다');
+      toast.success(isEn ? 'Bookmark Removed' : '북마크 삭제 완료', isEn ? 'Bookmark has been removed' : '북마크가 삭제되었습니다');
     } catch (error) {
       console.error('Failed to remove bookmark:', error);
-      toast.error('북마크 삭제 실패', '다시 시도해주세요');
+      toast.error(isEn ? 'Failed to Remove' : '북마크 삭제 실패', isEn ? 'Please try again' : '다시 시도해주세요');
     }
   };
 
@@ -92,10 +94,10 @@ export default function BookmarksPage() {
   };
 
   const difficultyLabels = {
-    BEGINNER: '초급',
-    INTERMEDIATE: '중급',
-    ADVANCED: '고급',
-    EXPERT: '전문가',
+    BEGINNER: isEn ? 'Beginner' : '초급',
+    INTERMEDIATE: isEn ? 'Intermediate' : '중급',
+    ADVANCED: isEn ? 'Advanced' : '고급',
+    EXPERT: isEn ? 'Expert' : '전문가',
   };
 
   if (loading) {
@@ -105,9 +107,9 @@ export default function BookmarksPage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center gap-4">
               <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1">
-                <ArrowLeft className="w-4 h-4" /> 대시보드
+                <ArrowLeft className="w-4 h-4" /> {isEn ? 'Dashboard' : '대시보드'}
               </Link>
-              <h1 className="text-2xl font-bold text-blue-600">내 북마크</h1>
+              <h1 className="text-2xl font-bold text-blue-600">{isEn ? 'My Bookmarks' : '내 북마크'}</h1>
             </div>
           </div>
         </header>
@@ -133,18 +135,18 @@ export default function BookmarksPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-              ← 대시보드
+              {isEn ? '← Dashboard' : '← 대시보드'}
             </Link>
-            <h1 className="text-2xl font-bold text-blue-600">내 북마크</h1>
+            <h1 className="text-2xl font-bold text-blue-600">{isEn ? 'My Bookmarks' : '내 북마크'}</h1>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">북마크한 단어</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">{isEn ? 'Bookmarked Words' : '북마크한 단어'}</h2>
           <p className="text-gray-600">
-            총 {bookmarks.length}개의 단어를 북마크했습니다
+            {isEn ? `${bookmarks.length} bookmarked words` : `총 ${bookmarks.length}개의 단어를 북마크했습니다`}
           </p>
         </div>
 
@@ -183,7 +185,7 @@ export default function BookmarksPage() {
                     {bookmark.notes && (
                       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
                         <p className="text-sm text-gray-700">
-                          <strong>내 메모:</strong> {bookmark.notes}
+                          <strong>{isEn ? 'My Note:' : '내 메모:'}</strong> {bookmark.notes}
                         </p>
                       </div>
                     )}
@@ -191,7 +193,7 @@ export default function BookmarksPage() {
                   <button
                     onClick={() => handleRemoveBookmark(bookmark.wordId)}
                     className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                    title="북마크 삭제"
+                    title={isEn ? 'Remove Bookmark' : '북마크 삭제'}
                   >
                     🗑️
                   </button>
@@ -201,7 +203,7 @@ export default function BookmarksPage() {
                     href={`/words/${bookmark.wordId}`}
                     className="text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center gap-1"
                   >
-                    자세히 보기 <ArrowRight className="w-3.5 h-3.5" />
+                    {isEn ? 'View Details' : '자세히 보기'} <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               </div>
