@@ -63,6 +63,7 @@ const FLASHCARD_WORD_SELECT = {
     }
   },
   examples: {
+    take: 2,
     select: {
       sentence: true,
       translation: true,
@@ -73,13 +74,12 @@ const FLASHCARD_WORD_SELECT = {
       origin: true,
       originEn: true,
       rootWords: true,
-      evolution: true,
-      relatedWords: true,
       breakdown: true,
       breakdownEn: true,
     }
   },
   collocations: {
+    take: 5,
     select: {
       phrase: true,
       translation: true,
