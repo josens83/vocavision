@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ReactNode } from "react";
+import { useLocale } from '@/hooks/useLocale';
 
 // ============================================
 // FAQ Item Component
@@ -83,6 +84,7 @@ export function FAQSection({
   items,
   allowMultiple = false,
 }: FAQSectionProps) {
+  const isEn = useLocale() === 'en';
   const [openIndexes, setOpenIndexes] = useState<number[]>([]);
 
   const toggleItem = (index: number) => {
@@ -110,7 +112,7 @@ export function FAQSection({
             {contactLink && (
               <>
                 <br />
-                Didn't find the answer you need?{" "}
+                {isEn ? "Didn't find the answer you need?" : "원하는 답을 찾지 못하셨나요?"}{" "}
                 <a
                   href={contactLink}
                   className="text-green-600 hover:text-green-700 font-medium"
@@ -143,45 +145,56 @@ export function FAQSection({
 // Default FAQ Data for VocaVision
 // ============================================
 
-export const vocaVisionFAQ: FAQItemData[] = [
+export const getVocaVisionFAQ = (isEn: boolean): FAQItemData[] => [
   {
-    question: "VocaVision AI는 무료로 계속 사용할 수 있나요?",
-    answer:
-      "네! 기본 학습 기능은 영원히 무료입니다. Pro 구독은 광고 제거, 무제한 학습, 고급 통계 등 추가 기능을 제공합니다.",
+    question: isEn ? "Can I use VocaVision AI for free forever?" : "VocaVision AI는 무료로 계속 사용할 수 있나요?",
+    answer: isEn
+      ? "Yes! Basic learning features are free forever. Pro subscription offers additional features such as ad removal, unlimited learning, and advanced statistics."
+      : "네! 기본 학습 기능은 영원히 무료입니다. Pro 구독은 광고 제거, 무제한 학습, 고급 통계 등 추가 기능을 제공합니다.",
   },
   {
-    question: "새로운 단어나 콘텐츠는 얼마나 자주 추가되나요?",
-    answer:
-      "매주 새로운 단어와 학습 콘텐츠를 추가하고 있습니다. 다양한 레벨과 주제의 단어를 지속적으로 업데이트합니다!",
+    question: isEn ? "How often are new words or content added?" : "새로운 단어나 콘텐츠는 얼마나 자주 추가되나요?",
+    answer: isEn
+      ? "We add new words and learning content every week. We continuously update words across various levels and topics!"
+      : "매주 새로운 단어와 학습 콘텐츠를 추가하고 있습니다. 다양한 레벨과 주제의 단어를 지속적으로 업데이트합니다!",
   },
   {
-    question: "결제는 안전한가요?",
-    answer:
-      "네, 물론입니다. 저희는 신뢰할 수 있는 결제 서비스를 사용하며, 모든 거래는 암호화되어 안전하게 처리됩니다.",
+    question: isEn ? "Is the payment secure?" : "결제는 안전한가요?",
+    answer: isEn
+      ? "Yes, absolutely. We use trusted payment services, and all transactions are encrypted and processed securely."
+      : "네, 물론입니다. 저희는 신뢰할 수 있는 결제 서비스를 사용하며, 모든 거래는 암호화되어 안전하게 처리됩니다.",
   },
   {
-    question: "환불이 가능한가요?",
-    answer:
-      "구독 후 7일 이내에 학습 기록이 없는 경우 전액 환불이 가능합니다. 그 이후에는 언제든지 구독을 취소할 수 있으며, 현재 결제 기간이 끝날 때까지 서비스를 이용할 수 있습니다.",
+    question: isEn ? "Can I get a refund?" : "환불이 가능한가요?",
+    answer: isEn
+      ? "A full refund is available within 7 days of subscription if there is no learning history. After that, you can cancel your subscription at any time and continue using the service until the end of the current billing period."
+      : "구독 후 7일 이내에 학습 기록이 없는 경우 전액 환불이 가능합니다. 그 이후에는 언제든지 구독을 취소할 수 있으며, 현재 결제 기간이 끝날 때까지 서비스를 이용할 수 있습니다.",
   },
   {
-    question: "플랜을 나중에 변경할 수 있나요?",
-    answer:
-      "네! 월간 플랜으로 시작한 후 연간 플랜으로 언제든지 업그레이드할 수 있습니다. 이미 결제한 금액은 연간 결제에 적용됩니다.",
+    question: isEn ? "Can I change my plan later?" : "플랜을 나중에 변경할 수 있나요?",
+    answer: isEn
+      ? "Yes! You can start with a monthly plan and upgrade to an annual plan at any time. The amount already paid will be applied to the annual payment."
+      : "네! 월간 플랜으로 시작한 후 연간 플랜으로 언제든지 업그레이드할 수 있습니다. 이미 결제한 금액은 연간 결제에 적용됩니다.",
   },
   {
-    question: "그룹 계정(학교, 학원)도 사용 가능한가요?",
-    answer:
-      "현재는 개인 사용자 전용입니다. 하지만 학교나 학원용 그룹 구독 옵션을 준비 중입니다. 관심 있으시면 문의해 주세요!",
+    question: isEn ? "Are group accounts (schools, academies) available?" : "그룹 계정(학교, 학원)도 사용 가능한가요?",
+    answer: isEn
+      ? "Currently, it is for individual users only. However, we are preparing group subscription options for schools and academies. Please contact us if you're interested!"
+      : "현재는 개인 사용자 전용입니다. 하지만 학교나 학원용 그룹 구독 옵션을 준비 중입니다. 관심 있으시면 문의해 주세요!",
   },
   {
-    question: "어떤 레벨부터 시작해야 하나요?",
-    answer:
-      "레벨 테스트를 통해 현재 실력을 측정한 후 적합한 레벨부터 시작하는 것을 권장합니다. 학습을 진행하면서 각 스킬별 레벨 배지를 획득할 수 있습니다.",
+    question: isEn ? "Which level should I start with?" : "어떤 레벨부터 시작해야 하나요?",
+    answer: isEn
+      ? "We recommend taking a level test to measure your current proficiency and starting from the appropriate level. As you progress, you can earn level badges for each skill."
+      : "레벨 테스트를 통해 현재 실력을 측정한 후 적합한 레벨부터 시작하는 것을 권장합니다. 학습을 진행하면서 각 스킬별 레벨 배지를 획득할 수 있습니다.",
   },
   {
-    question: "모바일에서도 사용할 수 있나요?",
-    answer:
-      "네! VocaVision AI는 모바일 반응형으로 설계되어 스마트폰과 태블릿에서도 편리하게 학습할 수 있습니다. 전용 앱도 준비 중입니다.",
+    question: isEn ? "Can I use it on mobile?" : "모바일에서도 사용할 수 있나요?",
+    answer: isEn
+      ? "Yes! VocaVision AI is designed to be mobile-responsive, so you can learn conveniently on smartphones and tablets. A dedicated app is also in the works."
+      : "네! VocaVision AI는 모바일 반응형으로 설계되어 스마트폰과 태블릿에서도 편리하게 학습할 수 있습니다. 전용 앱도 준비 중입니다.",
   },
 ];
+
+/** @deprecated Use getVocaVisionFAQ(isEn) instead */
+export const vocaVisionFAQ = getVocaVisionFAQ(false);

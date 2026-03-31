@@ -6,51 +6,52 @@ import Link from 'next/link';
 import { useAuthStore, useExamCourseStore, ExamType } from '@/lib/store';
 import { progressAPI } from '@/lib/api';
 import TabLayout from '@/components/layout/TabLayout';
+import { useLocale } from '@/hooks/useLocale';
 
 // 시험별 정보
-const examInfo: Record<string, {
+const getExamInfo = (isEn: boolean): Record<string, {
   name: string;
   fullName: string;
   icon: string;
   color: string;
   bgColor: string;
-}> = {
+}> => ({
   CSAT: {
-    name: '수능',
-    fullName: '대학수학능력시험',
+    name: isEn ? 'CSAT' : '수능',
+    fullName: isEn ? 'College Scholastic Ability Test' : '대학수학능력시험',
     icon: '📝',
     color: 'blue',
     bgColor: 'bg-blue-50',
   },
   SAT: {
     name: 'SAT',
-    fullName: '미국대학입학시험',
+    fullName: isEn ? 'Scholastic Assessment Test' : '미국대학입학시험',
     icon: '🇺🇸',
     color: 'red',
     bgColor: 'bg-red-50',
   },
   TOEFL: {
     name: 'TOEFL',
-    fullName: '학술영어능력시험',
+    fullName: isEn ? 'Test of English as a Foreign Language' : '학술영어능력시험',
     icon: '🌍',
     color: 'orange',
     bgColor: 'bg-orange-50',
   },
   TOEIC: {
     name: 'TOEIC',
-    fullName: '국제의사소통영어',
+    fullName: isEn ? 'Test of English for International Communication' : '국제의사소통영어',
     icon: '💼',
     color: 'green',
     bgColor: 'bg-green-50',
   },
   TEPS: {
     name: 'TEPS',
-    fullName: '서울대영어능력시험',
+    fullName: isEn ? 'Test of English Proficiency (Seoul National Univ.)' : '서울대영어능력시험',
     icon: '🎓',
     color: 'purple',
     bgColor: 'bg-purple-50',
   },
-};
+});
 
 // Day별 학습 데이터 (30일 완성)
 const generateDays = () => {
@@ -62,6 +63,7 @@ const generateDays = () => {
 };
 
 export default function CoursesPage() {
+  const isEn = useLocale() === 'en';
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const hasHydrated = useAuthStore((state) => state._hasHydrated);
@@ -71,6 +73,7 @@ export default function CoursesPage() {
   const [dayProgress, setDayProgress] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
 
+  const examInfo = getExamInfo(isEn);
   const selectedExam = activeExam || 'CSAT';
   const exam = examInfo[selectedExam];
   const days = generateDays();
@@ -121,7 +124,7 @@ export default function CoursesPage() {
     return (
       <TabLayout>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="text-xl text-gray-500">로딩 중...</div>
+          <div className="text-xl text-gray-500">{isEn ? 'Loading...' : '로딩 중...'}</div>
         </div>
       </TabLayout>
     );
@@ -135,8 +138,8 @@ export default function CoursesPage() {
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Page Title */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">코스</h1>
-          <p className="text-gray-500">시험별 맞춤 학습 코스를 선택하세요</p>
+          <h1 className="text-2xl font-bold text-gray-900">{isEn ? 'Courses' : '코스'}</h1>
+          <p className="text-gray-500">{isEn ? 'Choose a customized course by exam' : '시험별 맞춤 학습 코스를 선택하세요'}</p>
         </div>
 
         {/* Exam Selector Pills */}
@@ -165,19 +168,19 @@ export default function CoursesPage() {
                 {exam.icon}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">{exam.name} 30일 완성</h2>
+                <h2 className="text-xl font-bold text-gray-900">{isEn ? `${exam.name} 30-Day Mastery` : `${exam.name} 30일 완성`}</h2>
                 <p className="text-gray-500 text-sm">{exam.fullName}</p>
               </div>
             </div>
             <span className="bg-teal-100 text-teal-600 text-xs font-bold px-3 py-1 rounded-full">
-              {completedDays}/30일
+              {isEn ? `${completedDays}/30 days` : `${completedDays}/30일`}
             </span>
           </div>
 
           {/* Progress Bar */}
           <div className="mb-4">
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-500">전체 진도</span>
+              <span className="text-gray-500">{isEn ? 'Overall Progress' : '전체 진도'}</span>
               <span className="font-medium text-teal-600">{progressPercent}%</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
@@ -192,13 +195,13 @@ export default function CoursesPage() {
             href={`/learn?exam=${selectedExam}&level=L1`}
             className="block w-full bg-teal-500 hover:bg-teal-600 text-white py-4 rounded-xl font-bold text-center transition shadow-lg shadow-pink-500/25"
           >
-            Day {currentDay} 이어하기
+            {isEn ? `Continue Day ${currentDay}` : `Day ${currentDay} 이어하기`}
           </Link>
         </div>
 
         {/* Day Grid */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Day별 학습</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{isEn ? 'Daily Learning' : 'Day별 학습'}</h3>
           <div className="grid grid-cols-6 gap-2">
             {days.map(({ day, level }) => {
               const progress = dayProgress[day] || 0;
@@ -258,16 +261,16 @@ export default function CoursesPage() {
             className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-teal-200 hover:shadow-md transition"
           >
             <span className="text-3xl mb-3 block">🎯</span>
-            <p className="font-bold text-gray-900">실력 테스트</p>
-            <p className="text-sm text-gray-500">퀴즈로 복습하기</p>
+            <p className="font-bold text-gray-900">{isEn ? 'Skills Test' : '실력 테스트'}</p>
+            <p className="text-sm text-gray-500">{isEn ? 'Review with quizzes' : '퀴즈로 복습하기'}</p>
           </Link>
           <Link
             href="/games"
             className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-teal-200 hover:shadow-md transition"
           >
             <span className="text-3xl mb-3 block">🎮</span>
-            <p className="font-bold text-gray-900">게임 모드</p>
-            <p className="text-sm text-gray-500">재미있게 학습하기</p>
+            <p className="font-bold text-gray-900">{isEn ? 'Game Mode' : '게임 모드'}</p>
+            <p className="text-sm text-gray-500">{isEn ? 'Learn while having fun' : '재미있게 학습하기'}</p>
           </Link>
         </div>
       </div>
