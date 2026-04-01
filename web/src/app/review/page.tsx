@@ -161,7 +161,7 @@ function ReviewPageContent() {
   const hasActAccess = bulkAccessData?.['act-complete']?.hasAccess || false;
 
   // 구독 상태 확인 (프리미엄 회원은 모든 단품 접근 가능)
-  const isPremium = (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY');
+  const isPremium = (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY' || user?.subscriptionPlan === 'PREMIUM_MONTHLY' || user?.subscriptionPlan === 'PREMIUM_YEARLY');
 
   // React Query 데이터에서 추출
   const stats: ReviewStats = isDemo ? DEMO_STATS : {

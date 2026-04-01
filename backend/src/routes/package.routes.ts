@@ -29,7 +29,8 @@ router.get('/check-access', authenticateToken, async (req: AuthRequest, res: Res
     });
 
     // 2. 프리미엄 회원은 모든 패키지 접근 가능
-    const isPremium = user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY';
+    const isExpiredOrCancelled = user?.subscriptionStatus === 'EXPIRED' || user?.subscriptionStatus === 'CANCELLED';
+    const isPremium = !isExpiredOrCancelled && (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY' || user?.subscriptionPlan === 'PREMIUM_MONTHLY' || user?.subscriptionPlan === 'PREMIUM_YEARLY');
     if (isPremium) {
       logger.info(`[Packages] Access check - user: ${userId}, package: ${slug}, hasAccess: true (PREMIUM)`);
       return res.json({ hasAccess: true, reason: 'premium' });
@@ -90,7 +91,8 @@ router.get('/check-access-bulk', authenticateToken, async (req: AuthRequest, res
       select: { subscriptionPlan: true, subscriptionStatus: true },
     });
 
-    const isPremium = user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY';
+    const isExpiredOrCancelled = user?.subscriptionStatus === 'EXPIRED' || user?.subscriptionStatus === 'CANCELLED';
+    const isPremium = !isExpiredOrCancelled && (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY' || user?.subscriptionPlan === 'PREMIUM_MONTHLY' || user?.subscriptionPlan === 'PREMIUM_YEARLY');
 
     // 2. 프리미엄이면 전부 true
     if (isPremium) {
@@ -100,6 +102,10 @@ router.get('/check-access-bulk', authenticateToken, async (req: AuthRequest, res
       }
       return res.json({ results: result });
     }
+
+    // 2.5. Basic 구독자: SAT/ACT/IELTS 접근 허용
+    const isBasic = !isExpiredOrCancelled && user?.subscriptionPlan === 'MONTHLY' && user?.subscriptionStatus === 'ACTIVE';
+    const BASIC_INCLUDED_SLUGS = ['sat-complete', 'act-complete', 'ielts-complete'];
 
     // 3. 비프리미엄: 패키지 + 구매 내역 일괄 조회
     const packages = await prisma.productPackage.findMany({
@@ -124,6 +130,8 @@ router.get('/check-access-bulk', authenticateToken, async (req: AuthRequest, res
         result[slug] = { hasAccess: false, reason: 'not_found' };
       } else if (purchasePackageIds.has(pkg.id)) {
         result[slug] = { hasAccess: true, reason: 'purchased' };
+      } else if (isBasic && BASIC_INCLUDED_SLUGS.includes(slug)) {
+        result[slug] = { hasAccess: true, reason: 'basic_subscription' };
       } else {
         result[slug] = { hasAccess: false, reason: 'not_purchased' };
       }
@@ -322,7 +330,8 @@ router.get('/:slug/words', authenticateToken, async (req: AuthRequest, res: Resp
       where: { id: userId },
       select: { subscriptionPlan: true },
     });
-    const isPremium = user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY';
+    const isExpiredOrCancelled = user?.subscriptionStatus === 'EXPIRED' || user?.subscriptionStatus === 'CANCELLED';
+    const isPremium = !isExpiredOrCancelled && (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY' || user?.subscriptionPlan === 'PREMIUM_MONTHLY' || user?.subscriptionPlan === 'PREMIUM_YEARLY');
 
     const pkg = await prisma.productPackage.findUnique({
       where: { slug },

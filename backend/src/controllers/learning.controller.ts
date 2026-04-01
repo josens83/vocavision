@@ -13,6 +13,7 @@ async function getUserTier(userId: string): Promise<'FREE' | 'BASIC' | 'PREMIUM'
     select: { subscriptionPlan: true, subscriptionStatus: true },
   });
   if (!user) return 'FREE';
+  if (user.subscriptionStatus === 'EXPIRED' || user.subscriptionStatus === 'CANCELLED') return 'FREE';
   if (user.subscriptionPlan === 'YEARLY' || user.subscriptionPlan === 'FAMILY' || user.subscriptionPlan === 'PREMIUM_MONTHLY' || user.subscriptionPlan === 'PREMIUM_YEARLY') return 'PREMIUM';
   if (user.subscriptionPlan === 'MONTHLY' && user.subscriptionStatus === 'ACTIVE') return 'BASIC';
   return 'FREE';
