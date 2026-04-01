@@ -198,13 +198,13 @@ export const getWords = async (
     // If shuffle is requested, fetch more and randomize
     if (shuffle === 'true') {
       // 병렬로 count와 findMany 실행 (성능 개선)
-      const [countResult, allMatchingWords] = await Promise.all([
+      const [countResult, allMatchingWords] = await prisma.$transaction([
         prisma.word.count({ where }),
         prisma.word.findMany({
           where,
           include: wordInclude,
           orderBy,
-          take: 200, // Limit to prevent memory issues
+          take: 200,
         }),
       ]);
       total = countResult;
@@ -220,7 +220,7 @@ export const getWords = async (
       words = shuffled.slice(skip, skip + limitNum);
     } else {
       // 병렬로 count와 findMany 실행 (성능 개선)
-      const [countResult, wordsResult] = await Promise.all([
+      const [countResult, wordsResult] = await prisma.$transaction([
         prisma.word.count({ where }),
         prisma.word.findMany({
           where,

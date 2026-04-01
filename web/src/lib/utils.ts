@@ -59,6 +59,17 @@ export function slugify(text: string): string {
 }
 
 /**
+ * Supabase Storage 이미지 URL을 리사이즈된 URL로 변환
+ * 원본 1024x1024 → width px로 리사이즈
+ */
+export function getOptimizedImageUrl(url: string, width = 400): string {
+  if (!url || !url.includes('supabase.co/storage')) return url;
+  return url
+    .replace('/object/public/', '/render/image/public/')
+    + `?width=${width}&quality=75`;
+}
+
+/**
  * 첫 글자를 대문자로 변환
  */
 export function capitalize(text: string): string {
