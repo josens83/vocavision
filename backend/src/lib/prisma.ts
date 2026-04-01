@@ -17,8 +17,9 @@ const getDatabaseUrl = (): string | undefined => {
   // Railway 환경: 커넥션 풀 최적화 (기본 5 → 15, 타임아웃 30초)
   if (!finalUrl.includes('connection_limit')) {
     const separator = finalUrl.includes('?') ? '&' : '?';
-    finalUrl = `${finalUrl}${separator}connection_limit=8&pool_timeout=30`;
-    console.log('[Prisma] Connection pool: limit=8, timeout=30s');
+    const connectionLimit = process.env.NODE_ENV === 'production' ? 15 : 5;
+    finalUrl = `${finalUrl}${separator}connection_limit=${connectionLimit}&pool_timeout=20`;
+    console.log(`[Prisma] Connection pool: limit=${connectionLimit}, timeout=20s`);
   }
 
   return finalUrl;
