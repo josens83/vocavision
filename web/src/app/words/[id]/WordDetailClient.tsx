@@ -327,7 +327,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     onClick={() => user && setFullscreenImage({ url: conceptVisual.imageUrl!, caption: isEn ? (conceptVisual.captionEn || conceptVisual.captionKo) : conceptVisual.captionKo })}
                   >
                     <img
-                      src={getOptimizedImageUrl(conceptVisual.imageUrl, 600)}
+                      src={conceptVisual.imageUrl}
                       alt={`${word.word} concept`}
                       className="w-full h-full object-cover"
                     />
@@ -364,7 +364,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     onClick={() => user && setFullscreenImage({ url: mnemonicVisual.imageUrl!, caption: mnemonicVisual.captionKo })}
                   >
                     <img
-                      src={getOptimizedImageUrl(mnemonicVisual.imageUrl, 600)}
+                      src={mnemonicVisual.imageUrl}
                       alt={`${word.word} mnemonic`}
                       className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                     />
@@ -392,7 +392,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     onClick={() => user && setFullscreenImage({ url: rhymeVisual.imageUrl!, caption: isEn ? (rhymeVisual.captionEn || rhymeVisual.captionKo) : rhymeVisual.captionKo })}
                   >
                     <img
-                      src={getOptimizedImageUrl(rhymeVisual.imageUrl, 600)}
+                      src={rhymeVisual.imageUrl}
                       alt={`${word.word} rhyme`}
                       className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                     />

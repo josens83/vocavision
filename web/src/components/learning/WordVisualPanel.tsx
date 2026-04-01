@@ -236,7 +236,7 @@ export default function WordVisualPanel({
               className="w-full h-full cursor-grab active:cursor-grabbing"
             >
               <img
-                src={getOptimizedImageUrl(currentVisual.imageUrl)}
+                src={currentVisual.imageUrl}
                 alt={`${word} - ${TAB_CONFIG[activeTab].labelKo}`}
                 className="w-full h-full object-cover"
                 onError={() => handleImageError(currentVisual.type)}

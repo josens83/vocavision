@@ -451,7 +451,7 @@ function ImageMode({
         className={`relative ${compact ? "aspect-video" : "aspect-square"} rounded-xl overflow-hidden bg-slate-100`}
       >
         <img
-          src={getOptimizedImageUrl(visual.imageUrl)}
+          src={visual.imageUrl}
           alt={`${word.word} - ${config.label}`}
           className="w-full h-full object-cover"
         />
