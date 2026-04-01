@@ -551,7 +551,7 @@ function DashboardContent() {
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <button
             onClick={() => setIsCourseExpanded(!isCourseExpanded)}
-            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+            className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition focus:outline-none"
           >
             <div className="flex items-center gap-3">
               <span className="text-sm font-semibold text-gray-900">
@@ -673,7 +673,7 @@ function DashboardContent() {
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <button
               onClick={() => setIsThemeExpanded(!isThemeExpanded)}
-              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition focus:outline-none"
             >
               <span className="text-sm font-semibold text-gray-900">
                 {isEn ? 'Theme Learning' : '테마별 학습'}
@@ -741,16 +741,20 @@ function DashboardContent() {
               </span>
             </div>
 
-            <div className="flex gap-4 mb-4">
-              <div className="flex-1 bg-teal-50 rounded-xl p-4 text-center">
-                <span className="text-2xl mb-1 block">🔥</span>
-                <p className="text-2xl font-bold text-teal-600">{stats?.currentStreak || 0}{isEn ? 'd' : '일'}</p>
-                <p className="text-xs text-gray-500">{isEn ? 'Current' : '현재 연속'}</p>
+            <div className="flex gap-3 mb-4">
+              <div className="flex-1 flex items-center gap-2 bg-teal-50 rounded-lg px-3 py-2">
+                <span className="text-lg">🔥</span>
+                <div>
+                  <p className="text-base font-bold text-teal-600">{stats?.currentStreak || 0}{isEn ? 'd' : '일'}</p>
+                  <p className="text-[10px] text-gray-500">{isEn ? 'Current' : '현재'}</p>
+                </div>
               </div>
-              <div className="flex-1 bg-amber-50 rounded-xl p-4 text-center">
-                <span className="text-2xl mb-1 block">🏆</span>
-                <p className="text-2xl font-bold text-amber-600">{stats?.longestStreak || 0}{isEn ? 'd' : '일'}</p>
-                <p className="text-xs text-gray-500">{isEn ? 'Best' : '최장 기록'}</p>
+              <div className="flex-1 flex items-center gap-2 bg-amber-50 rounded-lg px-3 py-2">
+                <span className="text-lg">🏆</span>
+                <div>
+                  <p className="text-base font-bold text-amber-600">{stats?.longestStreak || 0}{isEn ? 'd' : '일'}</p>
+                  <p className="text-[10px] text-gray-500">{isEn ? 'Best' : '최장'}</p>
+                </div>
               </div>
             </div>
 
