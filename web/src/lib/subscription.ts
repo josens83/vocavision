@@ -112,6 +112,10 @@ export function getSubscriptionTier(user: User | null): SubscriptionTier {
   const plan = user.subscriptionPlan;
   const status = user.subscriptionStatus;
 
+  if (status === 'EXPIRED' || status === 'CANCELLED') {
+    return 'FREE';
+  }
+
   if (plan === 'YEARLY' || plan === 'FAMILY' || plan === 'PREMIUM_MONTHLY' || plan === 'PREMIUM_YEARLY') {
     return 'PREMIUM';
   }

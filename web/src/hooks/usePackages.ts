@@ -69,7 +69,7 @@ export function usePackages() {
   }, [locale, wordCounts]);
 
   /** 글로벌 숨김 패키지 필터링 */
-  const koreanOnlySlugs = ['2026-csat-analysis', 'ebs-vocab', 'teps-top-100'];
+  const koreanOnlySlugs = ['2026-csat-analysis', 'ebs-vocab', 'teps-top-100', 'sat-complete', 'act-complete'];
   const visiblePackages = isEn
     ? packages.filter(p => !koreanOnlySlugs.includes(p.slug))
     : packages;

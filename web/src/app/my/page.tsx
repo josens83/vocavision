@@ -17,6 +17,8 @@ const PACKAGE_WORD_COUNTS: Record<string, number> = {
   'toeic-complete': 2491,
   'sat-complete': 1935,
   'gre-complete': 4346,
+  'ielts-complete': 691,
+  'act-complete': 822,
 };
 
 // ChevronRight 아이콘

@@ -12,6 +12,8 @@ const PACKAGE_EXAM_SLUGS: Record<string, string> = {
   'TOEIC': 'toeic-complete',
   'SAT': 'sat-complete',
   'ACT': 'act-complete',
+  'IELTS': 'ielts-complete',
+  'GRE': 'gre-complete',
 };
 
 /**
@@ -27,6 +29,9 @@ export function isGlobalLocale(req: Request): boolean {
  * 사용자의 실제 구독 티어를 계산
  */
 function getSubscriptionTier(subscriptionPlan: string | null, subscriptionStatus: string | null): SubscriptionTier {
+  if (subscriptionStatus === 'EXPIRED' || subscriptionStatus === 'CANCELLED') {
+    return 'FREE';
+  }
   if (subscriptionPlan === 'YEARLY' || subscriptionPlan === 'FAMILY' || subscriptionPlan === 'PREMIUM_MONTHLY' || subscriptionPlan === 'PREMIUM_YEARLY') {
     return 'PREMIUM';
   }
@@ -99,6 +104,18 @@ export async function verifyContentAccess(
   // 프리미엄은 모든 콘텐츠 접근 가능
   if (tier === 'PREMIUM') {
     return null;
+  }
+
+  // 단품 구매 확인 (구독 체크보다 먼저 — IELTS/GRE 구매자 접근 허용)
+  const packageSlug = PACKAGE_EXAM_SLUGS[examCategory];
+  if (packageSlug) {
+    const pkg = await prisma.productPackage.findUnique({ where: { slug: packageSlug } });
+    if (pkg) {
+      const purchase = await prisma.userPurchase.findFirst({
+        where: { userId, packageId: pkg.id, status: 'ACTIVE' },
+      });
+      if (purchase) return null; // 구매 확인 → 접근 허용
+    }
   }
 
   // 글로벌 유저: SAT/ACT/IELTS는 구독 기반 접근 (단품 구매 불필요)
