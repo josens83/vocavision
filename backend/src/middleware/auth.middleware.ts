@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../index';
 
+// 유저 존재 확인 캐시 (TTL 5분) — 매 요청 DB 조회 제거
+const userCache = new Map<string, { role: string; expiresAt: number }>();
+
 export interface AuthRequest extends Request {
   userId?: string;
   userRole?: string;
@@ -45,10 +48,18 @@ export const authenticateToken = async (
       role: string;
     };
 
-    // Verify user still exists
+    // 캐시에서 유저 확인 (5분 TTL)
+    const cached = userCache.get(decoded.userId);
+    if (cached && Date.now() < cached.expiresAt) {
+      req.userId = decoded.userId;
+      req.userRole = cached.role;
+      return next();
+    }
+
+    // 캐시 미스 → DB 조회
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, role: true, subscriptionStatus: true }
+      select: { id: true, role: true }
     });
 
     if (!user) {
@@ -57,11 +68,14 @@ export const authenticateToken = async (
       return res.status(401).json({ error: 'User not found' });
     }
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[Auth] User authenticated:', user.id, 'role:', user.role);
-    }
+    // 캐시 저장 (5분 TTL)
+    userCache.set(decoded.userId, {
+      role: user.role,
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+
     req.userId = decoded.userId;
-    req.userRole = user.role; // Use DB role, not token role
+    req.userRole = user.role;
     next();
   } catch (error) {
     console.error('[Auth] Token verification failed:', error instanceof Error ? error.message : error);

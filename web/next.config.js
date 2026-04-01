@@ -8,7 +8,7 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60, // 60 seconds
+    minimumCacheTTL: 86400, // 24 hours
   },
 
   // Compiler optimizations
@@ -42,7 +42,7 @@ const nextConfig = {
   // Experimental features for better performance
   experimental: {
     // optimizeCss requires 'critters' package - disabled for now
-    optimizePackageImports: ['framer-motion', 'axios', 'date-fns'], // Optimize specific packages
+    optimizePackageImports: ['framer-motion', 'axios', 'date-fns', 'lucide-react', 'recharts', '@tanstack/react-query'],
   },
 
   // Phase 5-1: Security Headers - OWASP Best Practices
