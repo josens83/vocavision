@@ -1,13 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Hero from "./Hero";
 import DDayBanner from "./DDayBanner";
-import ProductPackageSection from "./ProductPackageSection";
 import PopularWordsSection from "./PopularWordsSection";
 import { LazySection } from "@/components/ui/LazySection";
 import { useAuthStore } from "@/lib/store";
 import { useLocale } from "@/hooks/useLocale";
 import Link from "next/link";
+
+// Lazy load heavy sections below the fold
+const ProductPackageSection = dynamic(() => import("./ProductPackageSection"), { ssr: false });
 
 export default function HomePage() {
   const { user } = useAuthStore();

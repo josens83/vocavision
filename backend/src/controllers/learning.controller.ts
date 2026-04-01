@@ -21,6 +21,9 @@ async function getUserTier(userId: string): Promise<'FREE' | 'BASIC' | 'PREMIUM'
 // QuizType enum (matches Prisma schema)
 type QuizType = 'LEVEL_TEST' | 'ENG_TO_KOR' | 'KOR_TO_ENG' | 'FLASHCARD' | 'SPELLING';
 
+// wordOrder 서버 메모리 캐시 — JSON.parse 반복 방지
+const wordOrderCache = new Map<string, string[]>();
+
 // 🚀 플래시카드 UI에 필요한 Word 필드만 select (include 대신 사용)
 const FLASHCARD_WORD_SELECT = {
   id: true,
@@ -567,7 +570,7 @@ export const getLearningSession = async (
     }
 
     // wordOrder를 파싱하여 현재 세트의 단어들 가져오기
-    const wordOrder: string[] = JSON.parse(session.wordOrder);
+    const wordOrder: string[] = wordOrderCache.get(session.id) || JSON.parse(session.wordOrder);
     const setSize = 20;
     const startIdx = session.currentSet * setSize;
     const endIdx = Math.min(startIdx + setSize, wordOrder.length);
@@ -670,7 +673,7 @@ export const startLearningSession = async (
 
       if (existingSession) {
         // 기존 세션 반환 (getLearningSession과 동일한 형식)
-        const wordOrder: string[] = JSON.parse(existingSession.wordOrder);
+        const wordOrder: string[] = wordOrderCache.get(existingSession.id) || JSON.parse(existingSession.wordOrder);
         const setSize = 20;
         const startIdx = existingSession.currentSet * setSize;
         const endIdx = Math.min(startIdx + setSize, wordOrder.length);
@@ -797,6 +800,9 @@ export const startLearningSession = async (
         isRestart: restart === true || restart === 'true',
       },
     });
+
+    // wordOrder 캐시 저장
+    wordOrderCache.set(newSession.id, orderedWordIds);
 
     // 첫 번째 세트 단어들 조회
     const setSize = 20;
@@ -944,7 +950,7 @@ export const updateSessionProgress = async (
     // 다음 세트 단어들 조회 (세트 완료 후)
     let nextWords: any[] = [];
     if (completedSet && updatedSession.status === 'IN_PROGRESS') {
-      const wordOrder: string[] = JSON.parse(updatedSession.wordOrder);
+      const wordOrder: string[] = wordOrderCache.get(updatedSession.id) || JSON.parse(updatedSession.wordOrder);
       const startIdx = updatedSession.currentSet * setSize;
       const endIdx = Math.min(startIdx + setSize, wordOrder.length);
       const nextSetWordIds = wordOrder.slice(startIdx, endIdx);
@@ -1086,7 +1092,7 @@ export const getSessionSet = async (
     }
 
     // 해당 세트 단어들 조회
-    const wordOrder: string[] = JSON.parse(session.wordOrder);
+    const wordOrder: string[] = wordOrderCache.get(session.id) || JSON.parse(session.wordOrder);
     const startIdx = setNum * setSize;
     const endIdx = Math.min(startIdx + setSize, wordOrder.length);
     const setWordIds = wordOrder.slice(startIdx, endIdx);
