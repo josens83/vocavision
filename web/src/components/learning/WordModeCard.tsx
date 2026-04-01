@@ -454,6 +454,8 @@ function ImageMode({
           src={visual.imageUrl}
           alt={`${word.word} - ${config.label}`}
           className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
         />
       </div>
 

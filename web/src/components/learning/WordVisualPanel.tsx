@@ -239,6 +239,8 @@ export default function WordVisualPanel({
                 src={currentVisual.imageUrl}
                 alt={`${word} - ${TAB_CONFIG[activeTab].labelKo}`}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
                 onError={() => handleImageError(currentVisual.type)}
               />
             </motion.div>

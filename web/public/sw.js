@@ -4,7 +4,8 @@
  * Provides offline functionality and caching for PWA
  */
 
-const CACHE_NAME = 'vocavision-v1';
+const CACHE_NAME = 'vocavision-v2';
+const IMAGE_CACHE_NAME = 'vocavision-images-v1';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately
@@ -53,7 +54,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          if (cacheName !== CACHE_NAME && cacheName !== IMAGE_CACHE_NAME) {
             console.log('[Service Worker] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
@@ -89,9 +90,34 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Handle Supabase images — cache-first (images rarely change)
+  if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/')) {
+    event.respondWith(handleImageRequest(request));
+    return;
+  }
+
   // Handle static assets
   event.respondWith(handleStaticRequest(request));
 });
+
+/**
+ * Handle Supabase image requests - Cache first (images are immutable)
+ */
+async function handleImageRequest(request) {
+  const cache = await caches.open(IMAGE_CACHE_NAME);
+  const cachedResponse = await cache.match(request);
+  if (cachedResponse) return cachedResponse;
+
+  try {
+    const response = await fetch(request);
+    if (response && response.status === 200) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    return new Response('', { status: 404 });
+  }
+}
 
 /**
  * Handle API requests - Network first, fallback to cache
