@@ -16,6 +16,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
+import { getOptimizedImageUrl } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -235,7 +236,7 @@ export default function WordVisualPanel({
               className="w-full h-full cursor-grab active:cursor-grabbing"
             >
               <img
-                src={currentVisual.imageUrl}
+                src={getOptimizedImageUrl(currentVisual.imageUrl)}
                 alt={`${word} - ${TAB_CONFIG[activeTab].labelKo}`}
                 className="w-full h-full object-cover"
                 onError={() => handleImageError(currentVisual.type)}

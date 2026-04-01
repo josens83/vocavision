@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { getOptimizedImageUrl } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -326,7 +327,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     onClick={() => user && setFullscreenImage({ url: conceptVisual.imageUrl!, caption: isEn ? (conceptVisual.captionEn || conceptVisual.captionKo) : conceptVisual.captionKo })}
                   >
                     <img
-                      src={conceptVisual.imageUrl}
+                      src={getOptimizedImageUrl(conceptVisual.imageUrl, 600)}
                       alt={`${word.word} concept`}
                       className="w-full h-full object-cover"
                     />
@@ -363,7 +364,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     onClick={() => user && setFullscreenImage({ url: mnemonicVisual.imageUrl!, caption: mnemonicVisual.captionKo })}
                   >
                     <img
-                      src={mnemonicVisual.imageUrl}
+                      src={getOptimizedImageUrl(mnemonicVisual.imageUrl, 600)}
                       alt={`${word.word} mnemonic`}
                       className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                     />
@@ -391,7 +392,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
                     onClick={() => user && setFullscreenImage({ url: rhymeVisual.imageUrl!, caption: isEn ? (rhymeVisual.captionEn || rhymeVisual.captionKo) : rhymeVisual.captionKo })}
                   >
                     <img
-                      src={rhymeVisual.imageUrl}
+                      src={getOptimizedImageUrl(rhymeVisual.imageUrl, 600)}
                       alt={`${word.word} rhyme`}
                       className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                     />

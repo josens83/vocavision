@@ -17,6 +17,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getOptimizedImageUrl } from "@/lib/utils";
 
 // 학습 모드 타입
 export type LearningMode =
@@ -450,7 +451,7 @@ function ImageMode({
         className={`relative ${compact ? "aspect-video" : "aspect-square"} rounded-xl overflow-hidden bg-slate-100`}
       >
         <img
-          src={visual.imageUrl}
+          src={getOptimizedImageUrl(visual.imageUrl)}
           alt={`${word.word} - ${config.label}`}
           className="w-full h-full object-cover"
         />
