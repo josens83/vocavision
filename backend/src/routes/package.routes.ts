@@ -328,7 +328,7 @@ router.get('/:slug/words', authenticateToken, async (req: AuthRequest, res: Resp
     // 프리미엄 체크
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { subscriptionPlan: true },
+      select: { subscriptionPlan: true, subscriptionStatus: true },
     });
     const isExpiredOrCancelled = user?.subscriptionStatus === 'EXPIRED' || user?.subscriptionStatus === 'CANCELLED';
     const isPremium = !isExpiredOrCancelled && (user?.subscriptionPlan === 'YEARLY' || user?.subscriptionPlan === 'FAMILY' || user?.subscriptionPlan === 'PREMIUM_MONTHLY' || user?.subscriptionPlan === 'PREMIUM_YEARLY');

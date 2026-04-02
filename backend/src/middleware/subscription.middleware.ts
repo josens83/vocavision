@@ -107,9 +107,9 @@ export async function verifyContentAccess(
   }
 
   // 단품 구매 확인 (구독 체크보다 먼저 — IELTS/GRE 구매자 접근 허용)
-  const packageSlug = PACKAGE_EXAM_SLUGS[examCategory];
-  if (packageSlug) {
-    const pkg = await prisma.productPackage.findUnique({ where: { slug: packageSlug } });
+  const packageSlugCheck = PACKAGE_EXAM_SLUGS[examCategory];
+  if (packageSlugCheck) {
+    const pkg = await prisma.productPackage.findUnique({ where: { slug: packageSlugCheck } });
     if (pkg) {
       const purchase = await prisma.userPurchase.findFirst({
         where: { userId, packageId: pkg.id, status: 'ACTIVE' },
