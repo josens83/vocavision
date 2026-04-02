@@ -67,7 +67,6 @@ const FLASHCARD_WORD_SELECT = {
     }
   },
   examples: {
-    take: 2,
     select: {
       sentence: true,
       translation: true,
