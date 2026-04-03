@@ -83,11 +83,9 @@ function shouldShowInReview(progress: {
   learnedAt.setHours(0, 0, 0, 0);
   const daysSinceLearned = Math.floor((today.getTime() - learnedAt.getTime()) / (1000 * 60 * 60 * 24));
 
-  // "알았음"으로 학습 (rating 5) + 아직 틀린 적 없음 → D+3부터 2일포함/1일쉼
+  // "알았음"으로 학습 (rating 5) + 아직 틀린 적 없음 → D+3부터 표시, 퀴즈 정답 1회면 사라짐
   if (progress.initialRating === 5 && progress.incorrectCount === 0) {
-    if (daysSinceLearned < 3) return false;
-    const cycleDayFromD3 = (daysSinceLearned - 3) % 3;
-    return cycleDayFromD3 !== 2;
+    return daysSinceLearned >= 3 && progress.correctCount === 0;
   }
 
   // "모름" (rating 1-2) 또는 퀴즈에서 틀린 단어 → 2일 포함, 1일 쉼 패턴
@@ -595,9 +593,13 @@ export const submitReview = async (
         nextReviewDate,
         lastReviewDate: new Date(),
         masteryLevel,
-        // correctCount/incorrectCount: QUIZ에서만 증가 (플래시카드는 initialRating 사용)
-        correctCount: (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount,
-        incorrectCount: (!isCorrectAnswer && isQuiz) ? progress.incorrectCount + 1 : progress.incorrectCount,
+        // 재학습 리셋: 마스터 단어(correctCount>=2)를 플래시카드로 다시 학습하면 초기화
+        ...((learningMethod === 'FLASHCARD' || !learningMethod) && progress.correctCount >= 2
+          ? { correctCount: 0, incorrectCount: 0, learnedAt: new Date() }
+          : {
+              correctCount: (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount,
+              incorrectCount: (!isCorrectAnswer && isQuiz) ? progress.incorrectCount + 1 : progress.incorrectCount,
+            }),
         totalReviews: progress.totalReviews + 1,
         needsReview,
         reviewCorrectCount,
@@ -790,8 +792,13 @@ export const submitReviewBatch = async (
         data: {
           easeFactor, interval, repetitions, nextReviewDate,
           lastReviewDate: new Date(), masteryLevel,
-          correctCount: (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount,
-          incorrectCount: (!isCorrectAnswer && isQuiz) ? progress.incorrectCount + 1 : progress.incorrectCount,
+          // 재학습 리셋
+          ...((learningMethod === 'FLASHCARD' || !learningMethod) && progress.correctCount >= 2
+            ? { correctCount: 0, incorrectCount: 0, learnedAt: new Date() }
+            : {
+                correctCount: (isCorrectAnswer && isQuiz) ? progress.correctCount + 1 : progress.correctCount,
+                incorrectCount: (!isCorrectAnswer && isQuiz) ? progress.incorrectCount + 1 : progress.incorrectCount,
+              }),
           totalReviews: progress.totalReviews + 1,
           needsReview, reviewCorrectCount,
           ...(learningMethod === 'FLASHCARD' || !learningMethod ? { initialRating: rating } : {}),
@@ -1665,10 +1672,9 @@ export const getDashboardSummary = async (
               AND "correctCount" < 2
               AND "nextReviewDate" <= NOW()
               AND (
-                -- "알았음" (rating=5, 틀린적 없음) → D+3부터 2일포함/1일쉼
-                ("initialRating" = 5 AND "incorrectCount" = 0
-                  AND (CURRENT_DATE - "learnedAt"::date) >= 3
-                  AND ((CURRENT_DATE - "learnedAt"::date) - 3) % 3 != 2)
+                -- "알았음" (rating=5, 틀린적 없음, 미정답) → D+3부터 표시
+                ("initialRating" = 5 AND "incorrectCount" = 0 AND "correctCount" = 0
+                  AND (CURRENT_DATE - "learnedAt"::date) >= 3)
                 OR
                 -- "모름" 또는 틀린 단어 → 2일 포함/1일 쉼 패턴 (cycleDay % 3 != 2)
                 (NOT ("initialRating" = 5 AND "incorrectCount" = 0)

@@ -607,11 +607,11 @@ function ReviewPageContent() {
               <span>{isEn ? 'Quiz' : '퀴즈'}</span>
             </Link>
             <Link
-              href={`/learn?mode=weak&exam=${selectedExam}&level=${selectedLevel}`}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl font-semibold text-sm transition-colors"
+              href={`/learn?mode=review&exam=${selectedExam}&level=${selectedLevel}`}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold text-sm transition-colors"
             >
-              <span>⚠️</span>
-              <span>{isEn ? 'Weak Words' : '취약 단어'}</span>
+              <span>📚</span>
+              <span>{isEn ? 'Flashcards' : '플래시카드'}</span>
             </Link>
             <Link
               href="/learn?mode=bookmarks"
