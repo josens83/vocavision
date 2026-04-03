@@ -44,6 +44,26 @@ function calculateNextReview(
 }
 
 // ============================================
+// 시간대 유틸 (KST / UTC 글로벌 대응)
+// ============================================
+function getTimezoneOffsetHours(req?: any): number {
+  if (!req) return 9;
+  const origin = req.headers?.origin || '';
+  const referer = req.headers?.referer || '';
+  if (origin.includes('vocavision.app') || referer.includes('vocavision.app')) {
+    return 0; // 글로벌: UTC
+  }
+  return 9; // 한국: KST
+}
+
+function getTodayStartUTC(offsetHours: number): Date {
+  const now = new Date();
+  const local = new Date(now.getTime() + offsetHours * 60 * 60 * 1000);
+  local.setUTCHours(0, 0, 0, 0);
+  return new Date(local.getTime() - offsetHours * 60 * 60 * 1000);
+}
+
+// ============================================
 // 복습 대기 여부 판단 함수 (2일 포함/1일 쉼 + D+3 알았음)
 // ============================================
 function shouldShowInReview(progress: {
@@ -63,9 +83,11 @@ function shouldShowInReview(progress: {
   learnedAt.setHours(0, 0, 0, 0);
   const daysSinceLearned = Math.floor((today.getTime() - learnedAt.getTime()) / (1000 * 60 * 60 * 24));
 
-  // "알았음"으로 학습 (rating 5) + 아직 틀린 적 없음 → D+3에만 표시
+  // "알았음"으로 학습 (rating 5) + 아직 틀린 적 없음 → D+3부터 2일포함/1일쉼
   if (progress.initialRating === 5 && progress.incorrectCount === 0) {
-    return daysSinceLearned === 3;
+    if (daysSinceLearned < 3) return false;
+    const cycleDayFromD3 = (daysSinceLearned - 3) % 3;
+    return cycleDayFromD3 !== 2;
   }
 
   // "모름" (rating 1-2) 또는 퀴즈에서 틀린 단어 → 2일 포함, 1일 쉼 패턴
@@ -85,11 +107,9 @@ export const getUserProgress = async (
   try {
     const userId = req.userId!;
 
-    // KST 기준 오늘 시작 시간 (00:00:00)
     const now = new Date();
-    const todayStartKST = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-    todayStartKST.setUTCHours(0, 0, 0, 0);
-    const todayStartUTC = new Date(todayStartKST.getTime() - 9 * 60 * 60 * 1000);
+    const offsetHours = getTimezoneOffsetHours(req);
+    const todayStartUTC = getTodayStartUTC(offsetHours);
 
     const [progress, stats, todayLearned, todayKnown, totalLearned, totalKnown] = await Promise.all([
       // 기존 progress 조회 (examLevels 포함)
@@ -193,23 +213,17 @@ export const getDueReviews = async (
     const now = new Date();
     const { examCategory, level } = req.query;
 
-    // KST 기준 오늘 시작 시간 (00:00:00)
-    const todayStartKST = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-    todayStartKST.setUTCHours(0, 0, 0, 0);
-    const todayStartUTC = new Date(todayStartKST.getTime() - 9 * 60 * 60 * 1000);
+    // 시간대 기반 오늘/내일/이번 주 계산
+    const offsetHours = getTimezoneOffsetHours(req);
+    const todayStartUTC = getTodayStartUTC(offsetHours);
 
-    // KST 기준 내일 시작/끝 시간
-    const tomorrowStartKST = new Date(todayStartKST);
-    tomorrowStartKST.setDate(tomorrowStartKST.getDate() + 1);
-    const tomorrowStartUTC = new Date(tomorrowStartKST.getTime() - 9 * 60 * 60 * 1000);
-    const tomorrowEndKST = new Date(tomorrowStartKST);
-    tomorrowEndKST.setDate(tomorrowEndKST.getDate() + 1);
-    const tomorrowEndUTC = new Date(tomorrowEndKST.getTime() - 9 * 60 * 60 * 1000);
+    const tomorrowStartUTC = new Date(todayStartUTC);
+    tomorrowStartUTC.setDate(tomorrowStartUTC.getDate() + 1);
+    const tomorrowEndUTC = new Date(tomorrowStartUTC);
+    tomorrowEndUTC.setDate(tomorrowEndUTC.getDate() + 1);
 
-    // KST 기준 이번 주 끝 (7일 후)
-    const weekEndKST = new Date(todayStartKST);
-    weekEndKST.setDate(weekEndKST.getDate() + 7);
-    const weekEndUTC = new Date(weekEndKST.getTime() - 9 * 60 * 60 * 1000);
+    const weekEndUTC = new Date(todayStartUTC);
+    weekEndUTC.setDate(weekEndUTC.getDate() + 7);
 
     // 기본 where 조건 (word 모델 필터 — 비활성/아카이브 단어 제외)
     const wordWhere: any = {
@@ -1575,8 +1589,8 @@ export const getWeakWordsCount = async (
     const weakCount = await prisma.userProgress.count({
       where: {
         userId,
-        needsReview: true,
-        nextReviewDate: { lte: new Date() },  // 오늘 또는 이전 날짜만
+        incorrectCount: { gt: 0 },
+        correctCount: { lt: 2 },
         word: wordWhere
       }
     });
@@ -1604,11 +1618,9 @@ export const getDashboardSummary = async (
     // UserProgress 기반 데이터(learnedCount, progress 등)는 매 학습마다 변하므로
     // 전체 응답 캐시 사용하지 않음. 단어 수(wordCount)만 개별 캐시 유지.
 
-    // KST 기준 오늘 시작 시간 (00:00:00)
     const now = new Date();
-    const todayStartKST = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-    todayStartKST.setUTCHours(0, 0, 0, 0);
-    const todayStartUTC = new Date(todayStartKST.getTime() - 9 * 60 * 60 * 1000);
+    const offsetHours = getTimezoneOffsetHours(req);
+    const todayStartUTC = getTodayStartUTC(offsetHours);
 
     // 10초 타임아웃 보호
     const QUERY_TIMEOUT = 10000;
@@ -1653,9 +1665,10 @@ export const getDashboardSummary = async (
               AND "correctCount" < 2
               AND "nextReviewDate" <= NOW()
               AND (
-                -- "알았음" (rating=5, 틀린적 없음) → D+3에만 복습
+                -- "알았음" (rating=5, 틀린적 없음) → D+3부터 2일포함/1일쉼
                 ("initialRating" = 5 AND "incorrectCount" = 0
-                  AND (CURRENT_DATE - "learnedAt"::date) = 3)
+                  AND (CURRENT_DATE - "learnedAt"::date) >= 3
+                  AND ((CURRENT_DATE - "learnedAt"::date) - 3) % 3 != 2)
                 OR
                 -- "모름" 또는 틀린 단어 → 2일 포함/1일 쉼 패턴 (cycleDay % 3 != 2)
                 (NOT ("initialRating" = 5 AND "incorrectCount" = 0)
@@ -1722,7 +1735,7 @@ export const getDashboardSummary = async (
           const isThematic = (level as string).startsWith('THEME_');
           if (!isThematic) {
             return prisma.userProgress.count({
-              where: { userId, needsReview: true, examCategory: examCategory as ExamCategory, level: level as string },
+              where: { userId, incorrectCount: { gt: 0 }, correctCount: { lt: 2 }, examCategory: examCategory as ExamCategory, level: level as string },
             });
           }
           const themeWords = await prisma.word.findMany({
@@ -1736,7 +1749,7 @@ export const getDashboardSummary = async (
           if (themeWords.length === 0) return 0;
           const wordIds = themeWords.map(w => w.id);
           return prisma.userProgress.count({
-            where: { userId, needsReview: true, wordId: { in: wordIds } },
+            where: { userId, incorrectCount: { gt: 0 }, correctCount: { lt: 2 }, wordId: { in: wordIds } },
           });
         })(),
 
