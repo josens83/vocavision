@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/store';
 import { wordsAPI, bookmarkAPI, pronunciationAPI } from '@/lib/api';
 import { useLocale } from '@/hooks/useLocale';
+import { isLevelLocked } from '@/lib/subscription';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 
 // Types
@@ -125,32 +126,40 @@ function SectionHeader({ icon, title }: { icon: string; title: string }) {
 }
 
 // Premium Blur Wrapper
-function PremiumBlur({ children, user, isDemo = false, isEn = false }: { children: React.ReactNode; user: any; isDemo?: boolean; isEn?: boolean }) {
-  if (user || isDemo) return <>{children}</>;
+function PremiumBlur({ children, user, isDemo = false, isEn = false, locked = false }: { children: React.ReactNode; user: any; isDemo?: boolean; isEn?: boolean; locked?: boolean }) {
+  if (isDemo) return <>{children}</>;
 
-  return (
-    <div className="relative">
-      <div className="blur-md pointer-events-none select-none">
-        {children}
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center bg-white/60 rounded-xl">
-        <div className="text-center p-6">
-          <p className="text-lg font-bold text-gray-800 mb-2">
-            {isEn ? 'Sign up free to see all content' : '전체 콘텐츠를 보려면 무료 가입하세요'}
-          </p>
-          <p className="text-sm text-gray-500 mb-4">
-            {isEn ? 'Etymology, AI images, rhymes, collocations & examples — all in one!' : '어원 분석, AI 암기법, 라임, 콜로케이션, 예문까지 한 번에!'}
-          </p>
-          <a
-            href="/auth/register"
-            className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
-          >
-            {isEn ? 'Start for Free' : '무료로 시작하기'}
-          </a>
+  if (!user) {
+    return (
+      <div className="relative">
+        <div className="blur-md pointer-events-none select-none">{children}</div>
+        <div className="absolute inset-0 flex items-center justify-center bg-white/60 rounded-xl">
+          <div className="text-center p-6">
+            <p className="text-lg font-bold text-gray-800 mb-2">{isEn ? 'Sign up free to see all content' : '전체 콘텐츠를 보려면 무료 가입하세요'}</p>
+            <p className="text-sm text-gray-500 mb-4">{isEn ? 'Etymology, AI images, rhymes, collocations & examples — all in one!' : '어원 분석, AI 암기법, 라임, 콜로케이션, 예문까지 한 번에!'}</p>
+            <a href="/auth/register" className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition">{isEn ? 'Start for Free' : '무료로 시작하기'}</a>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (locked) {
+    return (
+      <div className="relative">
+        <div className="blur-md pointer-events-none select-none">{children}</div>
+        <div className="absolute inset-0 flex items-center justify-center bg-white/60 rounded-xl">
+          <div className="text-center p-6">
+            <p className="text-lg font-bold text-gray-800 mb-2">{isEn ? 'Upgrade to unlock this content' : '이 콘텐츠를 보려면 업그레이드하세요'}</p>
+            <p className="text-sm text-gray-500 mb-4">{isEn ? 'Subscribe or purchase this exam pack to access all features.' : '구독하거나 해당 시험팩을 구매하면 모든 기능을 이용할 수 있습니다.'}</p>
+            <a href="/pricing" className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition">{isEn ? 'View Plans' : '요금제 보기'}</a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }
 
 interface WordDetailClientProps {
@@ -173,6 +182,17 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
   const user = useAuthStore((state) => state.user);
   const locale = useLocale();
   const isEn = locale === 'en';
+
+  // 단어의 시험/레벨 기반 접근 권한 체크
+  const isContentLocked = (() => {
+    if (!user || !initialWord) return false;
+    const examLevels = (initialWord as any)?.examLevels;
+    if (!examLevels || examLevels.length === 0) return false;
+    return !examLevels.some((el: any) =>
+      el.level ? !isLevelLocked(user, el.examCategory, el.level) : true
+    );
+  })();
+
   const [word, setWord] = useState<Word | null>(initialWord || null);
   const [loading, setLoading] = useState(!initialWord);
   const [bookmarked, setBookmarked] = useState(false);
@@ -319,7 +339,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
             </div>
 
             {/* Concept Image */}
-            <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
+            <PremiumBlur user={user} isDemo={isDemo} isEn={isEn} locked={isContentLocked}>
               <div className="relative h-64 md:h-auto bg-gray-100">
                 {conceptVisual?.imageUrl ? (
                   <div
@@ -355,7 +375,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 2: 이미지 2개 (연상, 라이밍) — 블러 */}
         {(mnemonicVisual?.imageUrl || rhymeVisual?.imageUrl) && (
-          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn} locked={isContentLocked}>
             <div className="grid sm:grid-cols-2 gap-4">
               {mnemonicVisual?.imageUrl && !isEn && (
                 <SectionCard className="overflow-hidden p-0 group">
@@ -451,7 +471,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 4: 어원 분석 — 블러 */}
         {(word.etymology || word.prefix || word.root || word.suffix) && (
-          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn} locked={isContentLocked}>
             <SectionCard id="etymology">
               <SectionHeader icon="🌳" title={locale === 'en' ? "Etymology" : "어원 분석"} />
 
@@ -513,7 +533,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 5: 창의적 암기법 — 블러 */}
         {!isEn && (word.mnemonic || word.mnemonicKorean || (word.mnemonics && word.mnemonics.length > 0)) && (
-          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn} locked={isContentLocked}>
             <SectionCard>
               <SectionHeader icon="💡" title="창의적 암기법" />
 
@@ -555,7 +575,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 6: Rhyme — 블러 */}
         {((word.rhymingWords && word.rhymingWords.length > 0) || (word.rhymes && word.rhymes.length > 0)) && (
-          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn} locked={isContentLocked}>
             <SectionCard>
               <SectionHeader icon="🎵" title={locale === 'en' ? "Rhyme" : "라이밍 (Rhyme)"} />
 
@@ -587,7 +607,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 7: Collocation — 블러 */}
         {word.collocations && word.collocations.length > 0 && (
-          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn} locked={isContentLocked}>
             <SectionCard>
               <SectionHeader icon="🔗" title={locale === 'en' ? "Collocations" : "연어 (Collocation)"} />
 
@@ -610,7 +630,7 @@ function WordDetailContent({ id, initialWord }: WordDetailClientProps) {
 
         {/* 섹션 8: 예문 — 블러 */}
         {word.examples && word.examples.length > 0 && (
-          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn}>
+          <PremiumBlur user={user} isDemo={isDemo} isEn={isEn} locked={isContentLocked}>
             <SectionCard>
               <SectionHeader icon="📝" title={locale === 'en' ? "Examples" : "예문"} />
 
