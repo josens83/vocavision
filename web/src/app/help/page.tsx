@@ -137,7 +137,7 @@ function getFeatureDetails(isEn: boolean) {
           <ul className="text-sm text-gray-600 space-y-1">
             <li>{isEn
               ? '• AI generates 2 unique images per word (Concept + Rhyme)'
-              : '• AI가 단어마다 3가지 이미지 자동 생성 (Concept + Mnemonic + Rhyme)'
+              : '• AI가 단어마다 2가지 이미지 자동 생성 (Concept + Rhyme)'
             }</li>
             <li>{isEn ? '• Visual memory for long-term retention' : '• 시각적 기억으로 장기 암기 효과'}</li>
             <li>{isEn ? '• Makes abstract words easy to grasp' : '• 추상적 단어도 쉽게 이해'}</li>
