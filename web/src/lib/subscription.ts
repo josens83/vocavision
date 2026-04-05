@@ -185,7 +185,7 @@ export function getAccessibleLevels(user: User | null): Record<string, string[]>
   switch (tier) {
     case 'PREMIUM':
       return {
-        CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2', 'L3'], EBS: ['LISTENING', 'READING_BASIC', 'READING_ADV'],
+        CSAT: ['L1', 'L2', 'L3'], TEPS: ['L1', 'L2'], EBS: ['LISTENING', 'READING_BASIC', 'READING_ADV'],
         SAT: globalL1L2, ACT: globalL1L2, GRE: globalL1L2, TOEFL: globalL1L2, TOEIC: globalL1L2, IELTS: globalL1L2,
       };
     case 'BASIC':
