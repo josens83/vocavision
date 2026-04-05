@@ -56,18 +56,18 @@ function RegisterContent() {
     let result;
     switch (field) {
       case 'name':
-        result = validateName(value, { required: false });
+        result = validateName(value, { required: false, isEn });
         break;
       case 'email':
-        result = validateEmail(value);
+        result = validateEmail(value, isEn);
         break;
       case 'password':
-        result = validatePassword(value, { minLength: 8 });
+        result = validatePassword(value, { minLength: 8, isEn });
         break;
       case 'passwordConfirm': {
         const pw = allData?.password ?? formData.password;
         const isMatch = value === pw;
-        result = { isValid: isMatch, error: isMatch ? '' : '비밀번호가 일치하지 않습니다' };
+        result = { isValid: isMatch, error: isMatch ? '' : (isEn ? 'Passwords do not match' : '비밀번호가 일치하지 않습니다') };
         break;
       }
       default:
@@ -106,10 +106,10 @@ function RegisterContent() {
     // Validate all fields
     const passwordsMatch = formData.password === formData.passwordConfirm;
     const validation = validateForm({
-      name: validateName(formData.name, { required: false }),
-      email: validateEmail(formData.email),
-      password: validatePassword(formData.password, { minLength: 8 }),
-      passwordConfirm: { isValid: passwordsMatch, error: passwordsMatch ? '' : '비밀번호가 일치하지 않습니다' },
+      name: validateName(formData.name, { required: false, isEn }),
+      email: validateEmail(formData.email, isEn),
+      password: validatePassword(formData.password, { minLength: 8, isEn }),
+      passwordConfirm: { isValid: passwordsMatch, error: passwordsMatch ? '' : (isEn ? 'Passwords do not match' : '비밀번호가 일치하지 않습니다') },
     });
 
     if (!validation.isValid) {
@@ -126,9 +126,9 @@ function RegisterContent() {
       gaEvent('sign_up', { category: 'conversion', label: 'email' });
       router.push(nextUrl);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || '회원가입에 실패했습니다. 다시 시도해주세요.';
+      const errorMessage = err.response?.data?.error || (isEn ? 'Registration failed. Please try again.' : '회원가입에 실패했습니다. 다시 시도해주세요.');
       if (errorMessage.toLowerCase().includes('email') || errorMessage.includes('이메일')) {
-        setErrors((prev) => ({ ...prev, email: '이미 사용 중인 이메일입니다' }));
+        setErrors((prev) => ({ ...prev, email: isEn ? 'This email is already in use' : '이미 사용 중인 이메일입니다' }));
       } else {
         setServerError(errorMessage);
       }
@@ -273,6 +273,7 @@ function RegisterContent() {
               placeholder={isEn ? '8+ characters' : '8자 이상 입력하세요'}
               autoComplete="new-password"
               showPasswordStrength
+              isEn={isEn}
             />
 
             <FormInput

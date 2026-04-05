@@ -13,14 +13,14 @@ export interface FieldValidation {
 }
 
 // Email validation
-export function validateEmail(email: string): ValidationResult {
+export function validateEmail(email: string, isEn = false): ValidationResult {
   if (!email.trim()) {
-    return { isValid: false, error: '이메일을 입력해주세요' };
+    return { isValid: false, error: isEn ? 'Please enter your email' : '이메일을 입력해주세요' };
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return { isValid: false, error: '올바른 이메일 형식을 입력해주세요' };
+    return { isValid: false, error: isEn ? 'Please enter a valid email' : '올바른 이메일 형식을 입력해주세요' };
   }
 
   return { isValid: true };
@@ -33,6 +33,7 @@ export function validatePassword(password: string, options?: {
   requireLowercase?: boolean;
   requireNumber?: boolean;
   requireSpecial?: boolean;
+  isEn?: boolean;
 }): ValidationResult {
   const {
     minLength = 8,
@@ -40,43 +41,44 @@ export function validatePassword(password: string, options?: {
     requireLowercase = false,
     requireNumber = false,
     requireSpecial = false,
+    isEn = false,
   } = options || {};
 
   if (!password) {
-    return { isValid: false, error: '비밀번호를 입력해주세요' };
+    return { isValid: false, error: isEn ? 'Please enter your password' : '비밀번호를 입력해주세요' };
   }
 
   if (password.length < minLength) {
-    return { isValid: false, error: `비밀번호는 ${minLength}자 이상이어야 합니다` };
+    return { isValid: false, error: isEn ? `Password must be at least ${minLength} characters` : `비밀번호는 ${minLength}자 이상이어야 합니다` };
   }
 
   if (requireUppercase && !/[A-Z]/.test(password)) {
-    return { isValid: false, error: '비밀번호에 대문자를 포함해주세요' };
+    return { isValid: false, error: isEn ? 'Password must include an uppercase letter' : '비밀번호에 대문자를 포함해주세요' };
   }
 
   if (requireLowercase && !/[a-z]/.test(password)) {
-    return { isValid: false, error: '비밀번호에 소문자를 포함해주세요' };
+    return { isValid: false, error: isEn ? 'Password must include a lowercase letter' : '비밀번호에 소문자를 포함해주세요' };
   }
 
   if (requireNumber && !/\d/.test(password)) {
-    return { isValid: false, error: '비밀번호에 숫자를 포함해주세요' };
+    return { isValid: false, error: isEn ? 'Password must include a number' : '비밀번호에 숫자를 포함해주세요' };
   }
 
   if (requireSpecial && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    return { isValid: false, error: '비밀번호에 특수문자를 포함해주세요' };
+    return { isValid: false, error: isEn ? 'Password must include a special character' : '비밀번호에 특수문자를 포함해주세요' };
   }
 
   return { isValid: true };
 }
 
 // Password confirmation validation
-export function validatePasswordConfirm(password: string, confirm: string): ValidationResult {
+export function validatePasswordConfirm(password: string, confirm: string, isEn = false): ValidationResult {
   if (!confirm) {
-    return { isValid: false, error: '비밀번호 확인을 입력해주세요' };
+    return { isValid: false, error: isEn ? 'Please confirm your password' : '비밀번호 확인을 입력해주세요' };
   }
 
   if (password !== confirm) {
-    return { isValid: false, error: '비밀번호가 일치하지 않습니다' };
+    return { isValid: false, error: isEn ? 'Passwords do not match' : '비밀번호가 일치하지 않습니다' };
   }
 
   return { isValid: true };
@@ -87,22 +89,23 @@ export function validateName(name: string, options?: {
   minLength?: number;
   maxLength?: number;
   required?: boolean;
+  isEn?: boolean;
 }): ValidationResult {
-  const { minLength = 2, maxLength = 50, required = true } = options || {};
+  const { minLength = 2, maxLength = 50, required = true, isEn = false } = options || {};
 
   if (!name.trim()) {
     if (required) {
-      return { isValid: false, error: '이름을 입력해주세요' };
+      return { isValid: false, error: isEn ? 'Please enter your name' : '이름을 입력해주세요' };
     }
     return { isValid: true };
   }
 
   if (name.trim().length < minLength) {
-    return { isValid: false, error: `이름은 ${minLength}자 이상이어야 합니다` };
+    return { isValid: false, error: isEn ? `Name must be at least ${minLength} characters` : `이름은 ${minLength}자 이상이어야 합니다` };
   }
 
   if (name.trim().length > maxLength) {
-    return { isValid: false, error: `이름은 ${maxLength}자 이하여야 합니다` };
+    return { isValid: false, error: isEn ? `Name must be ${maxLength} characters or less` : `이름은 ${maxLength}자 이하여야 합니다` };
   }
 
   return { isValid: true };
@@ -199,7 +202,7 @@ export function validateForm(validations: { [key: string]: ValidationResult }): 
 }
 
 // Password strength meter
-export function getPasswordStrength(password: string): {
+export function getPasswordStrength(password: string, isEn = false): {
   score: number; // 0-4
   label: string;
   color: string;
@@ -222,7 +225,9 @@ export function getPasswordStrength(password: string): {
   // Cap at 4
   score = Math.min(score, 4);
 
-  const labels = ['매우 약함', '약함', '보통', '강함', '매우 강함'];
+  const labels = isEn
+    ? ['Very weak', 'Weak', 'Fair', 'Strong', 'Very strong']
+    : ['매우 약함', '약함', '보통', '강함', '매우 강함'];
   const colors = ['red', 'orange', 'yellow', 'green', 'emerald'];
 
   return {
