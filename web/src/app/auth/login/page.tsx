@@ -48,10 +48,10 @@ function LoginContent() {
     let result;
     switch (field) {
       case 'email':
-        result = validateEmail(value);
+        result = validateEmail(value, isEn);
         break;
       case 'password':
-        result = validatePassword(value, { minLength: 1 });
+        result = validatePassword(value, { minLength: 1, isEn });
         break;
       default:
         return;
@@ -83,8 +83,8 @@ function LoginContent() {
 
     // Validate all fields
     const validation = validateForm({
-      email: validateEmail(formData.email),
-      password: validatePassword(formData.password, { minLength: 1 }),
+      email: validateEmail(formData.email, isEn),
+      password: validatePassword(formData.password, { minLength: 1, isEn }),
     });
 
     if (!validation.isValid) {
@@ -100,7 +100,7 @@ function LoginContent() {
       setAuth(response.user, response.token);
       router.push(nextUrl);
     } catch (err: any) {
-      setServerError(err.response?.data?.error || '이메일 또는 비밀번호가 올바르지 않습니다');
+      setServerError(err.response?.data?.error || (isEn ? 'Invalid email or password' : '이메일 또는 비밀번호가 올바르지 않습니다'));
     } finally {
       setLoading(false);
     }

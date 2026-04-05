@@ -13,17 +13,18 @@ interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   hint?: string;
   showPasswordStrength?: boolean;
+  isEn?: boolean;
 }
 
 export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
-  ({ label, error, hint, className = '', showPasswordStrength, type, ...props }, ref) => {
+  ({ label, error, hint, className = '', showPasswordStrength, isEn, type, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
     const [focused, setFocused] = useState(false);
 
     const isPassword = type === 'password';
     const inputType = isPassword && showPassword ? 'text' : type;
     const value = props.value as string || '';
-    const passwordStrength = showPasswordStrength && isPassword ? getPasswordStrength(value) : null;
+    const passwordStrength = showPasswordStrength && isPassword ? getPasswordStrength(value, isEn) : null;
 
     const hasError = !!error;
     const borderColor = hasError
