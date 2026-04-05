@@ -47,10 +47,10 @@ const Icons = {
 // Hero 섹션 통계 (실제 데이터 기반)
 const heroStatsKo = [
   { label: "영어 단어", value: PLATFORM_STATS.totalWords.toLocaleString() + "+" },
-  { label: "시험 대비", value: "8" },
+  { label: "시험 대비", value: PLATFORM_STATS.examCount },
   { label: "예문 데이터", value: "40,000+" },
   { label: "AI 이미지", value: "37,000+" },
-  { label: "AI 이미지 종류", value: "3" },
+  { label: "AI 이미지 종류", value: "2" },
 ];
 
 const heroStatsEn = [
@@ -745,7 +745,7 @@ export default function Hero() {
                       See a word, <span className="text-cyan-500 font-black">remember it.</span>
                     </span>
                     <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
-                      Master SAT · GRE · TOEFL · IELTS with <span className="font-semibold text-cyan-600">Concept + Rhyme AI images</span>, etymology & mnemonics.
+                      Master SAT · GRE · TOEFL · IELTS with <span className="font-semibold text-cyan-600">Concept + Rhyme AI images</span>, etymology & rhymes.
                     </span>
                   </>
                 ) : (
@@ -757,7 +757,7 @@ export default function Hero() {
                       기억됩니다.
                     </span>
                     <span className="block text-lg md:text-xl lg:text-2xl text-slate-600 mt-3">
-                      <span className="font-semibold text-cyan-600">Concept · Mnemonic · Rhyme</span> — AI가 만든 3가지 이미지로 수능 · TOEFL · SAT 단어를 눈으로 기억하세요.
+                      <span className="font-semibold text-cyan-600">Concept · Rhyme</span> — AI 이미지로 수능 · TOEFL · SAT 단어를 눈으로 기억하세요.
                     </span>
                   </>
                 )}
