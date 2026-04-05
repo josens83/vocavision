@@ -236,7 +236,7 @@ export default function FlashCardGesture({
   const koreanPronunciation = word.pronunciation || '';
   const definition = isEn
     ? (word.definition || word.definitionKo || 'No definition')
-    : (word.definitionKo || word.definition || '정의 없음');
+    : (word.definitionKo || word.definition || (isEn ? 'No definition' : '정의 없음'));
   const englishDefinition = word.definition || '';
   const mnemonic = word.mnemonics?.[0];
   const examples = word.examples || [];
