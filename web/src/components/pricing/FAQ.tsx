@@ -191,8 +191,8 @@ export const getVocaVisionFAQ = (isEn: boolean): FAQItemData[] => [
   {
     question: isEn ? "Can I use it on mobile?" : "모바일에서도 사용할 수 있나요?",
     answer: isEn
-      ? "Yes! VocaVision AI is designed to be mobile-responsive, so you can learn conveniently on smartphones and tablets. A dedicated app is also in the works."
-      : "네! VocaVision AI는 모바일 반응형으로 설계되어 스마트폰과 태블릿에서도 편리하게 학습할 수 있습니다. 전용 앱도 준비 중입니다.",
+      ? "Yes! VocaVision AI is fully mobile-responsive. You can also download our Android app from Google Play, or add it to your home screen as a PWA for an app-like experience."
+      : "네! VocaVision AI는 모바일 반응형으로 설계되어 스마트폰과 태블릿에서도 편리하게 학습할 수 있습니다. Android 앱은 Google Play에서 다운로드할 수 있으며, PWA로 홈 화면에 추가하면 앱처럼 사용할 수 있습니다.",
   },
 ];
 
