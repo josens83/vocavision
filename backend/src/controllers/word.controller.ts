@@ -10,7 +10,7 @@ const ACTIVE_EXAM_CATEGORIES: ExamCategory[] = ['CSAT', 'TEPS', 'CSAT_2026', 'EB
 
 // 구독 티어별 접근 가능한 시험 카테고리
 function getAccessibleExams(subscriptionPlan: string | null, subscriptionStatus: string | null): ExamCategory[] {
-  const isPremium = subscriptionPlan === 'YEARLY' || subscriptionPlan === 'FAMILY';
+  const isPremium = subscriptionPlan === 'YEARLY' || subscriptionPlan === 'FAMILY' || subscriptionPlan === 'PREMIUM_MONTHLY' || subscriptionPlan === 'PREMIUM_YEARLY';
   if (isPremium) {
     return ACTIVE_EXAM_CATEGORIES; // 전체
   }
