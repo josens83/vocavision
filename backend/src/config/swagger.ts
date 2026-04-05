@@ -27,8 +27,8 @@ VocaVision API - AI 기반 영어 단어 학습 플랫폼
       `,
       contact: {
         name: 'VocaVision Support',
-        email: 'support@vocavision.com',
-        url: 'https://vocavision.com',
+        email: 'support@vocavision.app',
+        url: 'https://vocavision.app',
       },
       license: {
         name: 'MIT',
@@ -41,7 +41,7 @@ VocaVision API - AI 기반 영어 단어 학습 플랫폼
         description: 'Development server',
       },
       {
-        url: 'https://api.vocavision.com/api',
+        url: 'https://vocavisionbackend-production.up.railway.app/api',
         description: 'Production server',
       },
     ],

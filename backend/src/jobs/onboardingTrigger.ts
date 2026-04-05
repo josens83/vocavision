@@ -71,7 +71,7 @@ export async function processOnboardingTriggers(): Promise<void> {
             <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
               <h2 style="color: #0F172A;">Hi ${user.name || 'there'}! 👋</h2>
               <p>You signed up for VocaVision AI but haven't started learning yet.</p>
-              <p><strong>1,779 SAT Starter words are free</strong> — try your first 20 words in 60 seconds!</p>
+              <p><strong>1,300+ SAT Starter words are free</strong> — try your first 20 words in 60 seconds!</p>
               <a href="https://vocavision.app/learn?exam=SAT&level=L1&demo=true"
                  style="display:inline-block;background:#06B6D4;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
                 Start Now
@@ -90,7 +90,7 @@ export async function processOnboardingTriggers(): Promise<void> {
             <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
               <h2 style="color: #0F172A;">안녕하세요, ${user.name || '학습자'}님! 👋</h2>
               <p>VocaVision AI에 가입하셨는데 아직 첫 단어를 학습하지 않으셨네요.</p>
-              <p>수능 L1 기초 단어 <strong>947개</strong>가 무료로 기다리고 있어요!</p>
+              <p>수능 L1 기초 단어 <strong>951개</strong>가 무료로 기다리고 있어요!</p>
               <a href="https://vocavision.kr/learn"
                  style="display:inline-block;background:#06B6D4;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
                 지금 시작하기
