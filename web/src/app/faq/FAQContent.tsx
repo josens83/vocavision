@@ -26,12 +26,12 @@ function getFaqCategories(isEn: boolean): FAQCategory[] {
           {
             question: 'Is it free to use?',
             answer:
-              'Yes! You can study 800+ SAT Starter words for free. Full access to SAT Advanced, GRE, TOEFL, IELTS, and more requires a subscription.',
+              'Yes! You can study 1,300+ SAT Starter words for free. Full access to SAT Advanced, ACT, GRE, TOEFL, TOEIC, IELTS, and more requires a subscription.',
           },
           {
             question: 'Which exams can I prepare for?',
             answer:
-              'SAT, GRE, TOEFL, TOEIC, IELTS, and CSAT (Korean). Each exam has curated vocabulary with AI-generated visual mnemonics.',
+              'SAT, ACT, GRE, TOEFL, TOEIC, IELTS, and CSAT (Korean). Each exam has curated vocabulary with AI-generated images and etymology analysis.',
           },
         ],
       },
@@ -93,12 +93,12 @@ function getFaqCategories(isEn: boolean): FAQCategory[] {
         {
           question: '무료로 이용할 수 있나요?',
           answer:
-            '네, 수능 L1 필수 단어 951개를 무료로 학습할 수 있습니다. 전체 1,700개+ 단어(수능 + TEPS)와 추가 기능은 프리미엄 구독을 통해 이용 가능합니다.',
+            '네, 수능 L1 필수 단어 951개를 무료로 학습할 수 있습니다. 프리미엄 구독으로 수능·TEPS·TOEFL·TOEIC·EBS 등 19,000개+ 단어를 학습할 수 있습니다.',
         },
         {
           question: '어떤 시험을 준비할 수 있나요?',
           answer:
-            '현재 수능(CSAT)과 TEPS 어휘를 제공하며, TOEFL, TOEIC 어휘는 추가 예정입니다.',
+            '수능(CSAT), TEPS, TOEFL, TOEIC, EBS 연계, 2026 기출 어휘를 제공합니다. 글로벌 버전에서는 SAT, ACT, GRE, IELTS도 지원합니다.',
         },
       ],
     },
