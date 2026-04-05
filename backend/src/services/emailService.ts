@@ -34,7 +34,7 @@ export interface EmailTemplate {
 
 class EmailService {
   private provider: 'sendgrid' | 'ses' | 'nodemailer' | 'console' = 'console';
-  private defaultFrom: string = process.env.EMAIL_FROM || 'noreply@vocavision.com';
+  private defaultFrom: string = process.env.EMAIL_FROM || 'noreply@vocavision.app';
 
   constructor() {
     // Detect provider based on environment variables
@@ -236,7 +236,7 @@ class EmailService {
           <h1>Welcome to VocaVision, {{name}}!</h1>
           <p>We're excited to have you on board.</p>
           <p>Start learning vocabulary with our AI-powered platform.</p>
-          <a href="https://vocavision.com/dashboard">Go to Dashboard</a>
+          <a href="https://vocavision.app/dashboard">Go to Dashboard</a>
         `,
         text: 'Welcome to VocaVision! Start learning now.',
       },
@@ -261,7 +261,7 @@ class EmailService {
           <h1>Hi {{name}}!</h1>
           <p>You have <strong>{{count}} words</strong> ready for review.</p>
           <p>Reviewing now will help you retain them in long-term memory.</p>
-          <a href="https://vocavision.com/learn">Review Now</a>
+          <a href="https://vocavision.app/learn">Review Now</a>
         `,
         text: `You have ${dueWordsCount} words to review.`,
       },
@@ -286,7 +286,7 @@ class EmailService {
           <h1>Hi {{name}}!</h1>
           <p>You're on a <strong>{{streak}}-day streak</strong>! 🔥</p>
           <p>Study today to keep it going.</p>
-          <a href="https://vocavision.com/learn">Continue Learning</a>
+          <a href="https://vocavision.app/learn">Continue Learning</a>
         `,
         text: `You're on a ${streak}-day streak!`,
       },
@@ -302,7 +302,7 @@ class EmailService {
     email: string,
     resetToken: string
   ): Promise<boolean> {
-    const resetUrl = `https://vocavision.com/reset-password?token=${resetToken}`;
+    const resetUrl = `https://vocavision.app/reset-password?token=${resetToken}`;
 
     return this.sendTemplateEmail(
       {
