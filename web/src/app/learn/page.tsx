@@ -402,7 +402,7 @@ function LearnPageContent() {
         timestamp: Date.now(),
       }));
     }
-  }, [user, hasHydrated, router, examParam, levelParam, isDemo, isWeakMode, isRestart]);
+  }, [user?.id, hasHydrated, router, examParam, levelParam, isDemo, isWeakMode, isRestart]);
 
   const startSession = async () => {
     if (isStartingSession.current) return; // 가드: 이미 시작 중이면 skip
