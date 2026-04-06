@@ -525,21 +525,37 @@ export const deleteAdminWord = async (
 ) => {
   try {
     const { wordId } = req.params;
+    const force = req.query.force === 'true';
+    const examCategory = req.query.exam as string;
 
-    // Delete related content first
-    await prisma.$transaction([
-      prisma.example.deleteMany({ where: { wordId } }),
-      prisma.mnemonic.deleteMany({ where: { wordId } }),
-      prisma.etymology.deleteMany({ where: { wordId } }),
-      prisma.synonym.deleteMany({ where: { wordId } }),
-      prisma.antonym.deleteMany({ where: { wordId } }),
-      prisma.collocation.deleteMany({ where: { wordId } }),
-      prisma.rhyme.deleteMany({ where: { wordId } }),
-      prisma.wordImage.deleteMany({ where: { wordId } }),
-      prisma.word.delete({ where: { id: wordId } }),
-    ]);
-
-    res.json({ message: 'Word deleted successfully' });
+    if (force) {
+      // 강제 삭제 — Word + 모든 관련 데이터 완전 삭제 (오타/테스트용)
+      await prisma.$transaction([
+        prisma.wordExamLevel.deleteMany({ where: { wordId } }),
+        prisma.userProgress.deleteMany({ where: { wordId } }),
+        prisma.review.deleteMany({ where: { wordId } }),
+        prisma.wordVisual.deleteMany({ where: { wordId } }),
+        prisma.example.deleteMany({ where: { wordId } }),
+        prisma.mnemonic.deleteMany({ where: { wordId } }),
+        prisma.etymology.deleteMany({ where: { wordId } }),
+        prisma.collocation.deleteMany({ where: { wordId } }),
+        prisma.synonym.deleteMany({ where: { wordId } }),
+        prisma.antonym.deleteMany({ where: { wordId } }),
+        prisma.rhyme.deleteMany({ where: { wordId } }),
+        prisma.wordImage.deleteMany({ where: { wordId } }),
+        prisma.word.delete({ where: { id: wordId } }),
+      ]);
+      res.json({ message: 'Word permanently deleted (force)' });
+    } else {
+      // 기본 삭제 — WordExamLevel만 제거 (Word 데이터 보존)
+      const deleted = await prisma.wordExamLevel.deleteMany({
+        where: { wordId, ...(examCategory ? { examCategory: examCategory as any } : {}) },
+      });
+      res.json({
+        message: `Removed ${deleted.count} exam mapping(s). Word data preserved.`,
+        hint: 'Use ?force=true to permanently delete the word and all related data.',
+      });
+    }
   } catch (error) {
     next(error);
   }
