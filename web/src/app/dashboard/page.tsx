@@ -319,6 +319,25 @@ function DashboardContent() {
     }
   }, [hasHydrated, examHasHydrated, searchParams, setActiveExamWithLevel]);
 
+  // 🚀 Optimistic stableQuery: bulkAccessData 도착 전에 dashboard-summary 즉시 실행
+  // 대부분의 유저는 접근 가능한 시험을 사용 중 → 618ms 직렬 대기 제거
+  // 만약 시험이 locked이면, 아래 bulkAccessData effect에서 exam 교체 → 자동 re-fetch
+  useEffect(() => {
+    if (stableQuery || !hasHydrated || !examHasHydrated) return;
+
+    const exam = activeExam || defaultExam;
+    const isGlobalDomain = typeof window !== 'undefined' && window.location.hostname.includes('vocavision.app');
+    const KR_ONLY_EXAMS = ['CSAT', 'CSAT_2026', 'EBS', 'TEPS'];
+
+    // 확실히 잘못된 경우만 스킵 (글로벌 도메인 + KR 시험)
+    if (isGlobalDomain && KR_ONLY_EXAMS.includes(exam)) return;
+
+    setStableQuery({
+      exam,
+      level: getValidLevelForExam(exam, activeLevel || 'L1'),
+    });
+  }, [hasHydrated, examHasHydrated, activeExam, activeLevel, defaultExam]);
+
   // CSAT_2026/TEPS 접근권한 없으면 CSAT으로 fallback
   // bulkAccessData 로딩 전에는 실행하지 않음 (접근 권한 미확인 상태에서 시험 리셋 방지)
   useEffect(() => {
@@ -532,6 +551,7 @@ function DashboardContent() {
               </div>
               <Link
                 href={`/learn?exam=${selectedExam}&level=${selectedLevel}&restart=true`}
+                prefetch={false}
                 className="block w-full py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 font-semibold text-center transition-colors"
               >
                 {isEn ? 'Start Over' : '처음부터 다시 학습'}
@@ -540,6 +560,7 @@ function DashboardContent() {
           ) : (
             <Link
               href={`/learn?exam=${selectedExam}&level=${selectedLevel}`}
+              prefetch={false}
               className="block w-full py-4 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl text-center transition-colors"
             >
               {learnedWords === 0 ? (isEn ? 'Start Learning' : '학습 시작하기') : (isEn ? 'Resume Learning' : '이어서 학습하기')}
