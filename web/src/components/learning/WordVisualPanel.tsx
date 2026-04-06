@@ -20,6 +20,10 @@ import { getOptimizedImageUrl } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
 import { useLocale } from '@/hooks/useLocale';
 
+function isVideoUrl(url: string): boolean {
+  return /\.(mp4|webm)(\?|$)/i.test(url);
+}
+
 // Visual type from backend
 export type VisualType = 'CONCEPT' | 'MNEMONIC' | 'RHYME';
 
@@ -235,14 +239,26 @@ export default function WordVisualPanel({
               onDragEnd={handleDragEnd}
               className="w-full h-full cursor-grab active:cursor-grabbing"
             >
-              <img
-                src={getOptimizedImageUrl(currentVisual.imageUrl)}
-                alt={`${word} - ${TAB_CONFIG[activeTab].labelKo}`}
-                className="w-full h-full object-cover"
-                loading="lazy"
-                decoding="async"
-                onError={() => handleImageError(currentVisual.type)}
-              />
+              {isVideoUrl(currentVisual.imageUrl) ? (
+                <video
+                  src={currentVisual.imageUrl}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                  onError={() => handleImageError(currentVisual.type)}
+                />
+              ) : (
+                <img
+                  src={getOptimizedImageUrl(currentVisual.imageUrl)}
+                  alt={`${word} - ${TAB_CONFIG[activeTab].labelKo}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  onError={() => handleImageError(currentVisual.type)}
+                />
+              )}
             </motion.div>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">

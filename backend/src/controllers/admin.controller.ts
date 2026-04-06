@@ -2650,7 +2650,7 @@ export const uploadWordImage = async (
 ) => {
   try {
     const { wordId } = req.params;
-    const { imageType, imageBase64, captionKo, captionEn } = req.body;
+    const { imageType, imageBase64, captionKo, captionEn, fileType } = req.body;
 
     if (!imageType || !['CONCEPT', 'MNEMONIC', 'RHYME'].includes(imageType)) {
       return res.status(400).json({
@@ -2680,7 +2680,7 @@ export const uploadWordImage = async (
 
     // Upload to Supabase Storage
     const { uploadToSupabase } = await import('../services/imageGenerator.service');
-    const uploadResult = await uploadToSupabase(imageBase64, word.word, imageType);
+    const uploadResult = await uploadToSupabase(imageBase64, word.word, imageType, fileType || 'image/png');
 
     // 메모리 해제: base64 데이터 참조 제거 + GC 힌트
     req.body.imageBase64 = null;
