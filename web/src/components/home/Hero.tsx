@@ -118,7 +118,7 @@ function WordSearchCard({ className = '' }: { className?: string }) {
           <Search className="w-5 h-5 text-teal-600" />
           <h3 className="font-semibold text-gray-900">{isEn ? 'Search Words' : '단어 찾기'}</h3>
         </div>
-        <Link href="/words" className="text-xs text-teal-600 font-medium hover:text-teal-700">
+        <Link href="/words" prefetch={false} className="text-xs text-teal-600 font-medium hover:text-teal-700">
           {isEn ? 'Browse All →' : '전체 보기 →'}
         </Link>
       </div>
@@ -768,7 +768,7 @@ export default function Hero() {
                   <Icons.Sparkles />
                   <span>{locale === 'en' ? 'Start for Free' : '무료로 시작하기'}</span>
                 </Link>
-                <Link href={locale === 'en' ? '/learn?exam=SAT&level=L1&demo=true' : '/learn?exam=CSAT&level=L1&demo=true'} className="btn btn-outline text-brand-primary border-brand-primary hover:bg-brand-primary/5">
+                <Link href={locale === 'en' ? '/learn?exam=SAT&level=L1&demo=true' : '/learn?exam=CSAT&level=L1&demo=true'} prefetch={false} className="btn btn-outline text-brand-primary border-brand-primary hover:bg-brand-primary/5">
                   <Icons.Play />
                   <span>{locale === 'en' ? '60s Demo' : '60초 체험'}</span>
                 </Link>
@@ -793,7 +793,7 @@ export default function Hero() {
               </p>
 
               {features.map((feature, index) => (
-                <Link key={feature.title} href={feature.demoHref} className="block">
+                <Link key={feature.title} href={feature.demoHref} prefetch={false} className="block">
                   <div className="group card p-5 md:p-6 flex items-start gap-5 cursor-pointer
                                   hover:shadow-lg hover:scale-[1.02] hover:border-brand-primary/30
                                   transition-all duration-200 border border-transparent"
@@ -832,7 +832,7 @@ export default function Hero() {
                     {locale === 'en' ? 'Quick demo with sample words — no sign-up required' : '회원가입 없이 샘플 단어로 빠르게 체험'}
                   </p>
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <Link href={locale === 'en' ? '/learn?exam=SAT&level=L1&demo=true' : '/learn?exam=CSAT&level=L1&demo=true'} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
+                    <Link href={locale === 'en' ? '/learn?exam=SAT&level=L1&demo=true' : '/learn?exam=CSAT&level=L1&demo=true'} prefetch={false} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary hover:bg-white/90 rounded-lg font-medium transition-colors group">
                       <span>{locale === 'en' ? 'Start Demo' : '맛보기 시작'}</span>
                       <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
