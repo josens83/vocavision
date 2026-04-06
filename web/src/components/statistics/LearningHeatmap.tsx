@@ -17,13 +17,15 @@ interface LearningHeatmapProps {
   weeks?: number;
   currentStreakOverride?: number;
   longestStreakOverride?: number;
+  isEn?: boolean;
 }
 
 export default function LearningHeatmap({
   data,
   weeks = 52,
   currentStreakOverride,
-  longestStreakOverride
+  longestStreakOverride,
+  isEn = false,
 }: LearningHeatmapProps) {
   const [heatmapData, setHeatmapData] = useState<DayData[]>([]);
   const [hoveredDay, setHoveredDay] = useState<DayData | null>(null);
@@ -205,8 +207,8 @@ export default function LearningHeatmap({
   return (
     <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 overflow-hidden">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[15px] font-bold text-[#1c1c1e]">학습 활동</h3>
-        <span className="text-[13px] text-gray-500">최근 52주</span>
+        <h3 className="text-[15px] font-bold text-[#1c1c1e]">{isEn ? 'Learning Activity' : '학습 활동'}</h3>
+        <span className="text-[13px] text-gray-500">{isEn ? 'Last 52 weeks' : '최근 52주'}</span>
       </div>
 
       {/* 요약 통계 */}
@@ -215,18 +217,18 @@ export default function LearningHeatmap({
         {currentStreak > 0 && (
           <div className="flex items-center gap-1.5 bg-orange-50 px-2 py-1 rounded-full">
             <span className="text-[14px]">🔥</span>
-            <span className="text-[12px] font-semibold text-orange-600">{currentStreak}일 연속</span>
+            <span className="text-[12px] font-semibold text-orange-600">{currentStreak}{isEn ? '-day streak' : '일 연속'}</span>
           </div>
         )}
         {/* 총 학습일 */}
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-sm bg-[#14B8A6]" />
-          <span className="text-[12px] text-gray-500">총 {totalDays}일</span>
+          <span className="text-[12px] text-gray-500">{isEn ? `${totalDays} days` : `총 ${totalDays}일`}</span>
         </div>
         {/* 총 단어 */}
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-sm bg-[#3B82F6]" />
-          <span className="text-[12px] text-gray-500">총 {totalWords}개</span>
+          <span className="text-[12px] text-gray-500">{isEn ? `${totalWords} words` : `총 ${totalWords}개`}</span>
         </div>
       </div>
 
@@ -241,7 +243,7 @@ export default function LearningHeatmap({
                   new Date().getFullYear(),
                   new Date().getMonth() - Math.ceil(weeks / 4) + i + 1,
                   1
-                ).toLocaleDateString('ko-KR', { month: 'short' })}
+                ).toLocaleDateString(isEn ? 'en-US' : 'ko-KR', { month: 'short' })}
               </div>
             ))}
           </div>
@@ -249,13 +251,7 @@ export default function LearningHeatmap({
           <div className="flex">
             {/* Day labels */}
             <div className="flex flex-col justify-between text-[10px] text-[#999999] pr-2">
-              <div>일</div>
-              <div>월</div>
-              <div>화</div>
-              <div>수</div>
-              <div>목</div>
-              <div>금</div>
-              <div>토</div>
+              {(isEn ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] : ['일','월','화','수','목','금','토']).map(d => <div key={d}>{d}</div>)}
             </div>
 
             {/* Heatmap grid */}
@@ -304,14 +300,14 @@ export default function LearningHeatmap({
           }}
         >
           <div className="font-semibold text-[13px]">
-            {new Date(hoveredDay.date).toLocaleDateString('ko-KR', {
+            {new Date(hoveredDay.date).toLocaleDateString(isEn ? 'en-US' : 'ko-KR', {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
             })}
           </div>
           <div className="text-[#14B8A6] text-[12px]">
-            {hoveredDay.count}개 단어 학습
+            {isEn ? `${hoveredDay.count} words learned` : `${hoveredDay.count}개 단어 학습`}
           </div>
         </motion.div>
       )}
@@ -320,17 +316,33 @@ export default function LearningHeatmap({
       <div className="mt-4 p-4 bg-[#ECFDF5] rounded-xl">
         <p className="text-[13px] text-[#1c1c1e]">
           {currentStreak > 0 ? (
-            <>
-              🔥 <strong>{currentStreak}일 연속 학습 중!</strong>{' '}
-              {currentStreak >= 7
-                ? `대단해요! 일주일 넘게 꾸준히 하고 있어요.`
-                : `내일도 학습하면 ${currentStreak + 1}일 달성!`}
-            </>
+            isEn ? (
+              <>
+                🔥 <strong>{currentStreak}-day streak!</strong>{' '}
+                {currentStreak >= 7
+                  ? 'Amazing! You\'ve been consistent for over a week.'
+                  : `Keep going tomorrow for a ${currentStreak + 1}-day streak!`}
+              </>
+            ) : (
+              <>
+                🔥 <strong>{currentStreak}일 연속 학습 중!</strong>{' '}
+                {currentStreak >= 7
+                  ? '대단해요! 일주일 넘게 꾸준히 하고 있어요.'
+                  : `내일도 학습하면 ${currentStreak + 1}일 달성!`}
+              </>
+            )
           ) : (
-            <>
-              💡 <strong>오늘 첫 학습을 시작해보세요!</strong>{' '}
-              하루 20개씩만 해도 한 달이면 600개!
-            </>
+            isEn ? (
+              <>
+                💡 <strong>Start your first lesson today!</strong>{' '}
+                Just 20 words a day means 600 in a month!
+              </>
+            ) : (
+              <>
+                💡 <strong>오늘 첫 학습을 시작해보세요!</strong>{' '}
+                하루 20개씩만 해도 한 달이면 600개!
+              </>
+            )
           )}
         </p>
       </div>

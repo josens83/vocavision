@@ -8,7 +8,7 @@ import { isFreeUser } from '@/lib/subscription';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LearningHeatmap from '@/components/statistics/LearningHeatmap';
 import { useStatistics, useActivityHeatmap, useMasteryDistribution, usePrefetchMasteryDistribution } from '@/hooks/useQueries';
-import { EXAM_LIST, EXAM_MAP, getValidLevelsForExam, getLevelLabel, getLevelShortLabel, LEVEL_COLORS } from '@/constants/exams';
+import { EXAM_LIST, EXAM_MAP, getValidLevelsForExam, getLevelLabel, getLevelShortLabel, getExamLabel, LEVEL_COLORS } from '@/constants/exams';
 import { useLocale } from '@/hooks/useLocale';
 
 // Benchmarking: Advanced statistics dashboard
@@ -337,8 +337,8 @@ function StatisticsPageContent() {
               베이직/프리미엄 회원 전용 기능입니다
             </h2>
             <p className="text-[14px] text-gray-500 mb-6 max-w-sm">
-              학습 통계를 확인하려면<br />
-              베이직 또는 프리미엄으로 업그레이드하세요.
+              {isEn ? 'Sign in to view your learning statistics' : '학습 통계를 확인하려면'}<br />
+              {isEn ? 'Upgrade to Basic or Premium.' : '베이직 또는 프리미엄으로 업그레이드하세요.'}
             </p>
 
             {/* 요금제 확인 버튼 */}
@@ -346,7 +346,7 @@ function StatisticsPageContent() {
               href="/pricing"
               className="bg-[#14B8A6] text-white px-6 py-3 rounded-xl font-semibold text-[14px] hover:bg-[#0D9488] transition-colors shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
             >
-              요금제 확인하기
+              {isEn ? 'View Plans' : '요금제 확인하기'}
             </Link>
           </div>
         </div>
@@ -398,7 +398,7 @@ function StatisticsPageContent() {
               <span className="text-2xl">🏆</span>
               <span className="text-[12px] text-[#F59E0B] font-medium">{isEn ? 'Best Streak' : '최장 연속'}</span>
             </div>
-            <p className="text-[28px] font-bold text-[#F59E0B]">{stats?.longestStreak || 0}일</p>
+            <p className="text-[28px] font-bold text-[#F59E0B]">{stats?.longestStreak || 0}{isEn ? ' days' : '일'}</p>
           </div>
         </div>
 
@@ -410,7 +410,7 @@ function StatisticsPageContent() {
               <span className="text-2xl">🔥</span>
               <span className="text-[12px] text-[#14B8A6] font-medium">{isEn ? 'Current Streak' : '현재 연속'}</span>
             </div>
-            <p className="text-[28px] font-bold text-[#14B8A6]">{stats?.currentStreak || 0}일</p>
+            <p className="text-[28px] font-bold text-[#14B8A6]">{stats?.currentStreak || 0}{isEn ? ' days' : '일'}</p>
           </div>
 
           {/* 정확도 (새 로직) */}
@@ -421,7 +421,7 @@ function StatisticsPageContent() {
             </div>
             <p className="text-[28px] font-bold text-[#10B981]">{totalAccuracy.percent}%</p>
             <p className="text-[11px] text-gray-500 mt-1">
-              {totalAccuracy.correctWords}/{totalAccuracy.totalLearnedWords} 단어
+              {totalAccuracy.correctWords}/{totalAccuracy.totalLearnedWords} {isEn ? 'words' : '단어'}
             </p>
           </div>
         </div>
@@ -453,7 +453,7 @@ function StatisticsPageContent() {
                 }}
                 className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
-                {EXAM_LIST.map(e => <option key={e.key} value={e.key}>{e.label}</option>)}
+                {EXAM_LIST.map(e => <option key={e.key} value={e.key}>{getExamLabel(e.key, isEn)}</option>)}
               </select>
               <select
                 value={masteryLevel}
@@ -476,9 +476,9 @@ function StatisticsPageContent() {
                 onChange={(e) => setMasteryLevel(e.target.value)}
                 className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               >
-                <option value="all">전체</option>
+                <option value="all">{isEn ? 'All' : '전체'}</option>
                 {EXAM_MAP[masteryExam]?.levels.map(l => (
-                  <option key={l.key} value={l.key}>{l.shortLabel}</option>
+                  <option key={l.key} value={l.key}>{isEn ? (l.shortLabelEn || l.shortLabel) : l.shortLabel}</option>
                 ))}
               </select>
             </div>
@@ -491,10 +491,10 @@ function StatisticsPageContent() {
                 <span className="text-xl">📝</span>
                 <span className="text-[14px] font-medium text-[#1c1c1e]">{isEn ? 'Due for Review' : '복습 대상 단어'}</span>
               </div>
-              <span className="text-[18px] font-bold text-[#1c1c1e]">{masteryData.reviewTarget}개</span>
+              <span className="text-[18px] font-bold text-[#1c1c1e]">{masteryData.reviewTarget}{isEn ? '' : '개'}</span>
             </div>
             <p className="text-[12px] text-gray-500 mt-2">
-              모름으로 표시한 단어들 (복습 퀴즈에서 학습)
+              {isEn ? 'Words marked as "Don\'t Know" (practice in Review Quiz)' : '모름으로 표시한 단어들 (복습 퀴즈에서 학습)'}
             </p>
           </div>
 
@@ -522,10 +522,10 @@ function StatisticsPageContent() {
                   <div className="w-full min-w-0">
                     <div className="flex justify-between items-center mb-1.5 gap-2">
                       <span className="text-[13px] text-gray-500 truncate min-w-0">
-                        미복습
+                        {isEn ? 'Not Reviewed' : '미복습'}
                       </span>
                       <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                        {notStartedCount}개 ({notStartedPct}%)
+                        {notStartedCount}{isEn ? '' : '개'} ({notStartedPct}%)
                       </span>
                     </div>
                     <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
@@ -544,7 +544,7 @@ function StatisticsPageContent() {
                       {isEn ? 'Reviewing' : '복습 중'}
                     </span>
                     <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                      {reviewingCount}개 ({reviewingPct}%)
+                      {reviewingCount}{isEn ? '' : '개'} ({reviewingPct}%)
                     </span>
                   </div>
                   <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
@@ -562,7 +562,7 @@ function StatisticsPageContent() {
                       {isEn ? 'Mastered' : '암기 완료'}
                     </span>
                     <span className="text-[13px] font-semibold text-[#1c1c1e] flex-shrink-0 whitespace-nowrap">
-                      {memorizedCount}개 ({memorizedPct}%)
+                      {memorizedCount}{isEn ? '' : '개'} ({memorizedPct}%)
                     </span>
                   </div>
                   <div className="w-full bg-[#f0f0f0] rounded-full h-2.5 overflow-hidden">
@@ -580,7 +580,7 @@ function StatisticsPageContent() {
           {masteryData.reviewTarget === 0 && (
             <div className="mt-4 p-3 bg-[#ECFDF5] rounded-xl">
               <p className="text-[13px] text-[#10B981]">
-                🎉 복습할 단어가 없습니다! 새로운 단어를 학습해보세요.
+                {isEn ? '🎉 No words to review! Start learning new words.' : '🎉 복습할 단어가 없습니다! 새로운 단어를 학습해보세요.'}
               </p>
             </div>
           )}
@@ -596,7 +596,7 @@ function StatisticsPageContent() {
               onChange={(e) => setLevelProgressExam(e.target.value)}
               className="text-[13px] bg-gray-100 border-none rounded-[10px] px-3 py-2 text-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
             >
-              {EXAM_LIST.map(e => <option key={e.key} value={e.key}>{e.label}</option>)}
+              {EXAM_LIST.map(e => <option key={e.key} value={e.key}>{getExamLabel(e.key, isEn)}</option>)}
             </select>
           </div>
 
@@ -616,17 +616,17 @@ function StatisticsPageContent() {
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-[40px] h-[40px] rounded-full flex items-center justify-center ${LEVEL_COLORS[level] || 'bg-gray-400'}`}>
-                      <span className="text-white font-bold text-[14px]">{getLevelShortLabel(levelProgressExam, level) || level}</span>
+                      <span className="text-white font-bold text-[14px]">{getLevelShortLabel(levelProgressExam, level, isEn) || level}</span>
                     </div>
                     <div>
                       <p className="text-[14px] font-semibold text-[#1c1c1e]">
-                        {getLevelLabel(levelProgressExam, level) || level}
+                        {getLevelLabel(levelProgressExam, level, isEn) || level}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-[16px] font-bold text-[#1c1c1e]">{safeCount}개</p>
-                    <p className="text-[12px] text-gray-500">{safePercentage}% 학습</p>
+                    <p className="text-[16px] font-bold text-[#1c1c1e]">{safeCount}{isEn ? '' : '개'}</p>
+                    <p className="text-[12px] text-gray-500">{safePercentage}% {isEn ? 'learned' : '학습'}</p>
                   </div>
                 </div>
               );
@@ -640,6 +640,7 @@ function StatisticsPageContent() {
             data={isDemo ? DEMO_HEATMAP_DATA : (heatmapData.length > 0 ? heatmapData : undefined)}
             currentStreakOverride={isDemo ? DEMO_STATS.currentStreak : (stats?.currentStreak || 0)}
             longestStreakOverride={isDemo ? DEMO_STATS.longestStreak : (stats?.longestStreak || 0)}
+            isEn={isEn}
           />
         </div>
       </div>
