@@ -220,7 +220,7 @@ export default function WordVisualPanel({
       </div>
 
       {/* 이미지 영역 */}
-      <div className="relative bg-gray-50 max-h-[480px] flex items-center justify-center">
+      <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden">
         <AnimatePresence mode="wait">
           {currentVisual?.imageUrl && !imageError[currentVisual.type] ? (
             <motion.div
@@ -238,7 +238,7 @@ export default function WordVisualPanel({
               <img
                 src={getOptimizedImageUrl(currentVisual.imageUrl, 800)}
                 alt={`${word} - ${TAB_CONFIG[activeTab].labelKo}`}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
                 loading="lazy"
                 decoding="async"
                 onError={() => handleImageError(currentVisual.type)}
