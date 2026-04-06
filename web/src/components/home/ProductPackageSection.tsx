@@ -16,7 +16,7 @@ interface ProductPackage {
   displayPrice?: string;
 }
 
-const KR_HOME_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete'];
+const KR_HOME_SLUGS = ['2026-csat-analysis', 'ebs-vocab', 'toefl-complete', 'toeic-complete'];
 const GLOBAL_SLUGS = ['gre-complete', 'toefl-complete', 'toeic-complete', 'ielts-complete'];
 
 function PackageCardSkeleton() {
