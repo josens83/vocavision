@@ -777,6 +777,7 @@ export function useAuditLogs() {
 export interface ContentUpdateData {
   mnemonic?: string;
   mnemonicKorean?: string;
+  mnemonicEnglish?: string;
   funnyExamples?: Array<{
     sentenceEn: string;
     sentenceKo?: string;

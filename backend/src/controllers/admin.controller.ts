@@ -383,6 +383,8 @@ export const getAdminWordById = async (
 
       // Mnemonic
       mnemonic: word.mnemonics?.[0]?.content,
+      mnemonicKorean: word.mnemonics?.[0]?.koreanHint,
+      mnemonicEnglish: word.mnemonics?.[0]?.englishHint,
       mnemonicImage: word.mnemonics?.[0]?.imageUrl,
 
       // Examples
@@ -792,19 +794,32 @@ export const updateWordContent = async (
         });
       }
 
-      // Update Mnemonic
-      if (content.mnemonic) {
-        // Delete existing and create new
-        await tx.mnemonic.deleteMany({ where: { wordId } });
-        await tx.mnemonic.create({
-          data: {
-            wordId,
-            title: 'Primary Mnemonic',
-            content: content.mnemonic,
-            koreanHint: content.mnemonicKorean || null,
-            imageUrl: content.mnemonicImage || null,
-          },
-        });
+      // Update Mnemonic (upsert 패턴 — 기존 데이터 보존)
+      if (content.mnemonic !== undefined || content.mnemonicKorean !== undefined || content.mnemonicEnglish !== undefined) {
+        const existingMnemonic = await tx.mnemonic.findFirst({ where: { wordId } });
+
+        if (existingMnemonic) {
+          await tx.mnemonic.update({
+            where: { id: existingMnemonic.id },
+            data: {
+              ...(content.mnemonic !== undefined && { content: content.mnemonic }),
+              ...(content.mnemonicKorean !== undefined && { koreanHint: content.mnemonicKorean || null }),
+              ...(content.mnemonicEnglish !== undefined && { englishHint: content.mnemonicEnglish || null }),
+              ...(content.mnemonicImage !== undefined && { imageUrl: content.mnemonicImage || null }),
+            },
+          });
+        } else {
+          await tx.mnemonic.create({
+            data: {
+              wordId,
+              title: 'Primary Mnemonic',
+              content: content.mnemonic || '',
+              koreanHint: content.mnemonicKorean || null,
+              englishHint: content.mnemonicEnglish || null,
+              imageUrl: content.mnemonicImage || null,
+            },
+          });
+        }
       }
 
       // Update Collocations
