@@ -26,12 +26,13 @@ type QuizType = 'LEVEL_TEST' | 'ENG_TO_KOR' | 'KOR_TO_ENG' | 'FLASHCARD' | 'SPEL
 const wordOrderCache = new Map<string, string[]>();
 
 // 🚀 세션 단어 데이터 캐시 — FLASHCARD_WORD_SELECT 반복 쿼리 방지
-// key: `${sessionId}:${setNumber}`, value: ordered words array
-const sessionWordsCache = new Map<string, any[]>();
+// key: `${sessionId}:${setNumber}`, value: { words, timestamp }
+const SESSION_WORDS_TTL = 5 * 60 * 1000; // 5분
+const sessionWordsCache = new Map<string, { words: any[]; timestamp: number }>();
 
 function setSessionWords(sessionId: string, setNumber: number, words: any[]) {
   const key = `${sessionId}:${setNumber}`;
-  sessionWordsCache.set(key, words);
+  sessionWordsCache.set(key, { words, timestamp: Date.now() });
   // LRU-like: 100개 초과 시 가장 오래된 것 제거
   if (sessionWordsCache.size > 100) {
     const firstKey = sessionWordsCache.keys().next().value;
@@ -40,7 +41,18 @@ function setSessionWords(sessionId: string, setNumber: number, words: any[]) {
 }
 
 function getSessionWords(sessionId: string, setNumber: number): any[] | null {
-  return sessionWordsCache.get(`${sessionId}:${setNumber}`) || null;
+  const entry = sessionWordsCache.get(`${sessionId}:${setNumber}`);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > SESSION_WORDS_TTL) {
+    sessionWordsCache.delete(`${sessionId}:${setNumber}`);
+    return null;
+  }
+  return entry.words;
+}
+
+// 어드민 이미지 변경 시 호출
+export function clearSessionWordsCache() {
+  sessionWordsCache.clear();
 }
 
 // 🚀 플래시카드 UI에 필요한 Word 필드만 select (include 대신 사용)
