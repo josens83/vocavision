@@ -93,6 +93,7 @@ const FLASHCARD_WORD_SELECT = {
     select: {
       content: true,
       koreanHint: true,
+      englishHint: true,
       imageUrl: true,
     }
   },
