@@ -145,9 +145,10 @@ export async function generateImageWithStabilityAI(
 export async function uploadToSupabase(
   base64Data: string,
   word: string,
-  visualType: string
+  visualType: string,
+  fileType: string = 'image/png'
 ): Promise<{ url: string; publicId: string }> {
-  logger.info('[Supabase] Starting upload...', { word, visualType });
+  logger.info('[Supabase] Starting upload...', { word, visualType, fileType });
 
   if (!checkSupabaseConfig()) {
     logger.error('[Supabase] Configuration missing');
@@ -157,7 +158,12 @@ export async function uploadToSupabase(
   const supabase = getSupabaseClient();
 
   const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  const fileName = `${sanitizedWord}-${visualType.toLowerCase()}-${Date.now()}.png`;
+  const ext = fileType === 'video/mp4' ? 'mp4'
+    : fileType === 'image/gif' ? 'gif'
+    : fileType === 'image/webp' ? 'webp'
+    : fileType === 'image/jpeg' ? 'jpg'
+    : 'png';
+  const fileName = `${sanitizedWord}-${visualType.toLowerCase()}-${Date.now()}.${ext}`;
   const filePath = `visuals/${fileName}`;
 
   // Convert base64 to Buffer
@@ -168,7 +174,7 @@ export async function uploadToSupabase(
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKET)
     .upload(filePath, buffer, {
-      contentType: 'image/png',
+      contentType: fileType,
       cacheControl: '31536000',
       upsert: false,
     });

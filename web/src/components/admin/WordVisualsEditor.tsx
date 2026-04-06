@@ -131,14 +131,16 @@ export default function WordVisualsEditor({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type (support images and GIFs)
-    if (!file.type.startsWith('image/')) {
-      setError('이미지 파일만 업로드 가능합니다.');
+    // Validate file type (images, GIFs, MP4)
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'video/mp4'];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError('이미지(PNG/JPG/GIF/WebP) 또는 MP4 파일만 업로드 가능합니다.');
       return;
     }
 
-    if (file.size > 20 * 1024 * 1024) {
-      setError('파일 크기는 20MB 이하여야 합니다.');
+    const maxSizeMB = file.type.startsWith('video/') ? 30 : 20;
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      setError(`파일 크기는 ${maxSizeMB}MB 이하여야 합니다.`);
       return;
     }
 
@@ -169,6 +171,7 @@ export default function WordVisualsEditor({
         }>(`/admin/words/${wordId}/upload-image`, {
           imageType: type,
           imageBase64,
+          fileType: file.type,
         });
 
         if (response.data.success && response.data.data?.visual.imageUrl) {
@@ -411,7 +414,7 @@ export default function WordVisualsEditor({
                       <input
                         ref={(el) => { fileInputRefs.current[type] = el; }}
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/mp4"
                         className="hidden"
                         onChange={(e) => handleImageUpload(e, type)}
                         disabled={uploading === type}
