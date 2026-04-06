@@ -173,7 +173,7 @@ export default function PricingPage() {
                 <>
                   <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                    <span>수능 L1(기초) (800+개)</span>
+                    <span>수능 L1(기초) (951개)</span>
                   </li>
                   <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
