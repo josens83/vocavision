@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -93,6 +93,28 @@ function QuizPageContent() {
   const currentQuestion = questions[currentIndex];
 
   // Pull-to-Refresh 비활성화 (맨 위에서 아래로 당길 때만 방지)
+
+  // 🚀 배치 전송용 — 답변마다 API 호출 대신 메모리에 누적
+  const pendingRecords = useRef<Array<{
+    wordId: string;
+    quizType: 'LEVEL_TEST' | 'ENG_TO_KOR' | 'KOR_TO_ENG' | 'FLASHCARD' | 'SPELLING';
+    isCorrect: boolean;
+    selectedAnswer: string;
+    correctAnswer: string;
+    responseTime: number;
+    sessionId?: string;
+  }>>([]);
+
+  const pendingReviews = useRef<Array<{
+    wordId: string;
+    rating: number;
+    responseTime: number;
+    learningMethod: string;
+    sessionId?: string;
+    examCategory?: string;
+    level?: string;
+  }>>([]);
+
   useEffect(() => {
     let startY = 0;
     let isAtTop = false;
@@ -284,28 +306,25 @@ function QuizPageContent() {
     // 데모 모드에서는 학습 기록 저장 스킵
     if (isDemo) return;
 
-    // 🚀 학습 기록 저장 (백그라운드에서 병렬 처리 - 응답 기다리지 않음)
-    Promise.all([
-      learningAPI.recordLearning({
-        wordId: currentQuestion.wordId,
-        quizType: 'ENG_TO_KOR',
-        isCorrect,
-        selectedAnswer,
-        correctAnswer: currentQuestion.correctAnswer,
-        responseTime,
-        sessionId: sessionId || undefined,
-      }),
-      progressAPI.submitReview({
-        wordId: currentQuestion.wordId,
-        rating: isCorrect ? 4 : 2, // 4: Easy, 2: Hard
-        responseTime,
-        learningMethod: 'QUIZ',
-        sessionId: sessionId || undefined,
-        examCategory: examParam?.toUpperCase() || currentQuestion.word?.examCategory || undefined,
-        level: levelParam || currentQuestion.word?.level || undefined,
-      }),
-    ]).catch((error) => {
-      console.error('Failed to record answer:', error);
+    // 🚀 배치용 — 메모리에 누적 (API 호출 0, 즉시 반환)
+    pendingRecords.current.push({
+      wordId: currentQuestion.wordId,
+      quizType: 'ENG_TO_KOR',
+      isCorrect,
+      selectedAnswer,
+      correctAnswer: currentQuestion.correctAnswer,
+      responseTime,
+      sessionId: sessionId || undefined,
+    });
+
+    pendingReviews.current.push({
+      wordId: currentQuestion.wordId,
+      rating: isCorrect ? 4 : 2,
+      responseTime,
+      learningMethod: 'QUIZ',
+      sessionId: sessionId || undefined,
+      examCategory: examParam?.toUpperCase() || currentQuestion.word?.examCategory || undefined,
+      level: levelParam || currentQuestion.word?.level || undefined,
     });
   };
 
@@ -330,14 +349,32 @@ function QuizPageContent() {
     // 🚀 낙관적 UI: 먼저 결과 페이지로 이동
     router.push(`/review/quiz/result?correct=${correctCount}&total=${questions.length}${examParam ? `&exam=${examParam}` : ''}${levelParam ? `&level=${levelParam}` : ''}${isDemo ? '&demo=true' : ''}`);
 
-    // 백그라운드에서 세션 종료 (데모 모드 제외)
-    if (!isDemo && sessionId) {
-      progressAPI.endSession({
-        sessionId,
-        wordsStudied: questions.length,
-        wordsCorrect: correctCount,
-      }).catch((error) => {
-        console.error('Failed to end session:', error);
+    // 🚀 백그라운드 배치 전송 (데모 모드 제외)
+    if (!isDemo) {
+      const records = [...pendingRecords.current];
+      const reviews = [...pendingReviews.current];
+      pendingRecords.current = [];
+      pendingReviews.current = [];
+
+      Promise.all([
+        records.length > 0
+          ? learningAPI.recordLearningBatch(records, sessionId || undefined)
+          : Promise.resolve(),
+        reviews.length > 0
+          ? progressAPI.submitReviewBatch({
+              reviews,
+              sessionId: sessionId || undefined,
+            })
+          : Promise.resolve(),
+        sessionId
+          ? progressAPI.endSession({
+              sessionId,
+              wordsStudied: questions.length,
+              wordsCorrect: correctCount,
+            })
+          : Promise.resolve(),
+      ]).catch((error) => {
+        console.error('Failed to submit quiz batch:', error);
       });
     }
   };
