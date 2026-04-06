@@ -159,6 +159,63 @@ const getExamData = (isEn: boolean): Record<string, {
           '고급 형용사와 동사 집중 공략',
         ],
   },
+  gre: {
+    name: 'GRE',
+    fullName: isEn ? 'Graduate Record Examinations' : 'GRE 대학원 입학시험',
+    description: isEn
+      ? 'Master GRE Verbal vocabulary with 4,241 words. Greek & Latin root-based learning for Verbal Reasoning high scores.'
+      : 'GRE Verbal 4,241개 단어를 마스터하세요. 그리스어·라틴어 어근 기반으로 체계적으로 학습합니다.',
+    icon: '🎓',
+    color: 'from-indigo-500 to-indigo-600',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-indigo-200',
+    textColor: 'text-indigo-600',
+    levels: [
+      { id: 'L1', name: isEn ? 'Verbal' : 'Verbal 핵심', target: isEn ? 'Core GRE vocabulary' : 'GRE 핵심 어휘', wordCount: '~2,100', description: isEn ? 'Essential words for 160+ Verbal score' : 'Verbal 160+ 목표 필수 어휘' },
+      { id: 'L2', name: isEn ? 'Elite' : 'Elite 심화', target: isEn ? 'Advanced GRE vocabulary' : 'GRE 고급 어휘', wordCount: '~2,100', description: isEn ? 'Advanced words for 165+ Verbal score' : 'Verbal 165+ 목표 고급 어휘' },
+    ],
+    tips: isEn
+      ? ['Focus on Greek and Latin roots — they appear in 60%+ of GRE words', 'Learn words in context, not just definitions', 'Review etymology breakdowns to understand word families']
+      : ['그리스어·라틴어 어근에 집중하세요 — GRE 단어의 60% 이상', '정의뿐 아니라 문맥에서 학습하세요', '어원 분석으로 단어 패밀리를 이해하세요'],
+  },
+  ielts: {
+    name: 'IELTS',
+    fullName: isEn ? 'International English Language Testing System' : 'IELTS 국제영어시험',
+    description: isEn
+      ? 'Build your IELTS vocabulary with 691 essential words for Band 5-8. Foundation and Academic levels for all four skills.'
+      : 'IELTS Band 5~8 달성을 위한 691개 핵심 어휘. 4개 영역 대비 Foundation·Academic 구성.',
+    icon: '🇬🇧',
+    color: 'from-red-500 to-red-600',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
+    textColor: 'text-red-600',
+    levels: [
+      { id: 'L1', name: isEn ? 'Foundation' : 'Foundation 기초', target: isEn ? 'Band 5-6 vocabulary' : 'Band 5-6 어휘', wordCount: '~350', description: isEn ? 'Essential words for Band 5-6' : 'Band 5-6 필수 어휘' },
+      { id: 'L2', name: isEn ? 'Academic' : 'Academic 학술', target: isEn ? 'Band 7-8 vocabulary' : 'Band 7-8 어휘', wordCount: '~340', description: isEn ? 'Advanced academic words for Band 7+' : 'Band 7+ 학술 고급 어휘' },
+    ],
+    tips: isEn
+      ? ['Focus on Academic Word List (AWL) for Writing Task 2', 'Learn collocations, not isolated words', 'Practice with topic-specific vocabulary (environment, technology, education)']
+      : ['Writing Task 2를 위해 학술 단어 목록에 집중하세요', '단독 단어가 아닌 연어(collocation)를 학습하세요', '주제별 어휘를 연습하세요 (환경, 기술, 교육)'],
+  },
+  act: {
+    name: 'ACT',
+    fullName: isEn ? 'American College Testing' : 'ACT 미국대학입학시험',
+    description: isEn
+      ? 'Prepare for ACT English and Reading with 822 vocabulary words. Core and Plus levels for comprehensive preparation.'
+      : 'ACT English·Reading 대비 822개 어휘. Core(핵심)·Plus(확장) 2단계 체계적 구성.',
+    icon: '📐',
+    color: 'from-cyan-500 to-cyan-600',
+    bgColor: 'bg-cyan-50',
+    borderColor: 'border-cyan-200',
+    textColor: 'text-cyan-600',
+    levels: [
+      { id: 'L1', name: isEn ? 'Core' : 'Core 핵심', target: isEn ? 'Essential ACT vocabulary' : 'ACT 핵심 어휘', wordCount: '~410', description: isEn ? 'Must-know words for ACT 25+' : 'ACT 25+ 필수 어휘' },
+      { id: 'L2', name: isEn ? 'Plus' : 'Plus 확장', target: isEn ? 'Advanced ACT vocabulary' : 'ACT 고급 어휘', wordCount: '~410', description: isEn ? 'Advanced words for ACT 30+' : 'ACT 30+ 확장 어휘' },
+    ],
+    tips: isEn
+      ? ['ACT tests vocabulary in context — practice reading passages', 'Focus on commonly confused word pairs', 'Learn rhetorical and transition words for English section']
+      : ['ACT는 문맥 속 어휘를 테스트합니다 — 독해 지문 연습하세요', '혼동하기 쉬운 단어 쌍에 집중하세요', 'English 섹션을 위한 수사적·전환 단어를 학습하세요'],
+  },
 });
 
 interface Word {
