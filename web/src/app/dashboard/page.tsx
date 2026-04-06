@@ -510,8 +510,8 @@ function DashboardContent() {
             <DashboardItem value={remainingWords} label={isEn ? 'Remaining' : '남은 단어'} color="amber" loading={examLevelLoading} />
             <div className="w-px h-10 bg-gray-100" />
             <DashboardItem
-              value={progressPercent === 0 ? (isEn ? 'New' : '시작 전') : `${progressPercent}%`}
-              label={progressPercent === 0 ? '' : (isEn ? 'Progress' : '진행률')}
+              value={learnedWords === 0 ? (isEn ? 'New' : '시작 전') : (progressPercent === 0 ? '<1%' : `${progressPercent}%`)}
+              label={learnedWords === 0 ? '' : (isEn ? 'Progress' : '진행률')}
               color="emerald"
               loading={examLevelLoading}
             />
