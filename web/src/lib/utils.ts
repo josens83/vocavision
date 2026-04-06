@@ -60,13 +60,14 @@ export function slugify(text: string): string {
 
 /**
  * Supabase Storage 이미지 URL을 리사이즈된 URL로 변환
- * 원본 1024x1024 → width px로 리사이즈
+ * 원본 2048x2048 → size px로 리사이즈 (비율 유지)
  */
-export function getOptimizedImageUrl(url: string, width = 400): string {
+export function getOptimizedImageUrl(url: string, size = 800): string {
   if (!url || !url.includes('supabase.co/storage')) return url;
+  if (url.match(/\.(mp4|webm|gif)(\?|$)/i)) return url;
   return url
     .replace('/object/public/', '/render/image/public/')
-    + `?width=${width}&quality=75`;
+    + `?width=${size}&height=${size}&resize=contain&quality=75`;
 }
 
 /**
