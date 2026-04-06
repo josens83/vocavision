@@ -46,6 +46,7 @@ export function usePackages() {
   const [packages, setPackages] = useState<PackageData[]>(_cache || []);
   const [loading, setLoading] = useState(!_cache);
 
+  // packages fetch — wordCounts를 deps에서 제거하여 중복 호출 방지
   useEffect(() => {
     if (_cache && Date.now() - _fetchedAt < CACHE_TTL) {
       setPackages(_cache);
@@ -58,7 +59,7 @@ export function usePackages() {
       .then(data => {
         const pkgs: PackageData[] = (data.packages || []).map((pkg: any) => ({
           ...pkg,
-          wordCount: wordCounts.packages[pkg.slug] || pkg.wordCount || 0,
+          wordCount: pkg.wordCount || 0,
         }));
         _cache = pkgs;
         _fetchedAt = Date.now();
@@ -66,7 +67,18 @@ export function usePackages() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [locale, wordCounts]);
+  }, [locale]);
+
+  // wordCounts 변경 시 캐시된 packages에 wordCount만 업데이트 (re-fetch 없음)
+  useEffect(() => {
+    if (_cache && _cache.length > 0) {
+      const updated = _cache.map(pkg => ({
+        ...pkg,
+        wordCount: wordCounts.packages[pkg.slug] || pkg.wordCount || 0,
+      }));
+      setPackages(updated);
+    }
+  }, [wordCounts]);
 
   /** 글로벌 숨김 패키지 필터링 */
   const koreanOnlySlugs = ['2026-csat-analysis', 'ebs-vocab', 'teps-top-100', 'sat-complete', 'act-complete'];

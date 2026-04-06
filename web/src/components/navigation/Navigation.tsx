@@ -386,7 +386,7 @@ function NavLink({ item, isAuthenticated, onAuthRequired, locale = 'ko' }: NavLi
   }
 
   return (
-    <Link href={item.href || "#"} className={`nav-link flex items-center gap-2 whitespace-nowrap ${item.color || ""}`}>
+    <Link href={item.href || "#"} prefetch={false} className={`nav-link flex items-center gap-2 whitespace-nowrap ${item.color || ""}`}>
       {item.icon}
       <span>{(locale === 'en' && item.labelEn) || item.label}</span>
     </Link>
@@ -486,19 +486,19 @@ function SearchModal({ isOpen, onClose }: SearchModalProps) {
             <div>
               <span className="text-xs font-medium text-slate-500 mb-2 block">빠른 바로가기</span>
               <div className="grid grid-cols-2 gap-2">
-                <Link href="/words?level=L1" onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                <Link href="/words?level=L1" prefetch={false} onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
                   <span className="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center text-sm font-bold">L1</span>
                   <div><div className="text-sm font-medium text-slate-900">기초 단어</div><div className="text-xs text-slate-500">{PLATFORM_STATS.levels.L1.toLocaleString()}개</div></div>
                 </Link>
-                <Link href="/words?level=L2" onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                <Link href="/words?level=L2" prefetch={false} onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
                   <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">L2</span>
                   <div><div className="text-sm font-medium text-slate-900">중급 단어</div><div className="text-xs text-slate-500">{PLATFORM_STATS.levels.L2.toLocaleString()}개</div></div>
                 </Link>
-                <Link href="/words?level=L3" onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                <Link href="/words?level=L3" prefetch={false} onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
                   <span className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-bold">L3</span>
                   <div><div className="text-sm font-medium text-slate-900">고급 단어</div><div className="text-xs text-slate-500">{PLATFORM_STATS.levels.L3.toLocaleString()}개</div></div>
                 </Link>
-                <Link href="/learn?exam=CSAT&level=L1&demo=true" onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                <Link href="/learn?exam=CSAT&level=L1&demo=true" prefetch={false} onClick={onClose} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
                   <span className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">🎴</span>
                   <div><div className="text-sm font-medium text-slate-900">플래시카드</div><div className="text-xs text-slate-500">학습 시작</div></div>
                 </Link>
@@ -666,7 +666,7 @@ function MobileMenu({ isOpen, onClose, items, isAuthenticated, onAuthRequired, u
                     <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full ml-auto">준비중</span>
                   </div>
                 ) : (
-                  <Link href={item.href || "#"} onClick={onClose} className={`flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors ${item.color || "text-slate-700"}`}>
+                  <Link href={item.href || "#"} prefetch={false} onClick={onClose} className={`flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors ${item.color || "text-slate-700"}`}>
                     {item.icon}<span className="font-medium">{item.label}</span>
                   </Link>
                 )}
@@ -869,6 +869,7 @@ export default function Navigation() {
                     <div className="py-1">
                       <Link
                         href="/dashboard"
+                        prefetch={false}
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                       >
@@ -879,6 +880,7 @@ export default function Navigation() {
                       </Link>
                       <Link
                         href="/dashboard"
+                        prefetch={false}
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                       >
@@ -889,6 +891,7 @@ export default function Navigation() {
                       </Link>
                       <Link
                         href="/statistics"
+                        prefetch={false}
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                       >
@@ -899,6 +902,7 @@ export default function Navigation() {
                       </Link>
                       <Link
                         href="/settings"
+                        prefetch={false}
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                       >
@@ -915,6 +919,7 @@ export default function Navigation() {
                       <div className="border-t border-slate-100 py-1">
                         <Link
                           href="/pricing"
+                          prefetch={false}
                           onClick={() => setIsUserMenuOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-primary font-medium hover:bg-brand-primary/5 transition-colors"
                         >

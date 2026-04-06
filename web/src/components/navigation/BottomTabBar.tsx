@@ -107,6 +107,7 @@ export default function BottomTabBar() {
             <Link
               key={tab.key}
               href={tab.href}
+              prefetch={false}
               className="flex flex-col items-center justify-center flex-1 min-w-0 min-h-[44px] py-2 transition-colors"
             >
               <div className="relative">
