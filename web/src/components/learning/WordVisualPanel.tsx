@@ -220,7 +220,7 @@ export default function WordVisualPanel({
       </div>
 
       {/* 이미지 영역 */}
-      <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden">
+      <div className="relative aspect-square bg-gray-50 overflow-hidden">
         <AnimatePresence mode="wait">
           {currentVisual?.imageUrl && !imageError[currentVisual.type] ? (
             <motion.div
