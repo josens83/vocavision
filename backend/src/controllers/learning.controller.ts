@@ -25,6 +25,24 @@ type QuizType = 'LEVEL_TEST' | 'ENG_TO_KOR' | 'KOR_TO_ENG' | 'FLASHCARD' | 'SPEL
 // wordOrder 서버 메모리 캐시 — JSON.parse 반복 방지
 const wordOrderCache = new Map<string, string[]>();
 
+// 🚀 세션 단어 데이터 캐시 — FLASHCARD_WORD_SELECT 반복 쿼리 방지
+// key: `${sessionId}:${setNumber}`, value: ordered words array
+const sessionWordsCache = new Map<string, any[]>();
+
+function setSessionWords(sessionId: string, setNumber: number, words: any[]) {
+  const key = `${sessionId}:${setNumber}`;
+  sessionWordsCache.set(key, words);
+  // LRU-like: 100개 초과 시 가장 오래된 것 제거
+  if (sessionWordsCache.size > 100) {
+    const firstKey = sessionWordsCache.keys().next().value;
+    if (firstKey) sessionWordsCache.delete(firstKey);
+  }
+}
+
+function getSessionWords(sessionId: string, setNumber: number): any[] | null {
+  return sessionWordsCache.get(`${sessionId}:${setNumber}`) || null;
+}
+
 // 🚀 플래시카드 UI에 필요한 Word 필드만 select (include 대신 사용)
 const FLASHCARD_WORD_SELECT = {
   id: true,
@@ -679,14 +697,19 @@ export const startLearningSession = async (
         const endIdx = Math.min(startIdx + setSize, wordOrder.length);
         const currentSetWordIds = wordOrder.slice(startIdx, endIdx);
 
-        const words = await prisma.word.findMany({
-          where: { id: { in: currentSetWordIds } },
-          select: FLASHCARD_WORD_SELECT,
-        });
+        // 🚀 캐시 체크 — 같은 세트 단어 데이터 재사용
+        let orderedWords = getSessionWords(existingSession.id, existingSession.currentSet);
 
-        const orderedWords = currentSetWordIds
-          .map(id => words.find(w => w.id === id))
-          .filter(Boolean);
+        if (!orderedWords) {
+          const words = await prisma.word.findMany({
+            where: { id: { in: currentSetWordIds } },
+            select: FLASHCARD_WORD_SELECT,
+          });
+          orderedWords = currentSetWordIds
+            .map(id => words.find(w => w.id === id))
+            .filter(Boolean);
+          setSessionWords(existingSession.id, existingSession.currentSet, orderedWords);
+        }
 
         // 🚀 세션 데이터는 캐시하면 안 됨
         res.set('Cache-Control', 'private, no-store');
@@ -816,6 +839,9 @@ export const startLearningSession = async (
     const orderedWords = firstSetWordIds
       .map(id => words.find(w => w.id === id))
       .filter(Boolean);
+
+    // 🚀 첫 세트 캐시 저장
+    setSessionWords(newSession.id, 0, orderedWords);
 
     // 🚀 세션 데이터는 캐시하면 안 됨
     res.set('Cache-Control', 'private, no-store');
@@ -963,6 +989,9 @@ export const updateSessionProgress = async (
       nextWords = nextSetWordIds
         .map(id => words.find(w => w.id === id))
         .filter(Boolean);
+
+      // 🚀 다음 세트 캐시 저장
+      setSessionWords(updatedSession.id, updatedSession.currentSet, nextWords);
     }
 
     res.json({
