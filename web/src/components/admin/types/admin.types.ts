@@ -92,6 +92,7 @@ export interface VocaContentFull {
   mnemonic?: string;
   mnemonicImage?: string;
   mnemonicKorean?: string;
+  mnemonicEnglish?: string;
 
   // Examples (from backend - Prisma Example table)
   examples?: {
