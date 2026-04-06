@@ -220,7 +220,7 @@ export default function WordVisualPanel({
       </div>
 
       {/* 이미지 영역 */}
-      <div className="relative bg-gray-50">
+      <div className="relative bg-gray-50 max-h-[480px] flex items-center justify-center">
         <AnimatePresence mode="wait">
           {currentVisual?.imageUrl && !imageError[currentVisual.type] ? (
             <motion.div
