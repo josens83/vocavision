@@ -19,6 +19,9 @@ interface ProvidersProps {
 
 // 앱 로드 시 인증된 사용자의 최신 데이터를 서버에서 가져옴
 // (로그인 응답에는 purchases 등 일부 필드가 없으므로 /users/me로 보완)
+let _lastMeCall = 0;
+const ME_THROTTLE = 5 * 60 * 1000; // 5분
+
 function AuthRefresher() {
   const token = useAuthStore((state) => state.token);
   const _hasHydrated = useAuthStore((state) => state._hasHydrated);
@@ -26,6 +29,9 @@ function AuthRefresher() {
 
   useEffect(() => {
     if (_hasHydrated && token) {
+      const now = Date.now();
+      if (now - _lastMeCall < ME_THROTTLE) return;
+      _lastMeCall = now;
       refreshUser();
     }
   }, [_hasHydrated, token, refreshUser]);

@@ -679,28 +679,58 @@ export const startLearningSession = async (
       return res.status(403).json(accessError);
     }
 
-    // restart=true면 기존 세션 모두 삭제 후 새 세션 생성
-    // @@unique([userId, examCategory, level, status]) 제약조건으로 인해
-    // updateMany로 여러 세션을 같은 status로 변경하면 P2002 발생
-    // → 삭제가 가장 단순하고 안전한 방법
+    // 🚀 Promise.all: restart/existingSession 체크와 allWords 쿼리 병렬 실행
+    const isThematic = level.startsWith('THEME_');
+    const userTier = isThematic ? await getUserTier(userId) : 'FREE';
+    const thematicLevelFilter = (userTier === 'FREE')
+      ? { examCategory: exam, level: 'L1' }
+      : { examCategory: exam };
+
+    const allWordsQuery = prisma.word.findMany({
+      where: isThematic
+        ? {
+            tags: { has: level },
+            examLevels: { some: thematicLevelFilter },
+            isActive: true,
+            status: 'PUBLISHED',
+          }
+        : {
+            examLevels: {
+              some: {
+                examCategory: exam,
+                level: level,
+              },
+            },
+            isActive: true,
+            status: 'PUBLISHED',
+          },
+      select: { id: true, word: true, tags: true },
+      orderBy: { word: 'asc' },
+    });
+
+    let existingSession: any = null;
+    let allWords: Awaited<typeof allWordsQuery>;
+
     if (restart) {
-      await prisma.learningSession.deleteMany({
-        where: {
-          userId,
-          examCategory: exam,
-          level,
-        },
-      });
+      // restart + allWords 병렬
+      const [, words] = await Promise.all([
+        prisma.learningSession.deleteMany({
+          where: { userId, examCategory: exam, level },
+        }),
+        allWordsQuery,
+      ]);
+      allWords = words;
     } else {
-      // 기존 진행 중인 세션이 있는지 확인
-      const existingSession = await prisma.learningSession.findFirst({
-        where: {
-          userId,
-          examCategory: exam,
-          level,
-          status: 'IN_PROGRESS',
-        },
-      });
+      // 비-restart: existingSession + allWords 병렬
+      const [session, words] = await Promise.all([
+        prisma.learningSession.findFirst({
+          where: { userId, examCategory: exam, level, status: 'IN_PROGRESS' },
+        }),
+        allWordsQuery,
+      ]);
+      existingSession = session;
+      allWords = words;
+    }
 
       if (existingSession) {
         // 기존 세션 반환 (getLearningSession과 동일한 형식)
@@ -744,39 +774,6 @@ export const startLearningSession = async (
           isExisting: true,
         });
       }
-    }
-
-    // 해당 레벨의 모든 단어 ID 조회
-    const isThematic = level.startsWith('THEME_');
-
-    // Free 유저는 Theme Learning에서 L1 단어만 접근 가능
-    const userTier = isThematic ? await getUserTier(userId) : 'FREE';
-    const thematicLevelFilter = (userTier === 'FREE')
-      ? { examCategory: exam, level: 'L1' }
-      : { examCategory: exam };
-
-    const allWords = await prisma.word.findMany({
-      where: isThematic
-        ? {
-            tags: { has: level },
-            examLevels: { some: thematicLevelFilter },
-            isActive: true,
-            status: 'PUBLISHED',
-          }
-        : {
-            // 기존 레벨 기반 조회 (L1, L2 등)
-            examLevels: {
-              some: {
-                examCategory: exam,
-                level: level,
-              },
-            },
-            isActive: true,
-            status: 'PUBLISHED',
-          },
-      select: { id: true, word: true, tags: true },
-      orderBy: { word: 'asc' },
-    });
 
     console.log(`[Learning] startSession: exam=${exam}, level=${level}, isThematic=${isThematic}, allWords.length=${allWords.length}`);
 
