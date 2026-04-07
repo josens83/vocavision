@@ -132,7 +132,7 @@ function Footer() {
           {/* CTA Buttons */}
           <div>
             <a
-              href="/level-test"
+              href="/learn"
               className="block w-full py-2 px-4 border-2 border-white text-center rounded-md font-semibold hover:bg-emerald-500 hover:border-emerald-500 transition-all mb-3"
             >
               Take a level test
