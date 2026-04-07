@@ -437,11 +437,11 @@ function StatisticsPageContent() {
                 value={masteryExam}
                 onMouseEnter={() => {
                   prefetchMastery('CSAT', masteryLevel);
-                  prefetchMastery('TEPS', masteryLevel === 'L3' ? 'all' : masteryLevel);
+                  prefetchMastery('TEPS', masteryLevel);
                 }}
                 onFocus={() => {
                   prefetchMastery('CSAT', masteryLevel);
-                  prefetchMastery('TEPS', masteryLevel === 'L3' ? 'all' : masteryLevel);
+                  prefetchMastery('TEPS', masteryLevel);
                 }}
                 onChange={(e) => {
                   const newExam = e.target.value;
