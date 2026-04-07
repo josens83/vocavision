@@ -75,9 +75,6 @@ export function preloadComponent(importFunc: () => Promise<any>): void {
 export const LAZY_ROUTES = {
   // Heavy pages that should be lazy-loaded
   statistics: () => import('@/app/statistics/page'),
-  leagues: () => import('@/app/leagues/page'),
-  games: () => import('@/app/games/page'),
-  decks: () => import('@/app/decks/page'),
 
   // Heavy components
   heatmap: () => import('@/components/statistics/LearningHeatmap'),

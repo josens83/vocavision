@@ -131,7 +131,7 @@ export function EmptyFirstTime({
       icon: '📂',
       title: isEn ? 'No decks created yet' : '아직 생성한 덱이 없어요',
       description: isEn ? 'Create your own word list!' : '나만의 단어장을 만들어보세요!',
-      defaultHref: '/decks/create',
+      defaultHref: '/learn',
     },
     bookmarks: {
       icon: '⭐',

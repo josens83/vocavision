@@ -20,12 +20,6 @@ export function Footer() {
     '/my',
     '/settings',
     '/words',
-    '/bookmarks',
-    '/history',
-    '/notifications',
-    '/achievements',
-    '/collections',
-    '/decks',
     '/checkout',
   ];
 
