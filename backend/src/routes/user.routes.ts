@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
+import { authenticateToken, AuthRequest, invalidateUserCache } from '../middleware/auth.middleware';
 import { prisma } from '../index';
 import bcrypt from 'bcryptjs';
 
@@ -286,6 +286,7 @@ router.delete('/account', authenticateToken, async (req: Request, res: Response)
 
     console.log('[Users/delete] Account deleted:', user.email);
 
+    invalidateUserCache(userId);
     res.json({ success: true, message: '회원 탈퇴가 완료되었습니다.' });
   } catch (error) {
     console.error('[Users/delete] Error:', error);
