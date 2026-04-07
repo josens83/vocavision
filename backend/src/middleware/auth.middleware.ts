@@ -84,6 +84,10 @@ export const authenticateToken = async (
   }
 };
 
+export const invalidateUserCache = (userId: string) => {
+  userCache.delete(userId);
+};
+
 // Admin 권한 필수 이메일 목록 (DB role과 별개로 항상 Admin 접근 허용)
 const ADMIN_EMAILS = [
   'dohurnk@gmail.com',

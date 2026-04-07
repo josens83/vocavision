@@ -1029,8 +1029,9 @@ function LearnPageContent() {
     resetSession();
     clearLearningSession();
 
-    // 3. 대시보드 캐시 무효화
+    // 3. 대시보드 + 복습 캐시 무효화
     queryClient.removeQueries({ queryKey: ['dashboardSummary'] });
+    queryClient.removeQueries({ queryKey: ['dueReviews'] });
 
     // 4. 대시보드로 이동
     router.push('/dashboard');
@@ -1116,6 +1117,7 @@ function LearnPageContent() {
 
     // 3. flush 완료 후 캐시 무효화 → 대시보드에서 최신 데이터 표시
     queryClient.removeQueries({ queryKey: ['dashboardSummary'] });
+    queryClient.removeQueries({ queryKey: ['dueReviews'] });
 
     // 4. 이동
     router.push(exitPath);
@@ -1502,6 +1504,7 @@ function LearnPageContent() {
               await flushPendingReviews();
             }
             queryClient.removeQueries({ queryKey: ['dashboardSummary'] });
+            queryClient.removeQueries({ queryKey: ['dueReviews'] });
             router.push(exitPath);
           }}
           onNext={user && hasMoreWords && examParam ? handleNextBatch : undefined}
