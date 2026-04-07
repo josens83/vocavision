@@ -244,7 +244,7 @@ function DashboardContent() {
       lastFocusRef.current = now;
       queryClient.invalidateQueries({
         queryKey: ['dashboardSummary', stableQuery.exam, stableQuery.level],
-        refetchType: 'active',
+        refetchType: 'none',
       });
     };
     window.addEventListener('focus', handleFocus);
