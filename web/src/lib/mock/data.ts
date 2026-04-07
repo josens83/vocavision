@@ -301,7 +301,7 @@ export const mockDueReviews = {
 // Mock User
 export const mockUser = {
   id: 'mock-user-1',
-  email: 'demo@vocavision.com',
+  email: 'demo@vocavision.kr',
   name: '학습자',
   role: 'USER',
   subscriptionStatus: 'TRIAL',
