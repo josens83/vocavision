@@ -1049,8 +1049,8 @@ export async function generateEnglishMnemonic(
 
   const client = getAnthropicClient();
   const response = await client.messages.create({
-    model: 'claude-opus-4-6',
-    max_tokens: 512,
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 256,
     messages: [{ role: 'user', content: prompt }],
   });
 
@@ -1071,6 +1071,53 @@ export async function generateEnglishMnemonic(
   return parsed.englishHint;
 }
 
+/**
+ * 배치 englishHint 생성 (10개씩)
+ * 비용: opus $950 → sonnet 배치 ~$30
+ */
+export async function generateEnglishMnemonicBatch(
+  words: Array<{ word: string; definition: string }>
+): Promise<Array<{ word: string; englishHint: string }>> {
+  const wordList = words.map(w => `- ${w.word}: ${w.definition}`).join('\n');
+
+  const prompt = `You are a vocabulary mnemonics expert. Create English mnemonics using multi-syllable decomposition for each word.
+
+## Method
+Break each word into syllables, map each syllable to a common English word that sounds similar, chain into a memorable phrase connecting to meaning.
+
+## Examples
+- "ephemeral" → "Even a FEW errors ALL fade" → lasting only a short time
+- "ubiquitous" → "You BIG witty TOSS everywhere" → present everywhere
+
+## Words
+${wordList}
+
+## Output
+Return ONLY a JSON array, no other text:
+[{"word": "...", "englishHint": "syllable breakdown → phrase → meaning"}]
+
+## Rules
+1. Syllable breakdown must match actual pronunciation
+2. Keep each mnemonic under 12 words
+3. CAPITALISE syllable-mapped words
+4. Story must connect to primary meaning`;
+
+  const client = getAnthropicClient();
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 2048,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  const content = response.content[0];
+  if (content.type !== 'text') throw new Error('Unexpected response type');
+
+  const jsonMatch = content.text.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) throw new Error('No JSON array in response');
+
+  return JSON.parse(jsonMatch[0]);
+}
+
 export default {
   generateWordContent,
   saveGeneratedContent,
@@ -1080,5 +1127,6 @@ export default {
   processGenerationJob,
   processFillMissingJob,
   generateEnglishMnemonic,
+  generateEnglishMnemonicBatch,
   generateEtymologyEn,
 };
