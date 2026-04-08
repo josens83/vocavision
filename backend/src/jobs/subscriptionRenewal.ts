@@ -36,15 +36,26 @@ export async function processSubscriptionRenewals(): Promise<{
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 2); // 이틀 여유를 두고 갱신
 
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
     const expiringUsers = await prisma.user.findMany({
       where: {
-        subscriptionStatus: 'ACTIVE',
         autoRenewal: true,
         billingKey: { not: null },
-        subscriptionEnd: {
-          gte: today,
-          lt: tomorrow,
-        },
+        OR: [
+          // 첫 시도: 만료 예정
+          {
+            subscriptionStatus: 'ACTIVE',
+            subscriptionEnd: { gte: today, lt: tomorrow },
+            renewalRetryCount: 0,
+          },
+          // 재시도: 이전 실패 + 3회 미만 + 24시간 경과
+          {
+            subscriptionStatus: 'ACTIVE',
+            renewalRetryCount: { gt: 0, lt: 3 },
+            lastRenewalAttempt: { lt: twentyFourHoursAgo },
+          },
+        ],
       },
       select: {
         id: true,
@@ -52,6 +63,7 @@ export async function processSubscriptionRenewals(): Promise<{
         subscriptionPlan: true,
         subscriptionEnd: true,
         billingKey: true,
+        renewalRetryCount: true,
       },
     });
 
@@ -98,6 +110,14 @@ export async function processSubscriptionRenewals(): Promise<{
         results.success++;
         results.details.push({ userId: user.id, status: 'success' });
 
+        // 재시도 카운터 리셋
+        if (user.renewalRetryCount > 0) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { renewalRetryCount: 0, lastRenewalAttempt: null },
+          });
+        }
+
         logger.info(`[SubscriptionRenewal] Successfully renewed user ${user.id}`);
 
         // TODO: 갱신 성공 이메일 발송
@@ -112,21 +132,33 @@ export async function processSubscriptionRenewals(): Promise<{
 
         logger.error(`[SubscriptionRenewal] Failed to renew user ${user.id}:`, error.message);
 
-        // 결제 실패 시 처리
-        // 1. 재시도 로직 (최대 3회)
-        // 2. 사용자에게 결제 실패 알림 발송
-        // 3. 일정 기간 후 구독 만료 처리
+        // 재시도 로직 (최대 3회, 24시간 간격)
+        const newRetryCount = (user.renewalRetryCount || 0) + 1;
 
-        // 구독 상태를 CANCELLED로 변경하지 않음 (만료일까지는 이용 가능)
-        // autoRenewal만 false로 변경하여 다시 시도하지 않음
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            autoRenewal: false,
-          },
-        });
-
-        // TODO: 결제 실패 이메일 발송
+        if (newRetryCount >= 3) {
+          // 3회 실패 → 포기
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              autoRenewal: false,
+              renewalRetryCount: newRetryCount,
+              lastRenewalAttempt: new Date(),
+            },
+          });
+          logger.warn(`[SubscriptionRenewal] User ${user.id} reached max retries (3). autoRenewal disabled.`);
+          // TODO: 구독 만료 안내 이메일
+        } else {
+          // 재시도 카운트 증가 (다음 크론 실행 시 재시도)
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              renewalRetryCount: newRetryCount,
+              lastRenewalAttempt: new Date(),
+            },
+          });
+          logger.info(`[SubscriptionRenewal] User ${user.id} retry ${newRetryCount}/3 scheduled.`);
+          // TODO: 결제 실패 안내 이메일
+        }
       }
     }
 
