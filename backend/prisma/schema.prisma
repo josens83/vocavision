@@ -41,6 +41,8 @@ model User {
   customerKey       String?   // TossPayments 고객 식별키
   autoRenewal       Boolean   @default(true)  // 자동 갱신 여부
   lastPaymentId     String?   // 마지막 결제 ID
+  renewalRetryCount    Int       @default(0)    // 재시도 횟수 (0~3)
+  lastRenewalAttempt   DateTime?                // 마지막 시도 시각
 
   // Learning Stats
   totalWordsLearned Int @default(0)
