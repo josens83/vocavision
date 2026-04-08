@@ -5140,7 +5140,7 @@ router.get('/generate-global-content', async (req: Request, res: Response) => {
         koreanHint: { not: null },
         englishHint: null,
         word: {
-          examCategory: { in: ['SAT', 'GRE', 'TOEFL', 'IELTS'] },
+          examCategory: { in: ['SAT', 'GRE', 'TOEFL', 'IELTS', 'ACT', 'TOEIC'] },
         },
       },
       include: {
@@ -5198,6 +5198,89 @@ router.get('/generate-global-content', async (req: Request, res: Response) => {
     logger.error('[GlobalContent] Error:', error);
     if (!res.headersSent) {
       res.status(500).json({ error: 'Global content generation failed' });
+    }
+  }
+});
+
+/**
+ * GET /internal/generate-global-content-batch?key=YOUR_SECRET&batchSize=50
+ * 10개씩 묶어서 배치 생성 (비용 10배 절감)
+ */
+router.get('/generate-global-content-batch', async (req: Request, res: Response) => {
+  try {
+    const { key, batchSize: batchSizeStr } = req.query;
+    if (key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const batchSize = Math.min(parseInt(batchSizeStr as string) || 50, 200);
+
+    const targetMnemonics = await prisma.mnemonic.findMany({
+      where: {
+        koreanHint: { not: null },
+        englishHint: null,
+        word: {
+          examCategory: { in: ['SAT', 'GRE', 'TOEFL', 'IELTS', 'ACT', 'TOEIC'] },
+          status: 'PUBLISHED',
+        },
+      },
+      include: {
+        word: { select: { id: true, word: true, definition: true, examCategory: true } },
+      },
+      take: batchSize,
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (targetMnemonics.length === 0) {
+      return res.json({ message: 'No mnemonics need englishHint generation', processed: 0 });
+    }
+
+    res.json({
+      message: `Processing ${targetMnemonics.length} mnemonics in batches of 10`,
+      targetCount: targetMnemonics.length,
+    });
+
+    // Background: 10개씩 배치
+    (async () => {
+      const { generateEnglishMnemonicBatch } = await import('../services/contentGenerator.service');
+      let success = 0, failed = 0;
+      const CHUNK_SIZE = 10;
+
+      for (let i = 0; i < targetMnemonics.length; i += CHUNK_SIZE) {
+        const chunk = targetMnemonics.slice(i, i + CHUNK_SIZE);
+        try {
+          const results = await generateEnglishMnemonicBatch(
+            chunk.map(m => ({ word: m.word.word, definition: m.word.definition }))
+          );
+
+          for (const result of results) {
+            const mnemonic = chunk.find(m => m.word.word.toLowerCase() === result.word.toLowerCase());
+            if (mnemonic && result.englishHint) {
+              await prisma.mnemonic.update({
+                where: { id: mnemonic.id },
+                data: { englishHint: result.englishHint },
+              });
+              success++;
+              logger.info(`[GlobalContentBatch] englishHint: ${result.word} → ${result.englishHint}`);
+            }
+          }
+        } catch (error) {
+          failed += chunk.length;
+          logger.error(`[GlobalContentBatch] Batch failed at offset ${i}:`, error);
+        }
+
+        // Rate limiting — 3s between batches
+        if (i + CHUNK_SIZE < targetMnemonics.length) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+
+      logger.info(`[GlobalContentBatch] Complete. Success: ${success}, Failed: ${failed}`);
+    })();
+  } catch (error) {
+    logger.error('[GlobalContentBatch] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Batch generation failed' });
     }
   }
 });
