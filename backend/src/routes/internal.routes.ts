@@ -5593,4 +5593,21 @@ router.get('/image-queue-stats', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /internal/trigger-renewal?key=YOUR_SECRET
+ * 구독 갱신 크론잡 수동 트리거 (테스트용)
+ */
+router.get('/trigger-renewal', async (req: Request, res: Response) => {
+  try {
+    if (req.query.key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const { processSubscriptionRenewals } = await import('../jobs/subscriptionRenewal');
+    const result = await processSubscriptionRenewals();
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
