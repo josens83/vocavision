@@ -227,18 +227,23 @@ class EmailService {
   /**
    * Send welcome email
    */
-  async sendWelcomeEmail(email: string, name: string): Promise<boolean> {
+  async sendWelcomeEmail(email: string, name: string, isGlobal = false): Promise<boolean> {
+    const domain = isGlobal ? 'https://vocavision.app' : 'https://vocavision.kr';
     return this.sendTemplateEmail(
       {
         name: 'welcome',
-        subject: 'Welcome to VocaVision! 🎉',
-        html: `
+        subject: isGlobal ? 'Welcome to VocaVision! 🎉' : 'VocaVision AI에 오신 것을 환영합니다! 🎉',
+        html: isGlobal ? `
           <h1>Welcome to VocaVision, {{name}}!</h1>
           <p>We're excited to have you on board.</p>
           <p>Start learning vocabulary with our AI-powered platform.</p>
-          <a href="https://vocavision.app/dashboard">Go to Dashboard</a>
+          <a href="${domain}/dashboard">Go to Dashboard</a>
+        ` : `
+          <h1>{{name}}님, VocaVision AI에 오신 것을 환영합니다!</h1>
+          <p>AI 이미지와 어원 분석으로 영어 단어를 쉽게 암기하세요.</p>
+          <a href="${domain}/dashboard">학습 시작하기</a>
         `,
-        text: 'Welcome to VocaVision! Start learning now.',
+        text: isGlobal ? 'Welcome to VocaVision! Start learning now.' : 'VocaVision AI에 오신 것을 환영합니다!',
       },
       email,
       { name }
@@ -251,19 +256,30 @@ class EmailService {
   async sendReviewReminderEmail(
     email: string,
     name: string,
-    dueWordsCount: number
+    dueWordsCount: number,
+    isGlobal = false
   ): Promise<boolean> {
+    const domain = isGlobal ? 'https://vocavision.app' : 'https://vocavision.kr';
     return this.sendTemplateEmail(
       {
         name: 'review-reminder',
-        subject: `You have ${dueWordsCount} words to review`,
-        html: `
+        subject: isGlobal
+          ? `You have ${dueWordsCount} words to review`
+          : `복습할 단어가 ${dueWordsCount}개 있습니다`,
+        html: isGlobal ? `
           <h1>Hi {{name}}!</h1>
           <p>You have <strong>{{count}} words</strong> ready for review.</p>
           <p>Reviewing now will help you retain them in long-term memory.</p>
-          <a href="https://vocavision.app/learn">Review Now</a>
+          <a href="${domain}/learn">Review Now</a>
+        ` : `
+          <h1>{{name}}님, 복습할 시간입니다!</h1>
+          <p><strong>{{count}}개</strong> 단어가 복습을 기다리고 있습니다.</p>
+          <p>지금 복습하면 장기 기억에 더 잘 남습니다.</p>
+          <a href="${domain}/learn">복습하기</a>
         `,
-        text: `You have ${dueWordsCount} words to review.`,
+        text: isGlobal
+          ? `You have ${dueWordsCount} words to review.`
+          : `복습할 단어가 ${dueWordsCount}개 있습니다.`,
       },
       email,
       { name, count: dueWordsCount.toString() }
@@ -276,19 +292,30 @@ class EmailService {
   async sendStreakReminderEmail(
     email: string,
     name: string,
-    streak: number
+    streak: number,
+    isGlobal = false
   ): Promise<boolean> {
+    const domain = isGlobal ? 'https://vocavision.app' : 'https://vocavision.kr';
     return this.sendTemplateEmail(
       {
         name: 'streak-reminder',
-        subject: `Don't break your ${streak}-day streak! 🔥`,
-        html: `
+        subject: isGlobal
+          ? `Don't break your ${streak}-day streak! 🔥`
+          : `${streak}일 연속 학습 중! 오늘도 이어가세요 🔥`,
+        html: isGlobal ? `
           <h1>Hi {{name}}!</h1>
           <p>You're on a <strong>{{streak}}-day streak</strong>! 🔥</p>
           <p>Study today to keep it going.</p>
-          <a href="https://vocavision.app/learn">Continue Learning</a>
+          <a href="${domain}/learn">Continue Learning</a>
+        ` : `
+          <h1>{{name}}님, 대단해요!</h1>
+          <p><strong>{{streak}}일 연속</strong> 학습 중입니다! 🔥</p>
+          <p>오늘도 학습해서 기록을 이어가세요.</p>
+          <a href="${domain}/learn">학습 계속하기</a>
         `,
-        text: `You're on a ${streak}-day streak!`,
+        text: isGlobal
+          ? `You're on a ${streak}-day streak!`
+          : `${streak}일 연속 학습 중!`,
       },
       email,
       { name, streak: streak.toString() }
@@ -300,22 +327,29 @@ class EmailService {
    */
   async sendPasswordResetEmail(
     email: string,
-    resetToken: string
+    resetToken: string,
+    isGlobal = false
   ): Promise<boolean> {
-    const resetUrl = `https://vocavision.app/reset-password?token=${resetToken}`;
+    const domain = isGlobal ? 'https://vocavision.app' : 'https://vocavision.kr';
+    const resetUrl = `${domain}/reset-password?token=${resetToken}`;
 
     return this.sendTemplateEmail(
       {
         name: 'password-reset',
-        subject: 'Reset Your Password',
-        html: `
+        subject: isGlobal ? 'Reset Your Password' : '비밀번호 재설정',
+        html: isGlobal ? `
           <h1>Password Reset Request</h1>
           <p>Click the link below to reset your password:</p>
           <a href="{{resetUrl}}">Reset Password</a>
           <p>This link will expire in 1 hour.</p>
           <p>If you didn't request this, please ignore this email.</p>
+        ` : `
+          <h1>비밀번호 재설정</h1>
+          <p>아래 링크를 클릭하여 비밀번호를 재설정하세요:</p>
+          <a href="{{resetUrl}}">비밀번호 재설정</a>
+          <p>이 링크는 1시간 후 만료됩니다.</p>
         `,
-        text: `Reset your password: ${resetUrl}`,
+        text: isGlobal ? `Reset your password: ${resetUrl}` : `비밀번호 재설정: ${resetUrl}`,
       },
       email,
       { resetUrl }
