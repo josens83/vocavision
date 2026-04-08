@@ -9,6 +9,7 @@ import cron from 'node-cron';
 import prisma from '../lib/prisma';
 import { chargeBillingKey } from '../controllers/payments.controller';
 import logger from '../utils/logger';
+import { emailService } from '../services/emailService';
 
 /**
  * 구독 갱신 작업 실행
@@ -120,7 +121,20 @@ export async function processSubscriptionRenewals(): Promise<{
 
         logger.info(`[SubscriptionRenewal] Successfully renewed user ${user.id}`);
 
-        // TODO: 갱신 성공 이메일 발송
+        // 갱신 성공 이메일 발송
+        if (user.email) {
+          const nextDate = new Date();
+          nextDate.setMonth(nextDate.getMonth() + (billingCycle === 'yearly' ? 12 : 1));
+          const amount = plan === 'premium'
+            ? (billingCycle === 'yearly' ? '₩95,000' : '₩9,900')
+            : (billingCycle === 'yearly' ? '₩47,000' : '₩4,900');
+          await emailService.sendRenewalSuccessEmail(
+            user.email,
+            plan === 'premium' ? '프리미엄' : '베이직',
+            nextDate.toLocaleDateString('ko-KR'),
+            amount
+          ).catch(err => logger.error(`[SubscriptionRenewal] Email failed for ${user.id}:`, err));
+        }
 
       } catch (error: any) {
         results.failed++;
@@ -146,7 +160,17 @@ export async function processSubscriptionRenewals(): Promise<{
             },
           });
           logger.warn(`[SubscriptionRenewal] User ${user.id} reached max retries (3). autoRenewal disabled.`);
-          // TODO: 구독 만료 안내 이메일
+          // 구독 만료 안내 이메일
+          if (user.email) {
+            const expireDate = user.subscriptionEnd
+              ? new Date(user.subscriptionEnd).toLocaleDateString('ko-KR')
+              : '곧';
+            await emailService.sendSubscriptionExpiredEmail(
+              user.email,
+              plan === 'premium' ? '프리미엄' : '베이직',
+              expireDate
+            ).catch(err => logger.error(`[SubscriptionRenewal] Expired email error for ${user.id}:`, err));
+          }
         } else {
           // 재시도 카운트 증가 (다음 크론 실행 시 재시도)
           await prisma.user.update({
@@ -157,7 +181,15 @@ export async function processSubscriptionRenewals(): Promise<{
             },
           });
           logger.info(`[SubscriptionRenewal] User ${user.id} retry ${newRetryCount}/3 scheduled.`);
-          // TODO: 결제 실패 안내 이메일
+          // 결제 실패 안내 이메일
+          if (user.email) {
+            await emailService.sendPaymentFailedEmail(
+              user.email,
+              plan === 'premium' ? '프리미엄' : '베이직',
+              newRetryCount.toString(),
+              '3'
+            ).catch(err => logger.error(`[SubscriptionRenewal] Failed email error for ${user.id}:`, err));
+          }
         }
       }
     }

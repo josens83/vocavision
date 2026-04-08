@@ -321,6 +321,89 @@ class EmailService {
       { resetUrl }
     );
   }
+
+  /**
+   * 구독 갱신 성공 이메일
+   */
+  async sendRenewalSuccessEmail(
+    email: string,
+    plan: string,
+    nextDate: string,
+    amount: string
+  ): Promise<boolean> {
+    return this.sendTemplateEmail(
+      {
+        name: 'renewal-success',
+        subject: '구독이 갱신되었습니다 ✅',
+        html: `
+          <h1>구독 갱신 완료</h1>
+          <p>{{plan}} 플랜이 정상적으로 갱신되었습니다.</p>
+          <p><strong>결제 금액:</strong> {{amount}}</p>
+          <p><strong>다음 결제일:</strong> {{nextDate}}</p>
+          <p>VocaVision AI를 이용해 주셔서 감사합니다.</p>
+          <a href="https://vocavision.kr/dashboard">학습 계속하기</a>
+        `,
+        text: `${plan} 플랜이 갱신되었습니다. 결제: ${amount}, 다음 결제일: ${nextDate}`,
+      },
+      email,
+      { plan, nextDate, amount }
+    );
+  }
+
+  /**
+   * 결제 실패 안내 이메일 (재시도 예정)
+   */
+  async sendPaymentFailedEmail(
+    email: string,
+    plan: string,
+    retryCount: string,
+    maxRetries: string
+  ): Promise<boolean> {
+    return this.sendTemplateEmail(
+      {
+        name: 'payment-failed',
+        subject: '결제가 실패했습니다 — 카드를 확인해주세요',
+        html: `
+          <h1>결제 실패 안내</h1>
+          <p>{{plan}} 플랜 갱신을 위한 결제가 실패했습니다.</p>
+          <p>등록된 카드의 잔액 또는 유효기간을 확인해주세요.</p>
+          <p><strong>재시도:</strong> {{retryCount}}/{{maxRetries}}회 시도 완료</p>
+          <p>24시간 후 자동으로 재시도됩니다.</p>
+          <a href="https://vocavision.kr/my">결제 수단 확인하기</a>
+        `,
+        text: `${plan} 결제 실패. ${retryCount}/${maxRetries}회 시도. 카드를 확인해주세요.`,
+      },
+      email,
+      { plan, retryCount, maxRetries }
+    );
+  }
+
+  /**
+   * 구독 만료 안내 이메일 (최종 실패)
+   */
+  async sendSubscriptionExpiredEmail(
+    email: string,
+    plan: string,
+    expireDate: string
+  ): Promise<boolean> {
+    return this.sendTemplateEmail(
+      {
+        name: 'subscription-expired',
+        subject: '구독이 만료됩니다 — 재구독하세요',
+        html: `
+          <h1>구독 만료 안내</h1>
+          <p>{{plan}} 플랜의 결제가 3회 실패하여 자동 갱신이 중단되었습니다.</p>
+          <p><strong>만료일:</strong> {{expireDate}}</p>
+          <p>만료 후에도 무료 플랜(수능 L1)은 계속 이용 가능합니다.</p>
+          <p>프리미엄 기능을 계속 사용하시려면 재구독해주세요.</p>
+          <a href="https://vocavision.kr/pricing">재구독하기</a>
+        `,
+        text: `${plan} 구독이 ${expireDate}에 만료됩니다. 재구독: https://vocavision.kr/pricing`,
+      },
+      email,
+      { plan, expireDate }
+    );
+  }
 }
 
 // Singleton instance
