@@ -5604,7 +5604,7 @@ router.get('/trigger-renewal', async (req: Request, res: Response) => {
     }
     const { processSubscriptionRenewals } = await import('../jobs/subscriptionRenewal');
     const result = await processSubscriptionRenewals();
-    res.json({ success: true, ...result });
+    res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
