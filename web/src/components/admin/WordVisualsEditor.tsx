@@ -148,40 +148,57 @@ export default function WordVisualsEditor({
     setError(null);
 
     try {
-      // Convert file to base64
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const result = reader.result as string;
-          // Remove data:image/xxx;base64, prefix
-          const base64 = result.split(',')[1];
-          resolve(base64);
-        };
-        reader.onerror = reject;
-      });
-      reader.readAsDataURL(file);
-      const imageBase64 = await base64Promise;
-
-      // wordId가 있으면 백엔드 API를 통해 Supabase Storage에 업로드
       if (wordId) {
-        const response = await api.post<{
+        // 1. Signed URL 발급
+        const urlResponse = await api.post<{
           success: boolean;
-          data?: { visual: { imageUrl: string } };
-          error?: string;
-        }>(`/admin/words/${wordId}/upload-image`, {
+          signedUrl: string;
+          token: string;
+          filePath: string;
+          publicUrl: string;
+        }>(`/admin/words/${wordId}/upload-url`, {
           imageType: type,
-          imageBase64,
           fileType: file.type,
         });
 
-        if (response.data.success && response.data.data?.visual.imageUrl) {
-          updateVisual(type, { imageUrl: response.data.data.visual.imageUrl });
+        if (!urlResponse.data.success) {
+          throw new Error('Signed URL 발급 실패');
+        }
+
+        // 2. Supabase Storage에 직접 업로드 (Base64 변환 없음!)
+        const uploadResponse = await fetch(urlResponse.data.signedUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type },
+          body: file,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`업로드 실패: ${uploadResponse.status}`);
+        }
+
+        // 3. URL만 DB에 저장
+        const saveResponse = await api.post<{
+          success: boolean;
+          data?: { visual: { imageUrl: string } };
+        }>(`/admin/words/${wordId}/update-visual-url`, {
+          imageType: type,
+          imageUrl: urlResponse.data.publicUrl,
+        });
+
+        if (saveResponse.data.success) {
+          updateVisual(type, { imageUrl: urlResponse.data.publicUrl });
         } else {
-          throw new Error(response.data.error || '업로드 실패');
+          throw new Error('URL 저장 실패');
         }
       } else {
-        // wordId가 없으면 로컬 미리보기만 표시
-        const dataUrl = `data:${file.type};base64,${imageBase64}`;
+        // wordId 없으면 로컬 미리보기 (Base64 fallback)
+        const reader = new FileReader();
+        const dataUrlPromise = new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+        });
+        reader.readAsDataURL(file);
+        const dataUrl = await dataUrlPromise;
         updateVisual(type, { imageUrl: dataUrl });
       }
     } catch (err) {

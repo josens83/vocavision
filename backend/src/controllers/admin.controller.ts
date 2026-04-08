@@ -4064,3 +4064,96 @@ export const fillMissingContent = async (
     next(error);
   }
 };
+
+/**
+ * POST /admin/words/:wordId/upload-url
+ * Supabase Storage signed upload URL 발급
+ */
+export const getUploadUrl = async (
+  req: AuthRequest, res: Response, next: NextFunction
+) => {
+  try {
+    const { wordId } = req.params;
+    const { imageType, fileType } = req.body;
+
+    if (!imageType || !['CONCEPT', 'MNEMONIC', 'RHYME'].includes(imageType)) {
+      return res.status(400).json({ success: false, error: 'Valid imageType required' });
+    }
+
+    const word = await prisma.word.findUnique({ where: { id: wordId } });
+    if (!word) return res.status(404).json({ success: false, error: 'Word not found' });
+
+    const ext = fileType === 'video/mp4' ? 'mp4'
+      : fileType === 'image/gif' ? 'gif'
+      : fileType === 'image/webp' ? 'webp'
+      : fileType === 'image/jpeg' ? 'jpg' : 'png';
+
+    const sanitizedWord = word.word.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const fileName = `${sanitizedWord}-${imageType.toLowerCase()}-${Date.now()}.${ext}`;
+    const filePath = `visuals/${fileName}`;
+
+    const { getSupabaseClient } = await import('../lib/supabase');
+    const supabase = getSupabaseClient();
+
+    const { data, error } = await supabase.storage
+      .from('word-images')
+      .createSignedUploadUrl(filePath);
+
+    if (error) throw new Error(`Signed URL error: ${error.message}`);
+
+    const { data: urlData } = supabase.storage
+      .from('word-images')
+      .getPublicUrl(filePath);
+
+    res.json({
+      success: true,
+      signedUrl: data.signedUrl,
+      token: data.token,
+      filePath,
+      publicUrl: urlData.publicUrl,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /admin/words/:wordId/update-visual-url
+ * 직접 업로드 후 URL만 DB에 저장
+ */
+export const updateVisualUrl = async (
+  req: AuthRequest, res: Response, next: NextFunction
+) => {
+  try {
+    const { wordId } = req.params;
+    const { imageType, imageUrl, captionKo, captionEn } = req.body;
+
+    if (!imageType || !imageUrl) {
+      return res.status(400).json({ success: false, error: 'imageType and imageUrl required' });
+    }
+
+    const visual = await prisma.wordVisual.upsert({
+      where: { wordId_type: { wordId, type: imageType as any } },
+      update: {
+        imageUrl,
+        captionKo: captionKo || null,
+        captionEn: captionEn || null,
+        promptEn: 'Direct upload',
+      },
+      create: {
+        wordId,
+        type: imageType as any,
+        imageUrl,
+        captionKo: captionKo || null,
+        captionEn: captionEn || null,
+        promptEn: 'Direct upload',
+        labelEn: imageType === 'CONCEPT' ? 'Concept' : imageType === 'MNEMONIC' ? 'Mnemonic' : 'Rhyme',
+        labelKo: imageType === 'CONCEPT' ? '의미' : imageType === 'MNEMONIC' ? '연상' : '라이밍',
+      },
+    });
+
+    res.json({ success: true, data: { visual } });
+  } catch (error) {
+    next(error);
+  }
+};

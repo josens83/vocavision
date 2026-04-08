@@ -58,6 +58,9 @@ import {
   stopCloudinaryMigration,
   // Fill Missing Content
   fillMissingContent,
+  // Direct Upload (Signed URL)
+  getUploadUrl,
+  updateVisualUrl,
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -771,6 +774,8 @@ router.post('/words/:wordId/regenerate-image', regenerateWordImage);
  *                 type: string
  */
 router.post('/words/:wordId/upload-image', uploadWordImage);
+router.post('/words/:wordId/upload-url', authOrSecretKey, getUploadUrl);
+router.post('/words/:wordId/update-visual-url', authOrSecretKey, updateVisualUrl);
 
 /**
  * @swagger
