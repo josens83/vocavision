@@ -98,12 +98,10 @@ export async function processSubscriptionRenewals(): Promise<{
     for (const user of expiringUsers) {
       results.processed++;
 
-      try {
-        // 플랜에 따라 billingCycle 결정
-        const billingCycle = user.subscriptionPlan === 'YEARLY' ? 'yearly' : 'monthly';
-        // 기본 플랜은 basic (추후 확장 가능)
-        const plan = (user.subscriptionPlan === 'PREMIUM_MONTHLY' || user.subscriptionPlan === 'PREMIUM_YEARLY' || user.subscriptionPlan === 'YEARLY' || user.subscriptionPlan === 'FAMILY') ? 'premium' : 'basic';
+      const billingCycle = user.subscriptionPlan === 'YEARLY' ? 'yearly' : 'monthly';
+      const plan = (user.subscriptionPlan === 'PREMIUM_MONTHLY' || user.subscriptionPlan === 'PREMIUM_YEARLY' || user.subscriptionPlan === 'YEARLY' || user.subscriptionPlan === 'FAMILY') ? 'premium' : 'basic';
 
+      try {
         logger.info(`[SubscriptionRenewal] Renewing user ${user.id} (${user.email})`);
 
         await chargeBillingKey(user.id, plan, billingCycle);
