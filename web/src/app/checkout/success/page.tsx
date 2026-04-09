@@ -32,6 +32,10 @@ function SuccessContent() {
   const type = searchParams.get("type");
   const packageSlug = searchParams.get("packageSlug");
   const packageId = searchParams.get("packageId");
+  // 빌링키 발급 플로우 (정기결제)
+  const authKey = searchParams.get("authKey");
+  const customerKey = searchParams.get("customerKey");
+  const isBilling = searchParams.get("billing") === "true";
 
   // Paddle은 _ptxn으로 transaction ID를 반환함
   const transactionId = searchParams.get("transaction_id") || searchParams.get("_ptxn");
@@ -63,6 +67,65 @@ function SuccessContent() {
           console.error('Failed to refresh user:', e);
         }
         queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+        return;
+      }
+
+      // ===== 빌링키 발급 플로우 (구독 정기결제) =====
+      if (isBilling && authKey && customerKey) {
+        try {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+          // localStorage에서 accessToken
+          let accessToken = "";
+          if (typeof window !== "undefined") {
+            const authStorage = localStorage.getItem("auth-storage");
+            if (authStorage) {
+              try {
+                const authData = JSON.parse(authStorage);
+                accessToken = authData?.state?.accessToken || "";
+              } catch { /* ignore */ }
+            }
+          }
+
+          const response = await fetch(`${API_URL}/payments/billing/issue`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+            },
+            body: JSON.stringify({
+              authKey,
+              customerKey,
+              plan: plan || 'basic',
+              billingCycle: billingCycle || 'monthly',
+            }),
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            setStatus("success");
+            gaEvent('purchase', {
+              category: 'conversion',
+              label: plan || undefined,
+            });
+            try {
+              const { refreshUser } = useAuthStore.getState();
+              await refreshUser();
+            } catch (e) {
+              console.error('Failed to refresh user:', e);
+            }
+            queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+            queryClient.invalidateQueries({ queryKey: ['packageAccessBulk'] });
+          } else {
+            setStatus("error");
+            setErrorMessage(result.error || (isEn ? "Billing registration failed." : "정기결제 등록에 실패했습니다."));
+          }
+        } catch (error) {
+          console.error("빌링키 발급 오류:", error);
+          setStatus("error");
+          setErrorMessage(isEn ? "An error occurred during billing setup." : "정기결제 설정 중 오류가 발생했습니다.");
+        }
         return;
       }
 

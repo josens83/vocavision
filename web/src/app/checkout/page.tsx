@@ -534,18 +534,10 @@ function SubscriptionCheckout() {
           },
         });
       } else {
-        // TossPayments (한국)
-        const { requestPaymentWithParams } = await import("@/lib/payments/toss");
-        const safeUserId = user.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 16);
-        const orderId = `vv-sub-${safeUserId}-${selectedPlan}-${billingCycle}-${Date.now()}`;
-        await requestPaymentWithParams({
-          orderId,
-          orderName: isEn
-            ? `VocaVision AI ${getPlanInfo(isEn)[selectedPlan].name} (${billingCycle === "monthly" ? "Monthly" : "Yearly"})`
-            : `VocaVision AI ${getPlanInfo(isEn)[selectedPlan].name} (${billingCycle === "monthly" ? "월간" : "연간"})`,
-          amount: getPlanInfo(isEn)[selectedPlan].prices[billingCycle] as number,
-          customerEmail: user.email || undefined,
-          customerName: user.name || (isEn ? "Customer" : "고객"),
+        // TossPayments (한국) — 빌링키 발급 (자동갱신 지원)
+        const { requestBillingAuth } = await import("@/lib/payments/toss");
+        const customerKey = `cust_${user.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20)}`;
+        await requestBillingAuth(customerKey, {
           plan: selectedPlan,
           billingCycle,
           userId: user.id,

@@ -164,12 +164,25 @@ export async function requestPaymentWithParams(request: PaymentRequestWithParams
  * 빌링키 발급 요청 (정기결제용)
  * 카드 정보를 등록하고 빌링키를 발급받습니다.
  */
-export async function requestBillingAuth(customerKey: string): Promise<void> {
+export async function requestBillingAuth(
+  customerKey: string,
+  params?: {
+    plan?: string;
+    billingCycle?: string;
+    userId?: string;
+  }
+): Promise<void> {
   const tossPayments = await loadTossPaymentsSDK();
+
+  // successUrl에 구독 정보 포함
+  const urlParams = new URLSearchParams({ billing: 'true' });
+  if (params?.plan) urlParams.set('plan', params.plan);
+  if (params?.billingCycle) urlParams.set('billingCycle', params.billingCycle);
+  if (params?.userId) urlParams.set('userId', params.userId);
 
   await tossPayments.requestBillingAuth("카드", {
     customerKey,
-    successUrl: `${SUCCESS_URL}?billing=true`,
+    successUrl: `${SUCCESS_URL}?${urlParams.toString()}`,
     failUrl: `${FAIL_URL}?billing=true`,
   });
 }
