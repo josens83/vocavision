@@ -306,8 +306,16 @@ export const confirmPayment = async (
         },
       });
 
-      // 6. User 구독 상태 업데이트
-      const subscriptionEnd = new Date();
+      // 6. User 구독 상태 업데이트 — 기존 만료일이 미래이면 거기서부터 연장
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { subscriptionEnd: true },
+      });
+      const now = new Date();
+      const baseDate = currentUser?.subscriptionEnd && new Date(currentUser.subscriptionEnd) > now
+        ? new Date(currentUser.subscriptionEnd)
+        : now;
+      const subscriptionEnd = new Date(baseDate);
       if (payment.billingCycle === 'yearly') {
         subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
       } else {
@@ -570,8 +578,12 @@ export async function chargeBillingKey(
     },
   });
 
-  // 구독 기간 연장
-  const subscriptionEnd = new Date();
+  // 구독 기간 연장 — 기존 만료일이 미래이면 거기서부터 연장 (이중 결제 방지)
+  const now = new Date();
+  const baseDate = user.subscriptionEnd && new Date(user.subscriptionEnd) > now
+    ? new Date(user.subscriptionEnd)
+    : now;
+  const subscriptionEnd = new Date(baseDate);
   if (billingCycle === 'yearly') {
     subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
   } else {
