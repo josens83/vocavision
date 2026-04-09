@@ -438,6 +438,31 @@ class EmailService {
       { plan, expireDate }
     );
   }
+
+  /**
+   * 관리자 결제 알림 (새 매출 발생 시)
+   */
+  async sendAdminPaymentAlert(
+    customerName: string,
+    plan: string,
+    amount: string,
+    orderId: string
+  ): Promise<boolean> {
+    return this.sendEmail({
+      to: 'dohurnk@gmail.com',
+      subject: `💰 새 결제: ${customerName} / ${plan} / ${amount}`,
+      html: `
+        <h2>새 결제가 발생했습니다</h2>
+        <p><strong>고객:</strong> ${customerName}</p>
+        <p><strong>플랜:</strong> ${plan}</p>
+        <p><strong>금액:</strong> ${amount}</p>
+        <p><strong>주문번호:</strong> ${orderId}</p>
+        <p><strong>시간:</strong> ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</p>
+        <a href="https://dashboard.tosspayments.com">Toss 대시보드 확인</a>
+      `,
+      text: `새 결제: ${customerName} / ${plan} / ${amount} / ${orderId}`,
+    });
+  }
 }
 
 // Singleton instance
