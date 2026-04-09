@@ -7,6 +7,7 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
 import logger from '../utils/logger';
+import { emailService } from '../services/emailService';
 
 // 플랜별 가격 정보 (프론트엔드와 동일하게 설정)
 const PLAN_PRICES: Record<string, Record<string, number>> = {
@@ -327,6 +328,15 @@ export const confirmPayment = async (
 
       logger.info(`[Payments] User ${userId} subscription activated until ${subscriptionEnd}`);
 
+      // 관리자 결제 알림
+      const alertUser = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true } });
+      emailService.sendAdminPaymentAlert(
+        alertUser?.name || alertUser?.email || userId,
+        `${payment.plan === 'premium' ? '프리미엄' : '베이직'} ${payment.billingCycle === 'yearly' ? '연간' : '월간'}`,
+        `₩${Number(amount).toLocaleString()}`,
+        orderId
+      ).catch(err => logger.error('[Payment] Admin alert email failed:', err));
+
       res.json({
         success: true,
         data: {
@@ -582,6 +592,14 @@ export async function chargeBillingKey(
   });
 
   logger.info(`[Billing] User ${userId} subscription renewed until ${subscriptionEnd}`);
+
+  // 관리자 결제 알림
+  emailService.sendAdminPaymentAlert(
+    user.name || user.email || userId,
+    `${plan === 'premium' ? '프리미엄' : '베이직'} ${billingCycle === 'yearly' ? '연간' : '월간'} (갱신)`,
+    `₩${amount.toLocaleString()}`,
+    payment.orderId
+  ).catch(err => logger.error('[Billing] Admin alert email failed:', err));
 
   return { success: true, subscriptionEnd, paymentId: payment.id };
 }
