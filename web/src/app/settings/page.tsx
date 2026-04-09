@@ -461,9 +461,9 @@ function SettingsContent() {
                         <div>
                           <div className="text-[13px] text-gray-500 mb-1">{isEn ? 'Plan' : '플랜'}</div>
                           <div className="text-[16px] font-semibold text-[#1c1c1e]">
-                            {subscription.subscriptionPlan === 'MONTHLY' && (isEn ? 'Monthly' : '월간 구독')}
-                            {subscription.subscriptionPlan === 'YEARLY' && (isEn ? 'Yearly' : '연간 구독')}
-                            {!subscription.subscriptionPlan && (isEn ? 'No subscription' : '구독 없음')}
+                            {subscription.subscriptionPlan
+                              ? getPlanName(subscription.subscriptionPlan)
+                              : (isEn ? 'No subscription' : '구독 없음')}
                           </div>
                         </div>
                       </div>
