@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const description = isEn
     ? 'Master SAT, GRE, TOEFL & IELTS vocabulary with AI-generated images, etymology & rhymes. 19,000+ words. Free to start.'
-    : '수능, TEPS, TOEFL 영어 단어를 AI 이미지 연상법, 어원 분석, Rhyme으로 효과적으로 암기하세요. 3,000개+ 단어 무료 제공.';
+    : '수능, TEPS, TOEFL 영어 단어를 AI 이미지 연상법, 어원 분석, Rhyme으로 효과적으로 암기하세요. 19,000개+ 단어, 10개 시험 대비.';
 
   const keywords = isEn
     ? [
