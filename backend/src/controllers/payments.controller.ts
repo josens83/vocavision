@@ -317,7 +317,9 @@ export const confirmPayment = async (
         where: { id: userId },
         data: {
           subscriptionStatus: 'ACTIVE',
-          subscriptionPlan: payment.billingCycle === 'yearly' ? 'YEARLY' : 'MONTHLY',
+          subscriptionPlan: payment.plan === 'premium'
+            ? (payment.billingCycle === 'yearly' ? 'PREMIUM_YEARLY' : 'PREMIUM_MONTHLY')
+            : (payment.billingCycle === 'yearly' ? 'YEARLY' : 'MONTHLY'),
           subscriptionStart: new Date(),
           subscriptionEnd,
         },
@@ -570,7 +572,9 @@ export async function chargeBillingKey(
     where: { id: userId },
     data: {
       subscriptionStatus: 'ACTIVE',
-      subscriptionPlan: billingCycle === 'yearly' ? 'YEARLY' : 'MONTHLY',
+      subscriptionPlan: plan === 'premium'
+        ? (billingCycle === 'yearly' ? 'PREMIUM_YEARLY' : 'PREMIUM_MONTHLY')
+        : (billingCycle === 'yearly' ? 'YEARLY' : 'MONTHLY'),
       subscriptionStart: new Date(),
       subscriptionEnd,
       lastPaymentId: payment.id,
