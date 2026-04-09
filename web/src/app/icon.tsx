@@ -16,19 +16,19 @@ export default function Icon() {
     (
       <div
         style={{
-          fontSize: 18,
-          background: 'linear-gradient(135deg, #14B8A6 0%, #8B5CF6 100%)',
+          background: 'linear-gradient(135deg, #A5F3FC 0%, #22D3EE 100%)',
           width: '100%',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'white',
-          fontWeight: 'bold',
-          borderRadius: 6,
+          borderRadius: 4,
         }}
       >
-        V
+        <svg viewBox="0 0 108 108" width="24" height="24">
+          <path d="M 28,40 L 40,70 L 52,40" fill="none" stroke="white" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M 56,70 L 68,40 L 80,70" fill="none" stroke="white" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </div>
     ),
     {
