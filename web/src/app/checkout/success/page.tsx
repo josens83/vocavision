@@ -78,13 +78,7 @@ function SuccessContent() {
           // localStorage에서 accessToken
           let accessToken = "";
           if (typeof window !== "undefined") {
-            const authStorage = localStorage.getItem("auth-storage");
-            if (authStorage) {
-              try {
-                const authData = JSON.parse(authStorage);
-                accessToken = authData?.state?.accessToken || "";
-              } catch { /* ignore */ }
-            }
+            accessToken = localStorage.getItem("authToken") || "";
           }
 
           const response = await fetch(`${API_URL}/payments/billing/issue`, {
