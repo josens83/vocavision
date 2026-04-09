@@ -65,7 +65,7 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
       name: isEn ? "Basic" : "베이직",
       description: isEn
         ? "Perfect for SAT & ACT test-takers"
-        : "수능 영어 완벽 대비를 원하는 분께 추천",
+        : "수능 전체 + TEPS 완벽 대비",
       features: isEn
         ? [
             "SAT Full (Starter + Advanced) — 2,120 words",
@@ -76,7 +76,8 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
           ]
         : [
             "수능 L1(기초)/L2(중급)/L3(고급) 전체",
-            "TEPS 전체 어휘 (419개)",
+            "TEPS L1(기본)/L2(필수) 전체",
+            "SAT · ACT 기본 레벨",
             "AI 생성 이미지 전체",
             "전체 퀴즈 모드",
             "상세 학습 통계",
@@ -90,7 +91,7 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
       name: isEn ? "Premium" : "프리미엄",
       description: isEn
         ? "Complete access to all vocabulary packs"
-        : "수능 + TEPS 완벽 대비를 원하는 분께 추천",
+        : "모든 시험 · 모든 단어장 무제한",
       features: isEn
         ? [
             "✨ All Vocab Packs included (GRE/TOEFL/TOEIC/IELTS)",
@@ -101,9 +102,9 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
             "Detailed learning statistics",
           ]
         : [
-            "✨ 모든 단어장(단품) 무료 이용",
-            "수능 L1(기초)/L2(중급)/L3(고급) 전체",
-            "TEPS L1(기본)/L2(필수) 전체",
+            "✨ 수능 · TEPS · EBS · 2026 기출 전체",
+            "✨ TOEFL · TOEIC · GRE · SAT · ACT · IELTS 전체",
+            "✨ 모든 단품 단어장 무료 이용",
             "AI 생성 이미지 전체",
             "전체 퀴즈 모드",
             "상세 학습 통계",
