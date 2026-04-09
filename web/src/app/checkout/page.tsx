@@ -68,7 +68,7 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
         : "수능 전체 + TEPS 완벽 대비",
       features: isEn
         ? [
-            "SAT Full (Starter + Advanced) — 2,120 words",
+            "SAT Full (Starter + Advanced) — 2,100+ words",
             "ACT Complete (Core + Plus) — 822 words",
             "All AI-generated images",
             "All quiz modes",
@@ -95,7 +95,7 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
       features: isEn
         ? [
             "✨ All Vocab Packs included (GRE/TOEFL/TOEIC/IELTS)",
-            "SAT Full (Starter + Advanced) — 2,120 words",
+            "SAT Full (Starter + Advanced) — 2,100+ words",
             "ACT Full (Core + Plus) — 822 words",
             "All AI-generated images",
             "All quiz modes",
