@@ -706,7 +706,7 @@ export default function HelpPage() {
               </Link>
 
               <p className="mt-4 text-sm text-gray-400">
-                {isEn ? '800+ SAT Starter words free after sign-up' : '회원가입 후 수능 L1 무료 체험 가능'}
+                {isEn ? '1,300+ SAT Starter words free after sign-up' : '회원가입 후 수능 L1 무료 체험 가능'}
               </p>
             </div>
           </section>

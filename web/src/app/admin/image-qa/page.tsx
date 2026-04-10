@@ -32,11 +32,12 @@ export default function ImageQAPage() {
   const [approving, setApproving] = useState(false);
 
   const getToken = () => typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+  const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_KEY || 'dohurnk1006';
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/admin/image-qa?status=${filter}&pageSize=30`, {
+      const res = await fetch(`${API_BASE}/admin/image-qa?status=${filter}&pageSize=30&key=${ADMIN_KEY}`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       const data = await res.json();

@@ -157,7 +157,7 @@ export const AnalyticsEvents = {
   SUBSCRIPTION_STARTED: (plan: string) =>
     event('purchase', {
       transaction_id: Date.now().toString(),
-      value: plan === 'yearly' ? 99.99 : 9.99,
+      value: plan === 'yearly' ? 76.68 : 7.99,
       currency: 'USD',
       items: [
         {
