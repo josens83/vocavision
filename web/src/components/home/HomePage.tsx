@@ -45,7 +45,7 @@ export default function HomePage() {
                 </div>
                 <p className="text-sm text-gray-500 mb-4">SAT + ACT Full Access</p>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-cyan-50 text-cyan-700 text-xs px-2 py-1 rounded-full font-medium">2,120 + 822 words</span>
+                  <span className="bg-cyan-50 text-cyan-700 text-xs px-2 py-1 rounded-full font-medium">2,000+ + 822 words</span>
                 </div>
                 <span className="text-2xl font-bold text-gray-900">$4.99<span className="text-sm text-gray-500 font-normal">/mo</span></span>
               </Link>

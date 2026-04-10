@@ -43,8 +43,8 @@ export default function PricingPage() {
   };
 
   const pricesUsd = {
-    monthly: { basic: 4.99, premium: 9.99 },
-    yearly: { basic: 47.88, premium: 95.88 },
+    monthly: { basic: 4.99, premium: 7.99 },
+    yearly: { basic: 47.88, premium: 76.68 },
   };
 
   const currentPrices = isEn ? pricesUsd[billingCycle] : prices[billingCycle];
@@ -338,7 +338,7 @@ export default function PricingPage() {
             <ul className="mt-7 space-y-3">
               <li className="flex items-center gap-3 text-[13px] text-[#1c1c1e]">
                 <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                <span className="font-semibold">{isEn ? 'SAT Full (Starter + Advanced) — 2,120 words' : '수능 전체 (L1/L2/L3) — 1,724개 단어'}</span>
+                <span className="font-semibold">{isEn ? 'SAT Full (Starter + Advanced) — 2,000+ words' : '수능 전체 (L1/L2/L3) — 1,793개 단어'}</span>
               </li>
               {isEn && (
                 <>
@@ -473,7 +473,7 @@ export default function PricingPage() {
                   : 'TOEFL Essential + Mastery 전체 단어를 체계적으로 학습하세요.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$9.99' : '₩9,900'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$7.99' : '₩9,900'}</span>
                 <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
               </div>
               <button
@@ -506,7 +506,7 @@ export default function PricingPage() {
                   : '취업·승진 필수! TOEIC 핵심 어휘를 AI 이미지로 한 번에 정복. Starter(기초) + Booster(실전) 2단계 구성.'}
               </p>
               <div className="flex items-end gap-1 mb-4">
-                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$9.99' : '₩9,900'}</span>
+                <span className="text-[28px] font-bold text-[#1c1c1e]">{isEn ? '$7.99' : '₩9,900'}</span>
                 <span className="text-[#999999] text-[12px] mb-1">{isEn ? '6 months' : '6개월'}</span>
               </div>
               <button
@@ -531,7 +531,7 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-[#1c1c1e]">SAT 핵심 어휘</h3>
-                  <p className="text-[12px] text-[#999999]">2,120개 단어</p>
+                  <p className="text-[12px] text-[#999999]">2,001개 단어</p>
                 </div>
               </div>
               <p className="text-gray-500 text-[13px] mb-4">

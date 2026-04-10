@@ -68,7 +68,7 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
         : "수능 전체 + TEPS 완벽 대비",
       features: isEn
         ? [
-            "SAT Full (Starter + Advanced) — 2,100+ words",
+            "SAT Full (Starter + Advanced) — 2,000+ words",
             "ACT Complete (Core + Plus) — 822 words",
             "All AI-generated images",
             "All quiz modes",
@@ -95,7 +95,7 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
       features: isEn
         ? [
             "✨ All Vocab Packs included (GRE/TOEFL/TOEIC/IELTS)",
-            "SAT Full (Starter + Advanced) — 2,100+ words",
+            "SAT Full (Starter + Advanced) — 2,000+ words",
             "ACT Full (Core + Plus) — 822 words",
             "All AI-generated images",
             "All quiz modes",
@@ -110,8 +110,8 @@ function getPlanInfo(isEn: boolean): Record<PlanType, PlanInfo> {
             "상세 학습 통계",
           ],
       prices: {
-        monthly: isEn ? 999 : 9900,
-        yearly: isEn ? 9588 : 95000,
+        monthly: isEn ? 799 : 9900,
+        yearly: isEn ? 7668 : 95000,
       },
     },
   };
