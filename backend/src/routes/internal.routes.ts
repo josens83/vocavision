@@ -5594,6 +5594,116 @@ router.get('/image-queue-stats', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /internal/fix-rhyme-captions?key=YOUR_SECRET&batchSize=50
+ * "라임" 패턴 캡션을 음절 분해 스타일로 교체 + Image QA 등록
+ */
+router.get('/fix-rhyme-captions', async (req: Request, res: Response) => {
+  try {
+    const { key, batchSize: batchSizeStr } = req.query;
+    if (key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const batchSize = Math.min(parseInt(batchSizeStr as string) || 50, 250);
+
+    // "라임" 패턴 캡션 조회
+    const targetVisuals = await prisma.wordVisual.findMany({
+      where: {
+        type: 'RHYME',
+        OR: [
+          { captionKo: { contains: '라임' } },
+          { captionEn: { contains: 'rhymes with' } },
+        ],
+      },
+      include: {
+        word: { select: { id: true, word: true, definition: true, definitionKo: true, examCategory: true } },
+      },
+      take: batchSize,
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (targetVisuals.length === 0) {
+      return res.json({ message: 'No rhyme captions need fixing', processed: 0 });
+    }
+
+    res.json({
+      message: `Processing ${targetVisuals.length} rhyme captions in batches of 10`,
+      targetCount: targetVisuals.length,
+      words: targetVisuals.map(v => v.word.word).slice(0, 20),
+    });
+
+    // Background: 10개씩 배치
+    (async () => {
+      const { generateRhymeCaptionBatch } = await import('../services/contentGenerator.service');
+      let success = 0, failed = 0;
+      const CHUNK_SIZE = 10;
+
+      for (let i = 0; i < targetVisuals.length; i += CHUNK_SIZE) {
+        const chunk = targetVisuals.slice(i, i + CHUNK_SIZE);
+        try {
+          const results = await generateRhymeCaptionBatch(
+            chunk.map(v => ({
+              word: v.word.word,
+              definition: v.word.definition,
+              definitionKo: v.word.definitionKo || v.word.definition,
+            }))
+          );
+
+          for (const result of results) {
+            const visual = chunk.find(v => v.word.word.toLowerCase() === result.word.toLowerCase());
+            if (visual && result.captionEn && result.captionKo) {
+              // 1. 캡션 업데이트
+              await prisma.wordVisual.update({
+                where: { id: visual.id },
+                data: {
+                  captionEn: result.captionEn,
+                  captionKo: result.captionKo,
+                },
+              });
+
+              // 2. Image QA 등록 (deleteMany + create — unique 제약 없음)
+              await prisma.imageQueueItem.deleteMany({
+                where: { wordId: visual.wordId, visualType: 'RHYME' },
+              });
+              await prisma.imageQueueItem.create({
+                data: {
+                  wordId: visual.wordId,
+                  visualType: 'RHYME',
+                  prompt: `Rhyme caption fix: ${result.captionEn}`,
+                  captionKo: result.captionKo,
+                  captionEn: result.captionEn,
+                  imageUrl: visual.imageUrl,
+                  status: 'PENDING_QA',
+                  examCategory: visual.word.examCategory,
+                },
+              });
+
+              success++;
+              logger.info(`[RhymeFix] ${success}/${targetVisuals.length} fixed: ${result.word} → ${result.captionEn}`);
+            }
+          }
+        } catch (error) {
+          failed += chunk.length;
+          logger.error(`[RhymeFix] Batch failed at offset ${i}:`, error);
+        }
+
+        // Rate limiting — 3s between batches
+        if (i + CHUNK_SIZE < targetVisuals.length) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+
+      logger.info(`[RhymeFix] Complete. Success: ${success}, Failed: ${failed}`);
+    })();
+  } catch (error) {
+    logger.error('[RhymeFix] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Rhyme caption fix failed' });
+    }
+  }
+});
+
+/**
  * GET /internal/trigger-renewal?key=YOUR_SECRET
  * 구독 갱신 크론잡 수동 트리거 (테스트용)
  */

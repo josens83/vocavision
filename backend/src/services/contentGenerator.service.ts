@@ -1118,6 +1118,55 @@ Return ONLY a JSON array, no other text:
   return JSON.parse(jsonMatch[0]);
 }
 
+/**
+ * 배치 rhyme 캡션 생성 (10개씩)
+ * 음절 분해 스타일 한영 캡션 생성
+ */
+export async function generateRhymeCaptionBatch(
+  words: Array<{ word: string; definition: string; definitionKo: string }>
+): Promise<Array<{ word: string; captionEn: string; captionKo: string }>> {
+  const wordList = words.map(w => `- ${w.word}: ${w.definition} (${w.definitionKo})`).join('\n');
+
+  const prompt = `You are a vocabulary mnemonics expert. Create rhyme-based captions for each word using multi-syllable decomposition.
+
+## Method
+Break each word into syllables, map to similar-sounding English words, create a memorable phrase that connects to the meaning.
+
+## Examples
+- "ubiquitous" → EN: "Ubiquitous — you be with us, everywhere." / KO: "Ubiquitous — you be with us, 어디에나 함께."
+- "ephemeral" → EN: "Ephemeral — even a few errors all fade away." / KO: "Ephemeral — even a few errors all, 모두 사라진다."
+- "resilience" → EN: "Resilience — we REAL LIONS, bouncing back stronger." / KO: "Resilience — we REAL LIONS, 더 강하게 돌아온다."
+
+## Words
+${wordList}
+
+## Output
+Return ONLY a JSON array, no other text:
+[{"word": "...", "captionEn": "Word — syllable phrase, meaning connection.", "captionKo": "Word — syllable phrase, 한국어 의미 연결."}]
+
+## Rules
+1. Syllable breakdown must match actual pronunciation
+2. Keep each caption under 15 words
+3. CAPITALISE syllable-mapped words
+4. Caption must connect to primary meaning
+5. Korean caption uses same English syllable phrase + Korean meaning`;
+
+  const client = getAnthropicClient();
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 4096,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  const content = response.content[0];
+  if (content.type !== 'text') throw new Error('Unexpected response type');
+
+  const jsonMatch = content.text.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) throw new Error('No JSON array in response');
+
+  return JSON.parse(jsonMatch[0]);
+}
+
 export default {
   generateWordContent,
   saveGeneratedContent,
@@ -1128,5 +1177,6 @@ export default {
   processFillMissingJob,
   generateEnglishMnemonic,
   generateEnglishMnemonicBatch,
+  generateRhymeCaptionBatch,
   generateEtymologyEn,
 };
