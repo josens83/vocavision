@@ -1668,6 +1668,11 @@ async function runContinuousImageGeneration(
             });
 
             if (existingVisual) {
+              // isLocked 보호 — admin 수동 교체 이미지는 건드리지 않음
+              if (existingVisual.isLocked) {
+                logger.info(`[Internal/ImageGen] SKIPPED "${currentWord.word}" ${visualType} — isLocked`);
+                continue;
+              }
               // 기존 레코드 업데이트 (imageUrl=null → 실제 URL로)
               await prisma.wordVisual.update({
                 where: { id: existingVisual.id },
@@ -5717,6 +5722,244 @@ router.get('/trigger-renewal', async (req: Request, res: Response) => {
     res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================
+// Concept Image Quality — Batch Fix
+// ============================================
+
+/**
+ * GET /internal/fix-concept-captions?key=YOUR_SECRET&batchSize=50
+ * 이미지는 OK인데 captionEn에 단어가 안 들어간 것만 수정 (Claude API only, ~$3)
+ */
+router.get('/fix-concept-captions', async (req: Request, res: Response) => {
+  try {
+    const { key, batchSize: batchSizeStr } = req.query;
+    if (key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const batchSize = Math.min(parseInt(batchSizeStr as string) || 50, 200);
+
+    const targetVisuals = await prisma.wordVisual.findMany({
+      where: {
+        type: 'CONCEPT',
+        isLocked: false,
+        promptEn: {
+          not: { contains: 'cute 3D' },
+        },
+        AND: [
+          { promptEn: { not: { contains: 'flat vector' } } },
+          { promptEn: { not: { contains: 'Flat 2D editorial' } } },
+        ],
+      },
+      include: {
+        word: { select: { id: true, word: true, definition: true, definitionKo: true, examCategory: true, partOfSpeech: true } },
+      },
+      take: batchSize,
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const needsFix = targetVisuals.filter(v => {
+      const caption = (v.captionEn || '').toLowerCase();
+      const word = v.word.word.toLowerCase();
+      return !caption.includes(word);
+    });
+
+    if (needsFix.length === 0) {
+      return res.json({ message: 'No concept captions need fixing', processed: 0 });
+    }
+
+    res.json({
+      message: `Fixing ${needsFix.length} concept captions (from ${targetVisuals.length} fetched)`,
+      targetCount: needsFix.length,
+      sampleWords: needsFix.slice(0, 10).map(v => v.word.word),
+    });
+
+    (async () => {
+      const { generateConceptScene } = await import('../services/smartCaption.service');
+      let success = 0, failed = 0;
+      const CHUNK_SIZE = 10;
+
+      for (let i = 0; i < needsFix.length; i += CHUNK_SIZE) {
+        const chunk = needsFix.slice(i, i + CHUNK_SIZE);
+        try {
+          for (const visual of chunk) {
+            const current = await prisma.wordVisual.findUnique({ where: { id: visual.id } });
+            if (!current || current.isLocked) continue;
+
+            const conceptResult = await generateConceptScene(
+              visual.word.word,
+              visual.word.definition || '',
+              visual.word.definitionKo || ''
+            );
+
+            await prisma.wordVisual.update({
+              where: { id: visual.id },
+              data: {
+                captionEn: conceptResult.captionEn,
+                captionKo: conceptResult.captionKo,
+              },
+            });
+
+            success++;
+            logger.info(`[ConceptCaptionFix] ${success}/${needsFix.length}: ${visual.word.word} → ${conceptResult.captionEn}`);
+          }
+        } catch (error) {
+          failed += chunk.length;
+          logger.error(`[ConceptCaptionFix] Batch failed at offset ${i}:`, error);
+        }
+
+        if (i + CHUNK_SIZE < needsFix.length) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+
+      logger.info(`[ConceptCaptionFix] Complete. Success: ${success}, Failed: ${failed}`);
+    })();
+  } catch (error) {
+    logger.error('[ConceptCaptionFix] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Concept caption fix failed' });
+    }
+  }
+});
+
+/**
+ * GET /internal/regen-concept-images?key=YOUR_SECRET&examCategory=CSAT&batchSize=30
+ * 3D/flat vector 이미지를 현재 2D 프롬프트로 재생성 (Stability AI + Claude)
+ */
+router.get('/regen-concept-images', async (req: Request, res: Response) => {
+  try {
+    const { key, examCategory, batchSize: batchSizeStr } = req.query;
+    if (key !== process.env.INTERNAL_SECRET_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!examCategory) {
+      return res.status(400).json({ error: 'examCategory required (CSAT, EBS, SAT, GRE, TOEFL, TOEIC, ACT, IELTS)' });
+    }
+
+    const batchSize = Math.min(parseInt(batchSizeStr as string) || 30, 100);
+
+    const targetVisuals = await prisma.wordVisual.findMany({
+      where: {
+        type: 'CONCEPT',
+        isLocked: false,
+        OR: [
+          { promptEn: { contains: 'cute 3D' } },
+          { promptEn: { contains: 'flat vector' } },
+          { promptEn: { contains: 'Flat 2D editorial' } },
+        ],
+        word: {
+          examLevels: {
+            some: { examCategory: examCategory as string },
+          },
+        },
+      },
+      include: {
+        word: { select: { id: true, word: true, definition: true, definitionKo: true, partOfSpeech: true, examCategory: true } },
+      },
+      take: batchSize,
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (targetVisuals.length === 0) {
+      return res.json({ message: `No ${examCategory} concept images need regeneration`, processed: 0 });
+    }
+
+    const remaining = await prisma.wordVisual.count({
+      where: {
+        type: 'CONCEPT',
+        isLocked: false,
+        OR: [
+          { promptEn: { contains: 'cute 3D' } },
+          { promptEn: { contains: 'flat vector' } },
+          { promptEn: { contains: 'Flat 2D editorial' } },
+        ],
+        word: {
+          examLevels: {
+            some: { examCategory: examCategory as string },
+          },
+        },
+      },
+    });
+
+    res.json({
+      message: `Regenerating ${targetVisuals.length} concept images for ${examCategory}`,
+      batchSize: targetVisuals.length,
+      remainingTotal: remaining,
+      sampleWords: targetVisuals.slice(0, 10).map(v => v.word.word),
+    });
+
+    (async () => {
+      const { generateConceptPromptV2 } = await import('../services/smartCaption.service');
+      const { generateAndUploadImage } = await import('../services/imageGenerator.service');
+      type VisualType = 'CONCEPT' | 'MNEMONIC' | 'RHYME';
+      let success = 0, failed = 0, skipped = 0;
+
+      for (const visual of targetVisuals) {
+        try {
+          const current = await prisma.wordVisual.findUnique({ where: { id: visual.id } });
+          if (!current || current.isLocked) {
+            skipped++;
+            continue;
+          }
+
+          const conceptResult = await generateConceptPromptV2(
+            visual.word.word,
+            visual.word.definition || '',
+            visual.word.definitionKo || '',
+            visual.word.partOfSpeech || ''
+          );
+
+          const imageResult = await generateAndUploadImage(
+            conceptResult.prompt,
+            'CONCEPT' as VisualType,
+            visual.word.word
+          );
+
+          if (imageResult) {
+            await prisma.wordVisual.update({
+              where: { id: visual.id },
+              data: {
+                imageUrl: imageResult.imageUrl,
+                promptEn: conceptResult.prompt,
+                captionEn: conceptResult.captionEn,
+                captionKo: conceptResult.captionKo,
+              },
+            });
+
+            success++;
+            logger.info(`[ConceptRegen] ${success}/${targetVisuals.length} ${examCategory}: ${visual.word.word} ✅`);
+          } else {
+            failed++;
+            logger.warn(`[ConceptRegen] ${examCategory}: ${visual.word.word} — image generation returned null`);
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 3000));
+
+        } catch (error: any) {
+          failed++;
+          const msg = error instanceof Error ? error.message : String(error);
+          logger.error(`[ConceptRegen] ${examCategory}: ${visual.word.word} — ${msg}`);
+
+          if (msg.includes('content_moderation') || msg.includes('403')) {
+            logger.warn(`[ConceptRegen] SKIPPED "${visual.word.word}" — content moderation`);
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+      }
+
+      logger.info(`[ConceptRegen] ${examCategory} batch complete. Success: ${success}, Failed: ${failed}, Skipped: ${skipped}`);
+    })();
+  } catch (error) {
+    logger.error('[ConceptRegen] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Concept image regeneration failed' });
+    }
   }
 });
 

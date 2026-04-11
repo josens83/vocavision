@@ -354,6 +354,9 @@ model WordVisual {
   // 정렬 순서
   order       Int         @default(0)
 
+  // admin 수동 교체 이미지 보호 — true이면 배치 작업에서 건드리지 않음
+  isLocked    Boolean     @default(false)
+
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 

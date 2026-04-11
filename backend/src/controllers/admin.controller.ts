@@ -1842,6 +1842,7 @@ export const updateWordVisuals = async (
             promptEn: visualData.promptEn,
             labelKo: visualData.labelKo,
             labelEn: visualData.labelEn,
+            isLocked: true,
           },
           create: {
             wordId,
@@ -1872,6 +1873,7 @@ export const updateWordVisuals = async (
             captionKo: typeData.captionKo,
             captionEn: typeData.captionEn,
             promptEn: typeData.promptEn,
+            isLocked: true,
           },
           create: {
             wordId,
