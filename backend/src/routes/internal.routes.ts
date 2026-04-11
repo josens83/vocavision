@@ -5847,6 +5847,10 @@ router.get('/regen-concept-images', async (req: Request, res: Response) => {
       where: {
         type: 'CONCEPT',
         isLocked: false,
+        AND: [
+          { promptEn: { not: { contains: 'Manually uploaded' } } },
+          { promptEn: { not: { contains: 'Direct upload' } } },
+        ],
         OR: [
           { promptEn: { contains: 'cute 3D' } },
           { promptEn: { contains: 'flat vector' } },
@@ -5873,6 +5877,10 @@ router.get('/regen-concept-images', async (req: Request, res: Response) => {
       where: {
         type: 'CONCEPT',
         isLocked: false,
+        AND: [
+          { promptEn: { not: { contains: 'Manually uploaded' } } },
+          { promptEn: { not: { contains: 'Direct upload' } } },
+        ],
         OR: [
           { promptEn: { contains: 'cute 3D' } },
           { promptEn: { contains: 'flat vector' } },

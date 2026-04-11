@@ -622,7 +622,7 @@ export async function generateConceptPromptV2(
   partOfSpeech?: string
 ): Promise<{ prompt: string; captionKo: string; captionEn: string }> {
   const defaultResult = {
-    prompt: `A vivid 2D cartoon illustration centered on the concept of "${word}" (${definitionEn}). The setting shows a clear real-world situation. In the center of the frame, a character clearly demonstrates the meaning of "${word}" through action and expression. The scene clearly shows ${definitionEn}. Camera: medium-close cinematic framing. Style: high-quality vector cartoon illustration with bold outlines and expressive details. High resolution 1:1 square composition The main subject must fill most of the frame Avoid empty background areas STRICT NO TEXT RULE Absolutely no text anywhere No letters No numbers No logos No labels No signage Replace any text areas with blank surfaces`,
+    prompt: `A vivid 2D cartoon illustration centered on the concept of "${word}" (${definitionEn}). Scene: A clear, everyday situation showing the meaning. Camera angle: medium-close cinematic framing focused on the main subject. In the center of the frame, a character clearly demonstrates the meaning of "${word}" through action and expression. The moment clearly shows: ${definitionEn}. Style: High-quality 2D vector cartoon illustration with bold outlines and expressive details. Color palette: vibrant colors with strong contrast between subject and environment. High resolution 1:1 square composition The main subject must fill most of the frame Avoid empty background areas STRICT NO TEXT RULE Absolutely no text anywhere No letters No numbers No logos No labels No signage Replace any text areas with blank surfaces`,
     captionKo: definitionKo || word,
     captionEn: `${word}: ${definitionEn}`,
   };
@@ -631,65 +631,88 @@ export async function generateConceptPromptV2(
   if (!anthropic) return defaultResult;
 
   try {
-    const claudePrompt = `You are a Stability AI image prompt expert specializing in vocabulary learning.
+    const claudePrompt = `You are an expert Stability AI prompt engineer specializing in vocabulary learning images.
 
 ## Word Information
 - Word: ${word}
 - English meaning: ${definitionEn}
-- Korean meaning: ${definitionKo || ''}
-- Part of speech: ${partOfSpeech || ''}
+${definitionKo ? `- Korean meaning: ${definitionKo}` : ''}
+${partOfSpeech ? `- Part of speech: ${partOfSpeech}` : ''}
 
 ## Task
-Create a CONCEPT image prompt following the renowned/suppress example structure exactly.
+Create a complete, ready-to-use Stability AI image generation prompt AND captions for this vocabulary word. The prompt must vividly illustrate the word's meaning through a concrete, real-world scene. A viewer should understand the word's meaning just by looking at the image.
 
-## Required Output Structure
+## Required Prompt Structure (follow EXACTLY)
 
-Line 1: "A [adjective] 2D cartoon illustration centered on [core concept of ${word}]."
-Line 2: "The setting is [specific location + time/atmosphere]."
-Line 3: (blank)
-Section "The [Core Action Name]:": 2-3 lines showing the main character demonstrating "${word}"
-Section "The Reaction:": 1-2 lines showing surrounding characters/environment responding
-Section "The Environment:": 1-2 lines reinforcing the word's meaning through context
-Line: "The scene clearly shows [restate ${word}'s meaning through visible action]."
-Line: "Camera: [specific angle + viewing direction]."
-Line: "Style: high-quality vector cartoon illustration with bold outlines and [lighting/emotional style]."
-Line: "High resolution"
-Line: "1:1 square composition"
-Line: "The [main subject] and [surrounding elements] must fill most of the frame"
-Line: "Avoid empty background areas"
-Line: "STRICT NO TEXT RULE"
-Line: "Absolutely no text anywhere."
-Line: "No letters."
-Line: "No numbers."
-Line: "No logos."
-Line: "No labels."
-Line: "No signage."
-Line: "Replace any text areas with blank surfaces."
+Line 1: "A [adjective] 2D cartoon illustration centered on [core concept of the word]."
+Line 2: "Scene: [specific, concrete, real-world location]."
+Line 3: "Camera angle: medium-close cinematic framing focused on [main subject]."
+Line 4: "In the center of the frame,"
+Lines 5-11: 5 to 7 sentences describing the scene in this order:
+  - Main character's action (2 sentences) — what they are DOING that shows "${word}"
+  - Cause-effect or before-after chain (2 sentences) — what CHANGED or what RESULT is visible
+  - Supporting characters or environment reaction (1-2 sentences)
+  - "The moment clearly shows [explicit restatement of the word's meaning through visible action]."
+Line 12: "Style: High-quality 2D vector cartoon illustration with bold outlines and [choose one: expressive reactions / strong action / dramatic tension / warm emotional detail]."
+Line 13: "Color palette: [primary color theme] contrasted with [contrasting secondary color]."
+Lines 14-25: Standard quality and no-text rules (always include these exactly):
+  High resolution
+  1:1 square composition
+  The main subject must fill most of the frame
+  Avoid empty background areas
+  STRICT NO TEXT RULE
+  Absolutely no text anywhere
+  No letters
+  No numbers
+  No logos
+  No labels
+  No signage
+  Replace any text areas with blank surfaces
 
-## Caption Rules
-- captionEn: "A ${word} [noun] [verb phrase showing scene]" — include the word "${word}" directly, max 12 words
-- captionKo: "[specific person] + [specific place] + [action showing meaning]" — reflect ${word}'s meaning, max 25 chars
+## CRITICAL: Meaning Must Be Visually Obvious
+The #1 priority is that the word's meaning is IMMEDIATELY clear from the image.
+- "beneath" → show something clearly UNDER/BELOW something else
+- "maintain" → show something being KEPT IN GOOD CONDITION over time
+- "harm" → show visible DAMAGE or INJURY happening
+Do NOT create a generic scene that merely relates to the word. The core meaning must be the CENTRAL visual element.
 
-## Good Examples
-Word: renowned
-captionEn: "A renowned chef is surrounded by fans taking photos in a busy restaurant"
-captionKo: "유명한 셰프가 바쁜 레스토랑에서 팬들에게 둘러싸여 사진을 찍힌다"
+## Good Examples (follow this quality level)
 
-Word: suppress
+### Example 1: suppress (to put an end to; to prevent from being known)
+Prompt: A high-impact 2D cartoon illustration centered on suppressing a dangerous situation. Scene: a burning building during an active firefighting effort. Camera angle: medium-close cinematic framing focused on the firefighter and flames. In the center of the frame, a firefighter sprays a powerful stream of water toward growing flames. The water pushes back the fire as smoke rises upward. Parts of the fire begin shrinking where the water hits. Other firefighters move equipment nearby to control the situation. The moment clearly shows the fire being suppressed before it spreads further. Style: High-quality 2D vector cartoon illustration with bold outlines and strong action. Color palette: bright orange flames contrasted with cool blue water spray and dark smoke. High resolution 1:1 square composition The main subject must fill most of the frame Avoid empty background areas STRICT NO TEXT RULE Absolutely no text anywhere No letters No numbers No logos No labels No signage Replace any text areas with blank surfaces
 captionEn: "A firefighter suppresses the blaze with a powerful water stream"
 captionKo: "소방관이 강한 물줄기로 화재를 진압한다"
 
+### Example 2: astound (to shock or greatly surprise)
+Prompt: A dramatic 2D cartoon illustration centered on a moment of complete surprise. Scene: a lively street magic performance in a busy city square. Camera angle: medium-close cinematic framing focused on the magician and the crowd. In the center of the frame, a magician dramatically pulls a large colorful scarf out of a small empty hat. The scarf keeps coming out longer and longer in an impossible way. The crowd surrounding the magician reacts with wide eyes and open mouths. Some people clap while others lean forward in disbelief. The moment clearly shows people being completely astounded by the unexpected spectacle. Style: High-quality 2D vector cartoon illustration with bold outlines and expressive reactions. Color palette: bright festive colors contrasted with strong spotlight lighting on the magician. High resolution 1:1 square composition The main subject must fill most of the frame Avoid empty background areas STRICT NO TEXT RULE Absolutely no text anywhere No letters No numbers No logos No labels No signage Replace any text areas with blank surfaces
+captionEn: "A crowd is astounded by the magician's impossible scarf trick"
+captionKo: "관객들이 마술사의 불가능한 스카프 트릭에 경탄한다"
+
+## Caption Rules
+- captionEn: Must include the word "${word}" directly. Describe the specific scene. Max 15 words.
+  Format: "[Subject] [verb with ${word}] [object/situation]"
+- captionKo: Describe the same scene in Korean. Max 30 chars.
+  Format: "[구체적 인물]이/가 [구체적 장소]에서 [의미를 보여주는 행동]"
+
+## Additional Rules
+- NEVER use white or plain background — always use a real, contextual environment
+- ALWAYS include at least 2 characters or elements interacting
+- The word "${word}" must NEVER appear visually in the image
+- Avoid abstract or metaphorical scenes — everything must be physically visible
+- The scene must work WITHOUT any text to convey the word's meaning
+- Include cause-effect: show what happened BEFORE and what's happening NOW
+
 ## Output Format
-Return ONLY valid JSON:
+Return ONLY valid JSON (no markdown, no backticks, no explanation):
 {
-  "prompt": "full prompt text",
-  "captionKo": "Korean caption",
-  "captionEn": "English caption"
+  "prompt": "the full image generation prompt",
+  "captionEn": "English caption with the word ${word}",
+  "captionKo": "한국어 캡션"
 }`;
 
     const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 800,
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1200,
       messages: [{ role: 'user', content: claudePrompt }],
     });
 
