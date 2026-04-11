@@ -1669,7 +1669,7 @@ async function runContinuousImageGeneration(
 
             if (existingVisual) {
               // isLocked 보호 — admin 수동 교체 이미지는 건드리지 않음
-              if (existingVisual.isLocked) {
+              if ((existingVisual as any).isLocked) {
                 logger.info(`[Internal/ImageGen] SKIPPED "${currentWord.word}" ${visualType} — isLocked`);
                 continue;
               }
@@ -5742,7 +5742,7 @@ router.get('/fix-concept-captions', async (req: Request, res: Response) => {
 
     const batchSize = Math.min(parseInt(batchSizeStr as string) || 50, 200);
 
-    const targetVisuals = await prisma.wordVisual.findMany({
+    const targetVisuals: any[] = await prisma.wordVisual.findMany({
       where: {
         type: 'CONCEPT',
         isLocked: false,
@@ -5753,7 +5753,7 @@ router.get('/fix-concept-captions', async (req: Request, res: Response) => {
           { promptEn: { not: { contains: 'flat vector' } } },
           { promptEn: { not: { contains: 'Flat 2D editorial' } } },
         ],
-      },
+      } as any,
       include: {
         word: { select: { id: true, word: true, definition: true, definitionKo: true, examCategory: true, partOfSpeech: true } },
       },
@@ -5761,7 +5761,7 @@ router.get('/fix-concept-captions', async (req: Request, res: Response) => {
       orderBy: { createdAt: 'asc' },
     });
 
-    const needsFix = targetVisuals.filter(v => {
+    const needsFix = targetVisuals.filter((v: any) => {
       const caption = (v.captionEn || '').toLowerCase();
       const word = v.word.word.toLowerCase();
       return !caption.includes(word);
@@ -5774,7 +5774,7 @@ router.get('/fix-concept-captions', async (req: Request, res: Response) => {
     res.json({
       message: `Fixing ${needsFix.length} concept captions (from ${targetVisuals.length} fetched)`,
       targetCount: needsFix.length,
-      sampleWords: needsFix.slice(0, 10).map(v => v.word.word),
+      sampleWords: needsFix.slice(0, 10).map((v: any) => v.word.word),
     });
 
     (async () => {
@@ -5787,7 +5787,7 @@ router.get('/fix-concept-captions', async (req: Request, res: Response) => {
         try {
           for (const visual of chunk) {
             const current = await prisma.wordVisual.findUnique({ where: { id: visual.id } });
-            if (!current || current.isLocked) continue;
+            if (!current || (current as any).isLocked) continue;
 
             const conceptResult = await generateConceptScene(
               visual.word.word,
@@ -5843,7 +5843,7 @@ router.get('/regen-concept-images', async (req: Request, res: Response) => {
 
     const batchSize = Math.min(parseInt(batchSizeStr as string) || 30, 100);
 
-    const targetVisuals = await prisma.wordVisual.findMany({
+    const targetVisuals: any[] = await prisma.wordVisual.findMany({
       where: {
         type: 'CONCEPT',
         isLocked: false,
@@ -5854,10 +5854,10 @@ router.get('/regen-concept-images', async (req: Request, res: Response) => {
         ],
         word: {
           examLevels: {
-            some: { examCategory: examCategory as string },
+            some: { examCategory: examCategory as any },
           },
         },
-      },
+      } as any,
       include: {
         word: { select: { id: true, word: true, definition: true, definitionKo: true, partOfSpeech: true, examCategory: true } },
       },
@@ -5880,10 +5880,10 @@ router.get('/regen-concept-images', async (req: Request, res: Response) => {
         ],
         word: {
           examLevels: {
-            some: { examCategory: examCategory as string },
+            some: { examCategory: examCategory as any },
           },
         },
-      },
+      } as any,
     });
 
     res.json({
@@ -5899,10 +5899,10 @@ router.get('/regen-concept-images', async (req: Request, res: Response) => {
       type VisualType = 'CONCEPT' | 'MNEMONIC' | 'RHYME';
       let success = 0, failed = 0, skipped = 0;
 
-      for (const visual of targetVisuals) {
+      for (const visual of targetVisuals as any[]) {
         try {
           const current = await prisma.wordVisual.findUnique({ where: { id: visual.id } });
-          if (!current || current.isLocked) {
+          if (!current || (current as any).isLocked) {
             skipped++;
             continue;
           }
